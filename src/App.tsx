@@ -1,5 +1,5 @@
 /**
- * Roomie - Mobile-first PWA Prototype for Flatmate Harmony & Chores
+ * Roomie - Mobile-first PWA Prototype for Roomie Harmony & Chores
  * @license Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import { ExpensesScreen } from './features/expenses/ExpensesScreen';
 import { ChatScreen } from './features/chat/ChatScreen';
 import { MeetingsScreen } from './features/meetings/MeetingsScreen';
 import { MembersScreen } from './features/members/MembersScreen';
+import { ApartmentScreen } from './features/members/ApartmentScreen';
 import { HouseholdSwitcherModal } from './features/household/HouseholdSwitcherModal';
 import { CreateHouseholdFlowModal } from './features/household/CreateHouseholdFlowModal';
 import { JoinHouseholdFlowModal } from './features/household/JoinHouseholdFlowModal';
@@ -59,6 +60,8 @@ import {
   Wifi,
   WifiOff,
   Settings,
+  Check,
+  RefreshCw,
 } from 'lucide-react';
 
 type Tab = 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment';
@@ -71,6 +74,27 @@ function MainApp() {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('synced');
+
+  const handleSyncToggle = () => {
+    sound.playTap();
+    if (syncStatus === 'synced') {
+      setSyncStatus('syncing');
+      showToast('Syncing with apartment...', 'info');
+      setTimeout(() => {
+        setSyncStatus('offline');
+        setIsOffline(true);
+        showToast('Switched to simulated offline mode', 'info');
+      }, 1500);
+    } else if (syncStatus === 'offline') {
+      setIsOffline(false);
+      setSyncStatus('synced');
+      showToast('Reconnected! All apartment data synced.', 'success');
+    } else {
+      setSyncStatus('synced');
+      showToast('All apartment data synced.', 'success');
+    }
+  };
 
   // Core domain data loaded from api layer
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -169,7 +193,7 @@ function MainApp() {
     return (
       <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center">
         <MascotView state="thinking" size="lg" bubbleText="Waking up Roomie..." />
-        <h2 className="text-xl font-heading font-black text-[#1F2430] mt-4">
+        <h2 className="type-title mt-4">
           Loading Apartment 4B...
         </h2>
       </div>
@@ -250,7 +274,7 @@ function MainApp() {
 
   return (
     <div
-      className={`min-h-screen bg-[#F7F8FB] flex flex-col justify-between max-w-md mx-auto shadow-2xl relative border-x border-[#E6E8EE] ${
+      className={`min-h-screen bg-[#F7F8FB] flex flex-col justify-between w-full relative ${
         settings.reducedMotion ? 'motion-reduce' : ''
       }`}
     >
@@ -263,80 +287,154 @@ function MainApp() {
         }}
       />
 
-      {/* TOP APP BAR */}
-      <header className="sticky top-0 z-30 bg-[#F7F8FB]/90 backdrop-blur-md px-4 pt-3 pb-2 border-b border-[#E6E8EE] flex items-center justify-between">
-        {/* Household Switcher dropdown button */}
-        <button
-          type="button"
-          onClick={() => {
-            sound.playTap();
-            setHouseholdSwitcherOpen(true);
-          }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer"
-        >
-          <span className="font-heading font-black text-sm text-[#1F2430] max-w-[150px] truncate">
-            {activeHousehold.name}
-          </span>
-          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280]" />
-        </button>
-
-        {/* Right Header Icons */}
-        <div className="flex items-center gap-2">
-          {/* Offline Toggle Simulation */}
-          <button
-            onClick={() => {
-              setIsOffline(!isOffline);
-              showToast(isOffline ? 'Online mode' : 'Simulating offline mode', 'info');
-            }}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B7280] hover:text-[#1F2430] hover:bg-white cursor-pointer"
-            title="Toggle offline state simulation"
-            aria-label="Toggle offline mode simulation"
-          >
-            {isOffline ? (
-              <WifiOff className="w-4 h-4 text-[#FFC93C]" />
-            ) : (
-              <Wifi className="w-4 h-4" />
-            )}
-          </button>
-
-          {/* Notifications button with badge */}
-          <button
-            onClick={() => {
-              sound.playTap();
-              setNotificationsOpen(true);
-            }}
-            className="w-9 h-9 rounded-full bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] shadow-2xs transition-all cursor-pointer"
-            aria-label="Open notifications"
-          >
-            <Bell className="w-4 h-4" />
-            {unreadNotifsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FF6B4A] text-white rounded-full text-[10px] font-extrabold flex items-center justify-center border-2 border-white">
-                {unreadNotifsCount}
+      {/* TOP APP BAR - Responsive Header with Desktop Tabs */}
+      <header className="sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
+          {/* Left: Household Switcher dropdown & Invite code chip */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setHouseholdSwitcherOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer"
+            >
+              <span className="type-section-heading max-w-[120px] sm:max-w-[160px] truncate">
+                {activeHousehold.name}
               </span>
-            )}
-          </button>
+              <ChevronDown className="w-4 h-4 text-[#6B7280] shrink-0" />
+            </button>
 
-          {/* Profile / Settings avatar trigger */}
-          <button
-            onClick={() => {
-              sound.playTap();
-              setProfileSettingsOpen(true);
-            }}
-            className="rounded-full ring-2 ring-transparent hover:ring-[#FF6B4A] transition-all cursor-pointer"
-            aria-label="Open profile settings"
+            {/* Quick Apartment Code Pill - Only on wide desktop (xl:), NEVER on tablet */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setShowQROpen(true);
+              }}
+              className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-xs font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] transition-all cursor-pointer whitespace-nowrap shrink-0"
+              title="Click to view apartment invite code and QR"
+            >
+              <span>Apartment:</span>
+              <span className="font-mono tracking-wide font-black">#{activeHousehold.inviteCode}</span>
+            </button>
+          </div>
+
+          {/* Center: Desktop Navigation Tabs (Visible on md+ screens) */}
+          <nav
+            aria-label="Desktop Navigation"
+            className="hidden md:flex items-center gap-0.5 lg:gap-1 p-1 bg-[#EEF0F6] rounded-2xl border border-[#E2E5EC] shrink min-w-0"
           >
-            <Avatar
-              src={currentUser.avatar}
-              name={currentUser.name}
-              flag={currentUser.flag}
-              size="sm"
-            />
-          </button>
+            {[
+              { id: 'feed', label: 'Home', icon: <Home className="w-4 h-4 shrink-0" /> },
+              { id: 'chores', label: 'Chores', icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+              { id: 'expenses', label: 'Money', icon: <Receipt className="w-4 h-4 shrink-0" /> },
+              { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
+              { id: 'apartment', label: 'Apartment', icon: <Users className="w-4 h-4 shrink-0" /> },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    sound.playTap();
+                    setActiveTab(tab.id as Tab);
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs lg:text-sm font-heading font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    isActive
+                      ? 'bg-white text-[#1F2430] shadow-xs border border-[#E2E5EC]'
+                      : 'text-[#64748B] hover:text-[#1F2430] hover:bg-white/60'
+                  }`}
+                  title={tab.label}
+                  aria-label={tab.label}
+                >
+                  <span className={isActive ? 'text-[#FF6B4A]' : 'text-[#94A3B8]'}>
+                    {tab.icon}
+                  </span>
+                  <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Right Header Controls - always shrink-0 */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Sync Status Button with clear indicator and label when not synced */}
+            {syncStatus === 'syncing' ? (
+              <button
+                type="button"
+                onClick={handleSyncToggle}
+                className="min-h-[44px] px-2.5 py-1.5 rounded-2xl bg-[#EEF0FD] border border-[#D3D5F9] flex items-center gap-1.5 text-[#5B5BD6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
+                title="Syncing with apartment server... Tap to switch mode"
+                aria-label="Syncing with apartment"
+              >
+                <RefreshCw className="w-4 h-4 animate-spin text-[#5B5BD6]" />
+                <span className="type-secondary font-bold text-[#5B5BD6]">Syncing...</span>
+              </button>
+            ) : syncStatus === 'offline' ? (
+              <button
+                type="button"
+                onClick={handleSyncToggle}
+                className="min-h-[44px] px-2.5 py-1.5 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] flex items-center gap-1.5 text-[#E5484D] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
+                title="Offline mode. Tap to reconnect"
+                aria-label="Apartment offline mode"
+              >
+                <WifiOff className="w-4 h-4 text-[#E5484D]" />
+                <span className="type-secondary font-bold text-[#E5484D]">Offline</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSyncToggle}
+                className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center text-[#3DBE6D] hover:border-[#3DBE6D] shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
+                title="All apartment changes synced. Tap to simulate sync/offline"
+                aria-label="All changes synced"
+              >
+                <Check className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            )}
+
+            {/* Notifications button with badge */}
+            <button
+              onClick={() => {
+                sound.playTap();
+                setNotificationsOpen(true);
+              }}
+              className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] shadow-2xs transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
+              aria-label="Open notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadNotifsCount > 0 && (
+                <span className="absolute 1 top-1 right-1 w-5 h-5 bg-[#FF6B4A] text-white rounded-full text-[14px] font-bold flex items-center justify-center border-2 border-white">
+                  {unreadNotifsCount}
+                </span>
+              )}
+            </button>
+
+            {/* Profile / Settings avatar trigger */}
+            <button
+              onClick={() => {
+                sound.playTap();
+                setProfileSettingsOpen(true);
+              }}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all cursor-pointer"
+              aria-label="Open profile settings"
+            >
+              <Avatar
+                src={currentUser.avatar}
+                name={currentUser.name}
+                flag={currentUser.flag}
+                size="sm"
+              />
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* MAIN VIEW CONTENT */}
-      <main className="flex-1 p-4 overflow-y-auto">
+      {/* MAIN VIEW CONTENT - Fluid Responsive Container */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 overflow-y-auto">
         {activeTab === 'feed' && (
           <HomeScreen
             currentUser={currentUser}
@@ -359,6 +457,14 @@ function MainApp() {
               const next = await api.toggleHomeStatus();
               setCurrentUser((prev) => (prev ? { ...prev, isHome: next } : null));
               showToast(next ? "Marked as at home 🏠" : "Marked as out 🏃‍♂️", 'info');
+            }}
+            onCompleteChore={async (choreId, photoUrl) => {
+              await api.completeChore(choreId, photoUrl);
+              await loadData();
+            }}
+            onGiveKudos={async (choreId, targetUserId, type, note) => {
+              await api.giveKudos(choreId, targetUserId, type, note);
+              await loadData();
             }}
           />
         )}
@@ -450,66 +556,56 @@ function MainApp() {
         )}
 
         {activeTab === 'apartment' && (
-          <div className="space-y-4">
-            {/* Top toggle for Members vs Meetings */}
-            <div className="space-y-3">
-              <MembersScreen
-                household={activeHousehold}
-                members={members}
-                currentUser={currentUser}
-                netBalance={myNetBalance}
-                onShowQR={() => setShowQROpen(true)}
-                onHandoverAdmin={async (toUserId) => {
-                  await api.handoverAdmin(toUserId);
-                  await loadData();
-                }}
-                onLeaveHousehold={async () => {
-                  await api.leaveHousehold(activeHousehold.id);
-                  await loadData();
-                }}
-              />
-
-              {/* House Meetings & Rules */}
-              <MeetingsScreen
-                topics={topics}
-                agreements={agreements}
-                roommates={roommatesList}
-                currentUser={currentUser}
-                onCreateTopic={async (title, desc) => {
-                  const t = await api.createMeetingTopic(title, desc);
-                  await loadData();
-                  return t;
-                }}
-                onVoteTopic={async (topicId, vote) => {
-                  await api.voteTopic(topicId, vote);
-                  await loadData();
-                }}
-                onAddComment={async (topicId, text) => {
-                  await api.addCommentToTopic(topicId, text);
-                  await loadData();
-                }}
-                onAddAgreement={async (text, cat) => {
-                  const a = await api.addAgreement(text, cat);
-                  await loadData();
-                  return a;
-                }}
-              />
-            </div>
-          </div>
+          <ApartmentScreen
+            household={activeHousehold}
+            members={members}
+            currentUser={currentUser}
+            netBalance={myNetBalance}
+            topics={topics}
+            agreements={agreements}
+            roommates={roommatesList}
+            onShowQR={() => setShowQROpen(true)}
+            onHandoverAdmin={async (toUserId) => {
+              await api.handoverAdmin(toUserId);
+              await loadData();
+            }}
+            onLeaveHousehold={async () => {
+              await api.leaveHousehold(activeHousehold.id);
+              await loadData();
+            }}
+            onCreateTopic={async (title, desc) => {
+              const t = await api.createMeetingTopic(title, desc);
+              await loadData();
+              return t;
+            }}
+            onVoteTopic={async (topicId, vote) => {
+              await api.voteTopic(topicId, vote);
+              await loadData();
+            }}
+            onAddComment={async (topicId, text) => {
+              await api.addCommentToTopic(topicId, text);
+              await loadData();
+            }}
+            onAddAgreement={async (text, cat) => {
+              const a = await api.addAgreement(text, cat);
+              await loadData();
+              return a;
+            }}
+          />
         )}
       </main>
 
-      {/* BOTTOM NAVIGATION BAR */}
+      {/* BOTTOM NAVIGATION BAR - Mobile only */}
       <nav
         aria-label="Main Navigation"
-        className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-[#E6E8EE] px-2 py-2 flex items-center justify-around z-30 shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-[#E6E8EE] px-2 py-2 flex items-center justify-around z-30 shadow-lg"
       >
         {[
           { id: 'feed', label: 'Home', icon: <Home className="w-5 h-5" /> },
           { id: 'chores', label: 'Chores', icon: <Sparkles className="w-5 h-5" /> },
           { id: 'expenses', label: 'Money', icon: <Receipt className="w-5 h-5" /> },
           { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-5 h-5" /> },
-          { id: 'apartment', label: 'Flat', icon: <Users className="w-5 h-5" /> },
+          { id: 'apartment', label: 'Apartment', icon: <Users className="w-5 h-5" /> },
         ].map((tabItem) => {
           const isActive = activeTab === tabItem.id;
           return (
@@ -519,11 +615,12 @@ function MainApp() {
                 sound.playTap();
                 setActiveTab(tabItem.id as Tab);
               }}
-              className={`flex flex-col items-center justify-center py-1 px-3 rounded-2xl min-h-[44px] min-w-[56px] transition-all cursor-pointer ${
+              className={`flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl min-h-[48px] min-w-[58px] transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 ${
                 isActive
                   ? 'text-[#FF6B4A] font-extrabold scale-105'
-                  : 'text-[#6B7280] hover:text-[#1F2430]'
+                  : 'text-[#475569] hover:text-[#1F2430]'
               }`}
+              aria-label={tabItem.label}
             >
               <div
                 className={`p-1 rounded-xl transition-colors ${
@@ -532,7 +629,7 @@ function MainApp() {
               >
                 {tabItem.icon}
               </div>
-              <span className="text-[10px] mt-0.5 leading-none">{tabItem.label}</span>
+              <span className="text-[14px] font-bold mt-0.5 leading-none">{tabItem.label}</span>
             </button>
           );
         })}

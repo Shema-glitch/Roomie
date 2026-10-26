@@ -56,15 +56,15 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
       subtitle={`Explain peacefully for "${expenseTitle}"`}
     >
       <div className="space-y-4">
-        <p className="text-xs text-[#6B7280] leading-relaxed">
-          Purchases are only shared after agreement. Disputing pauses this expense from your balance while you and your roommate chat.
+        <p className="type-secondary leading-relaxed">
+          Purchases are only shared after agreement. Disputing pauses this expense from your balance while you and your roomie chat.
         </p>
 
         <div className="space-y-2">
           {predefinedReasons.map((r) => (
             <label
               key={r}
-              className={`p-3 rounded-2xl border flex items-center gap-3 cursor-pointer text-xs font-semibold transition-all ${
+              className={`p-3 rounded-2xl border flex items-center gap-3 cursor-pointer text-[14px] font-normal transition-all ${
                 selectedReason === r
                   ? 'border-[#E5484D] bg-[#FDECEE] text-[#BF3337]'
                   : 'border-[#E6E8EE] bg-white text-[#1F2430]'
@@ -83,30 +83,30 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1">
-            Additional detail (optional):
+          <label className="type-label block mb-1.5">
+            Additional detail (optional)
           </label>
           <input
             type="text"
             value={customNote}
             onChange={(e) => setCustomNote(e.target.value)}
             placeholder="e.g. I already have my own laundry soap"
-            className="w-full px-3 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-xs focus:outline-none focus:border-[#E5484D]"
+            className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#E5484D]"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2 pt-2">
-          <Button variant="outline" size="md" onClick={onClose}>
-            Back
+          <Button variant="secondary" size="md" onClick={onClose}>
+            Cancel
           </Button>
           <Button
-            variant="danger"
+            variant="danger-outline"
             size="md"
             disabled={loading}
             onClick={handleSubmit}
             icon={<AlertCircle className="w-4 h-4" />}
           >
-            {loading ? 'Submitting...' : 'Submit Dispute'}
+            {loading ? 'Submitting...' : 'Dispute'}
           </Button>
         </div>
       </div>

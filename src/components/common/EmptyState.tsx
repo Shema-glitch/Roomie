@@ -29,10 +29,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <div className={`p-8 rounded-[24px] bg-white border border-[#E6E8EE] shadow-sm text-center flex flex-col items-center justify-center space-y-4 ${className}`}>
       <MascotView state={mascotState} size="lg" bubbleText={bubbleText} />
       <div className="space-y-1 max-w-xs">
-        <h3 className="font-heading font-black text-xl text-[#1F2430]">
+        <h3 className="type-section-heading">
           {title}
         </h3>
-        <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
+        <p className="type-secondary mt-1">
           {description}
         </p>
       </div>

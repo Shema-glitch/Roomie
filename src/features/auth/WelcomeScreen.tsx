@@ -24,23 +24,23 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-6 max-w-md mx-auto">
       {/* Top Section */}
       <div className="pt-8 flex flex-col items-center text-center">
-        <MascotView state="celebrating" size="xl" bubbleText="Welcome to the flat! 👋" />
-        <h1 className="text-4xl font-heading font-black text-[#1F2430] mt-4 tracking-tight">
+        <MascotView state="celebrating" size="xl" bubbleText="Welcome to the apartment! 👋" />
+        <h1 className="type-big-number mt-4 tracking-tight">
           Roomie
         </h1>
-        <p className="text-[#6B7280] text-base font-semibold max-w-xs mt-2">
-          Fair chores, peaceful splits, and happy roommates living in harmony.
+        <p className="type-body max-w-xs mt-2">
+          Fair chores, peaceful splits, and happy roomies living in harmony.
         </p>
 
         {/* Feature badges */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-xs font-bold border border-[#FFD7CF]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-[14px] font-bold border border-[#FFD7CF]">
             <HeartHandshake className="w-3.5 h-3.5" /> Fair by design
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6FAF8] text-[#19B5A5] text-xs font-bold border border-[#BBEFEA]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6FAF8] text-[#19B5A5] text-[14px] font-bold border border-[#BBEFEA]">
             <Sparkles className="w-3.5 h-3.5" /> Secret chore draft
           </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF0FD] text-[#5B5BD6] text-xs font-bold border border-[#D3D5F9]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF0FD] text-[#5B5BD6] text-[14px] font-bold border border-[#D3D5F9]">
             <ShieldCheck className="w-3.5 h-3.5" /> TRNC student friendly
           </span>
         </div>
@@ -65,12 +65,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               fullWidth
               onClick={() => setMode('signin')}
             >
-              I already have an account
+              I have an account
             </Button>
             <div className="text-center pt-2">
               <button
                 onClick={onQuickStart}
-                className="text-xs font-bold text-[#FF6B4A] hover:underline cursor-pointer"
+                className="type-secondary font-bold text-[#FF6B4A] hover:underline cursor-pointer"
               >
                 ⚡ Explore Apartment 4B Demo
               </button>
@@ -81,17 +81,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {mode === 'signin' && (
           <Card padding="lg" className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-heading font-bold text-[#1F2430]">Sign in</h2>
-              <p className="text-xs text-[#6B7280]">Enter your student or personal email</p>
+              <h2 className="type-title">Sign in</h2>
+              <p className="type-secondary">Enter your student or personal email</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">Email address</label>
+              <label className="type-label block mb-1">Email address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@university.edu"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
             <Button
@@ -100,13 +100,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               fullWidth
               onClick={() => onSignIn(email)}
             >
-              Sign in with Email
+              Sign in
             </Button>
             <button
               onClick={() => setMode('welcome')}
-              className="w-full text-center text-xs font-bold text-[#6B7280] hover:text-[#1F2430] pt-2"
+              className="w-full text-center type-secondary font-bold hover:text-[#1F2430] pt-2 cursor-pointer"
             >
-              Back to main
+              Back
             </button>
           </Card>
         )}
@@ -114,27 +114,27 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {mode === 'signup' && (
           <Card padding="lg" className="space-y-4">
             <div className="text-center">
-              <h2 className="text-2xl font-heading font-bold text-[#1F2430]">Create account</h2>
-              <p className="text-xs text-[#6B7280]">Join your apartment in seconds</p>
+              <h2 className="type-title">Create account</h2>
+              <p className="type-secondary">Join your apartment in seconds</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">Full name</label>
+              <label className="type-label block mb-1">Full name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Kai Tanaka"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">Email address</label>
+              <label className="type-label block mb-1">Email address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@university.edu"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
             <Button
@@ -143,13 +143,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               fullWidth
               onClick={() => onSignUp(name, email)}
             >
-              Create Account
+              Create account
             </Button>
             <button
               onClick={() => setMode('welcome')}
-              className="w-full text-center text-xs font-bold text-[#6B7280] hover:text-[#1F2430] pt-2"
+              className="w-full text-center type-secondary font-bold hover:text-[#1F2430] pt-2 cursor-pointer"
             >
-              Back to main
+              Back
             </button>
           </Card>
         )}
@@ -157,8 +157,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* Footer Disclaimer */}
       <div className="text-center pb-2">
-        <p className="text-[11px] text-[#9CA3AF] leading-relaxed">
-          Roomie does not process banking payments. Roommates track balances & settle directly in cash or transfer.
+        <p className="type-secondary leading-relaxed">
+          Roomie does not process banking payments. Roomies track balances & settle directly in cash or transfer.
         </p>
       </div>
     </div>

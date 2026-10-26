@@ -76,18 +76,18 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {/* Header Amount */}
           <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between">
             <div>
-              <span className="text-xs uppercase font-extrabold text-[#6B7280]">
+              <span className="type-label block">
                 {expense.category}
               </span>
-              <h3 className="font-heading font-black text-xl text-[#1F2430]">
+              <h3 className="type-section-heading">
                 {expense.title}
               </h3>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Paid by <strong>{payer?.name || 'Roommate'}</strong>
+              <p className="type-secondary mt-0.5">
+                Paid by {payer?.name || 'Roomie'}
               </p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-heading font-black text-[#FF6B4A]">
+              <span className="type-title text-[#FF6B4A]">
                 ₺{expense.amount.toFixed(2)}
               </span>
               <div className="mt-1">
@@ -109,9 +109,9 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {/* Receipt Image if present */}
           {expense.receiptUrl && (
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#1F2430] mb-1.5">
+              <div className="flex items-center gap-1.5 mb-1.5">
                 <Receipt className="w-4 h-4 text-[#FF6B4A]" />
-                <span>Uploaded Receipt</span>
+                <span className="type-label">Uploaded Receipt</span>
               </div>
               <div className="rounded-2xl overflow-hidden border border-[#E6E8EE] max-h-48 shadow-xs">
                 <img
@@ -123,10 +123,10 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             </div>
           )}
 
-          {/* Roommates Shares Breakdown */}
+          {/* Roomie Splits Breakdown */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-[#1F2430] block">
-              Roommate Splits ({expense.shares.length} people)
+            <span className="type-label block">
+              Roomie Splits ({expense.shares.length} people)
             </span>
             <div className="space-y-1.5">
               {expense.shares.map((s) => {
@@ -145,11 +145,11 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                         size="xs"
                       />
                       <div>
-                        <span className="text-xs font-bold text-[#1F2430]">
+                        <span className="text-[14px] font-bold text-[#1F2430]">
                           {user?.name} {isMe ? '(You)' : ''}
                         </span>
                         {s.disputeReason && (
-                          <p className="text-[10px] text-[#E5484D] italic">
+                          <p className="type-secondary text-[#E5484D]">
                             Dispute: {s.disputeReason}
                           </p>
                         )}
@@ -157,7 +157,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-heading font-bold text-[#1F2430]">
+                      <span className="text-[14px] font-bold text-[#1F2430]">
                         ₺{s.shareAmount.toFixed(2)}
                       </span>
                       <Chip
@@ -167,7 +167,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                             ? 'success'
                             : s.response === 'disputed'
                             ? 'danger'
-                            : 'default'
+                            : 'neutral'
                         }
                         size="sm"
                       />
@@ -181,12 +181,12 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {/* Agree / Dispute Actions for current user */}
           {!isPayer && myShare && myShare.response !== 'agreed' && (
             <div className="pt-2 border-t border-[#E6E8EE] space-y-2">
-              <p className="text-xs text-[#6B7280]">
-                Your share is <strong>₺{myShare.shareAmount.toFixed(2)}</strong>. Do you agree?
+              <p className="type-secondary">
+                Your share is ₺{myShare.shareAmount.toFixed(2)}. Do you agree?
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button
-                  variant="outline"
+                  variant="danger-outline"
                   size="md"
                   onClick={() => setDisputeModalOpen(true)}
                   icon={<AlertCircle className="w-4 h-4 text-[#E5484D]" />}
@@ -194,13 +194,13 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                   Dispute
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="md"
                   disabled={loading}
                   onClick={handleAgree}
                   icon={<Check className="w-4 h-4 stroke-[3]" />}
                 >
-                  Agree (₺{myShare.shareAmount.toFixed(2)})
+                  Agree
                 </Button>
               </div>
             </div>
@@ -208,15 +208,18 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
           {/* Settle in chat helper */}
           <div className="pt-2">
-            <button
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
               onClick={() => {
                 onClose();
                 onOpenChat();
               }}
-              className="w-full text-center text-xs font-bold text-[#5B5BD6] hover:underline flex items-center justify-center gap-1.5 cursor-pointer"
+              icon={<MessageSquare className="w-4 h-4 text-[#5B5BD6]" />}
             >
-              <MessageSquare className="w-3.5 h-3.5" /> Discuss this expense in Group Chat
-            </button>
+              Discuss in Chat
+            </Button>
           </div>
         </div>
       </Modal>

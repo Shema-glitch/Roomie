@@ -46,17 +46,17 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Swap a Chore"
+      title="Swap Chore"
       subtitle={`Find someone to take "${chore.name}"`}
     >
       <div className="space-y-4">
-        <p className="text-xs text-[#6B7280]">
-          Busy with university study or feeling unwell? Offer your chore to a roommate.
+        <p className="type-secondary leading-relaxed">
+          Busy with university study or feeling unwell? Offer your chore to a roomie.
         </p>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-[#1F2430]">
-            Select who to offer to:
+          <label className="type-label block mb-1">
+            Select roomie to offer to:
           </label>
           {roommates.map((r) => (
             <div
@@ -71,8 +71,8 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
               <div className="flex items-center gap-3">
                 <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
                 <div>
-                  <h4 className="font-bold text-sm text-[#1F2430]">{r.name}</h4>
-                  <p className="text-[11px] text-[#6B7280]">
+                  <h4 className="type-section-heading">{r.name}</h4>
+                  <p className="type-secondary">
                     Streak: {r.streakDays} days 🔥
                   </p>
                 </div>
@@ -97,7 +97,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
             onClick={handleConfirm}
             icon={<ArrowLeftRight className="w-4 h-4" />}
           >
-            {loading ? 'Sending...' : 'Offer Swap'}
+            {loading ? 'Sending...' : 'Offer swap'}
           </Button>
         </div>
       </div>

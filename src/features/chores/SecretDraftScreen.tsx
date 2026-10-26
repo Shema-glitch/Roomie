@@ -100,11 +100,11 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={onCancel}
-            className="text-xs font-bold text-[#6B7280] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer"
+            className="type-label text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Cancel Draft
           </button>
-          <span className="text-xs font-bold text-[#FF6B4A] uppercase tracking-wider flex items-center gap-1">
+          <span className="type-label text-[#FF6B4A] flex items-center gap-1">
             <Sparkles className="w-3.5 h-3.5" /> Secret Picks
           </span>
         </div>
@@ -146,17 +146,17 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             <div className="w-16 h-16 rounded-3xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center mx-auto mb-3 shadow-xs">
               <Sparkles className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-heading font-black text-[#1F2430]">
+            <h2 className="type-title">
               {currentChore.name}
             </h2>
-            <p className="text-xs text-[#6B7280] font-semibold mt-1 max-w-xs mx-auto">
+            <p className="type-secondary mt-1 max-w-xs mx-auto">
               {currentChore.description}
             </p>
           </div>
 
           {/* Current Choice Indicator */}
           {existingPick && (
-            <div className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-xs font-bold text-[#1F2430]">
+            <div className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] type-secondary text-[#1F2430]">
               {existingPick.pickType === 'want' && '❤️ You picked: Want'}
               {existingPick.pickType === 'avoid' && '🙅‍♂️ You picked: Avoid'}
               {existingPick.pickType === 'suggest_for' && (
@@ -173,7 +173,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             <button
               type="button"
               onClick={() => handleSelectPick('want')}
-              className={`p-3.5 rounded-2xl border-2 font-heading font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
+              className={`p-3.5 rounded-2xl border-2 text-[14px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
                 existingPick?.pickType === 'want'
                   ? 'border-[#3DBE6D] bg-[#EBF9F0] text-[#2CA358] shadow-xs'
                   : 'border-[#E6E8EE] bg-white hover:border-[#3DBE6D] text-[#1F2430]'
@@ -186,7 +186,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             <button
               type="button"
               onClick={() => handleSelectPick('avoid')}
-              className={`p-3.5 rounded-2xl border-2 font-heading font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
+              className={`p-3.5 rounded-2xl border-2 text-[14px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
                 existingPick?.pickType === 'avoid'
                   ? 'border-[#E5484D] bg-[#FDECEE] text-[#BF3337] shadow-xs'
                   : 'border-[#E6E8EE] bg-white hover:border-[#E5484D] text-[#1F2430]'
@@ -199,14 +199,14 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             <button
               type="button"
               onClick={() => setSuggestModalOpen(true)}
-              className={`p-3.5 rounded-2xl border-2 font-heading font-bold text-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
+              className={`p-3.5 rounded-2xl border-2 text-[14px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] ${
                 existingPick?.pickType === 'suggest_for'
                   ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#5B5BD6] shadow-xs'
                   : 'border-[#E6E8EE] bg-white hover:border-[#5B5BD6] text-[#1F2430]'
               }`}
             >
               <Users className="w-5 h-5 text-[#5B5BD6]" />
-              <span>Suggest for roommate 👥</span>
+              <span>Suggest for roomie 👥</span>
             </button>
           </div>
         </Card>
@@ -234,7 +234,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               onClick={() => setCurrentIndex((prev) => prev + 1)}
               icon={<ArrowRight className="w-4 h-4" />}
             >
-              Next Chore
+              Next
             </Button>
           ) : (
             <Button
@@ -245,7 +245,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               onClick={handleSubmitAll}
               icon={<Check className="w-4 h-4" />}
             >
-              {submitting ? 'Submitting...' : 'Complete My Picks!'}
+              {submitting ? 'Submitting...' : 'Submit picks'}
             </Button>
           )}
         </div>
@@ -255,10 +255,10 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
       {suggestModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <Card padding="lg" className="w-full max-w-xs bg-white space-y-3">
-            <h4 className="font-heading font-bold text-lg text-[#1F2430]">
-              Suggest for roommate:
+            <h4 className="type-section-heading">
+              Suggest for roomie
             </h4>
-            <p className="text-xs text-[#6B7280]">
+            <p className="type-secondary">
               Who might be a great match for "{currentChore.name}"?
             </p>
             <div className="space-y-2 pt-2">
@@ -269,7 +269,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
                   className="w-full p-2.5 rounded-2xl border border-[#E6E8EE] hover:border-[#5B5BD6] bg-white flex items-center gap-3 text-left cursor-pointer transition-all"
                 >
                   <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
-                  <span className="font-bold text-sm text-[#1F2430]">{r.name}</span>
+                  <span className="type-body font-bold">{r.name}</span>
                 </button>
               ))}
             </div>

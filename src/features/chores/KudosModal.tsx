@@ -64,7 +64,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Give Roommate Kudos"
+      title="Give Roomie Kudos"
       subtitle={`For completing "${chore.name}"`}
     >
       <div className="space-y-4">
@@ -72,10 +72,10 @@ export const KudosModal: React.FC<KudosModalProps> = ({
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]">
           <Avatar src={targetUser.avatar} name={targetUser.name} flag={targetUser.flag} size="md" />
           <div>
-            <h4 className="font-heading font-bold text-base text-[#1F2430]">
+            <h4 className="type-section-heading">
               {targetUser.name}
             </h4>
-            <p className="text-xs text-[#6B7280]">
+            <p className="type-secondary">
               Streak: {targetUser.streakDays} days 🔥 • {targetUser.points} points
             </p>
           </div>
@@ -83,7 +83,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
 
         {/* 3 Response Options from Spec */}
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-[#1F2430]">
+          <label className="type-label block mb-1">
             Choose a reaction:
           </label>
 
@@ -96,15 +96,15 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
               selectedType === 'thanks'
                 ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
             <div className="w-9 h-9 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
               <Heart className="w-5 h-5 fill-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#1F2430]">Thanks! 💖</p>
-              <p className="text-[11px] text-[#6B7280]">Warm appreciation (+10 pts to housemate)</p>
+              <p className="type-body font-bold">Thanks! 💖</p>
+              <p className="type-secondary">Warm appreciation (+10 pts)</p>
             </div>
           </button>
 
@@ -117,15 +117,15 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
               selectedType === 'great_job'
                 ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
             <div className="w-9 h-9 rounded-full bg-[#FFC93C] text-[#8A6200] flex items-center justify-center shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#1F2430]">Great job! 🌟</p>
-              <p className="text-[11px] text-[#6B7280]">Super clean result (+10 pts)</p>
+              <p className="type-body font-bold">Great job! 🌟</p>
+              <p className="type-secondary">Super clean result (+10 pts)</p>
             </div>
           </button>
 
@@ -138,16 +138,16 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
               selectedType === 'needs_look'
                 ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
             <div className="w-9 h-9 rounded-full bg-[#EEF0FD] text-[#5B5BD6] flex items-center justify-center shrink-0">
               <AlertCircle className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#1F2430]">Needs another look 👀</p>
-              <p className="text-[11px] text-[#6B7280]">
-                Private note between you two (never publicly shames)
+              <p className="type-body font-bold">Needs another look 👀</p>
+              <p className="type-secondary">
+                Private note between you two
               </p>
             </div>
           </button>
@@ -155,8 +155,8 @@ export const KudosModal: React.FC<KudosModalProps> = ({
 
         {/* Optional or required Note */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-            {selectedType === 'needs_look' ? 'Private gentle note (helpful suggestions):' : 'Add a sweet note (optional):'}
+          <label className="type-label block mb-1">
+            {selectedType === 'needs_look' ? 'Private gentle note:' : 'Add a note (optional):'}
           </label>
           <input
             type="text"
@@ -167,7 +167,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 ? 'e.g. Could you wipe the mirror too? Thanks!'
                 : 'e.g. The kitchen smells amazing!'
             }
-            className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-xs focus:outline-none focus:border-[#FF6B4A]"
+            className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
           />
         </div>
 
@@ -180,7 +180,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             onClick={handleSubmit}
             icon={<Send className="w-4 h-4" />}
           >
-            {loading ? 'Sending...' : 'Send Kudos'}
+            {loading ? 'Sending...' : 'Send kudos'}
           </Button>
         </div>
       </div>

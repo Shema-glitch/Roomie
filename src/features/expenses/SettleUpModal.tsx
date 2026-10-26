@@ -93,9 +93,9 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
         {/* Pending confirmations waiting for user */}
         {confirmationsForMe.length > 0 && (
           <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#8A6200]">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Pending Confirmations For You</span>
+            <div className="flex items-center gap-1.5 type-label">
+              <ShieldCheck className="w-4 h-4 text-[#8A6200]" />
+              <span>Pending confirmations</span>
             </div>
             {confirmationsForMe.map((s) => {
               const payer = roommates.find((r) => r.id === s.fromUser);
@@ -107,10 +107,10 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
                   <div className="flex items-center gap-2">
                     <Avatar src={payer?.avatar} name={payer?.name || ''} size="xs" />
                     <div>
-                      <p className="text-xs font-bold text-[#1F2430]">
-                        {payer?.name} sent ₺{s.amount.toFixed(2)}
+                      <p className="type-body font-bold">
+                        {payer?.name} sent <span className="text-[#3DBE6D]">₺{s.amount.toFixed(2)}</span>
                       </p>
-                      <p className="text-[10px] text-[#6B7280]">Marked as paid</p>
+                      <p className="type-secondary">Marked as paid</p>
                     </div>
                   </div>
                   <Button
@@ -129,13 +129,13 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
         )}
 
         {/* Informational banner */}
-        <div className="text-[11px] text-[#6B7280] bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
-          💳 <strong>Remember:</strong> Roomie does not move money. Give cash to your flatmate or transfer to their TRNC/Turkish bank account, then tap below.
+        <div className="type-secondary bg-[#F7F8FB] p-3 rounded-xl border border-[#E6E8EE]">
+          💳 <strong>Remember:</strong> Roomie does not move money. Give cash to your roomie or transfer to their bank account, then tap below.
         </div>
 
         {/* Recipient Picker */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+          <label className="type-label block mb-2">
             Who are you paying?
           </label>
           <div className="space-y-2">
@@ -160,10 +160,10 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
                     <div className="flex items-center gap-3">
                       <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
                       <div>
-                        <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                        <h4 className="type-section-heading">
                           {r.name}
                         </h4>
-                        <p className="text-xs text-[#6B7280]">
+                        <p className="type-secondary">
                           {debt ? (
                             <span className="text-[#FF6B4A] font-bold">
                               You owe ₺{debt.amount.toFixed(2)}
@@ -187,11 +187,11 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
 
         {/* Amount */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1">
+          <label className="type-label block mb-1">
             Amount Paid (₺ TRY)
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-[#6B7280]">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 type-title text-[#64748B]">
               ₺
             </span>
             <input
@@ -201,38 +201,38 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-9 pr-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-lg font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full pl-9 pr-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-title focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
         </div>
 
         {/* Payment Method */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+          <label className="type-label block mb-2">
             Payment Method
           </label>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setMethod('cash')}
-              className={`py-2 px-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+              className={`py-2.5 px-3 rounded-2xl border text-[14px] font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                 method === 'cash'
                   ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                  : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                  : 'border-[#E6E8EE] bg-white text-[#64748B]'
               }`}
             >
-              <Banknote className="w-4 h-4" /> Physical Cash
+              <Banknote className="w-4 h-4" /> Cash
             </button>
             <button
               type="button"
               onClick={() => setMethod('transfer')}
-              className={`py-2 px-3 rounded-2xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+              className={`py-2.5 px-3 rounded-2xl border text-[14px] font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                 method === 'transfer'
                   ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                  : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                  : 'border-[#E6E8EE] bg-white text-[#64748B]'
               }`}
             >
-              <HandCoins className="w-4 h-4" /> Bank / FAST
+              <HandCoins className="w-4 h-4" /> Bank transfer
             </button>
           </div>
         </div>
@@ -247,7 +247,7 @@ export const SettleUpModal: React.FC<SettleUpModalProps> = ({
             onClick={handleMarkPaid}
             icon={<Check className="w-4 h-4" />}
           >
-            {loading ? 'Submitting...' : 'Mark as Paid'}
+            {loading ? 'Submitting...' : 'Mark paid'}
           </Button>
         </div>
       </div>

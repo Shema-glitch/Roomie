@@ -31,7 +31,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Invite Roommates"
+      title="Invite Roomies"
       subtitle={`Scan or enter code to join ${household.name}`}
     >
       <div className="flex flex-col items-center text-center space-y-4">
@@ -65,13 +65,13 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
         </div>
 
         <Card padding="sm" className="w-full bg-[#F7F8FB] space-y-1">
-          <span className="text-[10px] uppercase font-bold text-[#6B7280]">
+          <span className="type-label block">
             Invite Code
           </span>
-          <div className="text-3xl font-heading font-black tracking-widest text-[#FF6B4A]">
+          <div className="type-big-number tracking-widest text-[#FF6B4A]">
             {household.inviteCode}
           </div>
-          <p className="text-[11px] text-[#6B7280]">
+          <p className="type-secondary">
             Currency: {household.currency} (Turkish Lira)
           </p>
         </Card>
@@ -84,9 +84,9 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
             onClick={handleCopy}
             icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           >
-            {copied ? 'Copied to Clipboard!' : 'Copy Invite Code & Link'}
+            {copied ? 'Copied!' : 'Copy Code'}
           </Button>
-          <Button variant="outline" size="sm" fullWidth onClick={onClose}>
+          <Button variant="secondary" size="md" fullWidth onClick={onClose}>
             Close
           </Button>
         </div>

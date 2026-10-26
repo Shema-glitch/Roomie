@@ -120,19 +120,17 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
       {phase === 'countdown' && (
         <div className="flex-1 flex flex-col items-center justify-center text-center py-12">
           <MascotView state="cheering" size="xl" bubbleText="Here comes the reveal!" />
-          <h2 className="text-xl font-heading font-extrabold text-[#6B7280] mt-6 uppercase tracking-wider">
+          <h2 className="type-section-heading mt-6 uppercase">
             Revealing Chores In...
           </h2>
           <div
             key={countdown}
-            className={`text-8xl font-heading font-black text-[#FF6B4A] my-4 drop-shadow-md ${
-              reducedMotion ? '' : 'animate-scale-up scale-110 duration-500'
-            }`}
+            className="type-big-number text-[#FF6B4A] my-4"
           >
             {countdown}
           </div>
-          <p className="text-xs text-[#6B7280] font-semibold max-w-xs">
-            Secret wishes, avoidances, and effort balanced for a fair week!
+          <p className="type-secondary max-w-xs">
+            Secret wishes, avoidances, and effort balanced for a fair week.
           </p>
         </div>
       )}
@@ -142,9 +140,9 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
         <div className="flex-1 flex flex-col justify-between py-2">
           {/* Header step counter */}
           <div>
-            <div className="flex justify-between items-center text-xs font-bold text-[#6B7280] mb-2">
+            <div className="flex justify-between items-center type-label mb-2">
               <span>
-                Roommate {currentMemberIndex + 1} of {activeMembers.length}
+                Roomie {currentMemberIndex + 1} of {activeMembers.length}
               </span>
               <span className="text-[#19B5A5]">Chore Reveal ✨</span>
             </div>
@@ -183,22 +181,21 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                     size="lg"
                   />
                   <div>
-                    <h3 className="text-xl font-heading font-black text-[#1F2430]">
+                    <h3 className="type-section-heading">
                       {currentMember.name}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-[#6B7280] font-semibold">
-                      <span>{currentMember.country}</span>
-                      <span>{currentMember.flag}</span>
-                    </div>
+                    <p className="type-secondary">
+                      {currentMember.country}
+                    </p>
                   </div>
                 </div>
 
                 {/* Effort Badge */}
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold text-[#6B7280] block">
+                  <span className="type-label block mb-0.5">
                     Effort Score
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-extrabold">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold">
                     <Award className="w-3.5 h-3.5 text-[#FFC93C]" />
                     {totalEffort} pts
                   </span>
@@ -207,11 +204,11 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
 
               {/* Assigned Chores List */}
               <div className="space-y-2.5">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#6B7280]">
+                <span className="type-label block">
                   Assigned Chores This Week
                 </span>
                 {currentMemberAssignments.length === 0 ? (
-                  <p className="text-xs text-[#6B7280] italic">
+                  <p className="type-secondary italic">
                     Rest week! No primary chores assigned.
                   </p>
                 ) : (
@@ -224,10 +221,10 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                         className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-2"
                       >
                         <div className="flex-1">
-                          <h4 className="text-sm font-bold text-[#1F2430] leading-snug">
+                          <h4 className="type-section-heading">
                             {chore.name}
                           </h4>
-                          <p className="text-[11px] text-[#6B7280] mt-0.5">
+                          <p className="type-secondary mt-0.5">
                             {a.scheduledDays.join(', ')} • {a.scheduledTime}
                           </p>
                         </div>
@@ -254,9 +251,9 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                   state={totalEffort >= 5 ? 'calm' : 'cheering'}
                   size="sm"
                 />
-                <p className="text-xs text-[#1F2430] font-semibold leading-relaxed">
+                <p className="type-secondary leading-relaxed text-[#1F2430]">
                   {totalEffort >= 5
-                    ? `Big week for ${currentMember.name.split(' ')[0]}! Flatmates will cheer them on.`
+                    ? `Big week for ${currentMember.name.split(' ')[0]}! Roomies will cheer them on.`
                     : `Balanced load for ${currentMember.name.split(' ')[0]}. Everyone's effort is fair!`}
                 </p>
               </div>
@@ -280,7 +277,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
             >
               {currentMemberIndex < activeMembers.length - 1
                 ? `Next: ${activeMembers[currentMemberIndex + 1]?.name.split(' ')[0]}`
-                : 'See Full Week Summary'}
+                : 'View schedule'}
             </Button>
           </div>
         </div>
@@ -291,11 +288,11 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
         <div className="flex-1 flex flex-col justify-between py-2">
           <div className="text-center">
             <MascotView state="celebrating" size="lg" bubbleText="All set for the week! 🎉" />
-            <h2 className="text-2xl font-heading font-black text-[#1F2430] mt-2">
-              Weekly Household Schedule
+            <h2 className="type-title mt-2">
+              Weekly Apartment Schedule
             </h2>
-            <p className="text-xs text-[#6B7280] font-semibold">
-              Effort is evenly spread across Apartment 4B!
+            <p className="type-secondary">
+              Effort is evenly spread across the apartment.
             </p>
           </div>
 
@@ -319,11 +316,11 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                         flag={member.flag}
                         size="sm"
                       />
-                      <span className="font-heading font-bold text-sm text-[#1F2430]">
+                      <span className="type-section-heading">
                         {member.name}
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-[#8A6200] bg-[#FFF8E6] px-2 py-0.5 rounded-full border border-[#FFE8A3]">
+                    <span className="text-[14px] font-bold text-[#8A6200] bg-[#FFF8E6] px-2.5 py-0.5 rounded-full border border-[#FFE8A3]">
                       {mEffort} pts
                     </span>
                   </div>
@@ -333,7 +330,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                       return (
                         <span
                           key={a.choreId}
-                          className="inline-block text-[11px] font-semibold bg-white border border-[#E6E8EE] px-2 py-0.5 rounded-lg text-[#1F2430]"
+                          className="inline-block text-[14px] font-medium bg-white border border-[#E6E8EE] px-2.5 py-0.5 rounded-lg text-[#1F2430]"
                         >
                           {c?.name}
                         </span>
@@ -356,7 +353,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               }}
               icon={<CheckCircle2 className="w-5 h-5" />}
             >
-              Save & Go to My Schedule
+              Save schedule
             </Button>
           </div>
         </div>

@@ -65,13 +65,13 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 3 ? 'Kudos & Celebration! 🎉' : 'Finish Chore'}
+      title={step === 3 ? 'Kudos & Celebration' : 'Finish Chore'}
       subtitle={
         step === 1
           ? `Completing "${chore.name}"`
           : step === 2
           ? 'Attach clean proof photo'
-          : `Streak extended to ${currentUser.streakDays + 1} days!`
+          : `Streak extended to ${currentUser.streakDays + 1} days`
       }
     >
       <div className="space-y-4">
@@ -82,7 +82,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
 
             <div className="text-left space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="font-heading font-black text-xl text-[#1F2430]">
+                <h4 className="type-section-heading">
                   {chore.name}
                 </h4>
                 <Chip
@@ -91,7 +91,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                   size="sm"
                 />
               </div>
-              <p className="text-xs text-[#6B7280] leading-relaxed">
+              <p className="type-secondary leading-relaxed">
                 {chore.description}
               </p>
             </div>
@@ -100,15 +100,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-[#FF6B4A]" />
                 <div>
-                  <span className="text-xs font-bold text-[#8A6200] block">
+                  <span className="type-label block mb-0.5">
                     Daily Streak Bonus
                   </span>
-                  <span className="text-[10px] text-[#6B7280]">
-                    Completing earns +20 points & streak day!
+                  <span className="type-secondary">
+                    Earns +20 points & streak day
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 text-sm font-heading font-black text-[#8A6200]">
+              <div className="flex items-center gap-1.5 type-section-heading text-[#8A6200]">
                 <span>{currentUser.streakDays}</span>
                 <ArrowRight className="w-4 h-4 text-[#FF6B4A]" />
                 <span>{currentUser.streakDays + 1} 🔥</span>
@@ -125,7 +125,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 onClick={() => setStep(2)}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Mark as Done
+                Continue
               </Button>
             </div>
           </div>
@@ -135,11 +135,11 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
         {step === 2 && (
           <div className="space-y-4 text-center">
             <div className="text-left">
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Add clean proof?
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Share a photo of your sparkling work with your flatmates.
+              <p className="type-secondary mt-0.5">
+                Share a photo of your clean work with your roomies.
               </p>
             </div>
 
@@ -151,14 +151,14 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                     alt="Chore proof"
                     className="w-full h-44 object-cover"
                   />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[10px] font-bold">
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
                     Proof Attached ✨
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setPhotoUrl('')}
-                  className="text-xs text-[#E5484D] font-bold hover:underline cursor-pointer"
+                  className="min-h-[44px] px-3 py-1.5 type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
                 >
                   Remove or Retake
                 </button>
@@ -166,16 +166,16 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
             ) : (
               <div
                 onClick={handleSnapPhoto}
-                className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB]"
+                className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#E6FAF8] text-[#19B5A5] flex items-center justify-center">
                   <Camera className="w-6 h-6" />
                 </div>
-                <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                <h4 className="type-section-heading">
                   Snap Proof Photo
                 </h4>
-                <p className="text-[10px] text-[#6B7280]">
-                  Optional photo for your flatmates to admire
+                <p className="type-secondary">
+                  Optional photo for your roomies to admire
                 </p>
               </div>
             )}
@@ -187,7 +187,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 disabled={loading}
                 onClick={handleFinish}
               >
-                Skip Photo & Complete
+                Skip
               </Button>
               <Button
                 variant="secondary"
@@ -196,7 +196,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 onClick={handleFinish}
                 icon={<Check className="w-4 h-4 stroke-[3]" />}
               >
-                {loading ? 'Saving...' : 'Complete Chore!'}
+                {loading ? 'Saving...' : 'Complete'}
               </Button>
             </div>
           </div>
@@ -212,27 +212,27 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
             />
 
             <div className="space-y-1">
-              <h3 className="text-2xl font-heading font-black text-[#1F2430]">
-                Chore Completed!
+              <h3 className="type-title">
+                Chore Completed
               </h3>
-              <p className="text-xs text-[#6B7280] font-medium leading-relaxed max-w-xs">
-                Your apartment feed has been updated. Roommates can now send you kudos!
+              <p className="type-secondary leading-relaxed max-w-xs">
+                Your apartment feed has been updated. Roomies can now send you kudos.
               </p>
             </div>
 
             <Card padding="md" className="w-full bg-[#FFF8E6] border border-[#FFE8A3] space-y-1.5">
-              <div className="flex items-center justify-center gap-2 text-base font-heading font-black text-[#8A6200]">
+              <div className="flex items-center justify-center gap-2 type-section-heading text-[#8A6200]">
                 <Flame className="w-5 h-5 text-[#FF6B4A]" />
-                <span>Streak: {currentUser.streakDays + 1} Days Active!</span>
+                <span>Streak: {currentUser.streakDays + 1} Days Active</span>
               </div>
-              <p className="text-[11px] text-[#6B7280]">
+              <p className="type-secondary">
                 +20 reward points added to your roomie score
               </p>
             </Card>
 
             <div className="w-full pt-2">
               <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-                Back to Chores
+                Done
               </Button>
             </div>
           </div>

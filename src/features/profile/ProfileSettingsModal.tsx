@@ -92,22 +92,21 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               size="lg"
             />
             <div>
-              <h4 className="font-heading font-black text-lg text-[#1F2430]">
+              <h4 className="type-section-heading">
                 {currentUser.name}
               </h4>
-              <p className="text-xs text-[#6B7280]">{currentUser.email}</p>
-              <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-[#1F2430]">
+              <p className="type-secondary">{currentUser.email}</p>
+              <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430]">
                 <span>{currentUser.country}</span>
-                <span>{currentUser.flag}</span>
                 <span>•</span>
-                <span className="text-[#FF6B4A]">{currentUser.points} points</span>
+                <span className="text-[#FF6B4A] font-bold">{currentUser.points} points</span>
               </div>
             </div>
           </Card>
 
           {/* Preferences */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-[#1F2430] block">
+            <span className="type-label block">
               Preferences
             </span>
 
@@ -115,7 +114,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Globe className="w-4 h-4 text-[#5B5BD6]" />
-                <span className="text-xs font-bold text-[#1F2430]">Language</span>
+                <span className="text-[14px] font-bold text-[#1F2430]">Language</span>
               </div>
               <div className="flex gap-1">
                 {[
@@ -127,10 +126,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   <button
                     key={l.id}
                     onClick={() => handleLanguageChange(l.id as any)}
-                    className={`px-2 py-1 rounded-lg text-xs font-bold cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-lg text-[14px] font-bold cursor-pointer ${
                       settings.language === l.id
                         ? 'bg-[#FF6B4A] text-white'
-                        : 'bg-[#F7F8FB] text-[#6B7280]'
+                        : 'bg-[#F7F8FB] text-[#64748B]'
                     }`}
                   >
                     {l.label}
@@ -145,13 +144,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 {settings.soundEnabled ? (
                   <Volume2 className="w-4 h-4 text-[#FF6B4A]" />
                 ) : (
-                  <VolumeX className="w-4 h-4 text-[#6B7280]" />
+                  <VolumeX className="w-4 h-4 text-[#64748B]" />
                 )}
                 <div>
-                  <span className="text-xs font-bold text-[#1F2430] block">
+                  <span className="text-[14px] font-bold text-[#1F2430] block">
                     Sound Effects
                   </span>
-                  <span className="text-[10px] text-[#6B7280]">
+                  <span className="type-secondary">
                     Tactile chimes & celebratory fanfares
                   </span>
                 </div>
@@ -176,10 +175,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <div className="flex items-center gap-2.5">
                 <Eye className="w-4 h-4 text-[#19B5A5]" />
                 <div>
-                  <span className="text-xs font-bold text-[#1F2430] block">
+                  <span className="text-[14px] font-bold text-[#1F2430] block">
                     Reduced Motion
                   </span>
-                  <span className="text-[10px] text-[#6B7280]">
+                  <span className="type-secondary">
                     Calmer transitions without big bounces
                   </span>
                 </div>
@@ -204,10 +203,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <div className="flex items-center gap-2.5">
                 <Bell className="w-4 h-4 text-[#FFC93C]" />
                 <div>
-                  <span className="text-xs font-bold text-[#1F2430] block">
+                  <span className="text-[14px] font-bold text-[#1F2430] block">
                     Push Notifications
                   </span>
-                  <span className="text-[10px] text-[#6B7280]">
+                  <span className="type-secondary">
                     Time-based reminders for your chores
                   </span>
                 </div>
@@ -230,7 +229,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
 
           {/* Feedback & Support */}
           <div className="space-y-2 pt-1">
-            <span className="text-xs font-bold text-[#1F2430] block">
+            <span className="type-label block">
               Feedback & Help
             </span>
             <Button
@@ -243,13 +242,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               }}
               icon={<MessageSquareHeart className="w-4 h-4 text-[#FF6B4A]" />}
             >
-              Rate App, Report Bug, or Suggest Feature
+              Give feedback
             </Button>
           </div>
 
-          {/* Data Export & Account Deletion (Build spec section 12) */}
+          {/* Data Export & Account Deletion */}
           <div className="space-y-2 pt-2 border-t border-[#E6E8EE]">
-            <span className="text-xs font-bold text-[#1F2430] block">
+            <span className="type-label block">
               Data & Privacy
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -259,15 +258,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 onClick={onExportData}
                 icon={<Download className="w-3.5 h-3.5 text-[#5B5BD6]" />}
               >
-                Export JSON Data
+                Export data
               </Button>
               <Button
-                variant="outline"
+                variant="danger-outline"
                 size="sm"
                 onClick={() => setDeleteConfirmOpen(true)}
-                icon={<Trash2 className="w-3.5 h-3.5 text-[#E5484D]" />}
+                icon={<Trash2 className="w-3.5 h-3.5" />}
               >
-                Delete Account
+                Delete account
               </Button>
             </div>
           </div>
@@ -283,15 +282,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       >
         <div className="space-y-4 text-center">
           <AlertCircle className="w-12 h-12 text-[#E5484D] mx-auto" />
-          <p className="text-xs text-[#6B7280] leading-relaxed">
-            Deleting your account will permanently remove your profile, streaks, and preferences from Roomie. Your shared expense history remains for your flatmates to maintain ledger accuracy.
+          <p className="type-secondary leading-relaxed">
+            Deleting your account will permanently remove your profile, streaks, and preferences from Roomie. Your shared expense history remains for your roomies to maintain ledger accuracy.
           </p>
           <div className="grid grid-cols-2 gap-2 pt-2">
             <Button variant="outline" size="md" onClick={() => setDeleteConfirmOpen(false)}>
               Cancel
             </Button>
             <Button
-              variant="danger"
+              variant="danger-outline"
               size="md"
               onClick={() => {
                 setDeleteConfirmOpen(false);
@@ -299,7 +298,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 onDeleteAccount();
               }}
             >
-              Confirm Delete
+              Delete
             </Button>
           </div>
         </div>

@@ -34,8 +34,8 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
   onClose,
   roommates,
   currentUser,
-  pendingSettlements,
-  debtsToPay,
+  pendingSettlements = [],
+  debtsToPay = [],
   onMarkPaid,
   onConfirmSettlement,
 }) => {
@@ -120,24 +120,24 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 4 ? 'Payment Submitted!' : `Settle Up (${step}/3)`}
+      title={step === 4 ? 'Payment Submitted' : `Settle Up (${step}/3)`}
       subtitle={
         step === 1
-          ? 'Step 1: Choose roommate to pay'
+          ? 'Step 1: Choose roomie to pay'
           : step === 2
           ? 'Step 2: Amount and payment method'
           : step === 3
-          ? 'Step 3: Review & mark as paid'
-          : 'Waiting for flatmate confirmation'
+          ? 'Step 3: Review and mark as paid'
+          : 'Waiting for roomie confirmation'
       }
     >
       <div className="space-y-4">
         {/* Pending incoming confirmations for this user */}
         {confirmationsForMe.length > 0 && step === 1 && (
           <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#8A6200]">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Flatmates Sent You Payments:</span>
+            <div className="flex items-center gap-1.5 type-label">
+              <ShieldCheck className="w-4 h-4 text-[#8A6200]" />
+              <span>Roomies sent you payments</span>
             </div>
             {confirmationsForMe.map((s) => {
               const payer = roommates.find((r) => r.id === s.fromUser);
@@ -149,10 +149,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   <div className="flex items-center gap-2">
                     <Avatar src={payer?.avatar} name={payer?.name || ''} size="xs" />
                     <div>
-                      <p className="text-xs font-bold text-[#1F2430]">
-                        {payer?.name} sent ₺{s.amount.toFixed(2)}
+                      <p className="type-body font-bold">
+                        {payer?.name} sent <span className="text-[#3DBE6D]">₺{s.amount.toFixed(2)}</span>
                       </p>
-                      <p className="text-[10px] text-[#6B7280]">Marked as paid</p>
+                      <p className="type-secondary">Marked as paid</p>
                     </div>
                   </div>
                   <Button
@@ -174,10 +174,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Who are you settling with?
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Roomie simplified your debts so you only need to pay the minimum transactions.
               </p>
             </div>
@@ -205,12 +205,12 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                       <div className="flex items-center gap-3">
                         <Avatar src={r.avatar} name={r.name} flag={r.flag} size="md" />
                         <div>
-                          <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                          <h4 className="type-section-heading">
                             {r.name}
                           </h4>
-                          <p className="text-xs text-[#6B7280]">
+                          <p className="type-secondary">
                             {debt ? (
-                              <span className="text-[#FF6B4A] font-extrabold">
+                              <span className="text-[#FF6B4A] font-bold">
                                 You owe ₺{debt.amount.toFixed(2)}
                               </span>
                             ) : (
@@ -238,7 +238,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-5 h-5" />}
               >
-                Continue to Amount
+                Continue
               </Button>
             </div>
           </div>
@@ -248,20 +248,20 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Payment amount & method
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Paying to <strong>{recipient?.name}</strong>.
+              <p className="type-secondary mt-0.5">
+                Paying to <span className="text-[#1F2430] font-bold">{recipient?.name}</span>.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">
+              <label className="type-label block mb-1">
                 Amount Paid (₺ TRY)
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black font-heading text-[#6B7280]">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 type-big-number text-[#64748B]">
                   ₺
                 </span>
                 <input
@@ -271,13 +271,13 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-big-number focus:outline-none focus:border-[#FF6B4A]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+              <label className="type-label block mb-2">
                 How did you pay?
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -290,11 +290,11 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
                     method === 'cash'
                       ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
                   }`}
                 >
                   <Banknote className="w-5 h-5" />
-                  <span className="text-xs font-bold">Physical Cash</span>
+                  <span className="text-[14px] font-bold">Physical Cash</span>
                 </button>
                 <button
                   type="button"
@@ -305,11 +305,11 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
                     method === 'transfer'
                       ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
                   }`}
                 >
                   <HandCoins className="w-5 h-5" />
-                  <span className="text-xs font-bold">Bank Transfer / FAST</span>
+                  <span className="text-[14px] font-bold">Bank Transfer</span>
                 </button>
               </div>
             </div>
@@ -335,10 +335,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
         {step === 3 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Review payment details
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Ensure you have completed the cash or bank transaction.
               </p>
             </div>
@@ -346,28 +346,28 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#E6E8EE]">
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-[#6B7280]">
+                  <span className="type-label block mb-1">
                     Payment To
                   </span>
-                  <h4 className="font-heading font-black text-base text-[#1F2430]">
+                  <h4 className="type-section-heading">
                     {recipient?.name}
                   </h4>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-heading font-black text-[#FF6B4A]">
+                  <span className="type-big-number text-[#FF6B4A]">
                     ₺{amountNum.toFixed(2)}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-[#6B7280]">
+              <div className="flex items-center justify-between type-secondary">
                 <span>Payment Method:</span>
-                <strong className="text-[#1F2430]">
-                  {method === 'cash' ? 'Cash handed directly' : 'Bank Transfer / FAST'}
-                </strong>
+                <span className="text-[#1F2430] font-bold">
+                  {method === 'cash' ? 'Cash handed directly' : 'Bank Transfer'}
+                </span>
               </div>
 
-              <div className="text-[11px] text-[#6B7280] bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
+              <div className="type-secondary bg-white p-3 rounded-xl border border-[#E6E8EE] leading-relaxed">
                 💡 <strong>Fairness principle:</strong> Roomie will notify {recipient?.name.split(' ')[0]} to confirm receipt. Both taps are required before the payment is counted as fully settled.
               </div>
             </Card>
@@ -383,7 +383,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 onClick={handleConfirmPaid}
                 icon={<Check className="w-4 h-4 stroke-[3]" />}
               >
-                {loading ? 'Submitting...' : 'Mark as Paid'}
+                {loading ? 'Submitting...' : 'Mark paid'}
               </Button>
             </div>
           </div>
@@ -399,17 +399,17 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
             />
 
             <div className="space-y-1 max-w-xs">
-              <h3 className="font-heading font-black text-2xl text-[#1F2430]">
-                Marked as Paid!
+              <h3 className="type-title">
+                Marked as Paid
               </h3>
-              <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
-                We let <strong>{settledRecipient?.name}</strong> know you sent ₺{amountNum.toFixed(2)}. Once they tap "Confirm Receipt", your balances will be settled.
+              <p className="type-secondary leading-relaxed">
+                We let <span className="text-[#1F2430] font-bold">{settledRecipient?.name}</span> know you sent ₺{amountNum.toFixed(2)}. Once they tap Confirm, your balances will be settled.
               </p>
             </div>
 
             <div className="w-full pt-2">
               <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-                Done & Return to Balances
+                Done
               </Button>
             </div>
           </div>

@@ -30,11 +30,85 @@
     color: var(--color-ink);
     background-color: var(--color-bg);
     -webkit-tap-highlight-color: transparent;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, .font-heading {
     font-family: 'Baloo 2', 'Nunito', sans-serif;
   }
+
+  /* Keyboard-only focus outline in soft coral theme */
+  *:focus:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  *:focus-visible {
+    outline: 2px solid rgba(255, 107, 74, 0.7) !important;
+    outline-offset: 2px !important;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #FF6B4A !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Unified Type Scale Roles */
+.type-big-number {
+  font-family: 'Baloo 2', 'Nunito', cursive, sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.2;
+  color: #1F2430;
+}
+
+.type-title {
+  font-family: 'Baloo 2', 'Nunito', cursive, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.25;
+  color: #1F2430;
+}
+
+.type-section-heading {
+  font-family: 'Baloo 2', 'Nunito', cursive, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.3;
+  color: #1F2430;
+}
+
+.type-body {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1F2430;
+}
+
+.type-secondary {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #64748B;
+}
+
+.type-label {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
 }
 
 /* Tactile 3D Button style as specified in Section 6 */

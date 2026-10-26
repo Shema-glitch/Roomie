@@ -24,7 +24,7 @@ import {
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 
-const STORAGE_KEY = 'roomie_prototype_v1_store';
+const STORAGE_KEY = 'roomie_prototype_v2_store';
 
 interface AppStore {
   currentUser: User;
@@ -94,7 +94,7 @@ function getInitialStore(): AppStore {
       name: 'Yasmin Demir',
       email: 'yasmin.d@student.emu.edu.tr',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      country: 'Cyprus / TRNC',
+      country: 'Cyprus',
       countryCode: 'CY',
       flag: '🇨🇾',
       isHome: true,
@@ -161,6 +161,24 @@ function getInitialStore(): AppStore {
   ];
 
   const expenses: Expense[] = [
+    {
+      id: 'exp_0_rent',
+      householdId: 'h_main',
+      paidBy: 'u_curr',
+      title: 'October Apartment Rent (Lefkoşa 4B)',
+      amount: 3200,
+      category: 'rent',
+      receiptUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&auto=format&fit=crop&q=80',
+      date: '2026-10-01',
+      status: 'agreed',
+      shares: [
+        { userId: 'u_curr', shareAmount: 800, response: 'agreed' },
+        { userId: 'u_amina', shareAmount: 800, response: 'agreed' },
+        { userId: 'u_lucas', shareAmount: 800, response: 'agreed' },
+        { userId: 'u_yasmin', shareAmount: 800, response: 'agreed' },
+      ],
+      createdAt: '2026-10-01T09:00:00Z',
+    },
     {
       id: 'exp_1',
       householdId: 'h_main',
@@ -346,7 +364,7 @@ function getInitialStore(): AppStore {
       {
         choreId: 'ch_cook',
         userId: 'u_curr',
-        scheduledDays: ['Tue', 'Thu', 'Sun'],
+        scheduledDays: ['Daily'],
         scheduledTime: '19:30',
         completedToday: false,
         kudos: [],
@@ -362,7 +380,7 @@ function getInitialStore(): AppStore {
       {
         choreId: 'ch_bathroom',
         userId: 'u_amina',
-        scheduledDays: ['Mon', 'Fri'],
+        scheduledDays: ['Sat'],
         scheduledTime: '18:00',
         completedToday: true,
         lastPhotoUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80',
@@ -374,7 +392,7 @@ function getInitialStore(): AppStore {
       {
         choreId: 'ch_trash',
         userId: 'u_lucas',
-        scheduledDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        scheduledDays: ['Daily'],
         scheduledTime: '21:00',
         completedToday: true,
         kudos: [
@@ -384,7 +402,7 @@ function getInitialStore(): AppStore {
       {
         choreId: 'ch_kitchen',
         userId: 'u_yasmin',
-        scheduledDays: ['Mon', 'Wed', 'Fri'],
+        scheduledDays: ['Daily'],
         scheduledTime: '20:00',
         completedToday: false,
         kudos: [],
@@ -392,7 +410,7 @@ function getInitialStore(): AppStore {
       {
         choreId: 'ch_dishes',
         userId: 'u_lucas',
-        scheduledDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        scheduledDays: ['Daily'],
         scheduledTime: '22:00',
         completedToday: false,
         kudos: [],
@@ -453,6 +471,15 @@ function getInitialStore(): AppStore {
         type: 'text',
         body: 'Curry sounds amazing Kai! I took the bins out already btw.',
         createdAt: '2026-10-23T11:30:00Z',
+      },
+      {
+        id: 'msg_draft_status',
+        householdId: 'h_main',
+        senderId: null,
+        type: 'activity',
+        body: 'All picks are in for Sunday Chore Draft! Reveal is ready to view 🎭',
+        linkTarget: { screen: 'chore-reveal' },
+        createdAt: '2026-10-23T11:45:00Z',
       },
     ],
   };
@@ -1149,6 +1176,10 @@ class ApiService {
       }
       this.save();
     }
+  }
+
+  public async voteTopic(topicId: string, vote: 'agree' | 'disagree' | 'neutral'): Promise<void> {
+    return this.voteMeetingTopic(topicId, vote);
   }
 
   public async addCommentToTopic(topicId: string, text: string): Promise<void> {

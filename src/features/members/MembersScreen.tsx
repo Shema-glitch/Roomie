@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { Card } from '../../components/common/Card';
+import { ActionCard } from '../../components/common/ActionCard';
+import { InfoCard } from '../../components/common/InfoCard';
+import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
+import { SectionTitle } from '../../components/common/SectionTitle';
 import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { Modal } from '../../components/common/Modal';
 import { User, Household, Membership } from '../../types';
-import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import {
   Shield,
   QrCode,
   LogOut,
-  UserCheck,
-  Share2,
-  Copy,
+  Building2,
+  Flame,
   Check,
   AlertTriangle,
+  UserCheck,
+  Copy,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -72,120 +75,141 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({
     try {
       sound.playCalmNotice();
       await onLeaveHousehold();
-      showToast('You have left the household.', 'info');
+      showToast('You have left the apartment.', 'info');
       setLeaveModalOpen(false);
     } catch {
-      showToast('Could not leave household', 'error');
+      showToast('Could not leave apartment', 'error');
     } finally {
       setLoading(false);
     }
   };
 
+  const copyCode = () => {
+    sound.playTap();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(household.inviteCode);
+      showToast(`Copied code #${household.inviteCode} to clipboard!`, 'success');
+    } else {
+      showToast(`Apartment code: #${household.inviteCode}`, 'info');
+    }
+  };
+
   return (
-    <div className="space-y-4 pb-20 select-none">
-      {/* Apartment Card with Invite Code & QR */}
-      <Card padding="md" variant="calm" className="bg-white space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-heading font-black text-xl text-[#1F2430]">
-              {household.name}
-            </h3>
-            <p className="text-xs text-[#6B7280]">
-              Invite Code: <strong>{household.inviteCode}</strong> • {household.currency}
-            </p>
+    <div className="space-y-6 select-none">
+      {/* 1. APARTMENT CARD WITH INVITE CODE & QR */}
+      <ActionCard
+        tint="coral"
+        iconTile={<IconTile icon={<Building2 className="w-6 h-6" />} color="coral" size="md" />}
+        title={household.name}
+        subtitle={`Apartment Code: #${household.inviteCode} • Currency: ${household.currency}`}
+        detail={
+          <div className="p-3.5 rounded-2xl bg-white/80 border border-[#FFD3C9] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm font-bold text-[#475569]">
+            <span className="flex items-center gap-1.5 text-[#1F2430]">
+              <Shield className="w-4 h-4 text-[#FF6B4A]" /> Doorkeeper Governance:
+            </span>
+            <span>Admin only approves join requests; zero chore control</span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onShowQR}
-            icon={<QrCode className="w-4 h-4 text-[#FF6B4A]" />}
-          >
-            Show QR
-          </Button>
-        </div>
-
-        <div className="p-2.5 rounded-xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between text-xs font-semibold text-[#6B7280]">
-          <span>Admin rule:</span>
-          <span>Doorkeeper for join requests only (no power over daily life)</span>
-        </div>
-      </Card>
-
-      {/* Members Directory */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-heading font-bold text-base text-[#1F2430]">
-            Household Members ({members.length})
-          </h3>
-          {isAdmin && members.length > 1 && (
-            <button
-              onClick={() => setHandoverModalOpen(true)}
-              className="text-xs font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
+        }
+        actions={
+          <div className="w-full flex flex-wrap items-center gap-3">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={onShowQR}
+              icon={<QrCode className="w-4 h-4 text-[#FF6B4A]" />}
             >
-              <Shield className="w-3.5 h-3.5" /> Handover Admin
-            </button>
-          )}
-        </div>
+              Show Apartment QR
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={copyCode}
+              icon={<Copy className="w-4 h-4 text-[#FF6B4A]" />}
+            >
+              Copy Code
+            </Button>
+            {isAdmin && members.length > 1 && (
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setHandoverModalOpen(true)}
+                icon={<Shield className="w-4 h-4 text-[#FF6B4A]" />}
+              >
+                Handover Admin
+              </Button>
+            )}
+          </div>
+        }
+      />
 
-        <div className="space-y-2">
+      {/* 2. MEMBERS DIRECTORY IN RESPONSIVE AUTO-FLOW GRID */}
+      <div className="space-y-4">
+        <SectionTitle
+          title={`Apartment Roomies (${members.length})`}
+          subtitle="Household community, live status, and streaks"
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {members.map(({ user, membership }) => {
             const isMe = user.id === currentUser.id;
             return (
-              <Card
+              <ActionCard
                 key={user.id}
-                padding="md"
-                variant="calm"
-                className="bg-white flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-3">
+                tint={isMe ? 'teal' : 'neutral'}
+                iconTile={
                   <Avatar
                     src={user.avatar}
                     name={user.name}
                     flag={user.flag}
                     isHome={user.isHome}
-                    showStatus
+                    statusRing={true}
                     size="md"
                   />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-heading font-bold text-base text-[#1F2430]">
-                        {user.name} {isMe ? '(You)' : ''}
-                      </h4>
-                      {membership.role === 'admin' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] border border-[#FFD7CF] text-[10px] font-bold">
-                          <Shield className="w-3 h-3" /> Admin
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#6B7280]">
-                      From {user.country} {user.flag} • Streak: {user.streakDays} days 🔥
-                    </p>
+                }
+                title={
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="truncate">{user.name}</span>
+                    {isMe && <span className="type-label text-[#FF6B4A] font-black">(You)</span>}
                   </div>
-                </div>
-
-                <div className="text-right">
-                  <span
-                    className={`inline-block w-2.5 h-2.5 rounded-full ${
-                      user.isHome ? 'bg-[#3DBE6D]' : 'bg-[#9CA3AF]'
-                    }`}
-                    title={user.isHome ? 'Home' : 'Away'}
-                  />
-                </div>
-              </Card>
+                }
+                subtitle={`From ${user.country} ${user.flag || ''}`}
+                badge={
+                  membership.role === 'admin' ? (
+                    <Chip status="admin" size="sm" />
+                  ) : undefined
+                }
+                detail={
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between type-secondary text-xs">
+                      <span className="flex items-center gap-1 text-[#FF6B4A] font-bold">
+                        <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" /> {user.streakDays} day streak
+                      </span>
+                      <span>{user.points} points</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <Chip
+                        status={user.isHome ? 'active' : 'away'}
+                        label={user.isHome ? 'At home' : 'Away'}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                }
+              />
             );
           })}
         </div>
       </div>
 
-      {/* Leave Household Action (Calm style with balance check) */}
-      <div className="pt-4 border-t border-[#E6E8EE]">
+      {/* Leave Apartment Action */}
+      <div className="pt-2 flex justify-start">
         <Button
-          variant="outline"
+          variant="secondary"
           size="md"
-          fullWidth
           onClick={() => setLeaveModalOpen(true)}
           icon={<LogOut className="w-4 h-4 text-[#E5484D]" />}
         >
-          Leave this Household
+          Leave this Apartment
         </Button>
       </div>
 
@@ -194,118 +218,125 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({
         isOpen={handoverModalOpen}
         onClose={() => setHandoverModalOpen(false)}
         title="Handover Admin Role"
-        subtitle="Pass the doorkeeper role to a flatmate"
+        subtitle="Pass the doorkeeper role to a roomie"
+        size="md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-[#6B7280]">
-            Select which roommate will take over reviewing join requests and refreshing invite codes.
+          <p className="text-sm font-semibold text-[#475569]">
+            Select which roomie will take over reviewing join requests and refreshing apartment invite codes.
           </p>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {members
               .filter((m) => m.user.id !== currentUser.id)
               .map(({ user }) => (
-                <div
+                <ActionCard
                   key={user.id}
-                  onClick={() => setSelectedSuccessorId(user.id)}
-                  className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                    selectedSuccessorId === user.id
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED]'
-                      : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar src={user.avatar} name={user.name} flag={user.flag} size="sm" />
-                    <div>
-                      <h4 className="font-heading font-bold text-sm text-[#1F2430]">
-                        {user.name}
-                      </h4>
-                      <p className="text-xs text-[#6B7280]">{user.country}</p>
-                    </div>
-                  </div>
-                  {selectedSuccessorId === user.id && (
-                    <div className="w-5 h-5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    </div>
-                  )}
-                </div>
+                  tint={selectedSuccessorId === user.id ? 'coral' : 'neutral'}
+                  iconTile={
+                    <Avatar
+                      src={user.avatar}
+                      name={user.name}
+                      flag={user.flag}
+                      isHome={user.isHome}
+                      statusRing={true}
+                      size="sm"
+                    />
+                  }
+                  title={user.name}
+                  subtitle={`From ${user.country}`}
+                  actions={
+                    <Button
+                      variant={selectedSuccessorId === user.id ? 'primary' : 'secondary'}
+                      size="sm"
+                      onClick={() => {
+                        sound.playTap();
+                        setSelectedSuccessorId(user.id);
+                      }}
+                      icon={selectedSuccessorId === user.id ? <Check className="w-4 h-4" /> : undefined}
+                    >
+                      {selectedSuccessorId === user.id ? 'Selected' : 'Select'}
+                    </Button>
+                  }
+                />
               ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button variant="outline" size="md" onClick={() => setHandoverModalOpen(false)}>
+          <div className="flex gap-3 pt-3">
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setHandoverModalOpen(false)}
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               size="md"
+              fullWidth
               disabled={!selectedSuccessorId || loading}
               onClick={handleHandover}
             >
-              {loading ? 'Updating...' : 'Confirm Handover'}
+              {loading ? 'Confirming...' : 'Confirm Handover'}
             </Button>
           </div>
         </div>
       </Modal>
 
-      {/* Leave Household Modal (with balance check) */}
+      {/* Leave Household Modal */}
       <Modal
         isOpen={leaveModalOpen}
         onClose={() => setLeaveModalOpen(false)}
-        title="Leave Household"
-        subtitle="Settle balances before departing"
+        title="Leave Apartment"
+        subtitle="Are you sure you want to disconnect from this household?"
+        size="md"
       >
         <div className="space-y-4">
           {Math.abs(netBalance) > 1 ? (
-            <div className="p-3.5 rounded-2xl bg-[#FDECEE] border border-[#F8BFC2] space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#E5484D]">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Unsettled Balance Detected</span>
+            <div className="p-4 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-2">
+              <div className="flex items-center gap-2 text-[#E5484D] font-bold">
+                <AlertTriangle className="w-5 h-5" />
+                <span>You have an unsettled balance of ₺{Math.abs(netBalance).toFixed(2)}</span>
               </div>
-              <p className="text-xs text-[#1F2430] leading-relaxed">
-                You currently have a balance of{' '}
-                <strong>
-                  {netBalance > 0
-                    ? `+₺${netBalance.toFixed(2)} (owed to you)`
-                    : `-₺${Math.abs(netBalance).toFixed(2)} (you owe flatmates)`}
-                </strong>
-                .
+              <p className="text-sm text-[#475569]">
+                Leaving before settling up may disrupt shared expense agreements with your roomies.
               </p>
-              <label className="flex items-start gap-2 pt-1 text-xs font-semibold text-[#1F2430] cursor-pointer">
+              <label className="flex items-center gap-2 pt-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={acknowledgeDebt}
                   onChange={(e) => setAcknowledgeDebt(e.target.checked)}
-                  className="mt-0.5 accent-[#FF6B4A]"
+                  className="w-4 h-4 rounded text-[#FF6B4A] focus:ring-[#FF6B4A]"
                 />
-                <span>
-                  I have arranged settlement with my flatmates offline or acknowledge this remaining balance.
+                <span className="text-sm font-bold text-[#1F2430]">
+                  I will settle my shared expenses outside the app
                 </span>
               </label>
             </div>
           ) : (
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              Your balances are all settled (₺0.00). When you leave, your chores will return to the draft pool for the remaining members.
+            <p className="text-sm text-[#475569]">
+              Your apartment balances are settled! You will lose access to the chore rotation, secret drafts, and group chat.
             </p>
           )}
 
-          {isAdmin && members.length > 1 && (
-            <div className="p-3 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] text-xs text-[#8A6200] font-semibold">
-              ⚠️ You are currently the admin. Leaving will automatically promote the next longest-standing flatmate to admin.
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button variant="outline" size="md" onClick={() => setLeaveModalOpen(false)}>
-              Stay in Flat
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setLeaveModalOpen(false)}
+            >
+              Stay in Apartment
             </Button>
             <Button
               variant="danger"
               size="md"
-              disabled={loading || (Math.abs(netBalance) > 1 && !acknowledgeDebt)}
+              fullWidth
+              disabled={Math.abs(netBalance) > 1 && !acknowledgeDebt}
               onClick={handleLeave}
             >
-              {loading ? 'Processing...' : 'Confirm & Leave'}
+              {loading ? 'Leaving...' : 'Yes, Leave'}
             </Button>
           </div>
         </div>

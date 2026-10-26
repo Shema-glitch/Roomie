@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Zap,
   Home,
+  Building2,
   MoreHorizontal,
   Camera,
   Check,
@@ -163,12 +164,12 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
           : step === 2
           ? 'Step 2: Enter title, amount and category'
           : step === 3
-          ? 'Step 3: Select flatmate split'
+          ? 'Step 3: Select roomie split'
           : step === 4
           ? 'Step 4: Attach receipt photo'
           : step === 5
           ? 'Step 5: Review & confirm breakdown'
-          : 'Awaiting flatmate agreement'
+          : 'Awaiting roomie agreement'
       }
     >
       <div className="space-y-4">
@@ -194,11 +195,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Who paid the bill?
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Select which flatmate paid at the store or covered the utility.
+              <p className="type-secondary mt-0.5">
+                Select which roomie paid at the store or covered the utility.
               </p>
             </div>
 
@@ -222,11 +223,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     <div className="flex items-center gap-3">
                       <Avatar src={r.avatar} name={r.name} flag={r.flag} size="md" />
                       <div>
-                        <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                        <h4 className="type-section-heading">
                           {r.name} {isMe ? '(You)' : ''}
                         </h4>
-                        <p className="text-xs text-[#6B7280]">
-                          From {r.country} {r.flag}
+                        <p className="type-secondary">
+                          From {r.country}
                         </p>
                       </div>
                     </div>
@@ -243,12 +244,12 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             <div className="pt-2">
               <Button
                 variant="primary"
-                size="lg"
+                size="md"
                 fullWidth
                 onClick={handleNext}
-                icon={<ArrowRight className="w-5 h-5" />}
+                icon={<ArrowRight className="w-4 h-4" />}
               >
-                Continue to Amount
+                Continue
               </Button>
             </div>
           </div>
@@ -258,17 +259,17 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Expense details & amount
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Paid by <strong>{payer.name}</strong> in Turkish Lira (₺ TRY).
+              <p className="type-secondary mt-0.5">
+                Paid by {payer.name} in Turkish Lira (₺ TRY).
               </p>
             </div>
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">
+              <label className="type-label block mb-1.5">
                 What was purchased?
               </label>
               <input
@@ -277,13 +278,13 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Lemar weekly groceries, Water 19L refills"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">
+              <label className="type-label block mb-1.5">
                 Total Amount (₺ TRY)
               </label>
               <div className="relative">
@@ -297,21 +298,22 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+                  className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E6E8EE] bg-white type-title text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
                 />
               </div>
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+              <label className="type-label block mb-1.5">
                 Category
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 {[
                   { id: 'groceries', label: 'Groceries', icon: <ShoppingCart className="w-4 h-4" /> },
+                  { id: 'rent', label: 'Rent', icon: <Building2 className="w-4 h-4" /> },
                   { id: 'utilities', label: 'Utilities', icon: <Zap className="w-4 h-4" /> },
-                  { id: 'household', label: 'Household', icon: <Home className="w-4 h-4" /> },
+                  { id: 'household', label: 'House', icon: <Home className="w-4 h-4" /> },
                   { id: 'other', label: 'Other', icon: <MoreHorizontal className="w-4 h-4" /> },
                 ].map((c) => (
                   <button
@@ -321,21 +323,21 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                       sound.playTap();
                       setCategory(c.id as ExpenseCategory);
                     }}
-                    className={`py-2.5 px-1 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                    className={`py-2.5 px-1 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
                       category === c.id
                         ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
                         : 'border-[#E6E8EE] bg-white text-[#6B7280]'
                     }`}
                   >
                     {c.icon}
-                    <span className="text-[10px]">{c.label}</span>
+                    <span className="text-[14px] font-normal">{c.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={handleBack}>
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 Back
               </Button>
               <Button
@@ -345,7 +347,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Next: Split
+                Next
               </Button>
             </div>
           </div>
@@ -355,11 +357,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         {step === 3 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Choose how to split
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Splitting <strong>₺{amountNum.toFixed(2)}</strong> fairly.
+              <p className="type-secondary mt-0.5">
+                Splitting ₺{amountNum.toFixed(2)} fairly.
               </p>
             </div>
 
@@ -368,16 +370,16 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSplitType('equal')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`py-2 rounded-xl text-[14px] font-bold transition-all cursor-pointer ${
                   splitType === 'equal' ? 'bg-white text-[#1F2430] shadow-xs' : 'text-[#6B7280]'
                 }`}
               >
-                Split Equally ({participants.length} ways)
+                Split Equally ({participants.length})
               </button>
               <button
                 type="button"
                 onClick={() => setSplitType('custom')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`py-2 rounded-xl text-[14px] font-bold transition-all cursor-pointer ${
                   splitType === 'custom' ? 'bg-white text-[#1F2430] shadow-xs' : 'text-[#6B7280]'
                 }`}
               >
@@ -385,10 +387,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               </button>
             </div>
 
-            {/* Roommate Checklist */}
+            {/* Roomie Checklist */}
             <div className="space-y-2">
-              <span className="text-xs font-bold text-[#1F2430] block">
-                Who was involved in this expense?
+              <span className="type-label block">
+                Roomies Sharing
               </span>
               {roommates.map((r) => {
                 const isSelected = participants.includes(r.id);
@@ -406,10 +408,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     <div className="flex items-center gap-3">
                       <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
                       <div>
-                        <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                        <h4 className="type-section-heading">
                           {r.name} {r.id === currentUser.id ? '(You)' : ''}
                         </h4>
-                        <p className="text-[11px] text-[#6B7280]">
+                        <p className="type-secondary">
                           {isSelected ? `Share: ₺${shareAmount}` : 'Excluded from split'}
                         </p>
                       </div>
@@ -424,15 +426,15 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               })}
             </div>
 
-            <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] text-xs font-bold text-[#8A6200] flex items-center justify-between">
-              <span>Each person owes:</span>
-              <span className="text-base font-heading font-black">
+            <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] type-secondary font-bold text-[#8A6200] flex items-center justify-between">
+              <span>Each roomie owes:</span>
+              <span className="type-section-heading text-[#8A6200]">
                 ₺{sharePerPerson}
               </span>
             </Card>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={handleBack}>
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 Back
               </Button>
               <Button
@@ -442,7 +444,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Next: Receipt
+                Next
               </Button>
             </div>
           </div>
@@ -452,10 +454,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         {step === 4 && (
           <div className="space-y-4 text-center">
             <div className="text-left">
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Capture receipt photo
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Receipts keep everything transparent and prevent disputes.
               </p>
             </div>
@@ -468,16 +470,16 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     alt="Captured receipt"
                     className="w-full h-44 object-cover"
                   />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[10px] font-bold">
+                  <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
                     Receipt Attached 🧾
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setReceiptUrl('')}
-                  className="text-xs text-[#E5484D] font-bold hover:underline cursor-pointer"
+                  className="type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
                 >
-                  Remove or Retake Photo
+                  Remove photo
                 </button>
               </div>
             ) : (
@@ -489,10 +491,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   <Camera className="w-7 h-7" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1F2430]">
+                  <h4 className="type-section-heading">
                     Take or Upload Receipt Photo
                   </h4>
-                  <p className="text-[11px] text-[#6B7280] mt-0.5">
+                  <p className="type-secondary mt-0.5">
                     Tap to simulate camera scan
                   </p>
                 </div>
@@ -509,7 +511,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                {receiptUrl ? 'Review & Submit' : 'Skip Receipt'}
+                {receiptUrl ? 'Review' : 'Skip'}
               </Button>
             </div>
           </div>
@@ -519,49 +521,49 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         {step === 5 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Review expense summary
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Verify details before notifying flatmates.
+              <p className="type-secondary mt-0.5">
+                Verify details before notifying roomies.
               </p>
             </div>
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#E6E8EE]">
                 <div>
-                  <span className="text-[10px] font-extrabold uppercase text-[#6B7280]">
+                  <span className="type-label block mb-1">
                     {category}
                   </span>
-                  <h3 className="font-heading font-black text-base text-[#1F2430]">
+                  <h3 className="type-section-heading">
                     {title}
                   </h3>
-                  <p className="text-xs text-[#6B7280]">Paid by {payer.name}</p>
+                  <p className="type-secondary">Paid by {payer.name}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-heading font-black text-[#FF6B4A]">
+                  <span className="type-big-number text-[#FF6B4A]">
                     ₺{amountNum.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               {/* Shares Breakdown */}
-              <div className="space-y-1.5">
-                <span className="text-xs font-bold text-[#1F2430] block">
-                  Flatmate Shares ({participants.length} people):
+              <div className="space-y-2">
+                <span className="type-label block">
+                  Roomie Shares ({participants.length}):
                 </span>
                 {participants.map((pid) => {
                   const u = roommates.find((r) => r.id === pid);
                   return (
                     <div
                       key={pid}
-                      className="flex items-center justify-between text-xs font-semibold py-1 px-2 rounded-xl bg-white border border-[#E6E8EE]"
+                      className="flex items-center justify-between py-1.5 px-3 rounded-xl bg-white border border-[#E6E8EE]"
                     >
                       <div className="flex items-center gap-2">
                         <Avatar src={u?.avatar} name={u?.name || ''} size="xs" />
-                        <span>{u?.name}</span>
+                        <span className="type-body">{u?.name}</span>
                       </div>
-                      <span className="font-heading font-bold text-[#1F2430]">
+                      <span className="type-section-heading">
                         ₺{sharePerPerson}
                       </span>
                     </div>
@@ -570,7 +572,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               </div>
 
               {receiptUrl && (
-                <div className="pt-1 flex items-center gap-2 text-xs text-[#3DBE6D] font-bold">
+                <div className="pt-1 flex items-center gap-2 type-secondary text-[#3DBE6D] font-bold">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Receipt photo included</span>
                 </div>
@@ -588,7 +590,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleSubmit}
                 icon={<Check className="w-4 h-4 stroke-[3]" />}
               >
-                {loading ? 'Submitting...' : 'Confirm & Log'}
+                {loading ? 'Submitting...' : 'Log expense'}
               </Button>
             </div>
           </div>
@@ -604,27 +606,27 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             />
 
             <div className="space-y-1 max-w-xs">
-              <h3 className="font-heading font-black text-2xl text-[#1F2430]">
-                Expense Logged!
+              <h3 className="type-title">
+                Expense Logged
               </h3>
-              <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
-                <strong>₺{amountNum.toFixed(2)}</strong> for "{title}" has been shared with your flatmates.
+              <p className="type-secondary leading-relaxed">
+                <span className="text-[#1F2430] font-bold">₺{amountNum.toFixed(2)}</span> for "{title}" has been shared with your roomies.
               </p>
             </div>
 
             <Card padding="md" variant="calm" className="w-full bg-[#F7F8FB] text-left space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#1F2430]">
+              <div className="flex items-center gap-2 type-label text-[#1F2430]">
                 <ShieldCheck className="w-4 h-4 text-[#19B5A5]" />
-                <span>Next steps:</span>
+                <span>Next steps</span>
               </div>
-              <p className="text-[11px] text-[#6B7280] leading-relaxed">
-                Your roommates will receive an in-app notice to tap <strong>Agree</strong>. Only agreed shares will update the final balance.
+              <p className="type-secondary leading-relaxed">
+                Your roomies will receive an in-app notice to tap Agree. Only agreed shares will update the final balance.
               </p>
             </Card>
 
             <div className="w-full pt-2">
               <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-                Done & Back to Expenses
+                Done
               </Button>
             </div>
           </div>

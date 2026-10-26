@@ -45,7 +45,7 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="I'm Away Mode"
+      title="Away Mode"
       subtitle="Travel, exam season, or visiting family"
     >
       <div className="flex flex-col items-center text-center space-y-4">
@@ -55,14 +55,14 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
           bubbleText={isAway ? 'Safe travels! ✈️' : 'Pause your chores'}
         />
 
-        <p className="text-xs text-[#6B7280] leading-relaxed">
+        <p className="type-secondary leading-relaxed">
           While Away Mode is on, you won't be assigned new chores in draft rounds, and your pending tasks are safely paused without hurting your streaks.
         </p>
 
         {!isAway ? (
           <div className="w-full space-y-3">
-            <label className="block text-xs font-bold text-[#1F2430] text-left">
-              How many days will you be away?
+            <label className="type-label block text-left">
+              Days away:
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[3, 7, 14].map((d) => (
@@ -70,10 +70,10 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
                   type="button"
                   key={d}
                   onClick={() => setDays(d)}
-                  className={`py-2.5 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
+                  className={`py-2.5 rounded-2xl border text-[14px] font-bold transition-all cursor-pointer ${
                     days === d
                       ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
                   }`}
                 >
                   {d} Days
@@ -89,12 +89,12 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
               onClick={() => handleToggle(true)}
               icon={<Plane className="w-4 h-4" />}
             >
-              {loading ? 'Activating...' : `Activate Away Mode (${days} days)`}
+              {loading ? 'Activating...' : `Activate (${days} days)`}
             </Button>
           </div>
         ) : (
           <div className="w-full space-y-3">
-            <div className="p-3 bg-[#E6FAF8] border border-[#BBEFEA] rounded-2xl text-xs font-bold text-[#138E82]">
+            <div className="p-3 bg-[#E6FAF8] border border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
               🌴 You are currently in Away Mode.
             </div>
             <Button
@@ -104,7 +104,7 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
               disabled={loading}
               onClick={() => handleToggle(false)}
             >
-              I am Back! Resume Chores
+              Resume chores
             </Button>
           </div>
         )}

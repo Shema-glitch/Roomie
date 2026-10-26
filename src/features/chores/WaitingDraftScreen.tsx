@@ -33,10 +33,10 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
           bubbleText={isReady ? 'Everyone is ready!' : 'Matching in progress...'}
         />
 
-        <h2 className="text-3xl font-heading font-black text-[#1F2430] mt-4">
-          {isReady ? 'The Draft is Ready!' : 'Waiting for Roommates'}
+        <h2 className="type-title mt-4">
+          {isReady ? 'The Draft is Ready' : 'Waiting for Roomies'}
         </h2>
-        <p className="text-xs text-[#6B7280] font-semibold max-w-xs mx-auto mt-1">
+        <p className="type-secondary max-w-xs mx-auto mt-1">
           {isReady
             ? 'All secret picks are in. Everyone can gather round for the reveal animation!'
             : 'Picks stay secret until everyone is finished. No fighting over who does what.'}
@@ -46,8 +46,8 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
       {/* Roommates Readiness Status */}
       <div className="my-auto py-4">
         <Card padding="md" className="bg-white space-y-3">
-          <div className="flex justify-between items-center text-xs font-bold text-[#1F2430] pb-2 border-b border-[#E6E8EE]">
-            <span>Roommate Status</span>
+          <div className="flex justify-between items-center type-label pb-2 border-b border-[#E6E8EE]">
+            <span>Roomie Status</span>
             <span className="text-[#19B5A5]">
               {submittedUserIds.size} of {roommates.length} submitted
             </span>
@@ -63,16 +63,16 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
                 >
                   <div className="flex items-center gap-2.5">
                     <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
-                    <span className="font-heading font-bold text-sm text-[#1F2430]">
+                    <span className="type-section-heading">
                       {r.name}
                     </span>
                   </div>
                   {hasSubmitted ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#3DBE6D] bg-[#EBF9F0] px-2.5 py-1 rounded-full border border-[#B8ECC8]">
+                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#3DBE6D] bg-[#EBF9F0] px-2.5 py-1 rounded-full border border-[#B8ECC8]">
                       <Check className="w-3.5 h-3.5 stroke-[3]" /> Ready
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#6B7280] bg-[#E6E8EE] px-2.5 py-1 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#64748B] bg-[#E6E8EE] px-2.5 py-1 rounded-full">
                       <Clock className="w-3.5 h-3.5" /> Picking...
                     </span>
                   )}
@@ -92,10 +92,10 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
           onClick={onStartReveal}
           icon={<Sparkles className="w-5 h-5 text-yellow-200" />}
         >
-          {isReady ? 'Start Chore Reveal! 🎭' : 'Reveal Chores Now'}
+          {isReady ? 'Start reveal' : 'Reveal now'}
         </Button>
         <Button variant="ghost" size="sm" fullWidth onClick={onEditPicks}>
-          Change My Secret Picks
+          Edit picks
         </Button>
       </div>
     </div>

@@ -78,8 +78,8 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
           : step === 2
           ? 'Step 2: Enter invite code or scan'
           : step === 3
-          ? 'Step 3: Confirm flatmate request'
-          : 'Waiting for flatmates to approve'
+          ? 'Step 3: Confirm roomie request'
+          : 'Waiting for roomies to approve'
       }
     >
       <div className="space-y-4">
@@ -87,10 +87,10 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 How would you like to join?
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Every apartment has a unique invite code and QR display.
               </p>
             </div>
@@ -102,17 +102,17 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                   sound.playTap();
                   handleSimulateScan();
                 }}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98]"
+                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center shrink-0">
                   <QrCode className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1F2430]">
-                    Scan Flatmate QR Code
+                  <h4 className="type-section-heading">
+                    Scan Roomie QR Code
                   </h4>
-                  <p className="text-xs text-[#6B7280]">
-                    Point camera at your roommate's phone
+                  <p className="type-secondary">
+                    Point camera at your roomie's phone
                   </p>
                 </div>
               </button>
@@ -123,16 +123,16 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                   sound.playTap();
                   setStep(2);
                 }}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98]"
+                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#E6FAF8] text-[#19B5A5] flex items-center justify-center shrink-0">
                   <Home className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-bold text-sm text-[#1F2430]">
-                    Type Household Invite Code
+                  <h4 className="type-section-heading">
+                    Type Apartment Invite Code
                   </h4>
-                  <p className="text-xs text-[#6B7280]">
+                  <p className="type-secondary">
                     Enter short code (e.g. CYP-7492)
                   </p>
                 </div>
@@ -145,11 +145,11 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Enter Invite Code
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Ask any current flatmate for their apartment code.
+              <p className="type-secondary mt-0.5">
+                Ask any current roomie for their apartment code.
               </p>
             </div>
 
@@ -159,9 +159,9 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="e.g. CYP-7492"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-xl tracking-widest font-heading font-black focus:outline-none focus:border-[#FF6B4A] uppercase text-center"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-widest focus:outline-none focus:border-[#FF6B4A] uppercase text-center"
               />
-              <p className="text-[11px] text-[#6B7280] mt-1 text-center">
+              <p className="type-secondary mt-1 text-center">
                 Try code <strong>CYP-7492</strong> to join Apartment 4B.
               </p>
             </div>
@@ -177,7 +177,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 onClick={handleCodeSubmit}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Find Flat
+                Find Apartment
               </Button>
             </div>
           </div>
@@ -190,8 +190,8 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
               <Camera className="w-12 h-12 text-white/50" />
               <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_12px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-24" />
             </div>
-            <p className="text-xs font-bold text-[#1F2430]">
-              Scanning for Roomie QR code...
+            <p className="type-body font-bold text-[#1F2430]">
+              Scanning for QR code...
             </p>
           </div>
         )}
@@ -200,10 +200,10 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
         {step === 3 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
-                Apartment Found!
+              <h4 className="type-section-heading">
+                Apartment Found
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Ready to submit your join request?
               </p>
             </div>
@@ -214,22 +214,22 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                   <Home className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-heading font-black text-base text-[#1F2430]">
+                  <h4 className="type-section-heading">
                     Apartment 4B Lefkoşa
                   </h4>
-                  <p className="text-xs text-[#6B7280]">
-                    Code: {code} • 4 roommates active
+                  <p className="type-secondary">
+                    Code: {code} • 4 roomies active
                   </p>
                 </div>
               </div>
 
-              <div className="text-[11px] text-[#6B7280] bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
-                💡 <strong>Fairness notice:</strong> Your request will be shared with the flatmates. Every member sees your request and votes OK or Not sure, then the admin approves.
+              <div className="type-secondary bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
+                Your request will be shared with the roomies. Every member sees your request and votes OK or Not sure, then the admin approves.
               </div>
             </Card>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={() => setStep(1)}>
+              <Button variant="secondary" size="md" onClick={() => setStep(1)}>
                 Cancel
               </Button>
               <Button
@@ -251,21 +251,21 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
             <MascotView
               state="calm"
               size="lg"
-              bubbleText="Hold tight! The flat is reviewing."
+              bubbleText="Hold tight! The apartment is reviewing."
             />
 
             <div className="space-y-1 max-w-xs">
-              <h3 className="font-heading font-black text-2xl text-[#1F2430]">
+              <h3 className="type-title">
                 Request Sent!
               </h3>
-              <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
-                Your request to join <strong>Apartment 4B Lefkoşa</strong> has been delivered. Roommates will review and vote.
+              <p className="type-secondary leading-relaxed">
+                Your request to join Apartment 4B Lefkoşa has been delivered. Roomies will review and vote.
               </p>
             </div>
 
             <div className="w-full pt-2">
-              <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-                Back to Main
+              <Button variant="primary" size="md" fullWidth onClick={handleClose}>
+                Done
               </Button>
             </div>
           </div>

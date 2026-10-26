@@ -4,6 +4,7 @@ import { EffortLevel } from '../../types';
 
 export type ChipVariant =
   | 'default'
+  | 'neutral'
   | 'primary'
   | 'secondary'
   | 'reward'
@@ -12,9 +13,20 @@ export type ChipVariant =
   | 'info'
   | 'outline';
 
+export type StatusBadgeType =
+  | 'agreed'
+  | 'pending'
+  | 'disputed'
+  | 'cancelled'
+  | 'paid'
+  | 'active'
+  | 'away'
+  | 'admin';
+
 interface ChipProps {
-  label: string;
+  label?: string;
   variant?: ChipVariant;
+  status?: StatusBadgeType;
   effort?: EffortLevel;
   icon?: React.ReactNode;
   size?: 'sm' | 'md';
@@ -23,17 +35,64 @@ interface ChipProps {
 }
 
 export const Chip: React.FC<ChipProps> = ({
-  label,
+  label = '',
   variant = 'default',
+  status,
   effort,
   icon,
   size = 'md',
   onClick,
   className = '',
 }) => {
-  // Override variant if effort level is provided
+  // Override variant and icon if status is provided
   let effectiveVariant = variant;
   let effectiveLabel = label;
+  let effectiveIcon = icon;
+
+  if (status) {
+    switch (status) {
+      case 'agreed':
+        effectiveVariant = 'success';
+        effectiveLabel = label || 'Agreed';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        break;
+      case 'pending':
+        effectiveVariant = 'reward';
+        effectiveLabel = label || 'Pending';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#8A6200] shadow-xs shrink-0" />;
+        break;
+      case 'disputed':
+        effectiveVariant = 'danger';
+        effectiveLabel = label || 'Disputed';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#BF3337] shadow-xs shrink-0" />;
+        break;
+      case 'cancelled':
+        effectiveVariant = 'neutral';
+        effectiveLabel = label || 'Cancelled';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#64748B] shrink-0" />;
+        break;
+      case 'paid':
+        effectiveVariant = 'success';
+        effectiveLabel = label || 'Paid';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        break;
+      case 'active':
+        effectiveVariant = 'success';
+        effectiveLabel = label || 'Active';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        break;
+      case 'away':
+        effectiveVariant = 'info';
+        effectiveLabel = label || 'Away';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#5B5BD6] shrink-0" />;
+        break;
+      case 'admin':
+        effectiveVariant = 'primary';
+        effectiveLabel = label || 'Admin';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shadow-xs shrink-0" />;
+        break;
+    }
+  }
 
   if (effort) {
     if (effort === 'light') {
@@ -50,6 +109,12 @@ export const Chip: React.FC<ChipProps> = ({
 
   const getStyles = () => {
     switch (effectiveVariant) {
+      case 'neutral':
+        return {
+          backgroundColor: '#F1F5F9',
+          color: '#64748B',
+          borderColor: '#E2E8F0',
+        };
       case 'primary':
         return {
           backgroundColor: THEME.colors.primaryLight,
@@ -95,25 +160,25 @@ export const Chip: React.FC<ChipProps> = ({
       case 'default':
       default:
         return {
-          backgroundColor: THEME.colors.bg,
-          color: THEME.colors.muted,
-          borderColor: THEME.colors.line,
+          backgroundColor: '#F1F5F9',
+          color: '#64748B',
+          borderColor: '#E2E8F0',
         };
     }
   };
 
-  const sizeClasses = size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-xs font-bold';
+  const sizeClasses = size === 'sm' ? 'px-3 py-1 text-[14px] font-normal' : 'px-3.5 py-1.5 text-[14px] font-semibold';
 
   return (
     <span
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border font-semibold select-none ${sizeClasses} ${
+      className={`inline-flex items-center gap-1.5 rounded-full border-[1.5px] shadow-2xs select-none ${sizeClasses} ${
         onClick ? 'cursor-pointer active:scale-95 transition-transform' : ''
       } ${className}`}
       style={getStyles()}
     >
-      {icon && <span className="inline-flex shrink-0">{icon}</span>}
-      <span>{effectiveLabel}</span>
+      {effectiveIcon && <span className="inline-flex shrink-0 items-center justify-center">{effectiveIcon}</span>}
+      <span className="leading-tight">{effectiveLabel}</span>
     </span>
   );
 };

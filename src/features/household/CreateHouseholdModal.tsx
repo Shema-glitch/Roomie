@@ -62,15 +62,15 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
       title={createdHousehold ? 'Apartment Ready! 🎉' : 'Create a Household'}
       subtitle={
         createdHousehold
-          ? 'Share this code or QR with your flatmates'
+          ? 'Share this code or QR with your roomies'
           : 'Set up your shared apartment in seconds'
       }
     >
       {!createdHousehold ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-              Apartment / Household Name
+            <label className="type-label block mb-1.5">
+              Apartment Name
             </label>
             <input
               type="text"
@@ -78,13 +78,13 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Lefkoşa Flat 12, Gönyeli Villa"
-              className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-              Household Currency
+            <label className="type-label block mb-1.5">
+              Apartment Currency
             </label>
             <div className="grid grid-cols-3 gap-2">
               {(['TRY', 'USD', 'EUR'] as CurrencyCode[]).map((c) => (
@@ -92,22 +92,22 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
                   type="button"
                   key={c}
                   onClick={() => setCurrency(c)}
-                  className={`py-2.5 px-3 rounded-2xl border text-sm font-bold flex flex-col items-center gap-0.5 cursor-pointer transition-all ${
+                  className={`py-2.5 px-3 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-0.5 cursor-pointer transition-all ${
                     currency === c
                       ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
                       : 'border-[#E6E8EE] bg-white text-[#6B7280]'
                   }`}
                 >
                   <span>{c === 'TRY' ? '₺ TRY' : c === 'USD' ? '$ USD' : '€ EUR'}</span>
-                  <span className="text-[10px] font-normal">
-                    {c === 'TRY' ? 'Turkish Lira' : c === 'USD' ? 'US Dollar' : 'Euro'}
+                  <span className="text-[14px] font-normal">
+                    {c === 'TRY' ? 'Lira' : c === 'USD' ? 'Dollar' : 'Euro'}
                   </span>
                 </button>
               ))}
             </div>
             {currency === 'TRY' && (
-              <p className="text-[11px] text-[#6B7280] mt-1.5">
-                💡 Perfect for TRNC universities (EMU, NEU, CIU). Settle up monthly for fair balances!
+              <p className="type-secondary mt-1.5">
+                Settle up monthly for fair balances across currency changes.
               </p>
             )}
           </div>
@@ -126,12 +126,12 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
         </form>
       ) : (
         <div className="flex flex-col items-center text-center space-y-4">
-          <MascotView state="celebrating" size="md" bubbleText="Invite your roommates!" />
+          <MascotView state="celebrating" size="md" bubbleText="Invite your roomies!" />
 
           <Card padding="md" className="w-full bg-[#F7F8FB] space-y-3">
             <div>
-              <span className="text-xs text-[#6B7280] font-semibold">Invite Code</span>
-              <div className="text-3xl font-heading font-black tracking-widest text-[#FF6B4A] my-1">
+              <span className="type-label block">Invite Code</span>
+              <div className="type-big-number tracking-widest text-[#FF6B4A] my-1">
                 {createdHousehold.inviteCode}
               </div>
             </div>
@@ -162,7 +162,7 @@ export const CreateHouseholdModal: React.FC<CreateHouseholdModalProps> = ({
                 <rect x="62" y="62" width="12" height="12" fill="#1F2430" />
                 <rect x="78" y="78" width="12" height="12" fill="#1F2430" />
               </svg>
-              <p className="text-[10px] text-[#6B7280] mt-1 font-semibold">Scan with phone camera</p>
+              <p className="type-secondary mt-1">Scan with phone camera</p>
             </div>
 
             <Button

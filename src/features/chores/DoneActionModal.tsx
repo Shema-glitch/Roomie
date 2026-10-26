@@ -65,8 +65,8 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
         <MascotView state="cheering" size="md" bubbleText="Streak power! 🔥" />
 
         <Card padding="md" className="w-full bg-[#F7F8FB] space-y-3">
-          <p className="text-xs text-[#6B7280]">
-            Optionally attach a quick photo proof to show off the sparkling clean result to your roommates!
+          <p className="type-secondary leading-relaxed">
+            Optionally attach a quick photo proof to show off the clean result to your roomies.
           </p>
 
           {hasPhoto ? (
@@ -78,7 +78,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
                   setHasPhoto(false);
                   setPhotoUrl('');
                 }}
-                className="absolute top-2 right-2 px-2 py-1 bg-black/60 text-white rounded-lg text-[10px] font-bold"
+                className="absolute top-2 right-2 px-2.5 py-1 bg-black/60 text-white rounded-lg text-[14px] font-bold cursor-pointer"
               >
                 Remove
               </button>
@@ -90,10 +90,10 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
               className="w-full p-4 border-2 border-dashed border-[#CBD5E1] rounded-2xl flex flex-col items-center justify-center gap-1.5 hover:border-[#FF6B4A] hover:bg-[#FFF0ED]/20 cursor-pointer transition-all"
             >
               <Camera className="w-6 h-6 text-[#FF6B4A]" />
-              <span className="text-xs font-bold text-[#1F2430]">
-                Add Clean Photo Proof
+              <span className="type-section-heading">
+                Add Photo Proof
               </span>
-              <span className="text-[10px] text-[#6B7280]">
+              <span className="type-secondary">
                 Tap to simulate camera snap
               </span>
             </button>
@@ -102,7 +102,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
 
         <div className="w-full grid grid-cols-2 gap-2 pt-2">
           <Button variant="outline" size="md" onClick={onClose}>
-            Not yet
+            Cancel
           </Button>
           <Button
             variant="secondary"
@@ -111,7 +111,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
             onClick={handleDone}
             icon={<Check className="w-4 h-4 stroke-[3]" />}
           >
-            {loading ? 'Saving...' : 'Done!'}
+            {loading ? 'Saving...' : 'Done'}
           </Button>
         </div>
       </div>

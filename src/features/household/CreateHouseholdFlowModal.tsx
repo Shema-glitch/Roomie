@@ -106,7 +106,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
           ? 'Step 2: Choose currency and rotation'
           : step === 3
           ? 'Step 3: Pick starter chores'
-          : 'Share this QR or invite code with your flatmates'
+          : 'Share this QR or invite code with your roomies'
       }
     >
       <div className="space-y-4">
@@ -132,17 +132,17 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 What is your apartment called?
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
-                Pick a friendly name you and your flatmates recognize.
+              <p className="type-secondary mt-0.5">
+                Pick a friendly name you and your roomies recognize.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1">
-                Apartment / Household Name
+              <label className="type-label block mb-1.5">
+                Apartment Name
               </label>
               <input
                 type="text"
@@ -150,23 +150,23 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Lefkoşa Flat 12, Gönyeli Villa 4B"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
 
             <div className="pt-2">
               <Button
                 variant="primary"
-                size="lg"
+                size="md"
                 fullWidth
                 disabled={!name.trim()}
                 onClick={() => {
                   sound.playTap();
                   setStep(2);
                 }}
-                icon={<ArrowRight className="w-5 h-5" />}
+                icon={<ArrowRight className="w-4 h-4" />}
               >
-                Continue to Currency
+                Continue
               </Button>
             </div>
           </div>
@@ -176,18 +176,18 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
         {step === 2 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Currency & chore schedule
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Set how expenses and chore rotations operate.
               </p>
             </div>
 
             {/* Currency */}
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-                Household Currency
+              <label className="type-label block mb-1.5">
+                Apartment Currency
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {(['TRY', 'USD', 'EUR'] as CurrencyCode[]).map((c) => (
@@ -198,17 +198,17 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setCurrency(c);
                     }}
-                    className={`py-3 px-2 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                    className={`py-3 px-2 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
                       currency === c
                         ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
                         : 'border-[#E6E8EE] bg-white text-[#6B7280]'
                     }`}
                   >
-                    <span className="text-sm font-heading font-black">
+                    <span className="text-[14px] font-bold">
                       {c === 'TRY' ? '₺ TRY' : c === 'USD' ? '$ USD' : '€ EUR'}
                     </span>
-                    <span className="text-[10px] font-normal">
-                      {c === 'TRY' ? 'Turkish Lira' : c === 'USD' ? 'US Dollar' : 'Euro'}
+                    <span className="text-[14px] font-normal">
+                      {c === 'TRY' ? 'Lira' : c === 'USD' ? 'Dollar' : 'Euro'}
                     </span>
                   </button>
                 ))}
@@ -217,12 +217,12 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
 
             {/* Rotation */}
             <div>
-              <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+              <label className="type-label block mb-1.5">
                 Chore Draft Rotation
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { id: 'weekly', label: 'Weekly Draft (Recommended)' },
+                  { id: 'weekly', label: 'Weekly Draft' },
                   { id: 'monthly', label: 'Monthly Rotation' },
                 ].map((r) => (
                   <button
@@ -232,7 +232,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setRotation(r.id as any);
                     }}
-                    className={`p-3 rounded-2xl border text-xs font-bold text-left cursor-pointer transition-all ${
+                    className={`p-3 rounded-2xl border text-[14px] font-bold text-left cursor-pointer transition-all ${
                       rotation === r.id
                         ? 'border-[#19B5A5] bg-[#E6FAF8] text-[#138E82]'
                         : 'border-[#E6E8EE] bg-white text-[#6B7280]'
@@ -245,7 +245,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={() => setStep(1)}>
+              <Button variant="secondary" size="md" onClick={() => setStep(1)}>
                 Back
               </Button>
               <Button
@@ -257,7 +257,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 }}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Next: Chores
+                Next
               </Button>
             </div>
           </div>
@@ -267,10 +267,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
         {step === 3 && (
           <div className="space-y-4">
             <div>
-              <h4 className="font-heading font-black text-xl text-[#1F2430]">
+              <h4 className="type-section-heading">
                 Starter Chore Pool
               </h4>
-              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+              <p className="type-secondary mt-0.5">
                 Select default chores for your apartment draft ({starterChores.length} selected).
               </p>
             </div>
@@ -288,7 +288,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                         : 'border-[#E6E8EE] bg-white opacity-60'
                     }`}
                   >
-                    <span className="text-xs font-bold text-[#1F2430]">{c}</span>
+                    <span className="text-[14px] font-bold text-[#1F2430]">{c}</span>
                     <div
                       className={`w-5 h-5 rounded-full flex items-center justify-center ${
                         isSelected ? 'bg-[#FF6B4A] text-white' : 'border border-[#CBD5E1]'
@@ -302,7 +302,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={() => setStep(2)}>
+              <Button variant="secondary" size="md" onClick={() => setStep(2)}>
                 Back
               </Button>
               <Button
@@ -312,7 +312,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 onClick={handleCreate}
                 icon={<Check className="w-4 h-4 stroke-[3]" />}
               >
-                {loading ? 'Creating...' : 'Create Apartment!'}
+                {loading ? 'Creating...' : 'Create'}
               </Button>
             </div>
           </div>
@@ -321,12 +321,12 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
         {/* STEP 4: CREATED & INVITE QR */}
         {step === 4 && createdHousehold && (
           <div className="flex flex-col items-center text-center space-y-4 py-2">
-            <MascotView state="celebrating" size="md" bubbleText="Invite your flatmates!" />
+            <MascotView state="celebrating" size="md" bubbleText="Invite your roomies!" />
 
             <Card padding="md" variant="calm" className="w-full bg-[#F7F8FB] space-y-3">
               <div>
-                <span className="text-xs text-[#6B7280] font-semibold">Invite Code</span>
-                <div className="text-3xl font-heading font-black tracking-widest text-[#FF6B4A] my-1">
+                <span className="type-label block">Invite Code</span>
+                <div className="type-big-number tracking-widest text-[#FF6B4A] my-1">
                   {createdHousehold.inviteCode}
                 </div>
               </div>
@@ -351,24 +351,24 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                   <rect x="62" y="62" width="12" height="12" fill="#1F2430" />
                   <rect x="78" y="78" width="12" height="12" fill="#1F2430" />
                 </svg>
-                <p className="text-[10px] text-[#6B7280] mt-1 font-semibold">
+                <p className="type-secondary mt-1">
                   Scan with camera to join
                 </p>
               </div>
 
               <Button
-                variant="outline"
-                size="sm"
+                variant="secondary"
+                size="md"
                 fullWidth
                 onClick={handleCopyCode}
                 icon={copied ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Copy className="w-4 h-4" />}
               >
-                {copied ? 'Copied code!' : 'Copy Code & Share Link'}
+                {copied ? 'Copied code!' : 'Copy Code'}
               </Button>
             </Card>
 
-            <Button variant="primary" size="lg" fullWidth onClick={handleClose}>
-              Enter Apartment
+            <Button variant="primary" size="md" fullWidth onClick={handleClose}>
+              Done
             </Button>
           </div>
         )}

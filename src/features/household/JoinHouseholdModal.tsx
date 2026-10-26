@@ -62,11 +62,11 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleReset}
-      title={isWaiting ? 'Request Sent!' : 'Join a Household'}
+      title={isWaiting ? 'Request Sent!' : 'Join an Apartment'}
       subtitle={
         isWaiting
-          ? 'Waiting for your roommates to approve'
-          : 'Enter your flatmate invite code or scan QR'
+          ? 'Waiting for your roomies to approve'
+          : 'Enter your apartment invite code or scan QR'
       }
     >
       {isWaiting ? (
@@ -74,26 +74,26 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
           <MascotView
             state="calm"
             size="lg"
-            bubbleText="Hold tight! The flat is reviewing."
+            bubbleText="Hold tight! The apartment is reviewing."
           />
 
           <Card padding="md" variant="calm" className="w-full space-y-2.5">
             <div className="w-10 h-10 rounded-full bg-[#EEF0FD] text-[#5B5BD6] flex items-center justify-center mx-auto">
               <Clock className="w-5 h-5 animate-spin" />
             </div>
-            <h4 className="font-heading font-bold text-lg text-[#1F2430]">
-              Waiting for Roommate Approval
+            <h4 className="type-section-heading">
+              Waiting for Roomie Approval
             </h4>
-            <p className="text-xs text-[#6B7280] leading-relaxed">
-              Your request for <strong>Apartment 4B Lefkoşa</strong> was sent to Amina, Lucas, and Yasmin.
+            <p className="type-secondary leading-relaxed">
+              Your request for Apartment 4B was sent to your future roomies.
             </p>
-            <div className="text-[11px] text-[#6B7280] bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
-              💡 Once the household admin confirms your request, you will automatically gain full access to chores and shared expenses.
+            <div className="type-secondary bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
+              Once the apartment admin confirms your request, you will gain full access to chores and shared expenses.
             </div>
           </Card>
 
           <Button variant="primary" size="md" fullWidth onClick={handleReset}>
-            Got it, back to app
+            Got it
           </Button>
         </div>
       ) : isScanning ? (
@@ -103,18 +103,18 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
             {/* Animated scanning beam */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_12px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-24" />
           </div>
-          <p className="text-xs font-bold text-[#1F2430]">
-            Point your camera at your flatmate's Roomie QR code...
+          <p className="type-body font-bold text-[#1F2430]">
+            Point your camera at your roomie's QR code...
           </p>
-          <Button variant="outline" size="sm" onClick={() => setIsScanning(false)}>
-            Cancel Camera
+          <Button variant="secondary" size="md" onClick={() => setIsScanning(false)}>
+            Cancel
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-              Household Invite Code
+            <label className="type-label block mb-1.5">
+              Apartment Invite Code
             </label>
             <input
               type="text"
@@ -127,7 +127,7 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
 
           <div className="grid grid-cols-2 gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="md"
               onClick={handleSimulateQR}
               icon={<QrCode className="w-4 h-4 text-[#FF6B4A]" />}
@@ -141,11 +141,11 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
               onClick={() => handleJoin(code)}
               icon={<ArrowRight className="w-4 h-4" />}
             >
-              {loading ? 'Submitting...' : 'Join Flat'}
+              {loading ? 'Submitting...' : 'Join'}
             </Button>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-[11px] text-[#6B7280]">
+          <div className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] type-secondary">
             <strong>Hint:</strong> Try invite code <code>CYP-7492</code> to simulate joining Apartment 4B.
           </div>
         </div>

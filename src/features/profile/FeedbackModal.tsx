@@ -50,28 +50,28 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
             size="lg"
             bubbleText="You are awesome! 🎉"
           />
-          <h3 className="text-xl font-heading font-black text-[#1F2430]">
-            Thanks for sharing your thoughts!
+          <h3 className="type-title">
+            Thanks for sharing your thoughts
           </h3>
-          <p className="text-xs text-[#6B7280] max-w-xs leading-relaxed">
-            Every rating and idea directly shapes future updates for university roommates. Have a great day!
+          <p className="type-secondary max-w-xs leading-relaxed">
+            Every rating and idea directly shapes future updates for university roomies.
           </p>
           <Button variant="primary" size="md" fullWidth onClick={handleReset}>
-            Back to Apartment
+            Done
           </Button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Category Tabs */}
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+            <label className="type-label block mb-2">
               Feedback Category
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { id: 'rate', label: 'Rate App', icon: <Star className="w-3.5 h-3.5" /> },
-                { id: 'problem', label: 'Report Bug', icon: <Bug className="w-3.5 h-3.5" /> },
-                { id: 'feature', label: 'Idea', icon: <Lightbulb className="w-3.5 h-3.5" /> },
+                { id: 'rate', label: 'Rate App', icon: <Star className="w-4 h-4" /> },
+                { id: 'problem', label: 'Report Bug', icon: <Bug className="w-4 h-4" /> },
+                { id: 'feature', label: 'Idea', icon: <Lightbulb className="w-4 h-4" /> },
               ].map((c) => (
                 <button
                   type="button"
@@ -80,14 +80,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     sound.playTap();
                     setCategory(c.id as any);
                   }}
-                  className={`py-2 px-1 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                  className={`py-2 px-1 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
                     category === c.id
                       ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
                   }`}
                 >
                   {c.icon}
-                  <span className="text-[10px]">{c.label}</span>
+                  <span>{c.label}</span>
                 </button>
               ))}
             </div>
@@ -96,8 +96,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
           {/* Star rating if rating */}
           {category === 'rate' && (
             <div className="text-center py-2">
-              <label className="block text-xs font-bold text-[#1F2430] mb-2">
-                How is your flatmate experience?
+              <label className="type-label block mb-2">
+                How is your roomie experience?
               </label>
               <div className="flex justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -120,7 +120,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   </button>
                 ))}
               </div>
-              <span className="text-xs font-extrabold text-[#8A6200] block mt-1">
+              <span className="type-section-heading text-[#8A6200] block mt-2">
                 {rating === 5
                   ? 'Loved it! 5 Stars'
                   : rating === 4
@@ -134,7 +134,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
 
           {/* Details */}
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1">
+            <label className="type-label block mb-1">
               Your message:
             </label>
             <textarea
@@ -149,7 +149,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   ? 'What feature would make living together even easier?'
                   : 'What do you love most about Roomie?'
               }
-              className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-xs focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
 
@@ -162,7 +162,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               disabled={!message.trim()}
               icon={<Heart className="w-4 h-4" />}
             >
-              Submit Feedback
+              Submit feedback
             </Button>
           </div>
         </form>

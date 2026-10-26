@@ -36,8 +36,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
               1
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#1F2430]">Secret Chore Draft</h4>
-              <p className="text-xs text-[#6B7280] mt-0.5">
+              <h4 className="type-section-heading">Secret Chore Draft</h4>
+              <p className="type-secondary mt-0.5">
                 Pick what you want or avoid. Roomie balances the effort and reveals everyone's tasks on Sunday.
               </p>
             </div>
@@ -48,9 +48,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
               2
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#1F2430]">Calm Expense Splits</h4>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Log groceries or bills. Roommates agree before anything counts, and balances stay crystal clear.
+              <h4 className="type-section-heading">Calm Expense Splits</h4>
+              <p className="type-secondary mt-0.5">
+                Log groceries or bills. Roomies agree before anything counts, and balances stay crystal clear.
               </p>
             </div>
           </div>
@@ -60,9 +60,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
               3
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#1F2430]">Kudos & Streaks</h4>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Say thanks when a flatmate cleans. Celebrate streaks without nagging or awkward confrontations.
+              <h4 className="type-section-heading">Kudos & Streaks</h4>
+              <p className="type-secondary mt-0.5">
+                Say thanks when a roomie cleans. Celebrate streaks without nagging or awkward confrontations.
               </p>
             </div>
           </div>
@@ -75,26 +75,26 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
       bubble: 'Instant access anytime!',
       content: (
         <div className="space-y-3.5 my-2">
-          <p className="text-xs text-[#6B7280] leading-relaxed">
+          <p className="type-secondary leading-relaxed">
             Roomie is a Progressive Web App (PWA). Adding it to your phone gives you full-screen mode and instant chore reminders!
           </p>
 
           <Card padding="sm" className="space-y-2 bg-[#F7F8FB]">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#1F2430]">
+            <div className="flex items-center gap-2 type-label text-[#1F2430]">
               <Smartphone className="w-4 h-4 text-[#FF6B4A]" />
               <span>iPhone & iPad (Safari)</span>
             </div>
-            <p className="text-xs text-[#6B7280] pl-6">
+            <p className="type-secondary pl-6">
               Tap the <Share className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>Share</strong> button, scroll down, and tap <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-[#19B5A5]" /> <strong>Add to Home Screen</strong>.
             </p>
           </Card>
 
           <Card padding="sm" className="space-y-2 bg-[#F7F8FB]">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#1F2430]">
+            <div className="flex items-center gap-2 type-label text-[#1F2430]">
               <Smartphone className="w-4 h-4 text-[#19B5A5]" />
               <span>Android (Chrome)</span>
             </div>
-            <p className="text-xs text-[#6B7280] pl-6">
+            <p className="type-secondary pl-6">
               Tap the <MoreVertical className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>three dots</strong> in Chrome, then choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.
             </p>
           </Card>
@@ -107,17 +107,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
       bubble: 'Never naggy, always caring',
       content: (
         <div className="space-y-4 my-2 text-center">
-          <p className="text-xs text-[#6B7280] leading-relaxed">
-            We only send friendly reminders at the exact time you chose for your chores, plus notifications when a flatmate adds a receipt or gives you kudos.
+          <p className="type-secondary leading-relaxed">
+            We only send friendly reminders at the exact time you chose for your chores, plus notifications when a roomie adds a receipt or gives you kudos.
           </p>
 
           <div className="p-4 rounded-2xl bg-[#EEF0FD] border border-[#D3D5F9] text-left flex items-start gap-3">
             <BellRing className="w-6 h-6 text-[#5B5BD6] shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-bold text-[#1F2430]">
+              <p className="type-body font-bold text-[#1F2430]">
                 "Time for the bathroom. Roomie's cheering you on!"
               </p>
-              <p className="text-[11px] text-[#6B7280] mt-1">
+              <p className="type-secondary mt-1">
                 You can snooze or reschedule in one tap anytime.
               </p>
             </div>
@@ -125,7 +125,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
 
           <div className="pt-2">
             {notificationsAllowed ? (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EBF9F0] text-[#3DBE6D] text-xs font-bold">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#EBF9F0] text-[#3DBE6D] text-[14px] font-bold">
                 <Check className="w-4 h-4" /> Notifications enabled!
               </div>
             ) : (
@@ -172,7 +172,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
 
         <MascotView state={current.mascotState} size="lg" bubbleText={current.bubble} />
 
-        <h3 className="text-2xl font-heading font-black text-[#1F2430] mt-2">
+        <h3 className="type-title mt-2">
           {current.title}
         </h3>
 
@@ -196,7 +196,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
             className="flex-1"
             icon={step === slides.length - 1 ? <Check className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
           >
-            {step === slides.length - 1 ? "Let's Go!" : 'Continue'}
+            {step === slides.length - 1 ? 'Get started' : 'Continue'}
           </Button>
         </div>
       </div>

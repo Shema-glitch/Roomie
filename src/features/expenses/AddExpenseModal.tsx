@@ -79,7 +79,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         participants,
         receiptUrl || undefined
       );
-      showToast(`Expense "${title}" logged! Pending flatmate agreement.`, 'success');
+      showToast(`Expense "${title}" logged! Pending roomie agreement.`, 'success');
       setTitle('');
       setAmount('');
       setReceiptUrl('');
@@ -106,7 +106,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1">
+          <label className="type-label block mb-1.5">
             What was it for?
           </label>
           <input
@@ -115,13 +115,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Lemar groceries, Olive oil, Water jugs"
-            className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-sm focus:outline-none focus:border-[#FF6B4A]"
+            className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
           />
         </div>
 
         {/* Amount */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1">
+          <label className="type-label block mb-1.5">
             Amount in Turkish Lira (₺ TRY)
           </label>
           <div className="relative">
@@ -135,11 +135,11 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-9 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full pl-9 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
           {parseFloat(amount) > 0 && (
-            <p className="text-[11px] text-[#6B7280] mt-1 font-semibold">
+            <p className="type-secondary mt-1">
               Split {participants.length} ways = <strong>₺{sharePerPerson}</strong> per person
             </p>
           )}
@@ -147,37 +147,37 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
         {/* Category Pills */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+          <label className="type-label block mb-1.5">
             Category
           </label>
           <div className="grid grid-cols-4 gap-1.5">
             {[
-              { id: 'groceries', label: 'Groceries', icon: <ShoppingCart className="w-3.5 h-3.5" /> },
-              { id: 'utilities', label: 'Utilities', icon: <Zap className="w-3.5 h-3.5" /> },
-              { id: 'household', label: 'House Items', icon: <Home className="w-3.5 h-3.5" /> },
-              { id: 'other', label: 'Other', icon: <MoreHorizontal className="w-3.5 h-3.5" /> },
+              { id: 'groceries', label: 'Groceries', icon: <ShoppingCart className="w-4 h-4" /> },
+              { id: 'utilities', label: 'Utilities', icon: <Zap className="w-4 h-4" /> },
+              { id: 'household', label: 'House', icon: <Home className="w-4 h-4" /> },
+              { id: 'other', label: 'Other', icon: <MoreHorizontal className="w-4 h-4" /> },
             ].map((cat) => (
               <button
                 type="button"
                 key={cat.id}
                 onClick={() => setCategory(cat.id as ExpenseCategory)}
-                className={`py-2 px-1 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                className={`py-2 px-1 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
                   category === cat.id
                     ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
                     : 'border-[#E6E8EE] bg-white text-[#6B7280]'
                 }`}
               >
                 {cat.icon}
-                <span className="text-[10px]">{cat.label}</span>
+                <span className="text-[14px] font-normal">{cat.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Split With (Roommates) */}
+        {/* Split With (Roomies) */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
-            Who is sharing this? ({participants.length} selected)
+          <label className="type-label block mb-1.5">
+            Roomies Sharing ({participants.length} selected)
           </label>
           <div className="grid grid-cols-2 gap-2">
             {roommates.map((r) => {
@@ -195,7 +195,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     <Avatar src={r.avatar} name={r.name} flag={r.flag} size="xs" />
-                    <span className="text-xs font-bold text-[#1F2430]">
+                    <span className="text-[14px] font-bold text-[#1F2430]">
                       {isMe ? 'You' : r.name.split(' ')[0]}
                     </span>
                   </div>
@@ -212,7 +212,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
         {/* Receipt Photo Placeholder */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-1.5">
+          <label className="type-label block mb-1.5">
             Receipt Photo
           </label>
           {receiptUrl ? (
@@ -221,7 +221,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               <button
                 type="button"
                 onClick={() => setReceiptUrl('')}
-                className="absolute top-2 right-2 px-2 py-0.5 bg-black/70 text-white rounded-lg text-[10px] font-bold"
+                className="absolute top-2 right-2 px-2.5 py-1 bg-black/70 text-white rounded-lg text-[14px] font-bold"
               >
                 Remove
               </button>
@@ -233,7 +233,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
               className="w-full p-3 border-2 border-dashed border-[#CBD5E1] rounded-2xl flex items-center justify-center gap-2 hover:border-[#FF6B4A] bg-[#F7F8FB] cursor-pointer transition-all"
             >
               <Camera className="w-4 h-4 text-[#FF6B4A]" />
-              <span className="text-xs font-bold text-[#1F2430]">
+              <span className="text-[14px] font-bold text-[#1F2430]">
                 Attach Receipt Photo
               </span>
             </button>

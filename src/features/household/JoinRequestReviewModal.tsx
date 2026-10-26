@@ -1,13 +1,10 @@
 import React from 'react';
 import { Modal } from '../../components/common/Modal';
+import { ActionCard } from '../../components/common/ActionCard';
 import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
-import { Chip } from '../../components/common/Chip';
-import { MascotView } from '../../components/common/MascotView';
 import { JoinRequest, User, Membership } from '../../types';
-import { THEME } from '../../theme/tokens';
-import { Check, HelpCircle, UserCheck, UserX, Shield } from 'lucide-react';
+import { Check, HelpCircle } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface JoinRequestReviewModalProps {
@@ -33,7 +30,6 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
   if (!joinRequest) return null;
 
   const isAdmin = currentMembership?.role === 'admin';
-  const myVote = joinRequest.votes.find((v) => v.userId === currentUser.id);
 
   const okCount = joinRequest.votes.filter((v) => v.vote === 'ok').length;
   const unsureCount = joinRequest.votes.filter((v) => v.vote === 'unsure').length;
@@ -52,7 +48,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
       await onDecide(joinRequest.id, approve);
       showToast(
         approve
-          ? `${joinRequest.userName} is now a member of your flat!`
+          ? `${joinRequest.userName} is now a member of your apartment!`
           : `Join request declined.`,
         approve ? 'success' : 'info'
       );
@@ -66,107 +62,88 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Roommate Join Request"
+      title="Roomie Join Request"
       subtitle="Review applicant for Apartment 4B"
     >
-      <div className="space-y-4">
-        {/* Applicant Card */}
-        <Card padding="md" variant="calm" className="flex items-center gap-4">
-          <Avatar
-            src={joinRequest.userAvatar}
-            name={joinRequest.userName}
-            flag={joinRequest.userFlag}
-            size="lg"
-          />
-          <div>
-            <h4 className="font-heading font-extrabold text-lg text-[#1F2430]">
-              {joinRequest.userName}
-            </h4>
-            <p className="text-xs text-[#6B7280]">{joinRequest.userEmail}</p>
-            <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-[#1F2430]">
-              <span>From {joinRequest.userCountry}</span>
-              <span>{joinRequest.userFlag}</span>
-            </div>
-          </div>
-        </Card>
+      <div className="space-y-5">
+        {/* Applicant Block */}
+        <ActionCard
+          tint="indigo"
+          iconTile={
+            <Avatar
+              src={joinRequest.userAvatar}
+              name={joinRequest.userName}
+              flag={joinRequest.userFlag}
+              size="lg"
+            />
+          }
+          title={<h4 className="type-section-heading">{joinRequest.userName}</h4>}
+          subtitle={`From ${joinRequest.userCountry || 'Worldwide'}`}
+          detail={<p className="type-secondary">{joinRequest.userEmail}</p>}
+        />
 
-        {/* Household Poll Status */}
-        <Card padding="sm" className="bg-[#F7F8FB] space-y-2">
-          <div className="flex justify-between items-center text-xs font-bold text-[#1F2430]">
-            <span>Flatmates' opinions:</span>
-            <div className="flex gap-2">
-              <span className="text-[#3DBE6D]">👍 {okCount} OK</span>
-              <span className="text-[#E5484D]">🤔 {unsureCount} Not sure</span>
-            </div>
-          </div>
-          <p className="text-[11px] text-[#6B7280]">
-            Every roommate's opinion is visible to everyone so life stays fair and transparent.
-          </p>
-        </Card>
-
-        {/* Voting section for all members */}
+        {/* Roomies' Opinions Section */}
         <div>
-          <label className="block text-xs font-bold text-[#1F2430] mb-2">
-            Your opinion on {joinRequest.userName.split(' ')[0]}:
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
+          <div className="flex items-center justify-between mb-2">
+            <span className="type-label">Roomies' opinions</span>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] type-secondary">
+                {okCount} OK
+              </span>
+              <span className="px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] type-secondary">
+                {unsureCount} not sure
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mt-2.5">
+            <Button
+              variant="secondary"
+              size="md"
               onClick={() => handleVote('ok')}
-              className={`py-2.5 px-3 rounded-2xl border text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                myVote?.vote === 'ok'
-                  ? 'border-[#3DBE6D] bg-[#EBF9F0] text-[#3DBE6D]'
-                  : 'border-[#E6E8EE] bg-white text-[#6B7280]'
-              }`}
+              icon={<Check className="w-4 h-4 stroke-[3]" />}
             >
-              <Check className="w-4 h-4" /> I'm OK with it
-            </button>
-            <button
-              type="button"
+              OK
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               onClick={() => handleVote('unsure')}
-              className={`py-2.5 px-3 rounded-2xl border text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-                myVote?.vote === 'unsure'
-                  ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#8A6200]'
-                  : 'border-[#E6E8EE] bg-white text-[#6B7280]'
-              }`}
+              icon={<HelpCircle className="w-4 h-4" />}
             >
-              <HelpCircle className="w-4 h-4" /> Not sure yet
-            </button>
+              Not sure
+            </Button>
           </div>
         </div>
 
-        {/* Admin official action (if admin) */}
+        {/* Admin Decision Section */}
         {isAdmin ? (
-          <div className="pt-3 border-t border-[#E6E8EE] space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#FF6B4A]">
-              <Shield className="w-3.5 h-3.5" />
-              <span>Admin Decision (You are Household Admin)</span>
-            </div>
-            <p className="text-[11px] text-[#6B7280]">
-              The admin makes it official after considering flatmate feedback.
+          <div className="pt-4 border-t border-[#E6E8EE]">
+            <span className="type-label block mb-1">Admin decision</span>
+            <p className="type-secondary mb-3.5">
+              As admin, approve or decline to join the apartment.
             </p>
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-3">
               <Button
-                variant="danger"
+                variant="danger-outline"
                 size="md"
                 onClick={() => handleDecide(false)}
-                icon={<UserX className="w-4 h-4" />}
               >
                 Decline
               </Button>
               <Button
-                variant="secondary"
+                variant="primary"
                 size="md"
                 onClick={() => handleDecide(true)}
-                icon={<UserCheck className="w-4 h-4" />}
               >
-                Approve Roommate
+                Approve
               </Button>
             </div>
           </div>
         ) : (
-          <div className="pt-2 text-center text-xs text-[#6B7280]">
-            The admin will finalize the decision based on everyone's input.
+          <div className="pt-3 border-t border-[#E6E8EE] text-center">
+            <p className="type-secondary">
+              The apartment admin will make the final decision.
+            </p>
           </div>
         )}
       </div>

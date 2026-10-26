@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
-import { Card } from '../../components/common/Card';
+import { ActionCard } from '../../components/common/ActionCard';
+import { InfoCard } from '../../components/common/InfoCard';
+import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
-import { Chip } from '../../components/common/Chip';
+import { SectionTitle } from '../../components/common/SectionTitle';
 import { Avatar } from '../../components/common/Avatar';
+import { Chip } from '../../components/common/Chip';
 import { Modal } from '../../components/common/Modal';
 import { MeetingTopic, HouseAgreement, User } from '../../types';
-import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import {
   Users,
   Plus,
-  Check,
   ThumbsUp,
   ThumbsDown,
-  Minus,
-  MessageSquare,
-  BookOpen,
   Pin,
   Send,
+  MessageSquare,
+  BookOpen,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -59,7 +59,7 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
     try {
       sound.playSuccess();
       await onCreateTopic(newTitle.trim(), newDesc.trim());
-      showToast('Meeting topic proposed! Roommates can now vote.', 'success');
+      showToast('Meeting topic proposed! Roomies can now vote.', 'success');
       setNewTitle('');
       setNewDesc('');
       setProposeModalOpen(false);
@@ -93,18 +93,18 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-20 select-none">
+    <div className="space-y-5 pb-24 select-none">
       {/* Tab Switcher */}
-      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#E6E8EE]/60">
+      <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
         <button
           onClick={() => {
             sound.playTap();
             setTab('topics');
           }}
-          className={`py-2 rounded-xl text-xs font-heading font-extrabold transition-all cursor-pointer ${
+          className={`py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
             tab === 'topics'
-              ? 'bg-white text-[#1F2430] shadow-xs'
-              : 'text-[#6B7280] hover:text-[#1F2430]'
+              ? 'bg-white text-[#1F2430] shadow-sm'
+              : 'text-[#475569] hover:text-[#1F2430]'
           }`}
         >
           Open Discussions ({topics.length})
@@ -114,39 +114,35 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
             sound.playTap();
             setTab('agreements');
           }}
-          className={`py-2 rounded-xl text-xs font-heading font-extrabold transition-all cursor-pointer ${
+          className={`py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
             tab === 'agreements'
-              ? 'bg-white text-[#1F2430] shadow-xs'
-              : 'text-[#6B7280] hover:text-[#1F2430]'
+              ? 'bg-white text-[#1F2430] shadow-sm'
+              : 'text-[#475569] hover:text-[#1F2430]'
           }`}
         >
-          House Agreements ({agreements.length}) 📌
+          Apartment Rules ({agreements.length}) 📌
         </button>
       </div>
 
       {/* TAB 1: TOPICS */}
       {tab === 'topics' && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-heading font-bold text-base text-[#1F2430]">
-                House Topics & Votes
-              </h3>
-              <p className="text-xs text-[#6B7280]">
-                Vote on noise, guests, and standards
-              </p>
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setProposeModalOpen(true)}
-              icon={<Plus className="w-4 h-4" />}
-            >
-              Propose Topic
-            </Button>
-          </div>
+        <div className="space-y-4">
+          <SectionTitle
+            title="Apartment Topics & Votes"
+            subtitle="Vote on quiet hours, visitors, and standards"
+            action={
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setProposeModalOpen(true)}
+                icon={<Plus className="w-4 h-4" />}
+              >
+                Propose
+              </Button>
+            }
+          />
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {topics.map((topic) => {
               const proposer = roommates.find((r) => r.id === topic.proposedBy);
               const myVote = topic.votes.find((v) => v.userId === currentUser.id)?.vote;
@@ -155,146 +151,131 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
               const disagreeVotes = topic.votes.filter((v) => v.vote === 'disagree').length;
 
               return (
-                <Card key={topic.id} padding="md" className="bg-white space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar
-                        src={proposer?.avatar}
-                        name={proposer?.name || ''}
-                        flag={proposer?.flag}
-                        size="xs"
-                      />
-                      <div>
-                        <h4 className="font-heading font-extrabold text-sm text-[#1F2430]">
-                          {topic.title}
-                        </h4>
-                        <p className="text-[10px] text-[#6B7280]">
-                          Proposed by {proposer?.name.split(' ')[0]}
-                        </p>
+                <ActionCard
+                  key={topic.id}
+                  tint={topic.status === 'agreed' ? 'green' : 'neutral'}
+                  iconTile={
+                    <IconTile
+                      icon={<MessageSquare className="w-6 h-6" />}
+                      color={topic.status === 'agreed' ? 'green' : 'indigo'}
+                      size="md"
+                    />
+                  }
+                  title={topic.title}
+                  subtitle={`Proposed by ${proposer?.name.split(' ')[0] || 'Roomie'}`}
+                  detail={<p className="type-secondary leading-relaxed">{topic.description}</p>}
+                  badge={
+                    <Chip
+                      status={topic.status === 'agreed' ? 'agreed' : 'pending'}
+                      label={topic.status === 'agreed' ? 'Passed 🎉' : 'Voting Open'}
+                      size="sm"
+                    />
+                  }
+                  actions={
+                    <div className="w-full space-y-3">
+                      {/* Voting Buttons */}
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="type-label">
+                          Your vote
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant={myVote === 'agree' ? 'green' : 'secondary'}
+                            size="sm"
+                            onClick={() => handleVote(topic.id, 'agree')}
+                            icon={<ThumbsUp className="w-4 h-4" />}
+                          >
+                            Agree ({agreeVotes})
+                          </Button>
+                          <Button
+                            variant={myVote === 'disagree' ? 'danger-outline' : 'secondary'}
+                            size="sm"
+                            onClick={() => handleVote(topic.id, 'disagree')}
+                            icon={<ThumbsDown className="w-4 h-4" />}
+                          >
+                            Disagree ({disagreeVotes})
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Comments section */}
+                      {topic.comments.length > 0 && (
+                        <div className="space-y-2 pt-2 border-t border-black/5">
+                          <span className="type-label block">
+                            Roomie Comments ({topic.comments.length})
+                          </span>
+                          {topic.comments.map((c) => {
+                            const commenter = roommates.find((r) => r.id === c.userId);
+                            return (
+                              <div
+                                key={c.id}
+                                className="p-2.5 rounded-xl bg-white border border-[#E6E8EE] text-sm text-[#1F2430] flex items-start gap-2"
+                              >
+                                <span className="font-bold text-[#5B5BD6] shrink-0">
+                                  {commenter?.name.split(' ')[0]}:
+                                </span>
+                                <span className="flex-1 font-medium">{c.text}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Add quick comment */}
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          value={commentInputs[topic.id] || ''}
+                          onChange={(e) =>
+                            setCommentInputs((prev) => ({
+                              ...prev,
+                              [topic.id]: e.target.value,
+                            }))
+                          }
+                          onKeyDown={(e) => e.key === 'Enter' && handleComment(topic.id)}
+                          placeholder="Add a friendly comment..."
+                          className="flex-1 px-3.5 py-2 rounded-xl border-2 border-[#E6E8EE] bg-white text-sm text-[#1F2430] placeholder:text-[#475569] focus:outline-none focus:border-[#FF6B4A]"
+                        />
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleComment(topic.id)}
+                          icon={<Send className="w-4 h-4" />}
+                        >
+                          Post
+                        </Button>
                       </div>
                     </div>
-                    <Chip
-                      label={topic.status === 'agreed' ? 'Passed 🎉' : 'Voting'}
-                      variant={topic.status === 'agreed' ? 'success' : 'reward'}
-                      size="sm"
-                    />
-                  </div>
-
-                  <p className="text-xs text-[#6B7280] leading-relaxed">
-                    {topic.description}
-                  </p>
-
-                  {/* Voting Buttons */}
-                  <div className="p-2 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#1F2430]">
-                      Your vote:
-                    </span>
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => handleVote(topic.id, 'agree')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border transition-all cursor-pointer ${
-                          myVote === 'agree'
-                            ? 'border-[#3DBE6D] bg-[#EBF9F0] text-[#3DBE6D]'
-                            : 'border-[#E6E8EE] bg-white text-[#6B7280]'
-                        }`}
-                      >
-                        <ThumbsUp className="w-3.5 h-3.5" /> Agree ({agreeVotes})
-                      </button>
-                      <button
-                        onClick={() => handleVote(topic.id, 'disagree')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 border transition-all cursor-pointer ${
-                          myVote === 'disagree'
-                            ? 'border-[#E5484D] bg-[#FDECEE] text-[#E5484D]'
-                            : 'border-[#E6E8EE] bg-white text-[#6B7280]'
-                        }`}
-                      >
-                        <ThumbsDown className="w-3.5 h-3.5" /> Disagree ({disagreeVotes})
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Comments section */}
-                  {topic.comments.length > 0 && (
-                    <div className="space-y-1.5 pt-1">
-                      <span className="text-[10px] font-extrabold uppercase text-[#6B7280]">
-                        Comments ({topic.comments.length})
-                      </span>
-                      {topic.comments.map((c) => {
-                        const commenter = roommates.find((r) => r.id === c.userId);
-                        return (
-                          <div
-                            key={c.id}
-                            className="p-2 rounded-xl bg-[#F7F8FB] text-xs text-[#1F2430] flex items-start gap-2"
-                          >
-                            <span className="font-bold text-[#5B5BD6] shrink-0">
-                              {commenter?.name.split(' ')[0]}:
-                            </span>
-                            <span className="flex-1">{c.text}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Add quick comment */}
-                  <div className="flex gap-1.5 pt-1">
-                    <input
-                      type="text"
-                      value={commentInputs[topic.id] || ''}
-                      onChange={(e) =>
-                        setCommentInputs((prev) => ({
-                          ...prev,
-                          [topic.id]: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => e.key === 'Enter' && handleComment(topic.id)}
-                      placeholder="Add a friendly comment..."
-                      className="flex-1 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-white text-xs"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleComment(topic.id)}
-                      icon={<Send className="w-3.5 h-3.5" />}
-                    >
-                      Post
-                    </Button>
-                  </div>
-                </Card>
+                  }
+                />
               );
             })}
           </div>
         </div>
       )}
 
-      {/* TAB 2: AGREEMENTS (Calm Style as specified in Section 8) */}
+      {/* TAB 2: AGREEMENTS */}
       {tab === 'agreements' && (
-        <div className="space-y-3">
-          <div>
-            <h3 className="font-heading font-bold text-base text-[#1F2430]">
-              House Rules & Agreements
-            </h3>
-            <p className="text-xs text-[#6B7280]">
-              Pinned living standards accepted by all flatmates
-            </p>
-          </div>
+        <div className="space-y-4">
+          <SectionTitle
+            title="Apartment Rules & Agreements"
+            subtitle="Pinned living standards accepted by all roomies"
+          />
 
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {agreements.map((agr) => (
-              <Card key={agr.id} padding="md" variant="calm" className="bg-white space-y-1">
-                <div className="flex items-center gap-2">
-                  <Pin className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                  <span className="text-[11px] font-extrabold text-[#FF6B4A] uppercase tracking-wider">
-                    {agr.category}
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-[#1F2430] leading-relaxed">
-                  "{agr.text}"
-                </p>
-                <p className="text-[10px] text-[#6B7280] pt-1">
-                  Agreed by consensus
-                </p>
-              </Card>
+              <ActionCard
+                key={agr.id}
+                tint="coral"
+                iconTile={<IconTile icon={<Pin className="w-6 h-6" />} color="coral" size="md" />}
+                title={agr.category.toUpperCase()}
+                subtitle="Agreed by apartment consensus"
+                detail={
+                  <p className="type-body mt-1 leading-relaxed">
+                    "{agr.text}"
+                  </p>
+                }
+              />
             ))}
           </div>
         </div>
@@ -309,7 +290,7 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
       >
         <form onSubmit={handlePropose} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1">
+            <label className="type-label block mb-1.5">
               Topic Title
             </label>
             <input
@@ -318,13 +299,13 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="e.g. Quiet hours on weeknights, Guest overnight policy"
-              className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-xs focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-sm text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#1F2430] mb-1">
-              Explanation / Suggestion
+            <label className="type-label block mb-1.5">
+              Explanation
             </label>
             <textarea
               required
@@ -332,13 +313,13 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
               placeholder="Explain the proposed rule or standard and how it helps the apartment..."
-              className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white text-xs focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-sm text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-2">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <Button
-              variant="outline"
+              variant="secondary"
               size="md"
               type="button"
               onClick={() => setProposeModalOpen(false)}
@@ -351,7 +332,7 @@ export const MeetingsScreen: React.FC<MeetingsScreenProps> = ({
               type="submit"
               disabled={loading || !newTitle.trim()}
             >
-              {loading ? 'Submitting...' : 'Post Topic'}
+              {loading ? 'Posting...' : 'Post'}
             </Button>
           </div>
         </form>

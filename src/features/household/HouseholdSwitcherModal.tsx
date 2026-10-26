@@ -1,10 +1,10 @@
 import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
+import { ActionCard } from '../../components/common/ActionCard';
+import { IconTile } from '../../components/common/IconTile';
 import { Household } from '../../types';
-import { THEME } from '../../theme/tokens';
-import { Home, Plus, KeyRound, Check, Shield } from 'lucide-react';
+import { Home, Plus, KeyRound, Check } from 'lucide-react';
 
 interface HouseholdSwitcherModalProps {
   isOpen: boolean;
@@ -29,58 +29,45 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Switch Household"
-      subtitle="You can belong to multiple student flats"
+      title="Switch Apartment"
+      subtitle="You can belong to multiple student apartments"
     >
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {households.map((h) => {
           const isActive = h.id === activeHouseholdId;
           return (
-            <div
+            <ActionCard
               key={h.id}
+              tint={isActive ? 'coral' : 'neutral'}
+              iconTile={
+                <IconTile
+                  icon={<Home className="w-6 h-6" />}
+                  color={isActive ? 'coral' : 'slate'}
+                  size="md"
+                />
+              }
+              title={h.name}
+              subtitle={`Code: ${h.inviteCode} • Currency: ${h.currency}`}
+              badge={
+                isActive ? (
+                  <div className="w-7 h-7 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shadow-xs">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </div>
+                ) : undefined
+              }
               onClick={() => {
                 onSelectHousehold(h.id);
                 onClose();
               }}
-              className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                isActive
-                  ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-xs'
-                  : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{
-                    backgroundColor: isActive ? THEME.colors.primary : '#F1F3F9',
-                    color: isActive ? '#FFFFFF' : THEME.colors.ink,
-                  }}
-                >
-                  <Home className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-heading font-bold text-base text-[#1F2430]">
-                    {h.name}
-                  </h4>
-                  <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-                    <span>Code: {h.inviteCode}</span>
-                    <span>•</span>
-                    <span>Currency: {h.currency}</span>
-                  </div>
-                </div>
-              </div>
-              {isActive && (
-                <div className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
-                  <Check className="w-4 h-4 stroke-[3]" />
-                </div>
-              )}
-            </div>
+              className="cursor-pointer"
+            />
           );
         })}
 
-        <div className="pt-3 border-t border-[#E6E8EE] flex flex-col gap-2">
+        {/* Equal choices styled as equal secondary tactile buttons */}
+        <div className="pt-4 border-t border-[#E6E8EE] flex flex-col gap-3">
           <Button
-            variant="outline"
+            variant="secondary"
             size="md"
             fullWidth
             onClick={() => {
@@ -89,11 +76,11 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
             }}
             icon={<Plus className="w-4 h-4 text-[#FF6B4A]" />}
           >
-            Create New Household
+            Create New Apartment
           </Button>
 
           <Button
-            variant="ghost"
+            variant="secondary"
             size="md"
             fullWidth
             onClick={() => {

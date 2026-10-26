@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { Card } from '../../components/common/Card';
+import { ActionCard } from '../../components/common/ActionCard';
+import { InfoCard } from '../../components/common/InfoCard';
+import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
-import { Chip } from '../../components/common/Chip';
+import { SectionTitle } from '../../components/common/SectionTitle';
 import { Avatar } from '../../components/common/Avatar';
-import { MascotView } from '../../components/common/MascotView';
+import { Chip } from '../../components/common/Chip';
+import { Modal } from '../../components/common/Modal';
 import { DoneFlowModal } from './DoneFlowModal';
 import { KudosModal } from './KudosModal';
 import { ChoreSwapModal } from './ChoreSwapModal';
 import { AwayModeModal } from './AwayModeModal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Chore, ChoreAssignment, DraftRound, User, KudosType } from '../../types';
-import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import {
   Sparkles,
@@ -22,7 +24,11 @@ import {
   Plus,
   Heart,
   Calendar,
-  AlertCircle,
+  Utensils,
+  Bath,
+  Trash2,
+  Brush,
+  Trophy,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -66,7 +72,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   onAddChore,
 }) => {
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'my' | 'all' | 'streaks'>('my');
+  const [scheduleFilter, setScheduleFilter] = useState<'my' | 'all'>('my');
 
   // Modals state
   const [doneModalChore, setDoneModalChore] = useState<Chore | null>(null);
@@ -81,15 +87,23 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const [newChoreEffort, setNewChoreEffort] = useState<'light' | 'medium' | 'heavy'>('medium');
   const [newChoreDesc, setNewChoreDesc] = useState('');
 
-  // Current user's assignments
-  const myAssignments = assignments.filter((a) => a.userId === currentUser.id);
+  // Helper to pick chore icon
+  const getChoreIcon = (name: string) => {
+    const lower = name.toLowerCase();
+    if (lower.includes('cook') || lower.includes('dinner')) return <Utensils className="w-6 h-6" />;
+    if (lower.includes('bath') || lower.includes('deep clean')) return <Bath className="w-6 h-6" />;
+    if (lower.includes('trash') || lower.includes('bin')) return <Trash2 className="w-6 h-6" />;
+    if (lower.includes('mop') || lower.includes('sweep') || lower.includes('kitchen'))
+      return <Brush className="w-6 h-6" />;
+    return <Sparkles className="w-6 h-6" />;
+  };
 
   const handleCreateChore = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newChoreName.trim()) return;
     try {
       await onAddChore(newChoreName.trim(), newChoreFreq, newChoreEffort, newChoreDesc.trim());
-      showToast(`Chore "${newChoreName}" added to the household pool!`, 'success');
+      showToast(`Chore "${newChoreName}" added to the apartment pool!`, 'success');
       setNewChoreName('');
       setNewChoreDesc('');
       setNewChoreModalOpen(false);
@@ -98,383 +112,535 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
     }
   };
 
+  const getEffortPoints = (level: 'light' | 'medium' | 'heavy') => {
+    return level === 'heavy' ? 30 : level === 'medium' ? 20 : 10;
+  };
+
+  // Current user's assignments
+  const myAssignments = assignments.filter((a) => a.userId === currentUser.id);
+
+  // Grouped tasks:
+  // 1. Today's Due (incomplete)
+  const todayDueAssignments = (scheduleFilter === 'my' ? myAssignments : assignments).filter(
+    (a) => !a.completedToday
+  );
+  // 2. Completed Today
+  const todayCompletedAssignments = (scheduleFilter === 'my' ? myAssignments : assignments).filter(
+    (a) => a.completedToday
+  );
+
+  const maxStreak = Math.max(...roommates.map((r) => r.streakDays), 0);
+  const sortedRoomiesByStreak = [...roommates].sort((a, b) => b.streakDays - a.streakDays || b.points - a.points);
+
   return (
-    <div className="space-y-4 pb-20">
-      {/* Draft Banner (The Game Hook) */}
-      <Card
-        padding="md"
-        className="bg-linear-to-r from-[#FFF0ED] via-[#FFF8E6] to-[#E6FAF8] border-2 border-[#FFD7CF] relative overflow-hidden"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pr-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-[#FF6B4A]">
-              <Sparkles className="w-3.5 h-3.5" /> Secret Draft Round
-            </span>
-            <h3 className="text-lg font-heading font-black text-[#1F2430] leading-tight mt-0.5">
-              {draftRound.status === 'ready_to_reveal'
+    <div className="select-none pb-20 md:pb-8">
+      {/* Responsive Desktop 12-Column Grid */}
+      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+        {/* ================= LEFT COLUMN: Draft Hero & Grouped Chores ================= */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* 1. SUNDAY CHORE DRAFT HERO BANNER */}
+          <ActionCard
+            tint={draftRound.status === 'ready_to_reveal' ? 'coral' : 'teal'}
+            iconTile={
+              <IconTile
+                icon={<Sparkles className="w-6 h-6" />}
+                color={draftRound.status === 'ready_to_reveal' ? 'coral' : 'teal'}
+                size="md"
+              />
+            }
+            title={
+              draftRound.status === 'ready_to_reveal'
                 ? 'All Picks In! Time to Reveal 🎭'
-                : 'Sunday Chore Draft'}
-            </h3>
-            <p className="text-xs text-[#6B7280] mt-0.5 font-medium">
-              {draftRound.status === 'ready_to_reveal'
-                ? 'Animated weekly assignment ready for Apartment 4B!'
-                : 'Select your secret preferences: Want, Avoid, or Suggest.'}
-            </p>
-          </div>
-          <div className="shrink-0">
-            {draftRound.status === 'ready_to_reveal' ? (
+                : draftRound.status === 'revealed'
+                ? 'Weekly Chores Active ✨'
+                : draftRound.status === 'collecting'
+                ? 'Sunday Chore Draft Open'
+                : 'Picks Submitted! Waiting for Roomies'
+            }
+            subtitle={
+              draftRound.status === 'ready_to_reveal'
+                ? 'All roomies submitted secret wishes! Reveal is ready to view.'
+                : draftRound.status === 'revealed'
+                ? 'Assignments live. Next draft opens Sunday at 18:00.'
+                : draftRound.status === 'collecting'
+                ? 'Select your secret preferences: Want, Avoid, or Suggest.'
+                : 'Waiting for remaining roomies to finish picking wishes.'
+            }
+            actions={
+              <div className="w-full flex items-center gap-3">
+                {draftRound.status === 'ready_to_reveal' ? (
+                  <Button
+                    variant="primary"
+                    size="md"
+                    fullWidth
+                    onClick={onOpenReveal}
+                    icon={<Sparkles className="w-4 h-4" />}
+                  >
+                    Reveal Assignments!
+                  </Button>
+                ) : draftRound.status === 'revealed' ? (
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth
+                    onClick={onOpenReveal}
+                    icon={<Sparkles className="w-4 h-4 text-[#19B5A5]" />}
+                  >
+                    View Chore Reveal
+                  </Button>
+                ) : (
+                  <Button
+                    variant="teal"
+                    size="md"
+                    fullWidth
+                    onClick={onOpenDraftPicks}
+                    icon={<Sparkles className="w-4 h-4" />}
+                  >
+                    Pick My Wishes
+                  </Button>
+                )}
+              </div>
+            }
+          />
+
+          {/* Section Header & Segmented Tab Filters */}
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+              <SectionTitle
+                title="Chores Schedule"
+                subtitle="Equitably distributed across your apartment"
+              />
               <Button
                 variant="primary"
                 size="sm"
-                onClick={onOpenReveal}
-                icon={<Sparkles className="w-4 h-4" />}
+                onClick={() => setNewChoreModalOpen(true)}
+                icon={<Plus className="w-4 h-4" />}
               >
-                Reveal!
+                New Chore
               </Button>
+            </div>
+
+            {/* Segmented Filter Buttons */}
+            <div className="flex gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  setScheduleFilter('my');
+                }}
+                className={`flex-1 py-2 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+                  scheduleFilter === 'my'
+                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    : 'text-[#475569] hover:text-[#1F2430]'
+                }`}
+              >
+                My Schedule ({myAssignments.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  setScheduleFilter('all');
+                }}
+                className={`flex-1 py-2 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+                  scheduleFilter === 'all'
+                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    : 'text-[#475569] hover:text-[#1F2430]'
+                }`}
+              >
+                All Apartment Chores ({assignments.length})
+              </button>
+            </div>
+          </div>
+
+          {/* SEMANTIC GROUP 1: TODAY'S DUE TASKS */}
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <span className="type-section-heading">Today's Due Tasks</span>
+                <span className="px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-xs font-black">
+                  {todayDueAssignments.length} Remaining
+                </span>
+              </div>
+              <span className="type-secondary text-xs">Complete on time to protect streak</span>
+            </div>
+
+            {todayDueAssignments.length === 0 ? (
+              <InfoCard padding="md" className="text-center type-secondary bg-white">
+                All due tasks for today have been completed! 🎉
+              </InfoCard>
             ) : (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onOpenDraftPicks}
-                icon={<Sparkles className="w-4 h-4" />}
-              >
-                Pick Wishes
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
+              todayDueAssignments.map((a) => {
+                const chore = chores.find((c) => c.id === a.choreId);
+                const assignedUser = roommates.find((r) => r.id === a.userId);
+                if (!chore) return null;
+                const isMe = a.userId === currentUser.id;
 
-      {/* Navigation Tabs */}
-      <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-[#E6E8EE]/60">
-        <button
-          onClick={() => {
-            sound.playTap();
-            setActiveTab('my');
-          }}
-          className={`py-2 rounded-xl text-xs font-heading font-extrabold transition-all cursor-pointer ${
-            activeTab === 'my'
-              ? 'bg-white text-[#1F2430] shadow-xs'
-              : 'text-[#6B7280] hover:text-[#1F2430]'
-          }`}
-        >
-          My Schedule
-        </button>
-        <button
-          onClick={() => {
-            sound.playTap();
-            setActiveTab('all');
-          }}
-          className={`py-2 rounded-xl text-xs font-heading font-extrabold transition-all cursor-pointer ${
-            activeTab === 'all'
-              ? 'bg-white text-[#1F2430] shadow-xs'
-              : 'text-[#6B7280] hover:text-[#1F2430]'
-          }`}
-        >
-          All Chores
-        </button>
-        <button
-          onClick={() => {
-            sound.playTap();
-            setActiveTab('streaks');
-          }}
-          className={`py-2 rounded-xl text-xs font-heading font-extrabold transition-all cursor-pointer ${
-            activeTab === 'streaks'
-              ? 'bg-white text-[#1F2430] shadow-xs'
-              : 'text-[#6B7280] hover:text-[#1F2430]'
-          }`}
-        >
-          Streaks & Kudos 🔥
-        </button>
-      </div>
+                const scheduleLabel =
+                  chore.frequency === 'daily'
+                    ? `Daily at ${a.scheduledTime}`
+                    : `Weekly • ${a.scheduledDays.join(', ')} at ${a.scheduledTime}`;
 
-      {/* TAB 1: MY SCHEDULE */}
-      {activeTab === 'my' && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-heading font-bold text-base text-[#1F2430]">
-                Your Assigned Chores
-              </h3>
-              <p className="text-xs text-[#6B7280]">
-                {currentUser.awayUntil
-                  ? '🌴 Away mode is active'
-                  : 'Tap "Done" when finished to keep your streak!'}
-              </p>
-            </div>
-            <button
-              onClick={() => setAwayModalOpen(true)}
-              className="text-xs font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <Plane className="w-3.5 h-3.5" />
-              {currentUser.awayUntil ? 'Away Mode On' : "I'm away"}
-            </button>
-          </div>
-
-          {myAssignments.length === 0 ? (
-            <EmptyState
-              title="No chores assigned!"
-              description="You have no pending tasks right now. Relax or jump into the upcoming chore draft!"
-              mascotState="cheering"
-              bubbleText="Kitchen sparkling!"
-              actionLabel="Join Draft Picks"
-              onAction={onOpenDraftPicks}
-            />
-          ) : (
-            myAssignments.map((a) => {
-              const chore = chores.find((c) => c.id === a.choreId);
-              if (!chore) return null;
-              return (
-                <Card
-                  key={chore.id}
-                  padding="md"
-                  className={`bg-white border transition-all ${
-                    a.completedToday
-                      ? 'border-[#B8ECC8] bg-[#EBF9F0]/30'
-                      : 'border-[#E6E8EE]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-heading font-extrabold text-base text-[#1F2430]">
-                          {chore.name}
-                        </h4>
-                        <Chip
-                          label={chore.frequency}
-                          variant="outline"
-                          size="sm"
-                        />
-                      </div>
-                      <p className="text-xs text-[#6B7280] mt-0.5">
-                        {chore.description}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2 text-xs font-semibold text-[#1F2430]">
-                        <Clock className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                        <span>
-                          {a.scheduledDays.join(', ')} at {a.scheduledTime}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      {a.completedToday ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EBF9F0] text-[#3DBE6D] text-xs font-extrabold border border-[#B8ECC8]">
-                          <CheckCircle2 className="w-4 h-4" /> Completed!
-                        </span>
-                      ) : (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setDoneModalChore(chore)}
-                          icon={<CheckCircle2 className="w-4 h-4 stroke-[2.5]" />}
-                        >
-                          Done
-                        </Button>
-                      )}
-                      {!a.completedToday && (
-                        <button
-                          onClick={() => setSwapModalChore(chore)}
-                          className="text-[11px] font-bold text-[#6B7280] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer"
-                        >
-                          <ArrowLeftRight className="w-3 h-3" /> Swap
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Kudos received for this chore */}
-                  {a.kudos.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-[#E6E8EE] flex flex-wrap gap-2 items-center">
-                      <span className="text-[11px] font-bold text-[#8A6200]">
-                        Kudos received:
-                      </span>
-                      {a.kudos.map((k) => {
-                        const sender = roommates.find((r) => r.id === k.fromUser);
-                        return (
-                          <span
-                            key={k.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[11px] font-bold"
-                          >
-                            <span>{k.type === 'thanks' ? '💖' : k.type === 'great_job' ? '🌟' : '👀'}</span>
-                            <span>{sender?.name.split(' ')[0] || 'Roomie'}</span>
-                            {k.note && <span className="font-normal italic">"{k.note}"</span>}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </Card>
-              );
-            })
-          )}
-        </div>
-      )}
-
-      {/* TAB 2: ALL CHORES */}
-      {activeTab === 'all' && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-heading font-bold text-base text-[#1F2430]">
-                House Chore Pool
-              </h3>
-              <p className="text-xs text-[#6B7280]">
-                {chores.length} standard & custom chores
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setNewChoreModalOpen(true)}
-              icon={<Plus className="w-3.5 h-3.5 text-[#FF6B4A]" />}
-            >
-              Add Chore
-            </Button>
-          </div>
-
-          <div className="space-y-2.5">
-            {chores.map((chore) => {
-              const assignment = assignments.find((a) => a.choreId === chore.id);
-              const assignee = assignment
-                ? roommates.find((r) => r.id === assignment.userId)
-                : null;
-
-              return (
-                <Card key={chore.id} padding="sm" className="bg-white flex items-center justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-heading font-bold text-sm text-[#1F2430]">
-                        {chore.name}
-                      </h4>
-                      <Chip
-                        label={chore.effortLevel}
-                        effort={chore.effortLevel}
-                        size="sm"
+                return (
+                  <ActionCard
+                    key={chore.id}
+                    tint="teal"
+                    iconTile={
+                      <IconTile
+                        icon={getChoreIcon(chore.name)}
+                        color="teal"
+                        size="md"
                       />
-                    </div>
-                    <p className="text-xs text-[#6B7280] mt-0.5 line-clamp-1">
-                      {chore.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {assignee ? (
-                      <div className="flex items-center gap-1.5 text-right">
-                        <Avatar
-                          src={assignee.avatar}
-                          name={assignee.name}
-                          flag={assignee.flag}
-                          size="sm"
-                        />
-                        <div className="text-left hidden sm:block">
-                          <p className="text-xs font-bold text-[#1F2430]">
-                            {assignee.name.split(' ')[0]}
-                          </p>
-                          <p className="text-[10px] text-[#6B7280]">Assigned</p>
+                    }
+                    title={chore.name}
+                    subtitle={scheduleLabel}
+                    detail={
+                      <div className="space-y-1.5">
+                        <p className="text-sm text-[#475569]">{chore.description}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Chip effort={chore.effortLevel} size="sm" />
+                          <span className="type-secondary text-xs">
+                            Assigned to: <strong className="text-[#1F2430]">{isMe ? 'You' : assignedUser?.name}</strong>
+                          </span>
                         </div>
                       </div>
-                    ) : (
-                      <span className="text-xs text-[#6B7280] italic">Unassigned</span>
+                    }
+                    actions={
+                      isMe ? (
+                        <div className="grid grid-cols-2 gap-3 w-full">
+                          <Button
+                            variant="teal"
+                            size="md"
+                            onClick={() => setDoneModalChore(chore)}
+                            icon={<CheckCircle2 className="w-4 h-4 stroke-[2.5]" />}
+                          >
+                            Done
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="md"
+                            onClick={() => setSwapModalChore(chore)}
+                            icon={<ArrowLeftRight className="w-4 h-4 text-[#475569]" />}
+                          >
+                            Swap
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="w-full flex items-center justify-between">
+                          <span className="type-secondary text-xs font-bold">
+                            Pending {assignedUser?.name.split(' ')[0]}'s completion
+                          </span>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setSwapModalChore(chore)}
+                          >
+                            Reassign
+                          </Button>
+                        </div>
+                      )
+                    }
+                  />
+                );
+              })
+            )}
+          </div>
+
+          {/* SEMANTIC GROUP 2: COMPLETED TODAY */}
+          {todayCompletedAssignments.length > 0 && (
+            <div className="space-y-3.5 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="type-section-heading text-[#2CA358]">Completed Today</span>
+                  <Chip status="agreed" label={`${todayCompletedAssignments.length} Done`} size="sm" />
+                </div>
+                <span className="type-secondary text-xs">Streaks updated</span>
+              </div>
+
+              {todayCompletedAssignments.map((a) => {
+                const chore = chores.find((c) => c.id === a.choreId);
+                const assignedUser = roommates.find((r) => r.id === a.userId);
+                if (!chore) return null;
+                const isMe = a.userId === currentUser.id;
+
+                return (
+                  <ActionCard
+                    key={chore.id}
+                    tint="green"
+                    iconTile={
+                      <IconTile
+                        icon={<CheckCircle2 className="w-6 h-6" />}
+                        color="green"
+                        size="md"
+                      />
+                    }
+                    title={chore.name}
+                    subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name} ✨`}
+                    detail={
+                      <div className="space-y-1.5">
+                        <p className="text-sm text-[#475569]">{chore.description}</p>
+                        <div className="flex items-center gap-2">
+                          <Chip effort={chore.effortLevel} size="sm" />
+                          <span className="text-xs font-bold text-[#2CA358]">
+                            +{getEffortPoints(chore.effortLevel)} streak points awarded
+                          </span>
+                        </div>
+                      </div>
+                    }
+                    badge={
+                      <Chip status="agreed" label="Completed" size="sm" />
+                    }
+                    actions={
+                      !isMe ? (
+                        <div className="w-full flex items-center justify-between">
+                          <span className="type-secondary text-xs">
+                            Praise your roomie's contribution!
+                          </span>
+                          <Button
+                            variant="reward"
+                            size="sm"
+                            onClick={() => assignedUser && setKudosModalData({ chore, target: assignedUser })}
+                            icon={<Heart className="w-4 h-4 text-[#1F2430]" />}
+                          >
+                            Send Kudos
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="w-full flex items-center justify-between">
+                          <span className="text-xs font-bold text-[#2CA358]">
+                            Streak protected for today! 🎉
+                          </span>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setSwapModalChore(chore)}
+                          >
+                            Reassign
+                          </Button>
+                        </div>
+                      )
+                    }
+                  >
+                    {/* Kudos received for this chore */}
+                    {a.kudos.length > 0 && (
+                      <div className="pt-2.5 border-t border-black/5 flex flex-wrap gap-2 items-center">
+                        <span className="text-xs font-black text-[#8A6200]">
+                          Roomie Kudos:
+                        </span>
+                        {a.kudos.map((k) => {
+                          const sender = roommates.find((r) => r.id === k.fromUser);
+                          return (
+                            <span
+                              key={k.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-black"
+                            >
+                              <span>{k.type === 'thanks' ? '💖' : k.type === 'great_job' ? '🌟' : '👏'}</span>
+                              <span>{sender?.name.split(' ')[0] || 'Roomie'}</span>
+                              {k.note && <span className="font-semibold italic">"{k.note}"</span>}
+                            </span>
+                          );
+                        })}
+                      </div>
                     )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+                  </ActionCard>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* TAB 3: STREAKS & KUDOS */}
-      {activeTab === 'streaks' && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-heading font-bold text-base text-[#1F2430]">
-              House Streaks & Kudos 🔥
-            </h3>
-            <p className="text-xs text-[#6B7280]">
-              Friendly recognition keeps the apartment shining!
-            </p>
-          </div>
+        {/* ================= RIGHT COLUMN: Leaderboard & Away Mode ================= */}
+        <div className="lg:col-span-5 space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-20">
+          {/* 1. ROOMIE STREAKS LEADERBOARD */}
+          <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="type-section-heading flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-[#FF6B4A] fill-[#FF6B4A]" />
+                  Streaks & Kudos
+                </h3>
+                <p className="type-secondary text-xs">
+                  Apartment harmony leaderboard
+                </p>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-black flex items-center gap-1">
+                <Trophy className="w-3.5 h-3.5 text-[#8A6200]" />
+                Top: {maxStreak}d
+              </span>
+            </div>
 
-          {/* Leaderboard */}
-          <Card padding="md" className="bg-white space-y-3">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#6B7280]">
-              Roommate Streak Rankings
-            </h4>
-            <div className="space-y-2">
-              {[...roommates]
-                .sort((a, b) => b.streakDays - a.streakDays)
-                .map((r, idx) => (
+            {/* Roomies Ranked */}
+            <div className="space-y-2.5">
+              {sortedRoomiesByStreak.map((r, index) => {
+                const isMe = r.id === currentUser.id;
+                const isLeader = index === 0 && r.streakDays > 0;
+                return (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]"
+                    className={`p-3 rounded-2xl flex items-center justify-between border transition-all ${
+                      isLeader
+                        ? 'bg-linear-to-r from-[#FFF8E6] to-white border-[#FFE8A3]'
+                        : isMe
+                        ? 'bg-[#F7F8FB] border-[#E2E5EC]'
+                        : 'bg-white border-[#F1F3F9]'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-5 text-center text-xs font-extrabold text-[#6B7280]">
-                        #{idx + 1}
-                      </span>
-                      <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
+                      <div className="w-6 text-center font-heading font-black text-sm text-[#64748B]">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                      </div>
+                      <Avatar
+                        src={r.avatar}
+                        name={r.name}
+                        flag={r.flag}
+                        isHome={r.isHome}
+                        statusRing={true}
+                        size="sm"
+                      />
                       <div>
-                        <p className="font-heading font-bold text-sm text-[#1F2430]">
-                          {r.name} {r.id === currentUser.id ? '(You)' : ''}
+                        <p className="text-[14px] font-bold text-[#1F2430] flex items-center gap-1.5">
+                          <span>{isMe ? 'You' : r.name}</span>
+                          {isMe && <span className="type-label text-[#FF6B4A] font-extrabold">(You)</span>}
                         </p>
-                        <p className="text-[11px] text-[#6B7280]">
+                        <p className="type-secondary text-xs">
                           {r.points} total reward points
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-black">
-                      <Flame className="w-4 h-4 text-[#FF6B4A] fill-[#FF6B4A]" />
-                      <span>{r.streakDays} days</span>
+
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] border border-[#FFD7CF] text-xs font-black">
+                        <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
+                        {r.streakDays}d
+                      </span>
+                      {!isMe && (
+                        <button
+                          type="button"
+                          onClick={() => setKudosModalData({ chore: chores[0], target: r })}
+                          className="min-h-[32px] px-2 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-xs font-bold cursor-pointer transition-colors"
+                          title={`Send kudos to ${r.name}`}
+                        >
+                          👏
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
-            </div>
-          </Card>
-
-          {/* Kudos Feed & Send Kudos */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#6B7280]">
-              Recent Flatmate Achievements
-            </h4>
-            {assignments
-              .filter((a) => a.completedToday)
-              .map((a) => {
-                const chore = chores.find((c) => c.id === a.choreId);
-                const user = roommates.find((r) => r.id === a.userId);
-                if (!chore || !user) return null;
-                const isMe = user.id === currentUser.id;
-
-                return (
-                  <Card key={a.choreId} padding="sm" className="bg-white flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar src={user.avatar} name={user.name} flag={user.flag} size="sm" />
-                      <div>
-                        <p className="text-xs font-bold text-[#1F2430]">
-                          {user.name.split(' ')[0]} finished <strong>{chore.name}</strong>
-                        </p>
-                        <p className="text-[11px] text-[#3DBE6D] font-semibold">
-                          Completed on time ✨
-                        </p>
-                      </div>
-                    </div>
-                    {!isMe && (
-                      <Button
-                        variant="reward"
-                        size="sm"
-                        onClick={() => setKudosModalData({ chore, target: user })}
-                        icon={<Heart className="w-3.5 h-3.5 text-[#1F2430]" />}
-                      >
-                        Kudos
-                      </Button>
-                    )}
-                  </Card>
                 );
               })}
-          </div>
+            </div>
+          </InfoCard>
+
+          {/* 2. AWAY MODE MANAGER */}
+          <ActionCard
+            tint="coral"
+            iconTile={<IconTile icon={<Plane className="w-6 h-6" />} color="coral" size="md" />}
+            title={currentUser.awayUntil ? 'Away Mode Active 🌴' : 'Going on Vacation?'}
+            subtitle={
+              currentUser.awayUntil
+                ? 'Your chores are paused until your return date. Streak is frozen.'
+                : 'Protect your streak and notify roomies when traveling or during exam breaks.'
+            }
+            detail={
+              currentUser.awayUntil ? (
+                <div className="p-2.5 rounded-xl bg-white/80 border border-[#FFD3C9] text-xs font-bold text-[#FF6B4A]">
+                  Active until: {currentUser.awayUntil}
+                </div>
+              ) : undefined
+            }
+            actions={
+              <Button
+                variant={currentUser.awayUntil ? 'secondary' : 'primary'}
+                size="md"
+                fullWidth
+                onClick={() => setAwayModalOpen(true)}
+                icon={<Plane className="w-4 h-4" />}
+              >
+                {currentUser.awayUntil ? 'Manage Away Mode' : "Set Away Mode"}
+              </Button>
+            }
+          />
         </div>
-      )}
+      </div>
+
+      {/* NEW CHORE MODAL */}
+      <Modal
+        isOpen={newChoreModalOpen}
+        onClose={() => setNewChoreModalOpen(false)}
+        title="Add Apartment Chore"
+        subtitle="Introduce a recurring task to the pool"
+        size="md"
+      >
+        <form onSubmit={handleCreateChore} className="space-y-4">
+          <div>
+            <label className="type-label block mb-1">Chore Name</label>
+            <input
+              type="text"
+              value={newChoreName}
+              onChange={(e) => setNewChoreName(e.target.value)}
+              placeholder="e.g. Balcony plants watering, Vacuum hallway"
+              className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[15px] font-semibold text-[#1F2430]"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="type-label block mb-1">Frequency</label>
+              <select
+                value={newChoreFreq}
+                onChange={(e) => setNewChoreFreq(e.target.value as any)}
+                className="w-full px-3 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label className="type-label block mb-1">Effort Level</label>
+              <select
+                value={newChoreEffort}
+                onChange={(e) => setNewChoreEffort(e.target.value as any)}
+                className="w-full px-3 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
+              >
+                <option value="light">Light (10 pts)</option>
+                <option value="medium">Medium (20 pts)</option>
+                <option value="heavy">Heavy (30 pts)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="type-label block mb-1">Description</label>
+            <textarea
+              value={newChoreDesc}
+              onChange={(e) => setNewChoreDesc(e.target.value)}
+              placeholder="Any details, supplies needed, or tips..."
+              rows={3}
+              className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setNewChoreModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              fullWidth
+            >
+              Add to Pool
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Sub-modals */}
       <DoneFlowModal
@@ -507,111 +673,6 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
         isAway={Boolean(currentUser.awayUntil)}
         onSetAway={onSetAway}
       />
-
-      {/* Add Custom Chore Modal */}
-      {newChoreModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <Card padding="lg" className="w-full max-w-sm bg-white space-y-4">
-            <h3 className="text-xl font-heading font-black text-[#1F2430]">
-              Add Household Chore
-            </h3>
-            <form onSubmit={handleCreateChore} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-[#1F2430] mb-1">
-                  Chore Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newChoreName}
-                  onChange={(e) => setNewChoreName(e.target.value)}
-                  placeholder="e.g. Balcony plant watering"
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E8EE] text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#1F2430] mb-1">
-                  Frequency
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setNewChoreFreq('daily')}
-                    className={`py-2 rounded-xl text-xs font-bold border ${
-                      newChoreFreq === 'daily'
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                        : 'border-[#E6E8EE] text-[#6B7280]'
-                    }`}
-                  >
-                    Daily
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewChoreFreq('weekly')}
-                    className={`py-2 rounded-xl text-xs font-bold border ${
-                      newChoreFreq === 'weekly'
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                        : 'border-[#E6E8EE] text-[#6B7280]'
-                    }`}
-                  >
-                    Weekly
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#1F2430] mb-1">
-                  Effort Level
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['light', 'medium', 'heavy'] as const).map((eff) => (
-                    <button
-                      type="button"
-                      key={eff}
-                      onClick={() => setNewChoreEffort(eff)}
-                      className={`py-2 rounded-xl text-xs font-bold border capitalize ${
-                        newChoreEffort === eff
-                          ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                          : 'border-[#E6E8EE] text-[#6B7280]'
-                      }`}
-                    >
-                      {eff}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#1F2430] mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newChoreDesc}
-                  onChange={(e) => setNewChoreDesc(e.target.value)}
-                  placeholder="Brief instructions for roommates..."
-                  rows={2}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E6E8EE] text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => setNewChoreModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button variant="primary" size="sm" type="submit">
-                  Save Chore
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
