@@ -133,11 +133,11 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const sortedRoomiesByStreak = [...roommates].sort((a, b) => b.streakDays - a.streakDays || b.points - a.points);
 
   return (
-    <div className="select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-20 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+      <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Draft Hero & Grouped Chores ================= */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="w-full lg:col-span-7 self-start space-y-6">
           {/* 1. SUNDAY CHORE DRAFT HERO BANNER */}
           <ActionCard
             tint={draftRound.status === 'ready_to_reveal' ? 'coral' : 'teal'}
@@ -450,7 +450,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
         </div>
 
         {/* ================= RIGHT COLUMN: Leaderboard & Away Mode ================= */}
-        <div className="lg:col-span-5 space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-20">
+        <div className="w-full lg:col-span-5 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
           {/* 1. ROOMIE STREAKS LEADERBOARD */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
             <div className="flex items-center justify-between">

@@ -25,6 +25,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   PieChart,
   ArrowRight,
   ShieldAlert,
@@ -141,11 +142,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   };
 
   return (
-    <div className="select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-20 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+      <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Grouped Expenses Ledger ================= */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="w-full lg:col-span-7 self-start space-y-6">
           {/* Header & Filter Row */}
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
@@ -307,7 +308,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         </div>
 
         {/* ================= RIGHT COLUMN: Net Balance & Analytics Matrix ================= */}
-        <div className="lg:col-span-5 space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-20">
+        <div className="w-full lg:col-span-5 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
           {/* 1. APARTMENT BALANCE OVERVIEW CARD */}
           <ActionCard
             tint={myNet >= 0 ? 'green' : 'coral'}
@@ -474,37 +475,51 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
     </div>
   );
 
-  // Helper card renderer
+  // Helper card renderer: Sleek, tactile, and compact without awkward bottom button bloat
   function renderExpenseCard(exp: Expense, showDirectActions: boolean) {
     const payer = roommates.find((r) => r.id === exp.paidBy);
     const { icon, color } = getCategoryDetails(exp.category);
     const myShare = exp.shares.find((s) => s.userId === currentUser.id);
+    const isPayerMe = exp.paidBy === currentUser.id;
     const isAgreed = exp.status === 'agreed';
     const isDisputed = exp.status === 'disputed';
     const isPending = exp.status === 'pending';
+    const needsMyAgreement = showDirectActions && myShare && myShare.response === 'pending';
 
     return (
-      <ActionCard
+      <div
         key={exp.id}
-        tint={isDisputed ? 'coral' : isPending ? 'amber' : 'neutral'}
-        iconTile={<IconTile icon={icon} color={color} size="md" />}
-        title={exp.title}
-        subtitle={`Paid by ${payer?.name.split(' ')[0] || 'Roomie'} • ${formatExpenseDate(exp.date)}`}
-        detail={
-          <div className="flex items-center justify-between type-secondary">
-            <span>{exp.shares.length} roomies sharing</span>
-            {myShare && (
-              <span className="font-bold text-[#1F2430]">
-                Your share: ₺{formatCurrency(myShare.shareAmount)}
-              </span>
-            )}
-          </div>
-        }
-        badge={
-          <div className="text-right flex flex-col items-end gap-1">
-            <div className="type-section-heading">
-              ₺{formatCurrency(exp.amount)}
+        onClick={() => {
+          sound.playTap();
+          setSelectedExpense(exp);
+        }}
+        className={`group p-4 sm:p-5 rounded-[24px] border-2 transition-all cursor-pointer select-none ${
+          isDisputed
+            ? 'bg-[#FFF5F2] border-[#FFD3C9] hover:border-[#FFB7A7] shadow-[0_4px_16px_rgba(255,107,74,0.08)]'
+            : needsMyAgreement
+            ? 'bg-[#FFFBEB] border-[#FDE68A] hover:border-[#FCD34D] shadow-[0_4px_16px_rgba(255,201,60,0.12)] ring-1 ring-[#F59E0B]/30'
+            : 'bg-white border-[#E6E8EE] hover:border-[#CBD5E1] hover:shadow-xs'
+        }`}
+      >
+        {/* Main Header Row: Icon + Title + Meta on Left; Total Amount + Status Chip on Right */}
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 sm:gap-3.5 flex-1 min-w-0">
+            <IconTile icon={icon} color={color} size="md" className="shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <h4 className="type-section-heading truncate group-hover:text-[#FF6B4A] transition-colors">
+                {exp.title}
+              </h4>
+              <p className="type-secondary mt-0.5 text-xs sm:text-sm">
+                Paid by {isPayerMe ? 'You' : payer?.name.split(' ')[0] || 'Roomie'} • {formatExpenseDate(exp.date)}
+              </p>
             </div>
+          </div>
+
+          {/* Right Financial Hub: Big Total Amount & Tactile Chip */}
+          <div className="text-right shrink-0 flex flex-col items-end gap-1">
+            <span className="font-heading font-black text-lg sm:text-xl text-[#1F2430]">
+              ₺{formatCurrency(exp.amount)}
+            </span>
             <Chip
               status={exp.status as any}
               label={
@@ -517,15 +532,36 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
               size="sm"
             />
           </div>
-        }
-        actions={
-          <div className="flex items-center gap-2.5 w-full">
-            {showDirectActions && myShare && myShare.response === 'pending' ? (
-              <>
+        </div>
+
+        {/* Divider & Metadata Bar: Split Details + Share Pill + Inline Actions */}
+        <div className="mt-3.5 pt-3 border-t border-black/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+          {/* Left info: Split info & your contribution */}
+          <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
+            <span className="text-[#64748B]">
+              {exp.shares.length} roomies sharing equally
+            </span>
+            <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+            {isPayerMe ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-[#EBF9F0] text-[#2CA358] font-bold">
+                You paid full
+              </span>
+            ) : myShare ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-[#F0F4FF] text-[#4353C4] font-bold">
+                Your share: ₺{formatCurrency(myShare.shareAmount)}
+              </span>
+            ) : null}
+          </div>
+
+          {/* Right Action / Hint: Direct Agree/Review if pending, or subtle "View details" prompt */}
+          <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+            {needsMyAgreement ? (
+              <div className="flex items-center gap-2">
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={async () => {
+                  onClick={async (e) => {
+                    e.stopPropagation();
                     sound.playSuccess();
                     await onRespondExpense(exp.id, 'agreed');
                     showToast('Agreed to shared expense! 🤝', 'success');
@@ -537,29 +573,30 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => setSelectedExpense(exp)}
-                >
-                  Review Details
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  fullWidth
-                  onClick={() => {
-                    sound.playTap();
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedExpense(exp);
                   }}
                 >
-                  View Details & Receipts
+                  Review
                 </Button>
-              </>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  setSelectedExpense(exp);
+                }}
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#64748B] group-hover:text-[#1F2430] transition-colors cursor-pointer"
+              >
+                <span>Receipt & details</span>
+                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform" />
+              </button>
             )}
           </div>
-        }
-      />
+        </div>
+      </div>
     );
   }
 };

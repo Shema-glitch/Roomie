@@ -49,20 +49,17 @@ export const ActionCard: React.FC<ActionCardProps> = ({
         tintStyles[tint]
       } ${onClick ? 'cursor-pointer' : ''} ${className}`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 sm:gap-4">
         <div className="flex items-start gap-3.5 flex-1 min-w-0">
           {iconTile && <div className="shrink-0 mt-0.5">{iconTile}</div>}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              {typeof title === 'string' ? (
-                <h4 className="type-section-heading">
-                  {title}
-                </h4>
-              ) : (
-                title
-              )}
-              {badge && <div className="shrink-0">{badge}</div>}
-            </div>
+            {typeof title === 'string' ? (
+              <h4 className="type-section-heading">
+                {title}
+              </h4>
+            ) : (
+              title
+            )}
 
             {subtitle && (
               <p className="type-secondary mt-0.5">
@@ -77,6 +74,8 @@ export const ActionCard: React.FC<ActionCardProps> = ({
             )}
           </div>
         </div>
+
+        {badge && <div className="shrink-0 self-start">{badge}</div>}
       </div>
 
       {children && <div className="mt-3.5">{children}</div>}

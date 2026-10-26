@@ -85,7 +85,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col h-[calc(100vh-170px)] max-w-4xl mx-auto w-full pb-6 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
+      className="flex flex-col h-[calc(100vh-160px)] w-full max-w-5xl mx-auto pb-6 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
       onClick={() => setActiveReactionMsgId(null)}
     >
       {/* Header Info */}

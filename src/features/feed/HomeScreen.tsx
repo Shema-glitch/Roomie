@@ -142,11 +142,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <div className="select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-20 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+      <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Priority Focus & Activity Feed ================= */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="w-full lg:col-span-8 self-start space-y-6">
           {/* 1. HERO MASCOT GREETING CARD */}
           <InfoCard
             tint="coral"
@@ -435,7 +435,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
 
         {/* ================= RIGHT COLUMN: Roomie Hub & Quick Action Dock ================= */}
-        <div className="lg:col-span-4 space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-20">
+        <div className="w-full lg:col-span-4 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
           {/* 1. ROOMIES PRESENCE LIVE HUB */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
             <div className="flex items-center justify-between">

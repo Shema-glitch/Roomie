@@ -167,7 +167,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   };
 
   return (
-    <div className="select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-20 md:pb-8">
       {/* Mobile / Tablet Segmented Section Switcher (Only visible on < lg screens) */}
       <div className="lg:hidden mb-5">
         <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
@@ -205,10 +205,10 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
       </div>
 
       {/* RESPONSIVE 2-COLUMN DESKTOP GRID (lg:grid lg:grid-cols-12 lg:gap-8 items-start) */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-start">
+      <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Roomies Directory & Community ================= */}
         <div
-          className={`lg:col-span-7 space-y-6 ${
+          className={`w-full lg:col-span-7 self-start space-y-6 ${
             mobileTab === 'roomies' ? 'block' : 'hidden lg:block'
           }`}
         >
@@ -292,7 +292,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
 
         {/* ================= RIGHT COLUMN: Apartment Hub & Meetings/Rules ================= */}
         <div
-          className={`lg:col-span-5 space-y-6 lg:sticky lg:top-20 mt-6 lg:mt-0 ${
+          className={`w-full lg:col-span-5 self-start h-fit space-y-6 lg:sticky lg:top-0 mt-6 lg:mt-0 ${
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
