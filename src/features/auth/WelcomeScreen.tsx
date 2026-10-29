@@ -40,7 +40,10 @@ type ScreenStage =
   | 'onboarding_motivate_1'
   | 'onboarding_headache'
   | 'onboarding_motivate_2'
-  | 'signup'
+  | 'signup_name'
+  | 'signup_name_motivate'
+  | 'signup_email'
+  | 'signup_password'
   | 'signin';
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
@@ -71,20 +74,28 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [useMagicLink, setUseMagicLink] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const firstName = name.trim().split(' ')[0] || name.trim() || 'Flatmate';
+
   // Progress percentage for Duolingo-style progress bar
   const getProgress = (): number => {
     switch (stage) {
       case 'onboarding_intro':
-        return 10;
+        return 12;
       case 'onboarding_situation':
-        return 30;
+        return 25;
       case 'onboarding_motivate_1':
-        return 50;
+        return 38;
       case 'onboarding_headache':
-        return 70;
+        return 50;
       case 'onboarding_motivate_2':
-        return 88;
-      case 'signup':
+        return 62;
+      case 'signup_name':
+        return 74;
+      case 'signup_name_motivate':
+        return 82;
+      case 'signup_email':
+        return 90;
+      case 'signup_password':
         return 100;
       default:
         return 0;
@@ -159,8 +170,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       case 'onboarding_motivate_2':
         setStage('onboarding_headache');
         break;
-      case 'signup':
+      case 'signup_name':
         setStage('onboarding_motivate_2');
+        break;
+      case 'signup_name_motivate':
+        setStage('signup_name');
+        break;
+      case 'signup_email':
+        setStage('signup_name_motivate');
+        break;
+      case 'signup_password':
+        setStage('signup_email');
         break;
       case 'signin':
         setStage('welcome');
@@ -559,7 +579,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               fullWidth
               onClick={() => {
                 sound.playSuccess();
-                setStage('signup');
+                setStage('signup_name');
               }}
             >
               Create My Profile
@@ -568,25 +588,33 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
       )}
 
-      {/* 6. CREATE PROFILE (Sign Up Form — Only after engaging) */}
-      {stage === 'signup' && (
-        <div key="signup" className="flex-1 flex flex-col justify-between py-2">
+      {/* 6A. LEVEL 1: WHAT'S YOUR NAME? */}
+      {stage === 'signup_name' && (
+        <div key="signup_name" className="flex-1 flex flex-col justify-between py-2">
           <div className="space-y-4">
             <div className="text-center space-y-1 animate-fade-up">
-              <MascotView state="cheering" size="sm" bubbleText="Almost there!" />
+              <MascotView state="thinking" size="md" bubbleText="What's your name?" />
               <h2 className="font-heading font-black text-2xl text-[#1F2430]">
-                Save your flat profile
+                What should your flat call you?
               </h2>
               <p className="type-secondary text-xs sm:text-sm text-[#6B7280]">
-                Create your account so you can start or join your apartment.
+                Your flatmates will see this on the chore board and expense tabs.
               </p>
             </div>
 
             <div className="animate-fade-up delay-150">
               <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
-                <form onSubmit={handleSignUpSubmit} className="space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!name.trim()) return;
+                    sound.playSuccess();
+                    setStage('signup_name_motivate');
+                  }}
+                  className="space-y-4"
+                >
                   <div>
-                    <label className="type-label block mb-1.5 text-xs">Full name</label>
+                    <label className="type-label block mb-1.5 text-xs">Full Name</label>
                     <div className="relative flex items-center">
                       <User className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                       <input
@@ -601,8 +629,105 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                     </div>
                   </div>
 
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      disabled={!name.trim()}
+                      type="submit"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+
+            <div className="text-center pt-2 animate-fade-in delay-250">
+              <button
+                type="button"
+                onClick={() => setStage('signin')}
+                className="text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] cursor-pointer"
+              >
+                Already have an account? <span className="underline text-[#FF6B4A]">Log in here</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center pt-4">
+            <p className="type-secondary text-xs text-[#8F9CAE] leading-relaxed max-w-xs mx-auto">
+              Level 1 of 3: Setting up your profile.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 6B. LEVEL 1 INTERSTITIAL: "NICE TO MEET YOU!" */}
+      {stage === 'signup_name_motivate' && (
+        <div key="signup_name_motivate" className="flex-1 flex flex-col justify-between py-6 text-center items-center">
+          <div className="space-y-6 my-auto max-w-xs">
+            <div className="animate-pop-in">
+              <MascotView
+                state="celebrating"
+                size="xl"
+                bubbleText={`Nice to meet you, ${firstName}!`}
+              />
+            </div>
+
+            <div className="space-y-2 animate-fade-up delay-150">
+              <h2 className="font-heading font-black text-2xl text-[#1F2430]">
+                Awesome! I'll call you <span className="text-[#FF6B4A]">{name.trim()}</span> 🤝
+              </h2>
+              <p className="type-body text-[#6B7280] text-sm leading-relaxed">
+                Next, let's link your email so flatmates can send invitations and chore rotations right to your inbox.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full pt-6 animate-fade-up delay-300">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => {
+                sound.playSuccess();
+                setStage('signup_email');
+              }}
+            >
+              Add My Email
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* 6C. LEVEL 2: WHAT'S YOUR EMAIL? */}
+      {stage === 'signup_email' && (
+        <div key="signup_email" className="flex-1 flex flex-col justify-between py-2">
+          <div className="space-y-4">
+            <div className="text-center space-y-1 animate-fade-up">
+              <MascotView state="thinking" size="md" bubbleText="Keep it handy!" />
+              <h2 className="font-heading font-black text-2xl text-[#1F2430]">
+                What's your email address?
+              </h2>
+              <p className="type-secondary text-xs sm:text-sm text-[#6B7280]">
+                We'll use this to keep your invitations, receipts, and chore turns safe.
+              </p>
+            </div>
+
+            <div className="animate-fade-up delay-150">
+              <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!email.trim() || !email.includes('@')) return;
+                    sound.playSuccess();
+                    setStage('signup_password');
+                  }}
+                  className="space-y-4"
+                >
                   <div>
-                    <label className="type-label block mb-1.5 text-xs">Email address</label>
+                    <label className="type-label block mb-1.5 text-xs">Email Address</label>
                     <div className="relative flex items-center">
                       <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                       <input
@@ -610,14 +735,82 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="name@university.edu"
+                        autoFocus
                         required
                         className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                       />
                     </div>
                   </div>
 
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      disabled={!email.trim() || !email.includes('@')}
+                      type="submit"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+
+            <div className="text-center pt-2 animate-fade-in delay-250">
+              <button
+                type="button"
+                onClick={() => setStage('signin')}
+                className="text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] cursor-pointer"
+              >
+                Already have an account? <span className="underline text-[#FF6B4A]">Log in here</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center pt-4">
+            <p className="type-secondary text-xs text-[#8F9CAE] leading-relaxed max-w-xs mx-auto">
+              Level 2 of 3: Connecting your account.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 6D. LEVEL 3: PROTECT YOUR ACCOUNT */}
+      {stage === 'signup_password' && (
+        <div key="signup_password" className="flex-1 flex flex-col justify-between py-2">
+          <div className="space-y-4">
+            <div className="text-center space-y-1 animate-fade-up">
+              <MascotView state="cheering" size="md" bubbleText="Final step!" />
+              <h2 className="font-heading font-black text-2xl text-[#1F2430]">
+                Protect your account
+              </h2>
+              <p className="type-secondary text-xs sm:text-sm text-[#6B7280]">
+                Create a password so you can securely sign into your flat anytime.
+              </p>
+            </div>
+
+            <div className="animate-fade-up delay-150">
+              <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+                {/* Account Summary Chip */}
+                <div className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-bold text-[#1F2430] truncate">{name}</span>
+                    <span className="text-[#9AA5B5]">•</span>
+                    <span className="text-[#6B7280] truncate">{email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStage('signup_name')}
+                    className="text-[#FF6B4A] font-bold text-[11px] hover:underline shrink-0 ml-2 cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                <form onSubmit={handleSignUpSubmit} className="space-y-4">
                   <div>
-                    <label className="type-label block mb-1.5 text-xs">Create password</label>
+                    <label className="type-label block mb-1.5 text-xs">Create Password</label>
                     <div className="relative flex items-center">
                       <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                       <input
@@ -625,6 +818,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="At least 6 characters"
+                        autoFocus
                         required
                         className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                       />
@@ -647,10 +841,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                       variant="primary"
                       size="lg"
                       fullWidth
-                      disabled={loading}
+                      disabled={loading || password.length < 6}
                       type="submit"
                     >
-                      {loading ? 'Creating account...' : 'Create Account & Enter'}
+                      {loading ? 'Creating account...' : 'Create Account & Enter 🚀'}
                     </Button>
                   </div>
                 </form>
