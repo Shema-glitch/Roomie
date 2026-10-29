@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -7,7 +7,9 @@ import { MascotView } from '../../components/common/MascotView';
 import { Chore, User } from '../../types';
 import { sound } from '../../services/sound';
 import { IconTile } from '../../components/common/IconTile';
-import { Camera, Check, Flame, ArrowRight, ArrowLeft } from 'lucide-react';
+import { processPhoto } from '../../utils/photoPipeline';
+import { uploadPhotoToStorage } from '../../services/supabase';
+import { Camera, Check, Flame, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface DoneFlowModalProps {
@@ -29,17 +31,42 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
   // 1: Details & Prompt -> 2: Optional Photo Proof -> 3: Celebration
   const [step, setStep] = useState<number>(1);
   const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [compressing, setCompressing] = useState<boolean>(false);
+  const [photoDetails, setPhotoDetails] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!chore) return null;
 
-  const handleSnapPhoto = () => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setCompressing(true);
+      const processed = await processPhoto(file);
+      const sizeKb = Math.round(processed.sizeBytes / 1024);
+      setPhotoDetails(`${processed.width}×${processed.height} px • ${sizeKb} KB`);
+
+      const fileName = `chore_${chore.id}_${Date.now()}.jpg`;
+      const finalUrl = await uploadPhotoToStorage('chore-proof', fileName, processed.fullBlob, processed.fullDataUrl);
+      setPhotoUrl(finalUrl);
+      sound.playPop();
+      showToast(`Proof compressed (${sizeKb} KB) & attached!`, 'info');
+    } catch {
+      showToast('Could not process proof photo', 'error');
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  const handleSamplePhoto = () => {
     sound.playPop();
     const photos = [
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&auto=format&fit=crop&q=80',
     ];
     setPhotoUrl(photos[Math.floor(Math.random() * photos.length)]);
+    setPhotoDetails('Sample preview');
     showToast('Proof photo attached', 'info');
   };
 
@@ -144,6 +171,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
             {photoUrl ? (
               <div className="space-y-2">
                 <div className="relative rounded-2xl overflow-hidden border-2 border-[#19B5A5] shadow-xs max-h-52">
@@ -153,29 +189,43 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                     className="w-full h-44 object-cover"
                   />
                   <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    Proof attached
+                    {photoDetails || 'Proof attached'}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setPhotoUrl('')}
+                  onClick={() => {
+                    setPhotoUrl('');
+                    setPhotoDetails('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
                   className="min-h-[44px] px-3 py-1.5 type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
                 >
                   Remove or Retake
                 </button>
               </div>
             ) : (
-              <div
-                onClick={handleSnapPhoto}
-                className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
-              >
-                <IconTile icon={<Camera className="w-6 h-6" />} color="teal" size="md" />
-                <h4 className="type-section-heading">
-                  Snap Proof Photo
-                </h4>
-                <p className="type-secondary">
-                  Optional photo for your roomies to admire
-                </p>
+              <div className="space-y-3">
+                <div
+                  onClick={() => !compressing && fileInputRef.current?.click()}
+                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
+                >
+                  <IconTile icon={compressing ? <Upload className="w-6 h-6 animate-bounce" /> : <Camera className="w-6 h-6" />} color="teal" size="md" />
+                  <h4 className="type-section-heading">
+                    {compressing ? 'Compressing proof photo...' : 'Snap or Upload Proof'}
+                  </h4>
+                  <p className="type-secondary">
+                    {compressing ? 'Auto-optimizing under 300 KB' : 'Tap to take clean photo or choose from library'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSamplePhoto}
+                  className="type-secondary font-bold text-[#19B5A5] hover:underline cursor-pointer text-center w-full"
+                >
+                  Or use sample proof preview
+                </button>
               </div>
             )}
 

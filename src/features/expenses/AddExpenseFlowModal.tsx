@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -9,6 +9,8 @@ import { IconTile } from '../../components/common/IconTile';
 import { Expense, ExpenseCategory, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { processPhoto } from '../../utils/photoPipeline';
+import { uploadPhotoToStorage } from '../../services/supabase';
 import {
   ShoppingCart,
   Zap,
@@ -24,6 +26,7 @@ import {
   ShieldCheck,
   DollarSign,
   CheckCircle2,
+  Upload,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -64,8 +67,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
   const [participants, setParticipants] = useState<string[]>(roommates.map((r) => r.id));
   const [customShares, setCustomShares] = useState<Record<string, string>>({});
   const [receiptUrl, setReceiptUrl] = useState<string>('');
+  const [compressing, setCompressing] = useState<boolean>(false);
+  const [photoDetails, setPhotoDetails] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [createdExpense, setCreatedExpense] = useState<Expense | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const amountNum = parseFloat(amountStr) || 0;
 
@@ -83,8 +89,30 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     }
   };
 
-  // Simulate receipt photo capture
-  const handleCaptureReceipt = () => {
+  // Real client-side compressed photo capture
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setCompressing(true);
+      const processed = await processPhoto(file);
+      const sizeKb = Math.round(processed.sizeBytes / 1024);
+      setPhotoDetails(`${processed.width}×${processed.height} px • ${sizeKb} KB`);
+
+      const fileName = `receipt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.jpg`;
+      const finalUrl = await uploadPhotoToStorage('receipts', fileName, processed.fullBlob, processed.fullDataUrl);
+      setReceiptUrl(finalUrl);
+      sound.playPop();
+      showToast(`Receipt compressed (${sizeKb} KB) & attached!`, 'info');
+    } catch {
+      showToast('Could not process receipt photo', 'error');
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  // Sample receipt fallback (for testing/desktop without camera)
+  const handleSampleReceipt = () => {
     sound.playPop();
     const samples = [
       'https://images.unsplash.com/photo-1554415707-9e44667ff469?w=600&auto=format&fit=crop&q=80',
@@ -92,7 +120,8 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
       'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
     ];
     setReceiptUrl(samples[Math.floor(Math.random() * samples.length)]);
-    showToast('Receipt attached successfully.', 'info');
+    setPhotoDetails('Sample preview');
+    showToast('Sample receipt attached.', 'info');
   };
 
   const handleNext = () => {
@@ -463,6 +492,15 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               </p>
             </div>
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
             {receiptUrl ? (
               <div className="space-y-2">
                 <div className="relative rounded-2xl overflow-hidden border-2 border-[#19B5A5] shadow-xs max-h-52">
@@ -472,31 +510,45 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     className="w-full h-44 object-cover"
                   />
                   <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    Receipt attached
+                    {photoDetails || 'Receipt attached'}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setReceiptUrl('')}
+                  onClick={() => {
+                    setReceiptUrl('');
+                    setPhotoDetails('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
                   className="type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
                 >
                   Remove photo
                 </button>
               </div>
             ) : (
-              <div
-                onClick={handleCaptureReceipt}
-                className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-[#FF6B4A] hover:bg-[#FFF0ED]/20 cursor-pointer transition-all bg-[#F7F8FB]"
-              >
-                <IconTile icon={<Camera className="w-7 h-7" />} color="coral" size="lg" />
-                <div>
-                  <h4 className="type-section-heading">
-                    Take or Upload Receipt Photo
-                  </h4>
-                  <p className="type-secondary mt-0.5">
-                    Tap to simulate camera scan
-                  </p>
+              <div className="space-y-3">
+                <div
+                  onClick={() => !compressing && fileInputRef.current?.click()}
+                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-[#FF6B4A] hover:bg-[#FFF0ED]/20 cursor-pointer transition-all bg-[#F7F8FB]"
+                >
+                  <IconTile icon={compressing ? <Upload className="w-7 h-7 animate-bounce" /> : <Camera className="w-7 h-7" />} color="coral" size="lg" />
+                  <div>
+                    <h4 className="type-section-heading">
+                      {compressing ? 'Compressing photo...' : 'Take or Upload Receipt'}
+                    </h4>
+                    <p className="type-secondary mt-0.5">
+                      {compressing ? 'Auto-optimizing under 300 KB' : 'Tap to take photo or choose from library'}
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleSampleReceipt}
+                  className="type-secondary font-bold text-[#FF6B4A] hover:underline cursor-pointer text-center w-full"
+                >
+                  Or use sample receipt preview
+                </button>
               </div>
             )}
 

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
-import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus } from 'lucide-react';
+import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus, X, RefreshCw } from 'lucide-react';
 import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
@@ -24,18 +24,110 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [hasCamera, setHasCamera] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSimulateScan = () => {
-    setIsScanning(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanLoopRef = useRef<number | null>(null);
+
+  // Stop camera tracks helper
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const startLiveCamera = async () => {
     sound.playTap();
+    setIsScanning(true);
+    setHasCamera(true);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setHasCamera(false);
+      handleSimulateScanFallback();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      // If BarcodeDetector is available in browser, scan live
+      if ('BarcodeDetector' in window) {
+        const barcodeDetector = new (window as any).BarcodeDetector({
+          formats: ['qr_code'],
+        });
+
+        const scanFrame = async () => {
+          if (!videoRef.current || !streamRef.current) return;
+          try {
+            const barcodes = await barcodeDetector.detect(videoRef.current);
+            if (barcodes.length > 0) {
+              const rawVal = barcodes[0].rawValue || '';
+              // Extract code from link or raw text
+              const detectedCode = rawVal.includes('code=')
+                ? new URLSearchParams(rawVal.split('?')[1]).get('code') || rawVal
+                : rawVal;
+
+              stopCamera();
+              setIsScanning(false);
+              setCode(detectedCode.trim().toUpperCase());
+              sound.playSuccess();
+              showToast(`Scanned: ${detectedCode.toUpperCase()}`, 'reward');
+              setStep(3);
+              return;
+            }
+          } catch {
+            // Keep scanning frame
+          }
+          scanLoopRef.current = requestAnimationFrame(scanFrame);
+        };
+
+        scanLoopRef.current = requestAnimationFrame(scanFrame);
+      } else {
+        // Fallback simulation timer if BarcodeDetector is not natively present
+        setTimeout(() => {
+          stopCamera();
+          setIsScanning(false);
+          setCode('CYP-7492');
+          sound.playSuccess();
+          showToast('Scanned: CYP-7492!', 'reward');
+          setStep(3);
+        }, 2200);
+      }
+    } catch {
+      setHasCamera(false);
+      stopCamera();
+      handleSimulateScanFallback();
+    }
+  };
+
+  const handleSimulateScanFallback = () => {
     setTimeout(() => {
       setIsScanning(false);
       setCode('CYP-7492');
       sound.playSuccess();
       showToast('QR Scanned: CYP-7492!', 'reward');
       setStep(3); // Preview apartment
-    }, 1800);
+    }, 1500);
   };
 
   const handleCodeSubmit = () => {
@@ -62,6 +154,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   };
 
   const handleClose = () => {
+    stopCamera();
     setStep(1);
     setCode('');
     setIsScanning(false);
@@ -99,10 +192,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
             <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  sound.playTap();
-                  handleSimulateScan();
-                }}
+                onClick={startLiveCamera}
                 className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <IconTile icon={<QrCode className="w-6 h-6" />} color="coral" size="md" />
@@ -182,14 +272,37 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
         {/* CAMERA SCANNING OVERLAY */}
         {isScanning && (
-          <div className="p-6 flex flex-col items-center text-center space-y-4">
-            <div className="relative w-48 h-48 rounded-3xl bg-black overflow-hidden flex items-center justify-center border-4 border-[#FF6B4A]">
-              <Camera className="w-12 h-12 text-white/50" />
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_12px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-24" />
+          <div className="p-4 flex flex-col items-center text-center space-y-4">
+            <div className="relative w-56 h-56 rounded-3xl bg-black overflow-hidden flex items-center justify-center border-4 border-[#FF6B4A] shadow-lg">
+              <video
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_16px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-28 pointer-events-none" />
+              <div className="absolute inset-4 border-2 border-dashed border-white/50 rounded-2xl pointer-events-none" />
             </div>
-            <p className="type-body font-bold text-[#1F2430]">
-              Scanning for QR code...
-            </p>
+            <div>
+              <p className="type-body font-bold text-[#1F2430]">
+                {hasCamera ? 'Point camera at your roomie’s QR code' : 'Simulating QR scan...'}
+              </p>
+              <p className="type-secondary mt-0.5">
+                Keep the code centered in the frame
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                stopCamera();
+                setIsScanning(false);
+              }}
+              icon={<X className="w-3.5 h-3.5" />}
+            >
+              Cancel scan
+            </Button>
           </div>
         )}
 

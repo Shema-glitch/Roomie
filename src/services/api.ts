@@ -24,6 +24,8 @@ import {
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
+import { outbox } from './outbox';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const STORAGE_KEY = 'roomie_prototype_v3_store';
 
@@ -962,6 +964,28 @@ class ApiService {
       createdAt: new Date().toISOString(),
     };
     this.store.expenses.unshift(newExpense);
+    const action = outbox.enqueue(hid, 'create_expense', { expense: newExpense });
+    if (supabase) {
+      const sb = supabase;
+      Promise.resolve(
+        sb.from('expenses').insert({
+          household_id: hid,
+          paid_by: this.store.currentUser.id,
+          title: newExpense.title,
+          amount: newExpense.amount,
+          category: newExpense.category,
+          receipt_url: newExpense.receiptUrl,
+          date: newExpense.date,
+          status: newExpense.status,
+        })
+      )
+        .then(({ error }) => {
+          if (!error) outbox.markSuccess(action.id);
+          else outbox.markFailed(action.id, error.message);
+        })
+        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+    }
+
     this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} logged an expense: ${title} (₺${amount.toFixed(2)})`, {
       screen: 'expenses',
       id: newExpense.id,
@@ -977,6 +1001,26 @@ class ApiService {
     if (share) {
       share.response = response;
       if (disputeReason) share.disputeReason = disputeReason;
+    }
+
+    const action = outbox.enqueue(
+      exp.householdId,
+      response === 'agreed' ? 'agree_expense' : 'dispute_expense',
+      { expenseId, response, disputeReason }
+    );
+    if (supabase) {
+      const sb = supabase;
+      Promise.resolve(
+        sb.from('expense_shares')
+          .update({ response, dispute_reason: disputeReason || null })
+          .eq('expense_id', expenseId)
+          .eq('user_id', this.store.currentUser.id)
+      )
+        .then(({ error }) => {
+          if (!error) outbox.markSuccess(action.id);
+          else outbox.markFailed(action.id, error.message);
+        })
+        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
     }
     // Update overall expense status
     if (exp.shares.some(s => s.response === 'disputed')) {
@@ -1214,6 +1258,22 @@ class ApiService {
       this.store.currentUser.streakDays += 1;
       this.store.currentUser.points += 20;
       const chore = this.store.chores.find(c => c.id === choreId);
+
+      const action = outbox.enqueue(hid, 'complete_chore', { choreId, photoUrl });
+      if (supabase) {
+        const sb = supabase;
+        Promise.resolve(
+          sb.from('chore_assignments')
+            .update({ completed_today: true, last_photo_url: photoUrl || null })
+            .eq('chore_id', choreId)
+        )
+          .then(({ error }) => {
+            if (!error) outbox.markSuccess(action.id);
+            else outbox.markFailed(action.id, error.message);
+          })
+          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      }
+
       this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`, {
         screen: 'chores',
         id: choreId,
@@ -1266,7 +1326,50 @@ class ApiService {
     const hid = this.store.activeHouseholdId;
     const msg = this.addMessage(hid, this.store.currentUser.id, 'text', body);
     this.save();
+
+    const action = outbox.enqueue(hid, 'send_message', { message: msg });
+    if (supabase) {
+      const sb = supabase;
+      Promise.resolve(
+        sb.from('chat_messages').insert({
+          household_id: hid,
+          sender_id: msg.senderId,
+          type: msg.type,
+          body: msg.body,
+          link_target: msg.linkTarget as any,
+        })
+      )
+        .then(({ error }) => {
+          if (!error) outbox.markSuccess(action.id);
+          else outbox.markFailed(action.id, error.message);
+        })
+        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+    }
+
     return msg;
+  }
+
+  public subscribeToHousehold(householdId: string, onUpdate: () => void): () => void {
+    if (!supabase) return () => {};
+    const sb = supabase;
+    try {
+      const channel = sb
+        .channel(`household_live_${householdId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', filter: `household_id=eq.${householdId}` },
+          () => {
+            onUpdate();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        sb.removeChannel(channel);
+      };
+    } catch {
+      return () => {};
+    }
   }
 
   public addMessage(

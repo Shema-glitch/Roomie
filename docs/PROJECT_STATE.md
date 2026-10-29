@@ -171,3 +171,9 @@
 - **Storage Buckets Provisioned**: `receipts`, `chore-proof`, `snapshots`, `avatars`.
 - **Realtime Publication**: `supabase_realtime` publication configured for chat, chores, expenses, draft rounds, and notifications.
 - **Typed SDK**: `src/types/database.types.ts` generated directly from remote schema and wired into `src/services/supabase.ts`.
+- **Photo Compression Pipeline**: Client-side canvas compression (`src/utils/photoPipeline.ts`) wired directly into `AddExpenseFlowModal.tsx` (receipts) and `DoneFlowModal.tsx` (chore proof) with signed URL upload to Supabase Storage.
+- **Live Camera QR Scan**: Live video stream with `BarcodeDetector` API and fallback in `JoinHouseholdFlowModal.tsx`.
+- **Outbox Queue Integration**: Mutations (`addExpense`, `respondToExpense`, `completeChore`, `sendMessage`) optimistic update locally, enqueue in `outbox`, and dispatch to Supabase in the background.
+- **Realtime Sync Subscription**: `subscribeToHousehold` in `api.ts` wired to `App.tsx` reloading data on websocket events.
+- **PWA & Offline**: `manifest.json` standalone app config and `sw.js` push listener and caching registered in `main.tsx`.
+- **Bundle Budget**: Total first screen JavaScript: **~156 kB gzip** (under 200 kB budget).

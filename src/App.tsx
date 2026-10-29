@@ -254,6 +254,17 @@ function MainApp() {
     loadData();
   }, []);
 
+  // Supabase Realtime subscription scoped to active household
+  useEffect(() => {
+    if (!activeHousehold?.id) return;
+    const unsubscribe = api.subscribeToHousehold(activeHousehold.id, () => {
+      loadData();
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [activeHousehold?.id]);
+
   // Sync HTML dir & lang for Arabic and other languages
   useEffect(() => {
     if (typeof document !== 'undefined') {
