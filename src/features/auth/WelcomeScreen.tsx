@@ -93,7 +93,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {/* TOP SECTION */}
       <div className="pt-4 sm:pt-8 flex flex-col items-center text-center">
         {mode !== 'welcome' ? (
-          <div className="w-full flex items-center justify-between mb-4">
+          <div className="w-full flex items-center justify-start mb-4">
             <Button
               variant="tertiary"
               size="sm"
@@ -105,9 +105,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             >
               Back
             </Button>
-            <span className="text-xs font-heading font-black tracking-wider uppercase text-[#FF6B4A] bg-[#FFF0ED] px-3 py-1 rounded-full border border-[#FFD7CF]">
-              Roomie
-            </span>
           </div>
         ) : null}
 
