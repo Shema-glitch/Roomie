@@ -504,6 +504,7 @@ function MainApp() {
             roommates={roommatesList}
             chores={chores}
             assignments={draftRound.assignments}
+            draftRound={draftRound}
             expenses={expenses}
             activityMessages={messages}
             pendingJoinRequests={joinRequests.filter((r) => r.status === 'pending')}
@@ -612,6 +613,7 @@ function MainApp() {
             messages={messages}
             roommates={roommatesList}
             currentUser={currentUser}
+            draftRound={draftRound}
             onSendMessage={async (text) => {
               const m = await api.sendMessage(text);
               await loadData();
@@ -625,6 +627,8 @@ function MainApp() {
               if (target.screen === 'expenses') setActiveTab('expenses');
               if (target.screen === 'chores') setActiveTab('chores');
               if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
+              if (target.screen === 'chore-draft') setDraftFlowState('picking');
+              if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
               if (target.screen === 'members') setActiveTab('apartment');
             }}
           />
@@ -799,6 +803,8 @@ function MainApp() {
         isOpen={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
         notifications={notifications}
+        draftRound={draftRound}
+        currentUser={currentUser}
         onMarkRead={async (id) => {
           await api.markNotificationRead(id);
           await loadData();
@@ -811,6 +817,8 @@ function MainApp() {
           if (target.screen === 'expenses') setActiveTab('expenses');
           if (target.screen === 'chores') setActiveTab('chores');
           if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
+          if (target.screen === 'chore-draft') setDraftFlowState('picking');
+          if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
           if (target.screen === 'members' || target.screen === 'apartment') setActiveTab('apartment');
         }}
       />

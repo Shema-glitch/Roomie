@@ -13,6 +13,7 @@ import {
   Household,
   Chore,
   ChoreAssignment,
+  DraftRound,
   Expense,
   ChatMessage,
   JoinRequest,
@@ -32,7 +33,7 @@ import {
   Shuffle,
   ClipboardCheck,
 } from 'lucide-react';
-import { isAssignmentDueToday, CHORE_REWARD_POINTS } from '../../utils/stateTable';
+import { isAssignmentDueToday, CHORE_REWARD_POINTS, getChoreDraftState } from '../../utils/stateTable';
 
 interface HomeScreenProps {
   currentUser: User;
@@ -40,6 +41,7 @@ interface HomeScreenProps {
   roommates: User[];
   chores: Chore[];
   assignments: ChoreAssignment[];
+  draftRound?: DraftRound | null;
   expenses: Expense[];
   activityMessages: ChatMessage[];
   pendingJoinRequests: JoinRequest[];
@@ -60,6 +62,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   roommates,
   chores,
   assignments,
+  draftRound,
   expenses,
   activityMessages,
   pendingJoinRequests,
@@ -76,6 +79,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const { showToast } = useToast();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
   const [feedFilter, setFeedFilter] = useState<'all' | 'chores' | 'expenses' | 'drafts'>('all');
+
+  // Single-source chore draft state across views
+  const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
 
   // My chore for today - only chores actually due today appear in Today's due tasks
   const myTodayAssignment = assignments.find(
@@ -202,6 +208,47 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     }}
                   >
                     Review
+                  </Button>
+                </div>
+              }
+            />
+          )}
+
+          {/* SINGLE-SOURCE CHORE DRAFT BANNER / CARD */}
+          {choreDraftState.state !== 'reveal_done' && (
+            <ActionCard
+              tint={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
+              iconTile={
+                <IconTile
+                  icon={choreDraftState.state === 'reveal_ready' ? <Sparkles className="w-6 h-6" /> : <Shuffle className="w-6 h-6" />}
+                  color={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
+                  size="md"
+                />
+              }
+              title={choreDraftState.bannerTitle}
+              subtitle={choreDraftState.bannerSubtitle}
+              detail={
+                <span className="type-secondary font-bold text-[14px] text-[#5B5BD6]">
+                  {choreDraftState.badgeLabel}
+                </span>
+              }
+              actions={
+                <div className="w-full">
+                  <Button
+                    variant={choreDraftState.state === 'reveal_ready' ? 'reward' : 'primary'}
+                    size="md"
+                    fullWidth
+                    onClick={() => {
+                      sound.playTap();
+                      if (choreDraftState.state === 'reveal_ready') {
+                        onOpenChoreReveal();
+                      } else {
+                        onOpenDraftPicks();
+                      }
+                    }}
+                    icon={choreDraftState.state === 'reveal_ready' ? <Sparkles className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
+                  >
+                    {choreDraftState.actionLabel}
                   </Button>
                 </div>
               }
@@ -520,15 +567,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 type="button"
                 onClick={() => {
                   sound.playTap();
-                  onOpenDraftPicks();
+                  if (choreDraftState.state === 'reveal_ready') {
+                    onOpenChoreReveal();
+                  } else {
+                    onOpenDraftPicks();
+                  }
                 }}
                 className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] transition-all cursor-pointer group"
               >
                 <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
                   <Shuffle className="w-4 h-4" />
                 </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Pick wishes</p>
-                <p className="text-[14px] text-[#475569]">Chore preferences</p>
+                <p className="text-[14px] font-bold text-[#1F2430]">{choreDraftState.actionLabel}</p>
+                <p className="text-[14px] text-[#475569]">{choreDraftState.badgeLabel}</p>
               </button>
             </div>
           </InfoCard>

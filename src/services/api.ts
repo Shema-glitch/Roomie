@@ -23,6 +23,7 @@ import {
 } from '../types';
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
+import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
 
 const STORAGE_KEY = 'roomie_prototype_v3_store';
 
@@ -497,8 +498,8 @@ function getInitialStore(): AppStore {
         householdId: 'h_main',
         senderId: null,
         type: 'activity',
-        body: 'All picks are in for Sunday Chore Draft! Reveal is ready to view 🎭',
-        linkTarget: { screen: 'chore-reveal' },
+        body: getChoreStateEvent(getChoreDraftState(draftRound, currentUser.id).state).activityMessage,
+        linkTarget: getChoreStateEvent(getChoreDraftState(draftRound, currentUser.id).state).linkTarget,
         createdAt: '2026-10-23T11:45:00Z',
       },
     ],
@@ -572,11 +573,11 @@ function getInitialStore(): AppStore {
       id: 'notif_1',
       userId: 'u_curr',
       type: 'chore',
-      title: 'Chore Reveal Ready',
-      body: 'All 4 roomies submitted secret picks. Tap to start the animated reveal!',
+      title: getChoreStateEvent(getChoreDraftState(draftRound, currentUser.id).state).title,
+      body: getChoreStateEvent(getChoreDraftState(draftRound, currentUser.id).state).body,
       read: false,
       createdAt: '2026-10-23T11:45:00Z',
-      linkTarget: { screen: 'chore-reveal' },
+      linkTarget: getChoreStateEvent(getChoreDraftState(draftRound, currentUser.id).state).linkTarget,
     },
     {
       id: 'notif_2',
@@ -1118,6 +1119,44 @@ class ApiService {
     return this.store.draftRounds[hid];
   }
 
+  public emitChoreDraftTransition(hid: string, state: UnifiedDraftState) {
+    const event = getChoreStateEvent(state);
+    this.addMessage(hid, null, 'activity', event.activityMessage, event.linkTarget);
+
+    const members = this.store.memberships.filter(m => m.householdId === hid && m.status === 'active');
+    for (const m of members) {
+      this.store.notifications = this.store.notifications.filter(
+        n => !(n.userId === m.userId && n.type === 'chore' && n.linkTarget?.screen.startsWith('chore-'))
+      );
+      this.store.notifications.unshift({
+        id: 'notif_chore_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        userId: m.userId,
+        type: 'chore',
+        title: event.title,
+        body: event.body,
+        read: false,
+        createdAt: new Date().toISOString(),
+        linkTarget: event.linkTarget,
+      });
+    }
+  }
+
+  public async openNewDraftRound(householdId?: string): Promise<DraftRound> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const newRound: DraftRound = {
+      id: 'dr_' + Date.now(),
+      householdId: hid,
+      status: 'collecting',
+      createdAt: new Date().toISOString(),
+      picks: [],
+      assignments: [],
+    };
+    this.store.draftRounds[hid] = newRound;
+    this.emitChoreDraftTransition(hid, 'draft_open');
+    this.save();
+    return newRound;
+  }
+
   public async submitDraftPicks(picks: DraftPick[]): Promise<DraftRound> {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
@@ -1128,12 +1167,19 @@ class ApiService {
     // Check if ready to reveal (simulate all roommates participating)
     const members = await this.getHouseholdMembers(hid);
     const activeMemberIds = members.map(m => m.user.id);
-    
-    // Compute assignments using fair matching algorithm
-    const chores = await this.getChores(hid);
-    const { assignments } = matchChores(chores, round.picks, activeMemberIds);
-    round.assignments = assignments;
-    round.status = 'ready_to_reveal';
+    const usersWithPicks = new Set(round.picks.map(p => p.userId));
+    const allPicksIn = activeMemberIds.every(id => usersWithPicks.has(id));
+
+    if (allPicksIn) {
+      // Compute assignments using fair matching algorithm
+      const chores = await this.getChores(hid);
+      const { assignments } = matchChores(chores, round.picks, activeMemberIds);
+      round.assignments = assignments;
+      round.status = 'ready_to_reveal';
+      this.emitChoreDraftTransition(hid, 'reveal_ready');
+    } else {
+      this.emitChoreDraftTransition(hid, 'waiting_others');
+    }
 
     this.save();
     return round;
@@ -1152,9 +1198,7 @@ class ApiService {
     const round = await this.getDraftRound(hid);
     round.status = 'revealed';
     round.revealedAt = new Date().toISOString();
-    this.addMessage(hid, null, 'activity', 'The Chore Reveal is complete. Check your new weekly schedule.', {
-      screen: 'chores',
-    });
+    this.emitChoreDraftTransition(hid, 'reveal_done');
     this.save();
     return round;
   }

@@ -3,16 +3,19 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { IconTile } from '../../components/common/IconTile';
-import { InAppNotification } from '../../types';
+import { InAppNotification, DraftRound, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X } from 'lucide-react';
+import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X, Shuffle } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { getChoreDraftState } from '../../utils/stateTable';
 
 interface NotificationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: InAppNotification[];
+  draftRound?: DraftRound | null;
+  currentUser?: User | null;
   onMarkRead: (id: string) => Promise<void>;
   onMarkAllRead: () => Promise<void>;
   onActionClick: (target: { screen: string; id?: string }) => void;
@@ -22,12 +25,16 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isOpen,
   onClose,
   notifications,
+  draftRound,
+  currentUser,
   onMarkRead,
   onMarkAllRead,
   onActionClick,
 }) => {
   const { showToast } = useToast();
   const [filter, setFilter] = useState<'all' | 'chore' | 'expense'>('all');
+
+  const draftState = getChoreDraftState(draftRound, currentUser?.id || '');
 
   const filtered = notifications
     .filter((n) => {
@@ -82,6 +89,34 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             Mark all read
           </button>
         </div>
+
+        {/* Single-Source Chore Draft State Banner */}
+        {draftState.state !== 'reveal_done' && (
+          <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border border-[#C7D2FE] flex items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <IconTile icon={<Shuffle className="w-5 h-5" />} color="indigo" size="sm" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-[14px] font-bold text-[#1F2430]">{draftState.bannerTitle}</p>
+                  <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-white text-[#5B5BD6] border border-[#DDD6FE]">
+                    {draftState.badgeLabel}
+                  </span>
+                </div>
+                <p className="text-[13px] text-[#475569]">{draftState.bannerSubtitle}</p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                onClose();
+                onActionClick({ screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft' });
+              }}
+            >
+              {draftState.actionLabel}
+            </Button>
+          </div>
+        )}
 
         {/* List */}
         <div className="space-y-2 max-h-[60vh] overflow-y-auto">

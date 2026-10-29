@@ -2,15 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { EmptyState } from '../../components/common/EmptyState';
-import { ChatMessage, User } from '../../types';
+import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
-import { Send, Receipt, ClipboardCheck, Shuffle, MessageSquare } from 'lucide-react';
+import { Send, Receipt, ClipboardCheck, Shuffle, MessageSquare, Sparkles } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { getChoreDraftState } from '../../utils/stateTable';
 
 interface ChatScreenProps {
   messages: ChatMessage[];
   roommates: User[];
   currentUser: User;
+  draftRound?: DraftRound | null;
   onSendMessage: (text: string) => Promise<ChatMessage>;
   onAddReaction: (messageId: string, emoji: string) => Promise<void>;
   onNavigateAction: (target: { screen: string; id?: string }) => void;
@@ -20,6 +22,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   messages,
   roommates,
   currentUser,
+  draftRound,
   onSendMessage,
   onAddReaction,
   onNavigateAction,
@@ -30,6 +33,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [activeReactionMsgId, setActiveReactionMsgId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const draftState = getChoreDraftState(draftRound, currentUser.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +110,35 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       {/* Messages Scroll Area with right padding so bubbles never touch scrollbar */}
       <div className="flex-1 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
+        {/* Single-Source Chore Draft State Pill */}
+        {draftState.state !== 'reveal_done' && (
+          <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {draftState.state === 'reveal_ready' ? (
+                <Sparkles className="w-4 h-4 text-[#FFC93C] shrink-0" />
+              ) : (
+                <Shuffle className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+              )}
+              <div className="truncate">
+                <p className="text-[13px] font-bold text-[#1F2430] truncate">{draftState.bannerTitle}</p>
+                <p className="text-[12px] text-[#475569] truncate">{draftState.bannerSubtitle}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                onNavigateAction({
+                  screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft',
+                });
+              }}
+              className="shrink-0 px-2.5 py-1 rounded-xl bg-[#5B5BD6] text-white text-[12px] font-bold hover:bg-[#4747B8] transition-colors cursor-pointer"
+            >
+              {draftState.actionLabel}
+            </button>
+          </div>
+        )}
+
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center p-6 text-center">
             <EmptyState

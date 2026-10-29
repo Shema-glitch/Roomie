@@ -15,19 +15,71 @@ export const CHORE_REWARD_POINTS: Record<EffortLevel, number> = {
   heavy: 30,
 };
 
+export interface ChoreDraftStateInfo {
+  state: UnifiedDraftState;
+  badgeLabel: string;
+  bannerTitle: string;
+  bannerSubtitle: string;
+  actionLabel: string;
+}
+
+export interface ChoreStateEvent {
+  state: UnifiedDraftState;
+  title: string;
+  body: string;
+  activityMessage: string;
+  linkTarget: { screen: string; id?: string };
+}
+
+/**
+ * Single-source generator for notifications and chat/feed activity events
+ * based on unified chore draft state transitions.
+ */
+export function getChoreStateEvent(state: UnifiedDraftState): ChoreStateEvent {
+  switch (state) {
+    case 'draft_open':
+      return {
+        state,
+        title: 'Sunday Chore Draft is Open! 📋',
+        body: 'Pick chores you love, avoid chores you dislike before Sunday reveal.',
+        activityMessage: 'Sunday Chore Draft is open! Submit your secret wishes before Sunday reveal 📋',
+        linkTarget: { screen: 'chore-draft' },
+      };
+    case 'waiting_others':
+      return {
+        state,
+        title: 'Chore Picks Submitted ⏳',
+        body: 'Your secret wishes are locked in. Waiting for the rest of the flat.',
+        activityMessage: 'Submitted secret chore picks. Waiting for roomies ⏳',
+        linkTarget: { screen: 'chore-waiting' },
+      };
+    case 'reveal_ready':
+      return {
+        state,
+        title: 'Chore Reveal Ready! 🎭',
+        body: 'All roomies submitted secret picks. Start the reveal ceremony!',
+        activityMessage: 'All picks are in for Sunday Chore Draft! Reveal is ready to view 🎭',
+        linkTarget: { screen: 'chore-reveal' },
+      };
+    case 'reveal_done':
+    default:
+      return {
+        state,
+        title: 'Weekly Chores Active ✨',
+        body: 'The Chore Reveal is complete. Check your new weekly schedule.',
+        activityMessage: 'The Chore Reveal is complete. Check your new weekly schedule ✨',
+        linkTarget: { screen: 'chores' },
+      };
+  }
+}
+
 /**
  * Returns single-source draft state across Banner, Notifications, Feed, and Chat
  */
 export function getChoreDraftState(
   round: DraftRound | null | undefined,
   currentUserId: string
-): {
-  state: UnifiedDraftState;
-  badgeLabel: string;
-  bannerTitle: string;
-  bannerSubtitle: string;
-  actionLabel: string;
-} {
+): ChoreDraftStateInfo {
   if (!round || round.status === 'revealed') {
     return {
       state: 'reveal_done',
