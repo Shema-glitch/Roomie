@@ -15,8 +15,6 @@ import { WaitingDraftScreen } from './features/chores/WaitingDraftScreen';
 import { ChoreRevealScreen } from './features/chores/ChoreRevealScreen';
 import { ExpensesScreen } from './features/expenses/ExpensesScreen';
 import { ChatScreen } from './features/chat/ChatScreen';
-import { MeetingsScreen } from './features/meetings/MeetingsScreen';
-import { MembersScreen } from './features/members/MembersScreen';
 import { ApartmentScreen } from './features/members/ApartmentScreen';
 import { HouseholdSwitcherModal } from './features/household/HouseholdSwitcherModal';
 import { CreateHouseholdFlowModal } from './features/household/CreateHouseholdFlowModal';
@@ -31,7 +29,6 @@ import { Avatar } from './components/common/Avatar';
 import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
 import { sound } from './services/sound';
-import { THEME } from './theme/tokens';
 import {
   User,
   Household,
@@ -54,13 +51,10 @@ import {
   Home,
   Receipt,
   MessageSquare,
-  Users,
   Bell,
   ChevronDown,
   CloudCheck,
   CloudOff,
-  Settings,
-  Check,
   RefreshCw,
   ClipboardCheck,
   Building,
