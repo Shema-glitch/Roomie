@@ -184,3 +184,20 @@
 - **Realtime Sync Subscription**: `subscribeToHousehold` in `api.ts` wired to `App.tsx` reloading data on websocket events.
 - **PWA & Offline Installation**: `manifest.json`, `sw.js` push listener and caching, `beforeinstallprompt` capture, and "Install app" button in `ProfileSettingsModal.tsx`.
 - **Bundle Budget**: Total first screen JavaScript: **~149 kB gzip** (safely under 200 kB budget).
+
+---
+
+## 6. Duolingo-Inspired Tactile UI & Copy Polish (`feature/duolingo-design-system`)
+
+- **Tactile Sticker Buttons**:
+  - `Button.tsx` standardized on uppercase tracking (`0.05em`), 14px–16px rounded corners, 2px borders, and 4px tactile drop-shelves (`0 4px 0`) with bouncy active press physics (`active:translate-y-[2px]`).
+- **Storybook Paper Surfaces**:
+  - `Card.tsx` elevated with 2px thick solid borders (`border-2 border-[#E6E8EE]`) and `rounded-[24px]` radius.
+- **Uncluttered Welcome & Auth Experience**:
+  - Removed confusing marketing badges ("TRNC student friendly", "Multi-currency TRY/EUR/USD", etc.) from the first screen.
+  - Duolingo-style hero: expressive animated Mascot + punchy headline (*"The joyful way to share a home."*).
+  - Two prominent tactile CTAs: **`GET STARTED`** (coral fill) and **`I ALREADY HAVE AN ACCOUNT`** (white sticker).
+  - Streamlined `LOG IN` / `CREATE ACCOUNT` segmented toggle with password reveal and 1-tap magic link.
+- **Removed Hardcoded Mock Copy Across the App**:
+  - Replaced hardcoded "Apartment 4B Lefkoşa" in loading screen, chat header, join flow preview, and join request modal with dynamic household names and professional instructions.
+
