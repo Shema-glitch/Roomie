@@ -21,7 +21,7 @@ import {
   Plus,
   ThumbsUp,
   ThumbsDown,
-  Pin,
+  FileCheck,
   Send,
   MessageSquare,
   Users,
@@ -87,9 +87,9 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
     sound.playTap();
     if (navigator.clipboard) {
       navigator.clipboard.writeText(household.inviteCode);
-      showToast(`Copied code #${household.inviteCode} to clipboard!`, 'success');
+      showToast(`Copied code ${household.inviteCode} to clipboard!`, 'success');
     } else {
-      showToast(`Apartment code: #${household.inviteCode}`, 'info');
+      showToast(`Apartment code: ${household.inviteCode}`, 'info');
     }
   };
 
@@ -168,6 +168,56 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
 
   return (
     <div className="w-full select-none pb-20 md:pb-8">
+      {/* 1. APARTMENT CARD WITH INVITE CODE, QR & FRIENDLY GOVERNANCE (Flat white InfoCard per Section 17) */}
+      <div className="mb-6">
+        <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">
+          <div className="flex items-start gap-3.5">
+            <IconTile icon={<Building2 className="w-6 h-6" />} color="coral" size="md" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-heading font-black text-xl text-[#1F2430] truncate">
+                {household.name}
+              </h3>
+              <p className="type-secondary text-[14px] mt-0.5 font-bold text-[#475569]">
+                {household.inviteCode} • Currency: {household.currency}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-[14px] font-medium text-[#475569] bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
+            The admin only approves new roomies. Everything else is decided together.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onShowQR}
+              icon={<QrCode className="w-4 h-4 text-[#475569]" />}
+            >
+              Show QR
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={copyCode}
+              icon={<Copy className="w-4 h-4 text-[#475569]" />}
+            >
+              Copy code
+            </Button>
+            {isAdmin && members.length > 1 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setHandoverModalOpen(true)}
+                icon={<Shield className="w-4 h-4 text-[#475569]" />}
+              >
+                Handover admin
+              </Button>
+            )}
+          </div>
+        </InfoCard>
+      </div>
+
       {/* Mobile / Tablet Segmented Section Switcher (Only visible on < lg screens) */}
       <div className="lg:hidden mb-5">
         <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
@@ -216,7 +266,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
           <div className="flex items-center justify-between">
             <SectionTitle
               title={`Apartment Roomies (${members.length})`}
-              subtitle="Household community, live status, and streaks"
+              subtitle="Apartment roomies, live status, and streaks"
             />
             <Chip
               status="active"
@@ -225,14 +275,15 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             />
           </div>
 
-          {/* Roomies 2-Column Responsive Card Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Roomies 2-Column Responsive Card Grid with Uniform Card Wrapping */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
             {members.map(({ user, membership }) => {
               const isMe = user.id === currentUser.id;
               return (
                 <ActionCard
                   key={user.id}
                   tint={isMe ? 'teal' : 'neutral'}
+                  className="h-full flex flex-col justify-between"
                   iconTile={
                     <Avatar
                       src={user.avatar}
@@ -244,24 +295,32 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                     />
                   }
                   title={
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="truncate">{user.name}</span>
-                      {isMe && <span className="type-label text-[#FF6B4A] font-black">(You)</span>}
+                    <div className="flex items-center justify-between gap-1.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span className="type-card-title truncate">{user.name}</span>
+                        {isMe && (
+                          <span className="text-[14px] font-bold text-[#FF6B4A] shrink-0 normal-case">
+                            (You)
+                          </span>
+                        )}
+                      </div>
+                      {membership.role === 'admin' && (
+                        <Chip status="admin" size="sm" className="shrink-0" />
+                      )}
                     </div>
                   }
-                  subtitle={`From ${user.country} ${user.flag || ''}`}
-                  badge={
-                    membership.role === 'admin' ? (
-                      <Chip status="admin" size="sm" />
-                    ) : undefined
+                  subtitle={
+                    <span className="type-secondary text-[14px]">
+                      From {user.country} {user.flag || ''}
+                    </span>
                   }
                   detail={
                     <div className="space-y-2 pt-1">
-                      <div className="flex items-center justify-between type-secondary text-xs">
+                      <div className="flex items-center justify-between text-[14px]">
                         <span className="flex items-center gap-1 text-[#FF6B4A] font-bold">
                           <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" /> {user.streakDays} day streak
                         </span>
-                        <span>{user.points} points</span>
+                        <span className="font-bold text-[#475569]">{user.points} points</span>
                       </div>
                       <div className="flex items-center justify-between pt-1">
                         <Chip
@@ -285,7 +344,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               onClick={() => setLeaveModalOpen(true)}
               icon={<LogOut className="w-4 h-4 text-[#E5484D]" />}
             >
-              Leave this Apartment
+              Leave this apartment
             </Button>
           </div>
         </div>
@@ -296,61 +355,13 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
-          {/* 1. APARTMENT CARD WITH INVITE CODE, QR & GOVERNANCE */}
-          <ActionCard
-            tint="coral"
-            iconTile={<IconTile icon={<Building2 className="w-6 h-6" />} color="coral" size="md" />}
-            title={household.name}
-            subtitle={`Apartment Code: #${household.inviteCode} • Currency: ${household.currency}`}
-            detail={
-              <div className="p-3 rounded-2xl bg-white/80 border border-[#FFD3C9] space-y-1 text-xs font-bold text-[#475569]">
-                <div className="flex items-center gap-1.5 text-[#1F2430]">
-                  <Shield className="w-4 h-4 text-[#FF6B4A] shrink-0" />
-                  <span>Doorkeeper Governance:</span>
-                </div>
-                <p className="type-secondary font-normal text-xs pl-5.5">
-                  Admin only reviews incoming join requests; zero chore control.
-                </p>
-              </div>
-            }
-            actions={
-              <div className="w-full flex flex-wrap items-center gap-2.5">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={onShowQR}
-                  icon={<QrCode className="w-4 h-4 text-[#FF6B4A]" />}
-                >
-                  Show QR
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={copyCode}
-                  icon={<Copy className="w-4 h-4 text-[#FF6B4A]" />}
-                >
-                  Copy Code
-                </Button>
-                {isAdmin && members.length > 1 && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setHandoverModalOpen(true)}
-                    icon={<Shield className="w-4 h-4 text-[#FF6B4A]" />}
-                  >
-                    Handover Admin
-                  </Button>
-                )}
-              </div>
-            }
-          />
 
           {/* 2. HOUSE MEETINGS & APARTMENT RULES CONTAINER */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="type-section-heading">House Discussions & Rules</h3>
-                <p className="type-secondary text-xs">Agreed standards & votes</p>
+                <h3 className="type-section-heading">House discussions and rules</h3>
+                <p className="type-secondary text-[14px]">Agreed standards and votes</p>
               </div>
               <Button
                 variant="primary"
@@ -370,7 +381,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                   sound.playTap();
                   setMeetingsSubTab('topics');
                 }}
-                className={`py-2 px-2.5 rounded-lg text-xs font-heading font-black transition-all cursor-pointer ${
+                className={`py-2 px-2.5 rounded-lg text-[14px] font-heading font-black transition-all cursor-pointer ${
                   meetingsSubTab === 'topics'
                     ? 'bg-white text-[#1F2430] shadow-xs'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -384,13 +395,13 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                   sound.playTap();
                   setMeetingsSubTab('agreements');
                 }}
-                className={`py-2 px-2.5 rounded-lg text-xs font-heading font-black transition-all cursor-pointer ${
+                className={`py-2 px-2.5 rounded-lg text-[14px] font-heading font-black transition-all cursor-pointer ${
                   meetingsSubTab === 'agreements'
                     ? 'bg-white text-[#1F2430] shadow-xs'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                Apartment Rules ({agreements.length}) 📌
+                Apartment rules ({agreements.length})
               </button>
             </div>
 
@@ -398,7 +409,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             {meetingsSubTab === 'topics' && (
               <div className="space-y-3">
                 {topics.length === 0 ? (
-                  <p className="type-secondary text-center py-4 text-xs">
+                  <p className="type-secondary text-center py-4 text-[14px]">
                     No active discussion topics right now.
                   </p>
                 ) : (
@@ -421,36 +432,44 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                         }
                         title={topic.title}
                         subtitle={`Proposed by ${proposer?.name.split(' ')[0] || 'Roomie'}`}
-                        detail={<p className="type-secondary text-xs leading-relaxed">{topic.description}</p>}
+                        detail={<p className="type-secondary text-[14px] leading-relaxed">{topic.description}</p>}
                         badge={
                           <Chip
                             status={topic.status === 'agreed' ? 'agreed' : 'pending'}
-                            label={topic.status === 'agreed' ? 'Passed 🎉' : 'Voting Open'}
+                            label={topic.status === 'agreed' ? 'Passed' : 'Voting Open'}
                             size="sm"
                           />
                         }
                         actions={
                           <div className="w-full space-y-2.5">
-                            {/* Voting Buttons */}
+                            {/* Voting Buttons: Identical styling, counts hidden until voted */}
                             <div className="flex items-center justify-between gap-2">
-                              <span className="type-label text-xs">Your vote:</span>
-                              <div className="flex gap-1.5">
-                                <Button
-                                  variant={myVote === 'agree' ? 'green' : 'secondary'}
-                                  size="sm"
+                              <span className="type-label text-[14px]">Your vote:</span>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
                                   onClick={() => handleVote(topic.id, 'agree')}
-                                  icon={<ThumbsUp className="w-3.5 h-3.5" />}
+                                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                                    myVote === 'agree'
+                                      ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
+                                      : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
+                                  }`}
                                 >
-                                  Agree ({agreeVotes})
-                                </Button>
-                                <Button
-                                  variant={myVote === 'disagree' ? 'danger-outline' : 'secondary'}
-                                  size="sm"
+                                  <ThumbsUp className="w-3.5 h-3.5" />
+                                  <span>Agree{myVote ? ` (${agreeVotes})` : ''}</span>
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleVote(topic.id, 'disagree')}
-                                  icon={<ThumbsDown className="w-3.5 h-3.5" />}
+                                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                                    myVote === 'disagree'
+                                      ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
+                                      : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
+                                  }`}
                                 >
-                                  Disagree ({disagreeVotes})
-                                </Button>
+                                  <ThumbsDown className="w-3.5 h-3.5" />
+                                  <span>Disagree{myVote ? ` (${disagreeVotes})` : ''}</span>
+                                </button>
                               </div>
                             </div>
 
@@ -469,7 +488,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') handleComment(topic.id);
                                 }}
-                                className="flex-1 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-xs text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
+                                className="flex-1 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
                               />
                               <Button
                                 variant="secondary"
@@ -493,7 +512,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             {meetingsSubTab === 'agreements' && (
               <div className="space-y-3">
                 {agreements.length === 0 ? (
-                  <p className="type-secondary text-center py-4 text-xs">
+                  <p className="type-secondary text-center py-4 text-[14px]">
                     No apartment rules defined yet.
                   </p>
                 ) : (
@@ -501,11 +520,11 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                     <ActionCard
                       key={agr.id}
                       tint="coral"
-                      iconTile={<IconTile icon={<Pin className="w-5 h-5" />} color="coral" size="sm" />}
+                      iconTile={<IconTile icon={<FileCheck className="w-5 h-5" />} color="coral" size="sm" />}
                       title={agr.category.toUpperCase()}
                       subtitle="Consensus agreement"
                       detail={
-                        <p className="type-body text-xs font-medium mt-1 leading-relaxed text-[#1F2430]">
+                        <p className="type-body text-[14px] font-medium mt-1 leading-relaxed text-[#1F2430]">
                           "{agr.text}"
                         </p>
                       }

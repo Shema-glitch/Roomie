@@ -36,6 +36,7 @@ export interface Household {
   name: string;
   currency: CurrencyCode;
   inviteCode: string;
+  invitesEnabled?: boolean;
   createdBy: string;
   settings: {
     rotationInterval: 'weekly' | 'monthly';
@@ -88,6 +89,7 @@ export interface Expense {
   date: string;
   status: ExpenseStatus;
   shares: ExpenseShare[];
+  disputeReason?: string;
   createdAt: string;
 }
 

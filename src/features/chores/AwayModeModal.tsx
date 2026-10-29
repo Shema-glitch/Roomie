@@ -52,7 +52,7 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
         <MascotView
           state={isAway ? 'sleepy' : 'calm'}
           size="md"
-          bubbleText={isAway ? 'Safe travels! ✈️' : 'Pause your chores'}
+          bubbleText={isAway ? 'Safe travels!' : 'Pause your chores'}
         />
 
         <p className="type-secondary leading-relaxed">
@@ -95,7 +95,7 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
         ) : (
           <div className="w-full space-y-3">
             <div className="p-3 bg-[#E6FAF8] border border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
-              🌴 You are currently in Away Mode.
+              You are currently in Away Mode.
             </div>
             <Button
               variant="secondary"

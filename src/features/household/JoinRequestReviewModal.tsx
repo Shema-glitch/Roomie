@@ -100,7 +100,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
               variant="secondary"
               size="md"
               onClick={() => handleVote('ok')}
-              icon={<Check className="w-4 h-4 stroke-[3]" />}
+              icon={<Check className="w-4 h-4" />}
             >
               OK
             </Button>

@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { ActionCard } from '../../components/common/ActionCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Household } from '../../types';
-import { Home, Plus, KeyRound, Check } from 'lucide-react';
+import { Building2, Plus, UserPlus, Check } from 'lucide-react';
 
 interface HouseholdSwitcherModalProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
               tint={isActive ? 'coral' : 'neutral'}
               iconTile={
                 <IconTile
-                  icon={<Home className="w-6 h-6" />}
+                  icon={<Building2 className="w-6 h-6" />}
                   color={isActive ? 'coral' : 'slate'}
                   size="md"
                 />
@@ -51,7 +51,7 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
               badge={
                 isActive ? (
                   <div className="w-7 h-7 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shadow-xs">
-                    <Check className="w-4 h-4 stroke-[3]" />
+                    <Check className="w-4 h-4" />
                   </div>
                 ) : undefined
               }
@@ -87,7 +87,7 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
               onClose();
               onJoinWithCode();
             }}
-            icon={<KeyRound className="w-4 h-4 text-[#5B5BD6]" />}
+            icon={<UserPlus className="w-4 h-4 text-[#5B5BD6]" />}
           >
             Join with Code or QR
           </Button>

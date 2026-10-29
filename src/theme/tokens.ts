@@ -73,9 +73,10 @@ export const TYPOGRAPHY = {
   bigNumber: 'font-heading font-bold text-[32px] leading-tight text-[#1F2430]',
   title: 'font-heading font-bold text-[24px] leading-tight text-[#1F2430]',
   sectionHeading: 'font-heading font-bold text-[18px] leading-snug text-[#1F2430]',
+  cardTitle: 'font-heading font-semibold text-[16px] leading-snug text-[#1F2430]',
   body: 'font-sans font-normal text-[16px] leading-normal text-[#1F2430]',
-  secondary: 'font-sans font-normal text-[14px] leading-normal text-[#64748B]',
-  label: 'font-sans font-semibold text-[14px] uppercase tracking-wider text-[#64748B]',
+  secondary: 'font-sans font-normal text-[14px] leading-normal text-[#475569]',
+  label: 'font-sans font-semibold text-[14px] uppercase tracking-wider text-[#475569]',
 } as const;
 
 export type TypographyRole = keyof typeof TYPOGRAPHY;

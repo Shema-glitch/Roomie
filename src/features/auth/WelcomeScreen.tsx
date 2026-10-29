@@ -3,7 +3,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { THEME } from '../../theme/tokens';
-import { Sparkles, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { Shuffle, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onSignIn: (email: string) => void;
@@ -24,7 +24,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-6 max-w-md mx-auto">
       {/* Top Section */}
       <div className="pt-8 flex flex-col items-center text-center">
-        <MascotView state="celebrating" size="xl" bubbleText="Welcome to the apartment! 👋" />
+        <MascotView state="celebrating" size="xl" bubbleText="Welcome to the apartment!" />
         <h1 className="type-big-number mt-4 tracking-tight">
           Roomie
         </h1>
@@ -38,7 +38,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <HeartHandshake className="w-3.5 h-3.5" /> Fair by design
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6FAF8] text-[#19B5A5] text-[14px] font-bold border border-[#BBEFEA]">
-            <Sparkles className="w-3.5 h-3.5" /> Secret chore draft
+            <Shuffle className="w-3.5 h-3.5" /> Secret chore draft
           </span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF0FD] text-[#5B5BD6] text-[14px] font-bold border border-[#D3D5F9]">
             <ShieldCheck className="w-3.5 h-3.5" /> TRNC student friendly
@@ -72,7 +72,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 onClick={onQuickStart}
                 className="type-secondary font-bold text-[#FF6B4A] hover:underline cursor-pointer"
               >
-                ⚡ Explore Apartment 4B Demo
+                Explore Apartment 4B Demo
               </button>
             </div>
           </div>

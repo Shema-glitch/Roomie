@@ -13,6 +13,7 @@ import { ChoreSwapModal } from './ChoreSwapModal';
 import { AwayModeModal } from './AwayModeModal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Chore, ChoreAssignment, DraftRound, User, KudosType } from '../../types';
+import { getChoreDraftState, isAssignmentDueToday, CHORE_REWARD_POINTS } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
 import {
   Sparkles,
@@ -24,10 +25,8 @@ import {
   Plus,
   Heart,
   Calendar,
-  Utensils,
-  Bath,
-  Trash2,
-  Brush,
+  ClipboardCheck,
+  Shuffle,
   Trophy,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
@@ -87,15 +86,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const [newChoreEffort, setNewChoreEffort] = useState<'light' | 'medium' | 'heavy'>('medium');
   const [newChoreDesc, setNewChoreDesc] = useState('');
 
-  // Helper to pick chore icon
-  const getChoreIcon = (name: string) => {
-    const lower = name.toLowerCase();
-    if (lower.includes('cook') || lower.includes('dinner')) return <Utensils className="w-6 h-6" />;
-    if (lower.includes('bath') || lower.includes('deep clean')) return <Bath className="w-6 h-6" />;
-    if (lower.includes('trash') || lower.includes('bin')) return <Trash2 className="w-6 h-6" />;
-    if (lower.includes('mop') || lower.includes('sweep') || lower.includes('kitchen'))
-      return <Brush className="w-6 h-6" />;
-    return <Sparkles className="w-6 h-6" />;
+  // Helper to pick chore icon - all chores use ClipboardCheck per Section 18
+  const getChoreIcon = (_name: string) => {
+    return <ClipboardCheck className="w-6 h-6" />;
   };
 
   const handleCreateChore = async (e: React.FormEvent) => {
@@ -113,24 +106,31 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   };
 
   const getEffortPoints = (level: 'light' | 'medium' | 'heavy') => {
-    return level === 'heavy' ? 30 : level === 'medium' ? 20 : 10;
+    return CHORE_REWARD_POINTS[level] || 20;
   };
 
   // Current user's assignments
   const myAssignments = assignments.filter((a) => a.userId === currentUser.id);
 
-  // Grouped tasks:
-  // 1. Today's Due (incomplete)
+  // Grouped tasks strictly using single-source state:
+  // 1. Today's Due (incomplete AND actually due today)
   const todayDueAssignments = (scheduleFilter === 'my' ? myAssignments : assignments).filter(
-    (a) => !a.completedToday
+    (a) => isAssignmentDueToday(a) && !a.completedToday
   );
-  // 2. Completed Today
+  // 2. Completed Today (completed today)
   const todayCompletedAssignments = (scheduleFilter === 'my' ? myAssignments : assignments).filter(
-    (a) => a.completedToday
+    (a) => isAssignmentDueToday(a) && a.completedToday
+  );
+  // 3. Upcoming Later This Week (weekly tasks not due today)
+  const upcomingAssignments = (scheduleFilter === 'my' ? myAssignments : assignments).filter(
+    (a) => !isAssignmentDueToday(a)
   );
 
   const maxStreak = Math.max(...roommates.map((r) => r.streakDays), 0);
   const sortedRoomiesByStreak = [...roommates].sort((a, b) => b.streakDays - a.streakDays || b.points - a.points);
+
+  // Single-source draft state across Banner, Notifications, and Chat
+  const draftState = getChoreDraftState(draftRound, currentUser.id);
 
   return (
     <div className="w-full select-none pb-20 md:pb-8">
@@ -138,37 +138,46 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Draft Hero & Grouped Chores ================= */}
         <div className="w-full lg:col-span-7 self-start space-y-6">
-          {/* 1. SUNDAY CHORE DRAFT HERO BANNER */}
+          {/* 1. SUNDAY CHORE DRAFT HERO BANNER (Single-source draft state) */}
           <ActionCard
-            tint={draftRound.status === 'ready_to_reveal' ? 'coral' : 'teal'}
+            tint={
+              draftState.state === 'reveal_ready'
+                ? 'coral'
+                : draftState.state === 'reveal_done'
+                ? 'teal'
+                : 'indigo'
+            }
             iconTile={
               <IconTile
-                icon={<Sparkles className="w-6 h-6" />}
-                color={draftRound.status === 'ready_to_reveal' ? 'coral' : 'teal'}
+                icon={
+                  draftState.state === 'reveal_ready' || draftState.state === 'reveal_done' ? (
+                    <Sparkles className="w-6 h-6" />
+                  ) : (
+                    <Shuffle className="w-6 h-6" />
+                  )
+                }
+                color={
+                  draftState.state === 'reveal_ready'
+                    ? 'coral'
+                    : draftState.state === 'reveal_done'
+                    ? 'teal'
+                    : 'indigo'
+                }
                 size="md"
               />
             }
-            title={
-              draftRound.status === 'ready_to_reveal'
-                ? 'All Picks In! Time to Reveal 🎭'
-                : draftRound.status === 'revealed'
-                ? 'Weekly Chores Active ✨'
-                : draftRound.status === 'collecting'
-                ? 'Sunday Chore Draft Open'
-                : 'Picks Submitted! Waiting for Roomies'
-            }
-            subtitle={
-              draftRound.status === 'ready_to_reveal'
-                ? 'All roomies submitted secret wishes! Reveal is ready to view.'
-                : draftRound.status === 'revealed'
-                ? 'Assignments live. Next draft opens Sunday at 18:00.'
-                : draftRound.status === 'collecting'
-                ? 'Select your secret preferences: Want, Avoid, or Suggest.'
-                : 'Waiting for remaining roomies to finish picking wishes.'
+            title={draftState.bannerTitle}
+            subtitle={draftState.bannerSubtitle}
+            badge={
+              <Chip
+                status={draftState.state === 'reveal_done' ? 'agreed' : 'pending'}
+                label={draftState.badgeLabel}
+                size="sm"
+              />
             }
             actions={
               <div className="w-full flex items-center gap-3">
-                {draftRound.status === 'ready_to_reveal' ? (
+                {draftState.state === 'reveal_ready' ? (
                   <Button
                     variant="primary"
                     size="md"
@@ -176,9 +185,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     onClick={onOpenReveal}
                     icon={<Sparkles className="w-4 h-4" />}
                   >
-                    Reveal Assignments!
+                    {draftState.actionLabel}
                   </Button>
-                ) : draftRound.status === 'revealed' ? (
+                ) : draftState.state === 'reveal_done' ? (
                   <Button
                     variant="secondary"
                     size="md"
@@ -186,7 +195,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     onClick={onOpenReveal}
                     icon={<Sparkles className="w-4 h-4 text-[#19B5A5]" />}
                   >
-                    View Chore Reveal
+                    {draftState.actionLabel}
                   </Button>
                 ) : (
                   <Button
@@ -194,9 +203,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenDraftPicks}
-                    icon={<Sparkles className="w-4 h-4" />}
+                    icon={<Shuffle className="w-4 h-4" />}
                   >
-                    Pick My Wishes
+                    {draftState.actionLabel}
                   </Button>
                 )}
               </div>
@@ -207,7 +216,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
               <SectionTitle
-                title="Chores Schedule"
+                title="Chores schedule"
                 subtitle="Equitably distributed across your apartment"
               />
               <Button
@@ -216,7 +225,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 onClick={() => setNewChoreModalOpen(true)}
                 icon={<Plus className="w-4 h-4" />}
               >
-                New Chore
+                New chore
               </Button>
             </div>
 
@@ -228,13 +237,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('my');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer ${
                   scheduleFilter === 'my'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                My Schedule ({myAssignments.length})
+                My schedule ({myAssignments.length})
               </button>
               <button
                 type="button"
@@ -242,32 +251,45 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('all');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer ${
                   scheduleFilter === 'all'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                All Apartment Chores ({assignments.length})
+                All apartment chores ({assignments.length})
               </button>
             </div>
           </div>
+
+          {/* EMPTY CHORES STATE */}
+          {chores.length === 0 && (
+            <EmptyState
+              title="No chores in rotation"
+              description="Add household chores like kitchen cleaning, bathroom, or trash to start the rotation."
+              mascotState="calm"
+              bubbleText="Add your first chore!"
+              actionLabel="Add chore"
+              actionIcon={<Plus className="w-4 h-4" />}
+              onAction={() => setNewChoreModalOpen(true)}
+            />
+          )}
 
           {/* SEMANTIC GROUP 1: TODAY'S DUE TASKS */}
           <div className="space-y-3.5">
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2">
-                <span className="type-section-heading">Today's Due Tasks</span>
-                <span className="px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-xs font-black">
+                <span className="type-section-heading">Today's due tasks</span>
+                <span className="px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-[14px] font-black">
                   {todayDueAssignments.length} Remaining
                 </span>
               </div>
-              <span className="type-secondary text-xs">Complete on time to protect streak</span>
+              <span className="type-secondary text-[14px]">Complete on time to protect streak</span>
             </div>
 
             {todayDueAssignments.length === 0 ? (
               <InfoCard padding="md" className="text-center type-secondary bg-white">
-                All due tasks for today have been completed! 🎉
+                All due tasks for today have been completed
               </InfoCard>
             ) : (
               todayDueAssignments.map((a) => {
@@ -296,10 +318,10 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     subtitle={scheduleLabel}
                     detail={
                       <div className="space-y-1.5">
-                        <p className="text-sm text-[#475569]">{chore.description}</p>
+                        <p className="text-[14px] text-[#475569]">{chore.description}</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <Chip effort={chore.effortLevel} size="sm" />
-                          <span className="type-secondary text-xs">
+                          <span className="type-secondary text-[14px]">
                             Assigned to: <strong className="text-[#1F2430]">{isMe ? 'You' : assignedUser?.name}</strong>
                           </span>
                         </div>
@@ -312,7 +334,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                             variant="teal"
                             size="md"
                             onClick={() => setDoneModalChore(chore)}
-                            icon={<CheckCircle2 className="w-4 h-4 stroke-[2.5]" />}
+                            icon={<CheckCircle2 className="w-4 h-4" />}
                           >
                             Done
                           </Button>
@@ -327,7 +349,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                         </div>
                       ) : (
                         <div className="w-full flex items-center justify-between">
-                          <span className="type-secondary text-xs font-bold">
+                          <span className="type-secondary text-[14px] font-bold">
                             Pending {assignedUser?.name.split(' ')[0]}'s completion
                           </span>
                           <Button
@@ -351,10 +373,10 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             <div className="space-y-3.5 pt-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="type-section-heading text-[#2CA358]">Completed Today</span>
+                  <span className="type-section-heading text-[#2CA358]">Completed today</span>
                   <Chip status="agreed" label={`${todayCompletedAssignments.length} Done`} size="sm" />
                 </div>
-                <span className="type-secondary text-xs">Streaks updated</span>
+                <span className="type-secondary text-[14px]">Streaks updated</span>
               </div>
 
               {todayCompletedAssignments.map((a) => {
@@ -375,13 +397,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                       />
                     }
                     title={chore.name}
-                    subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name} ✨`}
+                    subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name}`}
                     detail={
                       <div className="space-y-1.5">
-                        <p className="text-sm text-[#475569]">{chore.description}</p>
+                        <p className="text-[14px] text-[#475569]">{chore.description}</p>
                         <div className="flex items-center gap-2">
                           <Chip effort={chore.effortLevel} size="sm" />
-                          <span className="text-xs font-bold text-[#2CA358]">
+                          <span className="text-[14px] font-bold text-[#2CA358]">
                             +{getEffortPoints(chore.effortLevel)} streak points awarded
                           </span>
                         </div>
@@ -393,7 +415,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     actions={
                       !isMe ? (
                         <div className="w-full flex items-center justify-between">
-                          <span className="type-secondary text-xs">
+                          <span className="type-secondary text-[14px]">
                             Praise your roomie's contribution!
                           </span>
                           <Button
@@ -402,13 +424,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                             onClick={() => assignedUser && setKudosModalData({ chore, target: assignedUser })}
                             icon={<Heart className="w-4 h-4 text-[#1F2430]" />}
                           >
-                            Send Kudos
+                            Send kudos
                           </Button>
                         </div>
                       ) : (
                         <div className="w-full flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#2CA358]">
-                            Streak protected for today! 🎉
+                          <span className="text-[14px] font-bold text-[#2CA358]">
+                            Streak protected for today
                           </span>
                           <Button
                             variant="secondary"
@@ -424,7 +446,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     {/* Kudos received for this chore */}
                     {a.kudos.length > 0 && (
                       <div className="pt-2.5 border-t border-black/5 flex flex-wrap gap-2 items-center">
-                        <span className="text-xs font-black text-[#8A6200]">
+                        <span className="text-[14px] font-bold text-[#8A6200]">
                           Roomie Kudos:
                         </span>
                         {a.kudos.map((k) => {
@@ -432,9 +454,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                           return (
                             <span
                               key={k.id}
-                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-black"
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold"
                             >
-                              <span>{k.type === 'thanks' ? '💖' : k.type === 'great_job' ? '🌟' : '👏'}</span>
+                              <Heart className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A]" />
                               <span>{sender?.name.split(' ')[0] || 'Roomie'}</span>
                               {k.note && <span className="font-semibold italic">"{k.note}"</span>}
                             </span>
@@ -457,38 +479,34 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               <div>
                 <h3 className="type-section-heading flex items-center gap-2">
                   <Flame className="w-5 h-5 text-[#FF6B4A] fill-[#FF6B4A]" />
-                  Streaks & Kudos
+                  Roomie streaks and kudos
                 </h3>
-                <p className="type-secondary text-xs">
-                  Apartment harmony leaderboard
+                <p className="type-secondary text-[14px]">
+                  Apartment chore streaks and consistency
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-xs font-black flex items-center gap-1">
-                <Trophy className="w-3.5 h-3.5 text-[#8A6200]" />
-                Top: {maxStreak}d
+              <span className="px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold flex items-center gap-1">
+                ⭐ Top streak: {maxStreak}d
               </span>
             </div>
 
-            {/* Roomies Ranked */}
+            {/* Equal Streak Cards (No Numbered Rankings) */}
             <div className="space-y-2.5">
-              {sortedRoomiesByStreak.map((r, index) => {
+              {roommates.map((r) => {
                 const isMe = r.id === currentUser.id;
-                const isLeader = index === 0 && r.streakDays > 0;
+                const isTopStreak = r.streakDays === maxStreak && maxStreak > 0;
                 return (
                   <div
                     key={r.id}
                     className={`p-3 rounded-2xl flex items-center justify-between border transition-all ${
-                      isLeader
-                        ? 'bg-linear-to-r from-[#FFF8E6] to-white border-[#FFE8A3]'
+                      isTopStreak
+                        ? 'bg-linear-to-r from-[#FFF8E6] to-white border-[#FFE8A3] shadow-xs'
                         : isMe
                         ? 'bg-[#F7F8FB] border-[#E2E5EC]'
-                        : 'bg-white border-[#F1F3F9]'
+                        : 'bg-white border-[#E6E8EE]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-6 text-center font-heading font-black text-sm text-[#64748B]">
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                      </div>
                       <Avatar
                         src={r.avatar}
                         name={r.name}
@@ -498,18 +516,25 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                         size="sm"
                       />
                       <div>
-                        <p className="text-[14px] font-bold text-[#1F2430] flex items-center gap-1.5">
-                          <span>{isMe ? 'You' : r.name}</span>
-                          {isMe && <span className="type-label text-[#FF6B4A] font-extrabold">(You)</span>}
-                        </p>
-                        <p className="type-secondary text-xs">
-                          {r.points} total reward points
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-[14px] font-bold text-[#1F2430]">
+                            {r.name}
+                          </p>
+                          {isMe && <span className="text-[14px] font-bold text-[#FF6B4A] normal-case tracking-normal">(You)</span>}
+                          {isTopStreak && (
+                            <span className="px-2 py-0.5 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold inline-flex items-center gap-1 shadow-2xs">
+                              Streak star
+                            </span>
+                          )}
+                        </div>
+                        <p className="type-secondary text-[14px]">
+                          {r.points} reward points
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] border border-[#FFD7CF] text-xs font-black">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] border border-[#FFD7CF] text-[14px] font-bold">
                         <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
                         {r.streakDays}d
                       </span>
@@ -517,10 +542,12 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                         <button
                           type="button"
                           onClick={() => setKudosModalData({ chore: chores[0], target: r })}
-                          className="min-h-[32px] px-2 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-xs font-bold cursor-pointer transition-colors"
+                          className="min-h-[36px] px-2.5 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold cursor-pointer transition-colors inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]"
                           title={`Send kudos to ${r.name}`}
+                          aria-label={`Send kudos to ${r.name}`}
                         >
-                          👏
+                          <Heart className="w-3.5 h-3.5 fill-[#FFC93C] text-[#8A6200]" />
+                          <span>Kudos</span>
                         </button>
                       )}
                     </div>
@@ -530,35 +557,36 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             </div>
           </InfoCard>
 
-          {/* 2. AWAY MODE MANAGER */}
-          <ActionCard
-            tint="coral"
-            iconTile={<IconTile icon={<Plane className="w-6 h-6" />} color="coral" size="md" />}
-            title={currentUser.awayUntil ? 'Away Mode Active 🌴' : 'Going on Vacation?'}
-            subtitle={
-              currentUser.awayUntil
-                ? 'Your chores are paused until your return date. Streak is frozen.'
-                : 'Protect your streak and notify roomies when traveling or during exam breaks.'
-            }
-            detail={
-              currentUser.awayUntil ? (
-                <div className="p-2.5 rounded-xl bg-white/80 border border-[#FFD3C9] text-xs font-bold text-[#FF6B4A]">
-                  Active until: {currentUser.awayUntil}
-                </div>
-              ) : undefined
-            }
-            actions={
-              <Button
-                variant={currentUser.awayUntil ? 'secondary' : 'primary'}
-                size="md"
-                fullWidth
-                onClick={() => setAwayModalOpen(true)}
-                icon={<Plane className="w-4 h-4" />}
-              >
-                {currentUser.awayUntil ? 'Manage Away Mode' : "Set Away Mode"}
-              </Button>
-            }
-          />
+          {/* 2. AWAY MODE MANAGER (Flat InfoCard with quiet Secondary button per Section 17) */}
+          <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
+            <div className="flex items-start gap-3">
+              <IconTile icon={<Plane className="w-5 h-5" />} color="slate" size="sm" />
+              <div className="flex-1 min-w-0 space-y-1">
+                <h4 className="type-card-title text-[#1F2430]">
+                  {currentUser.awayUntil ? 'Away mode active' : 'Going on vacation?'}
+                </h4>
+                <p className="type-secondary text-[14px]">
+                  {currentUser.awayUntil
+                    ? `Your chores are paused until ${currentUser.awayUntil}. Streak is protected.`
+                    : 'Protect your streak and notify roomies when traveling or during exam breaks.'}
+                </p>
+                {currentUser.awayUntil && (
+                  <div className="inline-block mt-1 px-2.5 py-1 rounded-xl bg-[#F1F3F9] border border-[#E2E5EC] text-[14px] font-bold text-[#475569]">
+                    Active until: {currentUser.awayUntil}
+                  </div>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              fullWidth
+              onClick={() => setAwayModalOpen(true)}
+              icon={<Plane className="w-4 h-4 text-[#475569]" />}
+            >
+              {currentUser.awayUntil ? 'Manage away mode' : 'Set away mode'}
+            </Button>
+          </InfoCard>
         </div>
       </div>
 
@@ -566,7 +594,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
       <Modal
         isOpen={newChoreModalOpen}
         onClose={() => setNewChoreModalOpen(false)}
-        title="Add Apartment Chore"
+        title="Add apartment chore"
         subtitle="Introduce a recurring task to the pool"
         size="md"
       >
@@ -636,7 +664,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               size="md"
               fullWidth
             >
-              Add to Pool
+              Add to pool
             </Button>
           </div>
         </form>

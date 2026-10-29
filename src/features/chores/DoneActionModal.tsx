@@ -37,7 +37,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
     setPhotoUrl(samplePhotos[Math.floor(Math.random() * samplePhotos.length)]);
     setHasPhoto(true);
     sound.playPop();
-    showToast('Photo proof attached! 📸', 'info');
+    showToast('Photo proof attached', 'info');
   };
 
   const handleDone = async () => {
@@ -45,7 +45,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
     try {
       sound.playSuccess();
       await onComplete(chore.id, photoUrl || undefined);
-      showToast(`Chore completed! Streak +1 🔥`, 'reward');
+      showToast('Chore completed! Streak +1', 'reward');
       onClose();
     } catch {
       showToast('Could not record chore completion', 'error');
@@ -62,7 +62,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
       subtitle={`Mark "${chore.name}" as done`}
     >
       <div className="flex flex-col items-center text-center space-y-4">
-        <MascotView state="cheering" size="md" bubbleText="Streak power! 🔥" />
+        <MascotView state="cheering" size="md" bubbleText="Streak power!" />
 
         <Card padding="md" className="w-full bg-[#F7F8FB] space-y-3">
           <p className="type-secondary leading-relaxed">
@@ -109,7 +109,7 @@ export const DoneActionModal: React.FC<DoneActionModalProps> = ({
             size="md"
             disabled={loading}
             onClick={handleDone}
-            icon={<Check className="w-4 h-4 stroke-[3]" />}
+            icon={<Check className="w-4 h-4" />}
           >
             {loading ? 'Saving...' : 'Done'}
           </Button>

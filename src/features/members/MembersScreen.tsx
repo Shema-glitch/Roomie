@@ -146,7 +146,7 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({
       <div className="space-y-4">
         <SectionTitle
           title={`Apartment Roomies (${members.length})`}
-          subtitle="Household community, live status, and streaks"
+          subtitle="Apartment roomies, live status, and streaks"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -168,8 +168,8 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({
                 }
                 title={
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="truncate">{user.name}</span>
-                    {isMe && <span className="type-label text-[#FF6B4A] font-black">(You)</span>}
+                    <span className="type-card-title truncate">{user.name}</span>
+                    {isMe && <span className="text-[14px] font-bold text-[#FF6B4A] normal-case tracking-normal">(You)</span>}
                   </div>
                 }
                 subtitle={`From ${user.country} ${user.flag || ''}`}
@@ -180,7 +180,7 @@ export const MembersScreen: React.FC<MembersScreenProps> = ({
                 }
                 detail={
                   <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between type-secondary text-xs">
+                    <div className="flex items-center justify-between type-secondary text-[14px]">
                       <span className="flex items-center gap-1 text-[#FF6B4A] font-bold">
                         <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" /> {user.streakDays} day streak
                       </span>

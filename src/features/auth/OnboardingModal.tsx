@@ -26,45 +26,64 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
 
   const slides = [
     {
-      title: 'How Roomie works',
+      title: 'Secret Chore Draft',
       mascotState: 'cheering' as const,
-      bubble: 'Living together made fun!',
+      bubble: 'Fair tasks every Sunday!',
       content: (
         <div className="space-y-3.5 my-2">
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF]">
-            <div className="w-8 h-8 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0 font-bold text-sm">
-              1
+          <p className="type-secondary leading-relaxed">
+            Every weekend, roomies confidentially submit what they want, what they avoid, and what they suggest.
+          </p>
+          <div className="p-4 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] space-y-2">
+            <div className="flex items-center gap-2 text-[#FF6B4A] font-bold text-[14px]">
+              <span className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center text-xs font-bold">1</span>
+              <span>Fair matching algorithm</span>
             </div>
-            <div>
-              <h4 className="type-section-heading">Secret Chore Draft</h4>
-              <p className="type-secondary mt-0.5">
-                Pick what you want or avoid. Roomie balances the effort and reveals everyone's tasks on Sunday.
-              </p>
-            </div>
+            <p className="type-secondary">
+              Roomie balances the effort points so nobody gets stuck doing heavy chores alone. Tasks reveal simultaneously on Sunday.
+            </p>
           </div>
-
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#E6FAF8] border border-[#BBEFEA]">
-            <div className="w-8 h-8 rounded-full bg-[#19B5A5] text-white flex items-center justify-center shrink-0 font-bold text-sm">
-              2
+        </div>
+      ),
+    },
+    {
+      title: 'Calm Expense Splits',
+      mascotState: 'calm' as const,
+      bubble: 'Zero money awkwardness',
+      content: (
+        <div className="space-y-3.5 my-2">
+          <p className="type-secondary leading-relaxed">
+            Log shared groceries, electricity bills, or water refills in Turkish Lira (₺ TRY).
+          </p>
+          <div className="p-4 rounded-2xl bg-[#E6FAF8] border border-[#BBEFEA] space-y-2">
+            <div className="flex items-center gap-2 text-[#19B5A5] font-bold text-[14px]">
+              <span className="w-6 h-6 rounded-full bg-[#19B5A5] text-white flex items-center justify-center text-xs font-bold">2</span>
+              <span>Consent before calculation</span>
             </div>
-            <div>
-              <h4 className="type-section-heading">Calm Expense Splits</h4>
-              <p className="type-secondary mt-0.5">
-                Log groceries or bills. Roomies agree before anything counts, and balances stay crystal clear.
-              </p>
-            </div>
+            <p className="type-secondary">
+              Roomies review and tap Agree. Only mutually agreed expenses ever affect your balance. Debts are simplified automatically.
+            </p>
           </div>
-
-          <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3]">
-            <div className="w-8 h-8 rounded-full bg-[#FFC93C] text-[#1F2430] flex items-center justify-center shrink-0 font-bold text-sm">
-              3
+        </div>
+      ),
+    },
+    {
+      title: 'Kudos & Streaks',
+      mascotState: 'celebrating' as const,
+      bubble: 'Appreciation without nagging',
+      content: (
+        <div className="space-y-3.5 my-2">
+          <p className="type-secondary leading-relaxed">
+            Keep apartment living positive. When a chore is completed, send heartfelt roomie kudos.
+          </p>
+          <div className="p-4 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] space-y-2">
+            <div className="flex items-center gap-2 text-[#8A6200] font-bold text-[14px]">
+              <span className="w-6 h-6 rounded-full bg-[#FFC93C] text-[#1F2430] flex items-center justify-center text-xs font-bold">3</span>
+              <span>Equal streak recognition</span>
             </div>
-            <div>
-              <h4 className="type-section-heading">Kudos & Streaks</h4>
-              <p className="type-secondary mt-0.5">
-                Say thanks when a roomie cleans. Celebrate streaks without nagging or awkward confrontations.
-              </p>
-            </div>
+            <p className="type-secondary">
+              Consistent participation earns Streak Stars for the apartment. No shaming, no nagging, just clean living.
+            </p>
           </div>
         </div>
       ),

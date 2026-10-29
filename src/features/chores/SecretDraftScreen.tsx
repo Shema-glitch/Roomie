@@ -5,10 +5,11 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { ProgressBar } from '../../components/common/ProgressBar';
 import { MascotView } from '../../components/common/MascotView';
+import { IconTile } from '../../components/common/IconTile';
 import { Chore, DraftPick, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Heart, Ban, Users, ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { Heart, Ban, Users, ArrowLeft, ArrowRight, Check, Shuffle, ClipboardCheck } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface SecretDraftScreenProps {
@@ -105,7 +106,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             <ArrowLeft className="w-4 h-4" /> Cancel Draft
           </button>
           <span className="type-label text-[#FF6B4A] flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5" /> Secret Picks
+            <Shuffle className="w-3.5 h-3.5" /> Secret picks
           </span>
         </div>
 
@@ -143,9 +144,12 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
           </div>
 
           <div className="py-4">
-            <div className="w-16 h-16 rounded-3xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center mx-auto mb-3 shadow-xs">
-              <Sparkles className="w-8 h-8" />
-            </div>
+            <IconTile
+              icon={<ClipboardCheck className="w-8 h-8" />}
+              color="teal"
+              size="lg"
+              className="mx-auto mb-3"
+            />
             <h2 className="type-title">
               {currentChore.name}
             </h2>
@@ -157,11 +161,11 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
           {/* Current Choice Indicator */}
           {existingPick && (
             <div className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] type-secondary text-[#1F2430]">
-              {existingPick.pickType === 'want' && '❤️ You picked: Want'}
-              {existingPick.pickType === 'avoid' && '🙅‍♂️ You picked: Avoid'}
+              {existingPick.pickType === 'want' && 'You picked: Want'}
+              {existingPick.pickType === 'avoid' && 'You picked: Avoid'}
               {existingPick.pickType === 'suggest_for' && (
                 <span>
-                  👥 Suggested for{' '}
+                  Suggested for{' '}
                   {roommates.find((r) => r.id === existingPick.targetUserId)?.name}
                 </span>
               )}
@@ -180,7 +184,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <Heart className="w-5 h-5 text-[#3DBE6D] fill-[#3DBE6D]/20" />
-              <span>I don't mind / Want ❤️</span>
+              <span>I don't mind / Want</span>
             </button>
 
             <button
@@ -193,7 +197,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <Ban className="w-5 h-5 text-[#E5484D]" />
-              <span>Rather avoid this 🙅‍♂️</span>
+              <span>Rather avoid this</span>
             </button>
 
             <button
@@ -206,7 +210,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <Users className="w-5 h-5 text-[#5B5BD6]" />
-              <span>Suggest for roomie 👥</span>
+              <span>Suggest for roomie</span>
             </button>
           </div>
         </Card>

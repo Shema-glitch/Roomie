@@ -54,7 +54,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
           {iconTile && <div className="shrink-0 mt-0.5">{iconTile}</div>}
           <div className="flex-1 min-w-0">
             {typeof title === 'string' ? (
-              <h4 className="type-section-heading">
+              <h4 className="type-card-title">
                 {title}
               </h4>
             ) : (

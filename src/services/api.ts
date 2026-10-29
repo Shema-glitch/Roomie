@@ -24,7 +24,7 @@ import {
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 
-const STORAGE_KEY = 'roomie_prototype_v2_store';
+const STORAGE_KEY = 'roomie_prototype_v3_store';
 
 interface AppStore {
   currentUser: User;
@@ -109,7 +109,8 @@ function getInitialStore(): AppStore {
       id: 'h_main',
       name: 'Apartment 4B Lefkoşa',
       currency: 'TRY',
-      inviteCode: 'CYP-7492',
+      inviteCode: 'CYP4B892',
+      invitesEnabled: true,
       createdBy: 'u_amina',
       settings: {
         rotationInterval: 'weekly',
@@ -122,7 +123,8 @@ function getInitialStore(): AppStore {
       id: 'h_second',
       name: 'Summer Flat Kyrenia',
       currency: 'TRY',
-      inviteCode: 'KYR-1088',
+      inviteCode: 'KYR81088',
+      invitesEnabled: true,
       createdBy: 'u_curr',
       settings: {
         rotationInterval: 'monthly',
@@ -214,6 +216,24 @@ function getInitialStore(): AppStore {
         { userId: 'u_yasmin', shareAmount: 105, response: 'agreed' },
       ],
       createdAt: '2026-10-18T09:00:00Z',
+    },
+    {
+      id: 'exp_shoerack',
+      householdId: 'h_main',
+      paidBy: 'u_amina',
+      title: 'Hallway Shoe Rack & Storage Bins',
+      amount: 360,
+      category: 'household',
+      receiptUrl: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=600&auto=format&fit=crop&q=80',
+      date: '2026-10-23',
+      status: 'pending',
+      shares: [
+        { userId: 'u_amina', shareAmount: 90, response: 'agreed' },
+        { userId: 'u_curr', shareAmount: 90, response: 'pending' },
+        { userId: 'u_lucas', shareAmount: 90, response: 'agreed' },
+        { userId: 'u_yasmin', shareAmount: 90, response: 'agreed' },
+      ],
+      createdAt: '2026-10-23T11:15:00Z',
     },
     {
       id: 'exp_3',
@@ -490,7 +510,7 @@ function getInitialStore(): AppStore {
         id: 'mt_1',
         householdId: 'h_main',
         proposedBy: 'u_curr',
-        title: 'Quiet hours during midterm exams next week 📚',
+        title: 'Quiet hours during midterm exams next week',
         description: 'Midterms start Monday. Can we agree on quiet after 22:30 instead of 23:00 so everyone can sleep and focus?',
         status: 'open',
         votes: [
@@ -507,7 +527,7 @@ function getInitialStore(): AppStore {
         id: 'mt_2',
         householdId: 'h_main',
         proposedBy: 'u_yasmin',
-        title: 'Air conditioning schedule & electricity cap ❄️',
+        title: 'Air conditioning schedule & electricity cap',
         description: 'Electricity rates in TRNC are high in autumn/summer. Let us agree to turn AC off when leaving the apartment.',
         status: 'agreed',
         votes: [
@@ -552,8 +572,8 @@ function getInitialStore(): AppStore {
       id: 'notif_1',
       userId: 'u_curr',
       type: 'chore',
-      title: 'Chore Reveal Ready! 🎉',
-      body: 'All 4 roommates submitted secret picks. Tap to start the animated reveal!',
+      title: 'Chore Reveal Ready',
+      body: 'All 4 roomies submitted secret picks. Tap to start the animated reveal!',
       read: false,
       createdAt: '2026-10-23T11:45:00Z',
       linkTarget: { screen: 'chore-reveal' },
@@ -572,18 +592,23 @@ function getInitialStore(): AppStore {
       id: 'notif_3',
       userId: 'u_curr',
       type: 'household',
-      title: 'New roommate join request',
+      title: 'New roomie join request',
       body: 'Tariq Al-Mansoor (Egypt 🇪🇬) wants to join Apartment 4B.',
-      read: true,
+      read: false,
       createdAt: '2026-10-22T14:30:00Z',
       linkTarget: { screen: 'members' },
     },
   ];
 
+  const prefersReduced =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
+
   const settings: UserSettings = {
     language: 'en',
     soundEnabled: false,
-    reducedMotion: false,
+    reducedMotion: prefersReduced,
     pushNotifications: true,
     reminderEarly30Min: true,
   };
@@ -687,14 +712,24 @@ class ApiService {
     return this.getActiveHousehold();
   }
 
+  private generateInviteCode(): string {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let res = '';
+    for (let i = 0; i < 8; i++) {
+      res += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return res;
+  }
+
   public async createHousehold(name: string, currency: 'TRY' | 'USD' | 'EUR'): Promise<Household> {
     const id = 'h_' + Math.random().toString(36).substring(2, 9);
-    const code = 'APT-' + Math.floor(1000 + Math.random() * 9000);
+    const code = this.generateInviteCode();
     const newHousehold: Household = {
       id,
       name,
       currency,
       inviteCode: code,
+      invitesEnabled: true,
       createdBy: this.store.currentUser.id,
       settings: {
         rotationInterval: 'weekly',
@@ -723,10 +758,33 @@ class ApiService {
     return newHousehold;
   }
 
+  public async refreshInviteCode(householdId?: string): Promise<string> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const household = this.store.households.find(h => h.id === hid);
+    if (!household) throw new Error('Apartment not found');
+    const newCode = this.generateInviteCode();
+    household.inviteCode = newCode;
+    household.invitesEnabled = true;
+    this.save();
+    return newCode;
+  }
+
+  public async toggleInvites(householdId?: string, enabled?: boolean): Promise<boolean> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const household = this.store.households.find(h => h.id === hid);
+    if (!household) throw new Error('Apartment not found');
+    household.invitesEnabled = enabled !== undefined ? enabled : !(household.invitesEnabled ?? true);
+    this.save();
+    return household.invitesEnabled;
+  }
+
   public async joinHousehold(code: string): Promise<{ success: boolean; household?: Household; message: string }> {
     const target = this.store.households.find(h => h.inviteCode.toUpperCase() === code.trim().toUpperCase());
     if (!target) {
-      return { success: false, message: 'Invite code not found. Check with your roommates.' };
+      return { success: false, message: 'Invite code not found. Check with your roomies.' };
+    }
+    if (target.invitesEnabled === false) {
+      return { success: false, message: 'Invites are currently turned off for this apartment.' };
     }
     // create join request
     const existingReq = this.store.joinRequests.find(r => r.householdId === target.id && r.userEmail === this.store.currentUser.email);
@@ -745,7 +803,7 @@ class ApiService {
       });
       this.save();
     }
-    return { success: true, household: target, message: 'Request submitted! Roommates must review before you enter.' };
+    return { success: true, household: target, message: 'Request submitted! Roomies must review before you enter.' };
   }
 
   public async getHouseholdMembers(householdId?: string): Promise<{ user: User; membership: Membership }[]> {
@@ -806,8 +864,34 @@ class ApiService {
           status: 'active',
           joinedAt: new Date().toISOString(),
         });
+        // Mark pending join request notification as read
+        this.store.notifications.forEach((n) => {
+          if (n.type === 'household' && n.title.toLowerCase().includes('join request')) {
+            n.read = true;
+          }
+        });
+        // Add new member notification
+        this.store.notifications.unshift({
+          id: 'notif_' + Date.now(),
+          userId: this.store.currentUser.id,
+          type: 'household',
+          title: 'Roomie approved',
+          body: `${req.userName} has officially joined Apartment 4B as an active member.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget: { screen: 'apartment' },
+        });
         // add welcome message to chat
-        this.addMessage(req.householdId, null, 'activity', `${req.userName} has joined the apartment! Say hello! 👋`);
+        this.addMessage(req.householdId, null, 'activity', `${req.userName} has joined the apartment! Say hello! 👋`, {
+          screen: 'apartment',
+        });
+      } else {
+        // Mark pending join request notification as read
+        this.store.notifications.forEach((n) => {
+          if (n.type === 'household' && n.title.toLowerCase().includes('join request')) {
+            n.read = true;
+          }
+        });
       }
       this.save();
     }
@@ -821,7 +905,7 @@ class ApiService {
       curMembership.role = 'member';
       targetMembership.role = 'admin';
       const targetUser = this.store.users.find(u => u.id === toUserId);
-      this.addMessage(hid, null, 'activity', `Admin role handed over to ${targetUser?.name || 'roommate'}.`);
+      this.addMessage(hid, null, 'activity', `Admin role handed over to ${targetUser?.name || 'roomie'}.`);
       this.save();
     }
   }
@@ -903,6 +987,55 @@ class ApiService {
     return exp;
   }
 
+  public async editExpenseSplit(
+    expenseId: string,
+    adjustedShares: { userId: string; shareAmount: number }[]
+  ): Promise<Expense> {
+    const exp = this.store.expenses.find((e) => e.id === expenseId);
+    if (!exp) throw new Error('Expense not found');
+    exp.shares = adjustedShares.map((s) => ({
+      userId: s.userId,
+      shareAmount: s.shareAmount,
+      response: 'agreed',
+    }));
+    exp.status = 'agreed';
+    this.addMessage(
+      exp.householdId,
+      null,
+      'activity',
+      `Split adjusted for "${exp.title}". All shares resolved and agreed! 🤝`,
+      { screen: 'expenses', id: exp.id }
+    );
+    this.save();
+    return exp;
+  }
+
+  public async cancelExpense(expenseId: string): Promise<void> {
+    const exp = this.store.expenses.find((e) => e.id === expenseId);
+    if (exp) {
+      exp.status = 'cancelled';
+      this.addMessage(
+        exp.householdId,
+        null,
+        'activity',
+        `Disputed purchase "${exp.title}" was cancelled by mutual agreement.`
+      );
+      this.save();
+    }
+  }
+
+  public async remindRoomies(messageText?: string): Promise<void> {
+    const hid = this.store.activeHouseholdId;
+    this.addMessage(
+      hid,
+      null,
+      'activity',
+      messageText || `${this.store.currentUser.name} sent a friendly reminder to settle pending apartment shares.`,
+      { screen: 'expenses' }
+    );
+    this.save();
+  }
+
   public async getBalancesOverview(householdId?: string) {
     const hid = householdId || this.store.activeHouseholdId;
     const expenses = await this.getExpenses(hid);
@@ -925,7 +1058,7 @@ class ApiService {
     };
     this.store.settlements.push(newSettlement);
     const toUser = this.store.users.find(u => u.id === toUserId);
-    this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} marked ₺${amount.toFixed(2)} as paid to ${toUser?.name || 'roommate'}. Waiting for confirmation.`);
+    this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} marked ₺${amount.toFixed(2)} as paid to ${toUser?.name || 'roomie'}. Waiting for confirmation.`);
     this.save();
     return newSettlement;
   }
@@ -936,7 +1069,7 @@ class ApiService {
     set.status = 'confirmed';
     set.confirmedAt = new Date().toISOString();
     const fromUser = this.store.users.find(u => u.id === set.fromUser);
-    this.addMessage(set.householdId, null, 'activity', `Payment of ₺${set.amount.toFixed(2)} from ${fromUser?.name || 'roommate'} confirmed settled! 🎉`);
+    this.addMessage(set.householdId, null, 'activity', `Payment of ₺${set.amount.toFixed(2)} from ${fromUser?.name || 'roomie'} confirmed settled.`);
     this.save();
     return set;
   }
@@ -1006,12 +1139,20 @@ class ApiService {
     return round;
   }
 
+  public async updateAssignments(assignments: ChoreAssignment[]): Promise<DraftRound> {
+    const hid = this.store.activeHouseholdId;
+    const round = await this.getDraftRound(hid);
+    round.assignments = assignments;
+    this.save();
+    return round;
+  }
+
   public async markDraftRevealed(): Promise<DraftRound> {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
     round.status = 'revealed';
     round.revealedAt = new Date().toISOString();
-    this.addMessage(hid, null, 'activity', `The Chore Reveal is complete! Check your new weekly schedule. 🎯`, {
+    this.addMessage(hid, null, 'activity', 'The Chore Reveal is complete. Check your new weekly schedule.', {
       screen: 'chores',
     });
     this.save();
@@ -1029,7 +1170,7 @@ class ApiService {
       this.store.currentUser.streakDays += 1;
       this.store.currentUser.points += 20;
       const chore = this.store.chores.find(c => c.id === choreId);
-      this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}! ✨ Give kudos?`, {
+      this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`, {
         screen: 'chores',
         id: choreId,
       });
@@ -1218,22 +1359,59 @@ class ApiService {
 
   // --- Notifications ---
   public async getNotifications(): Promise<InAppNotification[]> {
-    return this.store.notifications.filter(n => n.userId === this.store.currentUser.id);
+    const pendingRequests = this.store.joinRequests.filter(r => r.status === 'pending');
+    // Unresolved join requests must remain unread per spec
+    if (pendingRequests.length > 0) {
+      this.store.notifications.forEach(n => {
+        if (n.type === 'household' && n.title.toLowerCase().includes('join request')) {
+          n.read = false;
+        }
+      });
+    }
+
+    return [...this.store.notifications]
+      .filter((n) => n.userId === this.store.currentUser.id)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   public async markNotificationRead(id: string): Promise<void> {
     const n = this.store.notifications.find(item => item.id === id);
     if (n) {
-      n.read = true;
-      this.save();
+      // If this is an unresolved join request notification, keep it unread
+      const isUnresolvedJoin =
+        n.type === 'household' &&
+        n.title.toLowerCase().includes('join request') &&
+        this.store.joinRequests.some(r => r.status === 'pending');
+      if (!isUnresolvedJoin) {
+        n.read = true;
+        this.save();
+      }
     }
   }
 
   public async markAllNotificationsRead(): Promise<void> {
+    const hasPendingJoin = this.store.joinRequests.some(r => r.status === 'pending');
     this.store.notifications.forEach(n => {
-      if (n.userId === this.store.currentUser.id) n.read = true;
+      if (n.userId === this.store.currentUser.id) {
+        if (n.type === 'household' && n.title.toLowerCase().includes('join request') && hasPendingJoin) {
+          n.read = false;
+        } else {
+          n.read = true;
+        }
+      }
     });
     this.save();
+  }
+
+  // --- Profile ---
+  public async updateUserProfile(updates: Partial<User>): Promise<User> {
+    this.store.currentUser = { ...this.store.currentUser, ...updates };
+    const idx = this.store.users.findIndex(u => u.id === this.store.currentUser.id);
+    if (idx >= 0) {
+      this.store.users[idx] = { ...this.store.users[idx], ...updates };
+    }
+    this.save();
+    return this.store.currentUser;
   }
 
   // --- Settings ---

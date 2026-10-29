@@ -5,6 +5,7 @@ import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { MascotView } from '../../components/common/MascotView';
+import { IconTile } from '../../components/common/IconTile';
 import { Expense, ExpenseCategory, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
@@ -75,7 +76,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
       if (participants.length > 1) {
         setParticipants(participants.filter((id) => id !== userId));
       } else {
-        showToast('At least one roommate must share this expense', 'error');
+        showToast('At least one roomie must share this expense', 'error');
       }
     } else {
       setParticipants([...participants, userId]);
@@ -91,7 +92,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
       'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
     ];
     setReceiptUrl(samples[Math.floor(Math.random() * samples.length)]);
-    showToast('Receipt captured! 📸', 'info');
+    showToast('Receipt attached successfully.', 'info');
   };
 
   const handleNext = () => {
@@ -157,7 +158,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 6 ? 'Expense Logged! ✨' : `Add Expense (${step}/5)`}
+      title={step === 6 ? 'Expense logged' : `Add Expense (${step}/5)`}
       subtitle={
         step === 1
           ? 'Step 1: Choose who paid for this'
@@ -233,7 +234,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     </div>
                     {isSelected && (
                       <div className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
-                        <Check className="w-4 h-4 stroke-[3]" />
+                        <Check className="w-4 h-4" />
                       </div>
                     )}
                   </div>
@@ -418,7 +419,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     </div>
                     {isSelected && (
                       <div className="w-5 h-5 rounded-full bg-[#19B5A5] text-white flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <Check className="w-3.5 h-3.5" />
                       </div>
                     )}
                   </div>
@@ -471,7 +472,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                     className="w-full h-44 object-cover"
                   />
                   <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    Receipt Attached 🧾
+                    Receipt attached
                   </span>
                 </div>
                 <button
@@ -487,9 +488,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleCaptureReceipt}
                 className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-[#FF6B4A] hover:bg-[#FFF0ED]/20 cursor-pointer transition-all bg-[#F7F8FB]"
               >
-                <div className="w-14 h-14 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center">
-                  <Camera className="w-7 h-7" />
-                </div>
+                <IconTile icon={<Camera className="w-7 h-7" />} color="coral" size="lg" />
                 <div>
                   <h4 className="type-section-heading">
                     Take or Upload Receipt Photo
@@ -588,7 +587,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 size="md"
                 disabled={loading}
                 onClick={handleSubmit}
-                icon={<Check className="w-4 h-4 stroke-[3]" />}
+                icon={<Check className="w-4 h-4" />}
               >
                 {loading ? 'Submitting...' : 'Log expense'}
               </Button>

@@ -6,7 +6,8 @@ import { Chip } from '../../components/common/Chip';
 import { MascotView } from '../../components/common/MascotView';
 import { Chore, User } from '../../types';
 import { sound } from '../../services/sound';
-import { Camera, Check, Sparkles, Flame, ArrowRight, ArrowLeft } from 'lucide-react';
+import { IconTile } from '../../components/common/IconTile';
+import { Camera, Check, Flame, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface DoneFlowModalProps {
@@ -39,7 +40,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
       'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&auto=format&fit=crop&q=80',
     ];
     setPhotoUrl(photos[Math.floor(Math.random() * photos.length)]);
-    showToast('Sparkling proof attached! 📸', 'info');
+    showToast('Proof photo attached', 'info');
   };
 
   const handleFinish = async () => {
@@ -111,7 +112,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               <div className="flex items-center gap-1.5 type-section-heading text-[#8A6200]">
                 <span>{currentUser.streakDays}</span>
                 <ArrowRight className="w-4 h-4 text-[#FF6B4A]" />
-                <span>{currentUser.streakDays + 1} 🔥</span>
+                <span>{currentUser.streakDays + 1}</span>
               </div>
             </Card>
 
@@ -152,7 +153,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                     className="w-full h-44 object-cover"
                   />
                   <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    Proof Attached ✨
+                    Proof attached
                   </span>
                 </div>
                 <button
@@ -168,9 +169,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 onClick={handleSnapPhoto}
                 className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
               >
-                <div className="w-12 h-12 rounded-2xl bg-[#E6FAF8] text-[#19B5A5] flex items-center justify-center">
-                  <Camera className="w-6 h-6" />
-                </div>
+                <IconTile icon={<Camera className="w-6 h-6" />} color="teal" size="md" />
                 <h4 className="type-section-heading">
                   Snap Proof Photo
                 </h4>
@@ -194,7 +193,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 size="md"
                 disabled={loading}
                 onClick={handleFinish}
-                icon={<Check className="w-4 h-4 stroke-[3]" />}
+                icon={<Check className="w-4 h-4" />}
               >
                 {loading ? 'Saving...' : 'Complete'}
               </Button>

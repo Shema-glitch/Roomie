@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ActionCard } from '../../components/common/ActionCard';
-import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
-import { SectionTitle } from '../../components/common/SectionTitle';
 import { Avatar } from '../../components/common/Avatar';
+import { EmptyState } from '../../components/common/EmptyState';
 import { ChatMessage, User } from '../../types';
 import { sound } from '../../services/sound';
-import { Send, Sparkles, Receipt, ArrowRight, Heart } from 'lucide-react';
+import { Send, Receipt, ClipboardCheck, Shuffle, MessageSquare } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface ChatScreenProps {
@@ -105,10 +103,21 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         </div>
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 px-1 pr-1">
-        {messages.map((msg) => {
-          // 1. SYSTEM ACTIVITY MESSAGE (ActionCard with solid icon tile and tactile action)
+      {/* Messages Scroll Area with right padding so bubbles never touch scrollbar */}
+      <div className="flex-1 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
+        {messages.length === 0 ? (
+          <div className="h-full flex items-center justify-center p-6 text-center">
+            <EmptyState
+              title="No messages yet"
+              description="Say hello to your roomies! System activity, chore reminders, and shared receipt notices will also appear here."
+              mascotState="idle"
+              bubbleText="Say hello to roomies!"
+              className="border-none shadow-none bg-transparent"
+            />
+          </div>
+        ) : (
+          messages.map((msg) => {
+          // 1. SYSTEM ACTIVITY MESSAGE (Compact one-line notices with small icon per Section 17)
           if (msg.type === 'activity' || !msg.senderId) {
             const isChore =
               msg.body.toLowerCase().includes('chore') ||
@@ -118,40 +127,40 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               msg.body.toLowerCase().includes('expense') ||
               msg.body.toLowerCase().includes('₺') ||
               msg.body.toLowerCase().includes('paid');
+            const isDraft =
+              msg.body.toLowerCase().includes('draft') ||
+              msg.body.toLowerCase().includes('reveal');
 
-            const tint = isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
-            const icon = isChore ? (
-              <Sparkles className="w-5 h-5" />
-            ) : isExpense ? (
-              <Receipt className="w-5 h-5" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            );
+            const timeStr = new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
 
             return (
-              <ActionCard
-                key={msg.id}
-                tint={tint}
-                iconTile={<IconTile icon={icon} color={tint} size="sm" />}
-                title={msg.body}
-                subtitle={new Date(msg.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-                actions={
-                  msg.linkTarget ? (
-                    <Button
-                      variant={tint === 'teal' ? 'teal' : tint === 'coral' ? 'primary' : 'indigo'}
-                      size="sm"
+              <div key={msg.id} className="py-1 flex justify-center w-full">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F1F3F9] text-[#475569] text-[14px] font-semibold border border-[#E2E5EC] max-w-full shadow-2xs">
+                  {isChore ? (
+                    <ClipboardCheck className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
+                  ) : isExpense ? (
+                    <Receipt className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
+                  ) : isDraft ? (
+                    <Shuffle className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                  ) : (
+                    <MessageSquare className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                  )}
+                  <span className="truncate">{msg.body}</span>
+                  <span className="text-[#475569] shrink-0">• {timeStr}</span>
+                  {msg.linkTarget && (
+                    <button
+                      type="button"
                       onClick={() => onNavigateAction(msg.linkTarget!)}
-                      icon={<ArrowRight className="w-4 h-4" />}
+                      className="ml-1 text-[#5B5BD6] hover:underline font-bold text-[14px] shrink-0 cursor-pointer"
                     >
-                      {isChore ? 'View Chore' : isExpense ? 'View Expense' : 'Open'}
-                    </Button>
-                  ) : undefined
-                }
-                className="max-w-md mx-auto"
-              />
+                      View
+                    </button>
+                  )}
+                </div>
+              </div>
             );
           }
 
@@ -261,7 +270,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               </div>
             </div>
           );
-        })}
+        }))}
         <div ref={messagesEndRef} />
       </div>
 

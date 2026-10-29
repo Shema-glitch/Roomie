@@ -11,8 +11,19 @@ export interface UserBalanceSummary {
   net: number; // positive = others owe user, negative = user owes others
 }
 
+export interface UserCalculationBreakdown {
+  userId: string;
+  totalPaidAgreed: number;
+  ownShareOfOwnExpenses: number;
+  owedByRoomiesToUser: number;
+  owedByMeToOtherPayers: number;
+  settlementsPaid: number;
+  settlementsReceived: number;
+  net: number;
+}
+
 /**
- * Calculates net debt for each user from agreed expenses and settlements.
+ * Calculates net debt for each user from agreed expenses and confirmed settlements.
  */
 export function calculateBalances(
   expenses: Expense[],
@@ -21,34 +32,76 @@ export function calculateBalances(
 ): {
   userSummaries: Record<string, number>;
   simplifiedDebts: NetBalance[];
+  calculationBreakdowns: Record<string, UserCalculationBreakdown>;
 } {
   const net: Record<string, number> = {};
-  allUserIds.forEach(id => {
+  const breakdowns: Record<string, UserCalculationBreakdown> = {};
+
+  allUserIds.forEach((id) => {
     net[id] = 0;
+    breakdowns[id] = {
+      userId: id,
+      totalPaidAgreed: 0,
+      ownShareOfOwnExpenses: 0,
+      owedByRoomiesToUser: 0,
+      owedByMeToOtherPayers: 0,
+      settlementsPaid: 0,
+      settlementsReceived: 0,
+      net: 0,
+    };
   });
 
-  // Calculate from agreed expenses
+  // Calculate ONLY from agreed expenses
   for (const exp of expenses) {
-    if (exp.status !== 'agreed' && exp.status !== 'pending') continue; // only count agreed or pending active
-    
-    // Check which shares are active (not disputed or cancelled)
-    const validShares = exp.shares.filter(s => s.response !== 'disputed');
-    for (const share of validShares) {
-      if (share.userId === exp.paidBy) continue;
-      // share.userId owes exp.paidBy share.shareAmount
-      net[share.userId] = (net[share.userId] || 0) - share.shareAmount;
-      net[exp.paidBy] = (net[exp.paidBy] || 0) + share.shareAmount;
+    if (exp.status !== 'agreed') continue;
+
+    // Track total paid by payer
+    if (breakdowns[exp.paidBy]) {
+      breakdowns[exp.paidBy].totalPaidAgreed += exp.amount;
+    }
+
+    for (const share of exp.shares) {
+      if (share.userId === exp.paidBy) {
+        if (breakdowns[exp.paidBy]) {
+          breakdowns[exp.paidBy].ownShareOfOwnExpenses += share.shareAmount;
+        }
+      } else {
+        // share.userId owes exp.paidBy share.shareAmount
+        net[share.userId] = (net[share.userId] || 0) - share.shareAmount;
+        net[exp.paidBy] = (net[exp.paidBy] || 0) + share.shareAmount;
+
+        if (breakdowns[share.userId]) {
+          breakdowns[share.userId].owedByMeToOtherPayers += share.shareAmount;
+        }
+        if (breakdowns[exp.paidBy]) {
+          breakdowns[exp.paidBy].owedByRoomiesToUser += share.shareAmount;
+        }
+      }
     }
   }
 
-  // Factor in settlements (marked_paid or confirmed)
+  // Factor in ONLY confirmed settlements
   for (const set of settlements) {
-    if (set.status === 'confirmed' || set.status === 'marked_paid') {
-      // fromUser paid toUser amount
+    if (set.status === 'confirmed') {
+      // fromUser paid toUser amount -> fromUser's debt decreases, toUser's debt increases/balance decreases
       net[set.fromUser] = (net[set.fromUser] || 0) + set.amount;
       net[set.toUser] = (net[set.toUser] || 0) - set.amount;
+
+      if (breakdowns[set.fromUser]) {
+        breakdowns[set.fromUser].settlementsPaid += set.amount;
+      }
+      if (breakdowns[set.toUser]) {
+        breakdowns[set.toUser].settlementsReceived += set.amount;
+      }
     }
   }
+
+  // Finalize net breakdown
+  allUserIds.forEach((id) => {
+    if (breakdowns[id]) {
+      breakdowns[id].net = Math.round((net[id] || 0) * 100) / 100;
+    }
+  });
 
   // Simplify debts using greedy algorithm
   const debtors: { id: string; amount: number }[] = [];
@@ -93,5 +146,6 @@ export function calculateBalances(
   return {
     userSummaries: net,
     simplifiedDebts: simplified,
+    calculationBreakdowns: breakdowns,
   };
 }

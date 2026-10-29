@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { IconTile } from '../../components/common/IconTile';
 import { InAppNotification } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Bell, Sparkles, Receipt, Home, Check, Clock, X } from 'lucide-react';
+import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface NotificationsModalProps {
@@ -28,15 +29,17 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   const { showToast } = useToast();
   const [filter, setFilter] = useState<'all' | 'chore' | 'expense'>('all');
 
-  const filtered = notifications.filter((n) => {
-    if (filter === 'all') return true;
-    return n.type === filter;
-  });
+  const filtered = notifications
+    .filter((n) => {
+      if (filter === 'all') return true;
+      return n.type === filter;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleSnooze = (id: string) => {
     sound.playTap();
     onMarkRead(id);
-    showToast('Reminder snoozed for 30 minutes ⏰', 'info');
+    showToast('Reminder snoozed for 30 minutes', 'info');
   };
 
   return (
@@ -99,23 +102,25 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2.5 flex-1">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                    <IconTile
+                      icon={
+                        n.type === 'chore' ? (
+                          <ClipboardCheck className="w-4 h-4" />
+                        ) : n.type === 'expense' ? (
+                          <Receipt className="w-4 h-4" />
+                        ) : (
+                          <Building className="w-4 h-4" />
+                        )
+                      }
+                      color={
                         n.type === 'chore'
-                          ? 'bg-[#E6FAF8] text-[#19B5A5]'
+                          ? 'teal'
                           : n.type === 'expense'
-                          ? 'bg-[#FFF0ED] text-[#FF6B4A]'
-                          : 'bg-[#EEF0FD] text-[#5B5BD6]'
-                      }`}
-                    >
-                      {n.type === 'chore' ? (
-                        <Sparkles className="w-4 h-4" />
-                      ) : n.type === 'expense' ? (
-                        <Receipt className="w-4 h-4" />
-                      ) : (
-                        <Home className="w-4 h-4" />
-                      )}
-                    </div>
+                          ? 'coral'
+                          : 'indigo'
+                      }
+                      size="sm"
+                    />
                     <div>
                       <h4 className="type-section-heading">
                         {n.title}
@@ -154,9 +159,17 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         onClose();
                         onActionClick(n.linkTarget!);
                       }}
-                      className="px-3 py-1 rounded-lg bg-[#FF6B4A] text-white text-[14px] font-bold cursor-pointer hover:bg-[#D94E30]"
+                      className="px-3.5 py-1.5 rounded-xl bg-[#FF6B4A] text-white text-[14px] font-bold cursor-pointer hover:bg-[#D94E30] transition-colors"
                     >
-                      View
+                      {n.linkTarget.screen === 'chore-reveal' || n.title.toLowerCase().includes('reveal')
+                        ? 'Reveal'
+                        : n.linkTarget.screen === 'expenses' || n.type === 'expense'
+                        ? 'Review receipt'
+                        : n.linkTarget.screen === 'members' || n.linkTarget.id?.startsWith('req_') || n.title.toLowerCase().includes('request')
+                        ? 'Review request'
+                        : n.type === 'chore'
+                        ? 'Review chore'
+                        : 'Review'}
                     </button>
                   )}
                 </div>

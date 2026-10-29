@@ -26,6 +26,7 @@ import { ShowQRModal } from './features/household/ShowQRModal';
 import { NotificationsModal } from './features/notifications/NotificationsModal';
 import { ProfileSettingsModal } from './features/profile/ProfileSettingsModal';
 import { FeedbackModal } from './features/profile/FeedbackModal';
+import { SyncStatusPanel, SyncStatusType } from './components/common/SyncStatusPanel';
 import { Avatar } from './components/common/Avatar';
 import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
@@ -51,17 +52,19 @@ import {
 import { NetBalance } from './utils/balances';
 import {
   Home,
-  Sparkles,
   Receipt,
   MessageSquare,
   Users,
   Bell,
   ChevronDown,
-  Wifi,
-  WifiOff,
+  CloudCheck,
+  CloudOff,
   Settings,
   Check,
   RefreshCw,
+  ClipboardCheck,
+  Building,
+  AlertCircle,
 } from 'lucide-react';
 
 type Tab = 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment';
@@ -74,26 +77,21 @@ function MainApp() {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('synced');
+  const [syncStatus, setSyncStatus] = useState<SyncStatusType>('synced');
+  const [syncPanelOpen, setSyncPanelOpen] = useState<boolean>(false);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>('Just now');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const handleSyncToggle = () => {
+  const handleManualSync = () => {
     sound.playTap();
-    if (syncStatus === 'synced') {
-      setSyncStatus('syncing');
-      showToast('Syncing with apartment...', 'info');
-      setTimeout(() => {
-        setSyncStatus('offline');
-        setIsOffline(true);
-        showToast('Switched to simulated offline mode', 'info');
-      }, 1500);
-    } else if (syncStatus === 'offline') {
+    setSyncStatus('syncing');
+    setTimeout(() => {
+      setSyncStatus('synced');
       setIsOffline(false);
-      setSyncStatus('synced');
-      showToast('Reconnected! All apartment data synced.', 'success');
-    } else {
-      setSyncStatus('synced');
-      showToast('All apartment data synced.', 'success');
-    }
+      setLastSyncedTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      showToast('Synced with apartment database', 'info');
+      loadData();
+    }, 1000);
   };
 
   // Core domain data loaded from api layer
@@ -137,6 +135,7 @@ function MainApp() {
 
   // Load initial data
   const loadData = async () => {
+    setLoadError(null);
     try {
       const u = await api.getCurrentUser();
       const hList = await api.getHouseholds();
@@ -172,8 +171,8 @@ function MainApp() {
 
       // sync sound setting
       sound.setEnabled(setts.soundEnabled);
-    } catch {
-      // error loading data
+    } catch (err: any) {
+      setLoadError(err?.message || 'Could not load apartment data.');
     }
   };
 
@@ -188,6 +187,48 @@ function MainApp() {
     }
     loadData();
   }, []);
+
+  // Sync HTML dir & lang for Arabic and other languages
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (settings.language === 'ar') {
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'ar');
+      } else {
+        document.documentElement.setAttribute('dir', 'ltr');
+        document.documentElement.setAttribute('lang', settings.language || 'en');
+      }
+    }
+  }, [settings.language]);
+
+  // Sync reduced motion class with setting or device
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (settings.reducedMotion) {
+        document.documentElement.classList.add('reduce-motion');
+      } else {
+        document.documentElement.classList.remove('reduce-motion');
+      }
+    }
+  }, [settings.reducedMotion]);
+
+  if (loadError && (!currentUser || !activeHousehold || !draftRound)) {
+    return (
+      <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <MascotView state="thinking" size="lg" bubbleText="Something went wrong" />
+        <div className="space-y-1 max-w-sm">
+          <h2 className="type-title">Connection error</h2>
+          <p className="type-secondary">{loadError}</p>
+        </div>
+        <button
+          onClick={loadData}
+          className="px-6 py-2.5 rounded-2xl bg-[#FF6B4A] text-white font-bold text-sm cursor-pointer hover:bg-[#E55A3A] transition-all"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (!currentUser || !activeHousehold || !draftRound) {
     return (
@@ -229,7 +270,10 @@ function MainApp() {
         chores={chores}
         users={members.map((m) => m.user)}
         reducedMotion={settings.reducedMotion}
-        onFinish={async () => {
+        onFinish={async (updatedAssignments) => {
+          if (updatedAssignments) {
+            await api.updateAssignments(updatedAssignments);
+          }
           await api.markDraftRevealed();
           await loadData();
           setDraftFlowState('none');
@@ -280,17 +324,14 @@ function MainApp() {
     >
       {/* Offline banner simulation */}
       <OfflineBanner
-        isOffline={isOffline}
-        onToggle={() => {
-          setIsOffline(false);
-          showToast('Back online! Syncing state.', 'success');
-        }}
+        isOffline={isOffline || syncStatus === 'offline'}
+        onToggle={handleManualSync}
       />
 
       {/* TOP APP BAR - Responsive Header with Desktop Tabs */}
       <header className="sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
-          {/* Left: Household Switcher dropdown & Invite code chip */}
+          {/* Left: Apartment Switcher dropdown & Invite code chip */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
@@ -300,10 +341,10 @@ function MainApp() {
               }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer"
             >
-              <span className="type-section-heading max-w-[120px] sm:max-w-[160px] truncate">
+              <span className="type-section-heading max-w-[140px] sm:max-w-[200px] md:max-w-none whitespace-nowrap">
                 {activeHousehold.name}
               </span>
-              <ChevronDown className="w-4 h-4 text-[#6B7280] shrink-0" />
+              <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
             </button>
 
             {/* Quick Apartment Code Pill - Only on wide desktop (xl:), NEVER on tablet */}
@@ -313,11 +354,10 @@ function MainApp() {
                 sound.playTap();
                 setShowQROpen(true);
               }}
-              className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-xs font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] transition-all cursor-pointer whitespace-nowrap shrink-0"
+              className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] transition-all cursor-pointer whitespace-nowrap shrink-0"
               title="Click to view apartment invite code and QR"
             >
-              <span>Apartment:</span>
-              <span className="font-mono tracking-wide font-black">#{activeHousehold.inviteCode}</span>
+              <span className="font-mono tracking-wide font-black">{activeHousehold.inviteCode}</span>
             </button>
           </div>
 
@@ -328,10 +368,10 @@ function MainApp() {
           >
             {[
               { id: 'feed', label: 'Home', icon: <Home className="w-4 h-4 shrink-0" /> },
-              { id: 'chores', label: 'Chores', icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+              { id: 'chores', label: 'Chores', icon: <ClipboardCheck className="w-4 h-4 shrink-0" /> },
               { id: 'expenses', label: 'Money', icon: <Receipt className="w-4 h-4 shrink-0" /> },
               { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
-              { id: 'apartment', label: 'Apartment', icon: <Users className="w-4 h-4 shrink-0" /> },
+              { id: 'apartment', label: 'Apartment', icon: <Building className="w-4 h-4 shrink-0" /> },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -342,10 +382,10 @@ function MainApp() {
                     sound.playTap();
                     setActiveTab(tab.id as Tab);
                   }}
-                  className={`flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs lg:text-sm font-heading font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                     isActive
                       ? 'bg-white text-[#1F2430] shadow-xs border border-[#E2E5EC]'
-                      : 'text-[#64748B] hover:text-[#1F2430] hover:bg-white/60'
+                      : 'text-[#475569] hover:text-[#1F2430] hover:bg-white/60'
                   }`}
                   title={tab.label}
                   aria-label={tab.label}
@@ -361,40 +401,62 @@ function MainApp() {
 
           {/* Right Header Controls - always shrink-0 */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Sync Status Button with clear indicator and label when not synced */}
-            {syncStatus === 'syncing' ? (
-              <button
-                type="button"
-                onClick={handleSyncToggle}
-                className="min-h-[44px] px-2.5 py-1.5 rounded-2xl bg-[#EEF0FD] border border-[#D3D5F9] flex items-center gap-1.5 text-[#5B5BD6] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
-                title="Syncing with apartment server... Tap to switch mode"
-                aria-label="Syncing with apartment"
-              >
+            {/* Sync Status Button with text label and taps open sync panel */}
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setSyncPanelOpen(true);
+              }}
+              className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all ${
+                syncStatus === 'syncing'
+                  ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
+                  : syncStatus === 'offline'
+                  ? 'bg-[#FFF0ED] border-[#FFD7CF] text-[#E5484D]'
+                  : syncStatus === 'needs_attention'
+                  ? 'bg-[#FFF8E6] border-[#FFE8A3] text-[#8A6200]'
+                  : 'bg-white border-[#E6E8EE] text-[#19B5A5] hover:border-[#19B5A5]'
+              }`}
+              title={`Sync status: ${
+                syncStatus === 'syncing'
+                  ? 'Syncing'
+                  : syncStatus === 'offline'
+                  ? 'Offline'
+                  : syncStatus === 'needs_attention'
+                  ? 'Needs attention'
+                  : 'Synced'
+              }. Tap to open sync details.`}
+              aria-label="Apartment sync status"
+            >
+              {syncStatus === 'syncing' ? (
                 <RefreshCw className="w-4 h-4 animate-spin text-[#5B5BD6]" />
-                <span className="type-secondary font-bold text-[#5B5BD6]">Syncing...</span>
-              </button>
-            ) : syncStatus === 'offline' ? (
-              <button
-                type="button"
-                onClick={handleSyncToggle}
-                className="min-h-[44px] px-2.5 py-1.5 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] flex items-center gap-1.5 text-[#E5484D] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
-                title="Offline mode. Tap to reconnect"
-                aria-label="Apartment offline mode"
+              ) : syncStatus === 'offline' ? (
+                <CloudOff className="w-4 h-4 text-[#E5484D]" />
+              ) : syncStatus === 'needs_attention' ? (
+                <AlertCircle className="w-4 h-4 text-[#8A6200]" />
+              ) : (
+                <CloudCheck className="w-4 h-4 text-[#19B5A5]" />
+              )}
+              <span
+                className={`type-secondary font-bold text-[14px] ${
+                  syncStatus === 'syncing'
+                    ? 'text-[#5B5BD6]'
+                    : syncStatus === 'offline'
+                    ? 'text-[#E5484D]'
+                    : syncStatus === 'needs_attention'
+                    ? 'text-[#8A6200]'
+                    : 'text-[#19B5A5]'
+                }`}
               >
-                <WifiOff className="w-4 h-4 text-[#E5484D]" />
-                <span className="type-secondary font-bold text-[#E5484D]">Offline</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSyncToggle}
-                className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center text-[#3DBE6D] hover:border-[#3DBE6D] shadow-2xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all"
-                title="All apartment changes synced. Tap to simulate sync/offline"
-                aria-label="All changes synced"
-              >
-                <Check className="w-4 h-4 stroke-[2.5]" />
-              </button>
-            )}
+                {syncStatus === 'syncing'
+                  ? 'Syncing'
+                  : syncStatus === 'offline'
+                  ? 'Offline'
+                  : syncStatus === 'needs_attention'
+                  ? 'Needs attention'
+                  : 'Synced'}
+              </span>
+            </button>
 
             {/* Notifications button with badge */}
             <button
@@ -444,7 +506,7 @@ function MainApp() {
             assignments={draftRound.assignments}
             expenses={expenses}
             activityMessages={messages}
-            pendingJoinRequests={joinRequests}
+            pendingJoinRequests={joinRequests.filter((r) => r.status === 'pending')}
             netBalance={myNetBalance}
             onNavigateTab={(t) => setActiveTab(t as Tab)}
             onOpenChoreReveal={() => setDraftFlowState('reveal')}
@@ -516,6 +578,19 @@ function MainApp() {
             }}
             onRespondExpense={async (expId, resp, reason) => {
               await api.respondToExpense(expId, resp, reason);
+              await loadData();
+            }}
+            onEditSplit={async (expId, shares) => {
+              const exp = await api.editExpenseSplit(expId, shares);
+              await loadData();
+              return exp;
+            }}
+            onCancelExpense={async (expId) => {
+              await api.cancelExpense(expId);
+              await loadData();
+            }}
+            onRemindRoomies={async (msg) => {
+              await api.remindRoomies(msg);
               await loadData();
             }}
             onMarkPaid={async (toUserId, amount) => {
@@ -602,10 +677,10 @@ function MainApp() {
       >
         {[
           { id: 'feed', label: 'Home', icon: <Home className="w-5 h-5" /> },
-          { id: 'chores', label: 'Chores', icon: <Sparkles className="w-5 h-5" /> },
+          { id: 'chores', label: 'Chores', icon: <ClipboardCheck className="w-5 h-5" /> },
           { id: 'expenses', label: 'Money', icon: <Receipt className="w-5 h-5" /> },
           { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-5 h-5" /> },
-          { id: 'apartment', label: 'Apartment', icon: <Users className="w-5 h-5" /> },
+          { id: 'apartment', label: 'Apartment', icon: <Building className="w-5 h-5" /> },
         ].map((tabItem) => {
           const isActive = activeTab === tabItem.id;
           return (
@@ -695,6 +770,29 @@ function MainApp() {
         isOpen={showQROpen}
         onClose={() => setShowQROpen(false)}
         household={activeHousehold}
+        onRefreshCode={async () => {
+          const newCode = await api.refreshInviteCode(activeHousehold.id);
+          await loadData();
+          return newCode;
+        }}
+        onToggleInvites={async () => {
+          const active = await api.toggleInvites(activeHousehold.id);
+          await loadData();
+          return active;
+        }}
+      />
+
+      <SyncStatusPanel
+        isOpen={syncPanelOpen}
+        onClose={() => setSyncPanelOpen(false)}
+        status={syncStatus}
+        onSetStatus={(st) => {
+          setSyncStatus(st);
+          setIsOffline(st === 'offline');
+        }}
+        lastSyncedTime={lastSyncedTime}
+        onTriggerSync={handleManualSync}
+        householdName={activeHousehold?.name}
       />
 
       <NotificationsModal
@@ -713,7 +811,7 @@ function MainApp() {
           if (target.screen === 'expenses') setActiveTab('expenses');
           if (target.screen === 'chores') setActiveTab('chores');
           if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
-          if (target.screen === 'members') setActiveTab('apartment');
+          if (target.screen === 'members' || target.screen === 'apartment') setActiveTab('apartment');
         }}
       />
 
@@ -726,6 +824,12 @@ function MainApp() {
           const s = await api.updateSettings(updates);
           setSettings(s);
           return s;
+        }}
+        onUpdateProfile={async (updates) => {
+          const u = await api.updateUserProfile(updates);
+          setCurrentUser(u);
+          await loadData();
+          return u;
         }}
         onExportData={() => {
           const data = api.exportData();
@@ -741,6 +845,10 @@ function MainApp() {
           api.resetData();
           loadData();
           showToast('Account data reset to fresh demo state.', 'info');
+        }}
+        onSignOut={() => {
+          setIsAuthenticated(false);
+          showToast('Signed out of Roomie', 'info');
         }}
         onOpenFeedback={() => setFeedbackOpen(true)}
       />

@@ -32,10 +32,10 @@ export const IconTile: React.FC<IconTileProps> = ({
     teal: 'bg-[#19B5A5] text-white shadow-sm shadow-[#19B5A5]/30',
     indigo: 'bg-[#5B5BD6] text-white shadow-sm shadow-[#5B5BD6]/30',
     green: 'bg-[#3DBE6D] text-white shadow-sm shadow-[#3DBE6D]/30',
-    amber: 'bg-[#FFC93C] text-[#1F2430] shadow-sm shadow-[#FFC93C]/30',
+    amber: 'bg-[#FFC93C] text-white shadow-sm shadow-[#FFC93C]/30',
     purple: 'bg-[#8B5CF6] text-white shadow-sm shadow-[#8B5CF6]/30',
     slate: 'bg-[#475569] text-white shadow-sm',
-    neutral: 'bg-[#F1F3F9] text-[#1F2430]',
+    neutral: 'bg-[#475569] text-white shadow-sm',
   };
 
   const sizeStyles: Record<IconTileSize, string> = {

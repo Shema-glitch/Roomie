@@ -98,7 +98,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 4 ? 'Apartment Ready! 🎉' : `Create Household (${step}/3)`}
+      title={step === 4 ? 'Apartment Ready!' : `Create Household (${step}/3)`}
       subtitle={
         step === 1
           ? 'Step 1: Name your shared apartment'
@@ -294,7 +294,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                         isSelected ? 'bg-[#FF6B4A] text-white' : 'border border-[#CBD5E1]'
                       }`}
                     >
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      {isSelected && <Check className="w-3.5 h-3.5" />}
                     </div>
                   </div>
                 );
@@ -310,7 +310,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 size="md"
                 disabled={loading || starterChores.length === 0}
                 onClick={handleCreate}
-                icon={<Check className="w-4 h-4 stroke-[3]" />}
+                icon={<Check className="w-4 h-4" />}
               >
                 {loading ? 'Creating...' : 'Create'}
               </Button>
@@ -337,13 +337,13 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                   <rect width="100" height="100" fill="#FFFFFF" />
                   <rect x="10" y="10" width="28" height="28" fill="#1F2430" rx="3" />
                   <rect x="15" y="15" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="19" y="19" width="10" height="10" fill="#FF6B4A" rx="1" />
+                  <rect x="19" y="19" width="10" height="10" fill="#1F2430" rx="1" />
                   <rect x="62" y="10" width="28" height="28" fill="#1F2430" rx="3" />
                   <rect x="67" y="15" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="71" y="19" width="10" height="10" fill="#FF6B4A" rx="1" />
+                  <rect x="71" y="19" width="10" height="10" fill="#1F2430" rx="1" />
                   <rect x="10" y="62" width="28" height="28" fill="#1F2430" rx="3" />
                   <rect x="15" y="67" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="19" y="71" width="10" height="10" fill="#FF6B4A" rx="1" />
+                  <rect x="19" y="71" width="10" height="10" fill="#1F2430" rx="1" />
                   <rect x="44" y="15" width="8" height="8" fill="#1F2430" />
                   <rect x="44" y="27" width="8" height="8" fill="#1F2430" />
                   <rect x="44" y="62" width="8" height="8" fill="#1F2430" />

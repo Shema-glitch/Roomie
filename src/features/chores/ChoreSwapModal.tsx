@@ -73,13 +73,13 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                 <div>
                   <h4 className="type-section-heading">{r.name}</h4>
                   <p className="type-secondary">
-                    Streak: {r.streakDays} days 🔥
+                    Streak: {r.streakDays} days
                   </p>
                 </div>
               </div>
               {selectedRoommateId === r.id && (
                 <div className="w-5 h-5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <Check className="w-3.5 h-3.5" />
                 </div>
               )}
             </div>

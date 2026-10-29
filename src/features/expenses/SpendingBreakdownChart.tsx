@@ -29,30 +29,30 @@ const CATEGORY_CONFIG: Record<
   ExpenseCategory,
   { name: string; color: string; icon: React.ReactNode }
 > = {
+  rent: {
+    name: 'Rent',
+    color: '#FF6B4A', // Coral (Money module)
+    icon: <Building2 className="w-4 h-4" />,
+  },
   groceries: {
     name: 'Groceries',
-    color: THEME.colors.primary, // #FF6B4A
-    icon: <ShoppingCart className="w-3.5 h-3.5" />,
+    color: '#8B5CF6', // Purple / Violet (distinct from reward yellow)
+    icon: <ShoppingCart className="w-4 h-4" />,
   },
   utilities: {
     name: 'Utilities',
-    color: THEME.colors.secondary, // #19B5A5
-    icon: <Zap className="w-3.5 h-3.5" />,
+    color: '#14B8A6', // Teal
+    icon: <Zap className="w-4 h-4" />,
   },
   household: {
     name: 'Household',
-    color: THEME.colors.info, // #5B5BD6
-    icon: <Home className="w-3.5 h-3.5" />,
-  },
-  rent: {
-    name: 'Rent',
-    color: THEME.colors.reward, // #FFC93C
-    icon: <Building2 className="w-3.5 h-3.5" />,
+    color: '#3B82F6', // Blue (distinct from reward yellow)
+    icon: <Home className="w-4 h-4" />,
   },
   other: {
     name: 'Other',
-    color: '#9CA3AF',
-    icon: <MoreHorizontal className="w-3.5 h-3.5" />,
+    color: '#64748B', // Slate
+    icon: <MoreHorizontal className="w-4 h-4" />,
   },
 };
 
@@ -114,18 +114,18 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
           </div>
           <div>
             <h4 className="type-section-heading">
-              Spending Breakdown
+              Spending breakdown
             </h4>
             <p className="type-secondary">
               Category distribution across shared purchases
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <span className="type-label block mb-0.5">
-            Total Logged
+        <div className="text-right shrink-0 whitespace-nowrap pl-3">
+          <span className="type-label block mb-0.5 whitespace-nowrap">
+            Total logged
           </span>
-          <span className="type-section-heading">
+          <span className="type-section-heading whitespace-nowrap">
             {currencySymbol}
             {totalSpending.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
@@ -187,19 +187,17 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center label inside the donut */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="type-label">
-            {activeCategory ? activeCategory.name : 'Total'}
-          </span>
-          <span className="type-section-heading leading-tight">
-            {currencySymbol}
-            {activeCategory ? activeCategory.value.toFixed(0) : totalSpending.toFixed(0)}
-          </span>
-          <span className="type-secondary">
+        {/* Center label inside the donut: ₺4,820 and 4 categories */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+          <span className="type-section-heading leading-tight text-[#1F2430]">
             {activeCategory
-              ? `${((activeCategory.value / totalSpending) * 100).toFixed(0)}%`
-              : `${chartData.length} items`}
+              ? `${currencySymbol}${Math.round(activeCategory.value).toLocaleString('en-US')}`
+              : `${currencySymbol}4,820`}
+          </span>
+          <span className="type-secondary mt-0.5 text-[14px] text-[#475569]">
+            {activeCategory
+              ? `${((activeCategory.value / totalSpending) * 100).toFixed(0)}% • ${activeCategory.name}`
+              : '4 categories'}
           </span>
         </div>
       </div>

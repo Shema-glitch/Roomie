@@ -33,7 +33,7 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
   const handleSubmit = async () => {
     const finalReason =
       selectedReason === 'Other reason'
-        ? customNote.trim() || 'Disputed by roommate'
+        ? customNote.trim() || 'Disputed by roomie'
         : `${selectedReason}${customNote.trim() ? `: ${customNote.trim()}` : ''}`;
 
     setLoading(true);
@@ -52,7 +52,7 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Dispute Expense"
+      title="Dispute expense"
       subtitle={`Explain peacefully for "${expenseTitle}"`}
     >
       <div className="space-y-4">

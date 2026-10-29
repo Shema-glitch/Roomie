@@ -26,15 +26,13 @@ import {
   Sparkles,
   Receipt,
   MessageSquare,
-  Users,
-  HandCoins,
-  Heart,
-  Calendar,
-  Building2,
-  ArrowRight,
-  Shield,
-  Copy,
+  UserPlus,
+  Wallet,
+  Bell,
+  Shuffle,
+  ClipboardCheck,
 } from 'lucide-react';
+import { isAssignmentDueToday, CHORE_REWARD_POINTS } from '../../utils/stateTable';
 
 interface HomeScreenProps {
   currentUser: User;
@@ -79,9 +77,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
   const [feedFilter, setFeedFilter] = useState<'all' | 'chores' | 'expenses' | 'drafts'>('all');
 
-  // My chore for today
+  // My chore for today - only chores actually due today appear in Today's due tasks
   const myTodayAssignment = assignments.find(
-    (a) => a.userId === currentUser.id && !a.completedToday
+    (a) => a.userId === currentUser.id && isAssignmentDueToday(a) && !a.completedToday
   );
   const myTodayChore = myTodayAssignment
     ? chores.find((c) => c.id === myTodayAssignment.choreId)
@@ -131,23 +129,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const homeCount = roommates.filter((r) => r.isHome).length;
 
-  const copyInviteCode = () => {
-    sound.playTap();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(household.inviteCode);
-      showToast(`Copied code #${household.inviteCode} to clipboard!`, 'success');
-    } else {
-      showToast(`Apartment code: #${household.inviteCode}`, 'info');
-    }
-  };
-
   return (
     <div className="w-full select-none pb-20 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Priority Focus & Activity Feed ================= */}
         <div className="w-full lg:col-span-8 self-start space-y-6">
-          {/* 1. HERO MASCOT GREETING CARD */}
+          {/* 1. HERO MASCOT GREETING CARD (No duplicated apartment name or presence) */}
           <InfoCard
             tint="coral"
             padding="lg"
@@ -155,33 +143,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="text-sm font-black text-[#FF6B4A] tracking-wide">
-                    {household.name}
-                  </span>
-                  <span className="text-sm text-[#CBD5E1]">•</span>
-                  <button
-                    type="button"
-                    onClick={onToggleHomeStatus}
-                    className="min-h-[44px] inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-bold border transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
-                    style={{
-                      backgroundColor: currentUser.isHome ? '#EBF9F0' : '#F1F3F9',
-                      color: currentUser.isHome ? '#2CA358' : '#475569',
-                      borderColor: currentUser.isHome ? '#B8ECC8' : '#CBD5E1',
-                    }}
-                    aria-label={`Status: ${currentUser.isHome ? "I'm home" : "I'm away"}. Tap to change.`}
-                  >
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${
-                        currentUser.isHome ? 'bg-[#3DBE6D]' : 'bg-[#9CA3AF]'
-                      }`}
-                    />
-                    <span>{currentUser.isHome ? "I'm home" : "I'm away"}</span>
-                  </button>
-                </div>
-
                 <h2 className="text-2xl sm:text-3xl font-heading font-black text-[#1F2430] leading-snug">
-                  Hey, {currentUser.name.split(' ')[0]}! 👋
+                  Hey, {currentUser.name.split(' ')[0]}!
                 </h2>
                 <p className="text-base font-semibold text-[#475569]">
                   Keeping your apartment running peacefully today.
@@ -208,7 +171,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {pendingJoinRequests.length > 0 && (
             <ActionCard
               tint="indigo"
-              iconTile={<IconTile icon={<Users className="w-6 h-6" />} color="indigo" size="md" />}
+              iconTile={<IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" />}
               title={`${pendingJoinRequests[0].userName} wants to join your apartment!`}
               subtitle="Doorkeeper approval needed to confirm access"
               detail={
@@ -248,15 +211,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* 3. TODAY'S DAILY FOCUS (DUAL COLUMN AUTO-LAYOUT ON MD+) */}
           <div>
             <SectionTitle
-              title="Today's Priority Focus"
+              title="Today's priority focus"
               subtitle="Immediate action items for your apartment"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* TODAY'S CHORE CARD */}
               <ActionCard
                 tint="teal"
-                iconTile={<IconTile icon={<Sparkles className="w-6 h-6" />} color="teal" size="md" />}
-                title={myTodayChore ? myTodayChore.name : 'All Chores Done! ✨'}
+                iconTile={<IconTile icon={<ClipboardCheck className="w-6 h-6" />} color="teal" size="md" />}
+                title={myTodayChore ? myTodayChore.name : 'All chores done'}
                 subtitle={
                   myTodayChore
                     ? `${myTodayChore.frequency === 'daily' ? 'Daily' : 'Weekly'} • ${myTodayAssignment?.scheduledTime}`
@@ -264,11 +227,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 }
                 detail={
                   myTodayChore ? (
-                    <span className="type-secondary text-[#19B5A5] font-bold">
+                    <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
                       Earn +{(myTodayChore.effortLevel === 'heavy' ? 3 : myTodayChore.effortLevel === 'medium' ? 2 : 1) * 10} streak points
                     </span>
                   ) : (
-                    <span className="type-secondary text-[#19B5A5] font-bold">
+                    <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
                       Streak protected for today
                     </span>
                   )
@@ -280,7 +243,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         variant="teal"
                         size="md"
                         onClick={() => setDoneChoreModalTarget(myTodayChore)}
-                        icon={<CheckCircle2 className="w-4 h-4 stroke-[2.5]" />}
+                        icon={<CheckCircle2 className="w-4 h-4" />}
                       >
                         Done
                       </Button>
@@ -299,7 +262,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       fullWidth
                       onClick={() => onNavigateTab('chores')}
                     >
-                      Open Chores Hub
+                      Open chores hub
                     </Button>
                   )
                 }
@@ -308,7 +271,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {/* BALANCE SNAPSHOT CARD */}
               <ActionCard
                 tint="green"
-                iconTile={<IconTile icon={<HandCoins className="w-6 h-6" />} color="green" size="md" />}
+                iconTile={<IconTile icon={<Wallet className="w-6 h-6" />} color="green" size="md" />}
                 title={
                   <div className="flex items-baseline gap-2">
                     <span className="type-big-number">
@@ -334,27 +297,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     : 'All roomie expenses settled'
                 }
                 detail={
-                  <span className="type-secondary">
+                  <span className="type-secondary text-[14px]">
                     Simplified across all shared purchases
                   </span>
                 }
                 actions={
                   <div className="w-full grid grid-cols-2 gap-3">
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={() => onNavigateTab('expenses')}
-                      icon={<Receipt className="w-4 h-4" />}
-                    >
-                      Settle up
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      onClick={() => onNavigateTab('expenses')}
-                    >
-                      Ledger
-                    </Button>
+                    {netBalance > 0.05 ? (
+                      <>
+                        <Button
+                          variant="primary"
+                          size="md"
+                          onClick={() => onNavigateTab('expenses')}
+                          icon={<Bell className="w-4 h-4" />}
+                        >
+                          Remind
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          onClick={() => onNavigateTab('expenses')}
+                        >
+                          Confirm payment
+                        </Button>
+                      </>
+                    ) : netBalance < -0.05 ? (
+                      <>
+                        <Button
+                          variant="primary"
+                          size="md"
+                          onClick={() => onNavigateTab('expenses')}
+                          icon={<Receipt className="w-4 h-4" />}
+                        >
+                          Settle up
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          onClick={() => onNavigateTab('expenses')}
+                        >
+                          Ledger
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        fullWidth
+                        onClick={() => onNavigateTab('expenses')}
+                      >
+                        View ledger
+                      </Button>
+                    )}
                   </div>
                 }
               />
@@ -365,7 +359,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <SectionTitle
-                title="Apartment Live Feed"
+                title="Apartment live feed"
                 subtitle="Recent actions, agreements, and roomie events"
               />
               <Button
@@ -374,17 +368,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 onClick={() => onNavigateTab('chat')}
                 icon={<MessageSquare className="w-4 h-4" />}
               >
-                Open Chat
+                Open chat
               </Button>
             </div>
 
             {/* Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               {[
-                { id: 'all', label: 'All Updates' },
+                { id: 'all', label: 'All updates' },
                 { id: 'chores', label: 'Chores' },
                 { id: 'expenses', label: 'Money' },
-                { id: 'drafts', label: 'Secret Drafts' },
+                { id: 'drafts', label: 'Secret drafts' },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -440,8 +434,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="type-section-heading">Roomie Presence</h3>
-                <p className="type-secondary">Live apartment status</p>
+                <h3 className="type-section-heading">Roomie presence</h3>
+                <p className="type-secondary text-[14px]">Live apartment status</p>
               </div>
               <Chip
                 status="active"
@@ -474,11 +468,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       />
                       <div>
                         <p className="text-[14px] font-bold text-[#1F2430] flex items-center gap-1.5">
-                          <span>{isMe ? 'You' : r.name.split(' ')[0]}</span>
-                          {isMe && <span className="type-label text-[#FF6B4A] font-extrabold">(You)</span>}
+                          <span>{isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}</span>
                         </p>
-                        <p className="type-secondary text-xs flex items-center gap-1">
-                          <Flame className="w-3 h-3 text-[#FF6B4A] fill-[#FF6B4A]" />
+                        <p className="type-secondary text-[14px] flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5 text-[#FF6B4A] fill-[#FF6B4A]" />
                           {r.streakDays}d streak • {r.points} pts
                         </p>
                       </div>
@@ -500,13 +493,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               fullWidth
               onClick={onToggleHomeStatus}
             >
-              Toggle My Status ({currentUser.isHome ? 'Leave Home' : 'Return Home'})
+              Toggle my status ({currentUser.isHome ? 'Leave home' : 'Return home'})
             </Button>
           </InfoCard>
 
-          {/* 2. QUICK ACTION DOCK */}
+          {/* 2. QUICK ACTION DOCK (Real actions only per Section 17) */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
-            <h3 className="type-section-heading">Quick Actions</h3>
+            <h3 className="type-section-heading">Quick actions</h3>
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
@@ -519,23 +512,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
                   <Receipt className="w-4 h-4" />
                 </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Log Expense</p>
-                <p className="text-xs text-[#64748B]">Split purchases</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  onNavigateTab('chores');
-                }}
-                className="p-3 rounded-2xl bg-[#F0FDFB] border border-[#CCFBEF] text-left hover:bg-[#E0FBF6] transition-all cursor-pointer group"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#19B5A5] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Chores Hub</p>
-                <p className="text-xs text-[#64748B]">Rotations & tasks</p>
+                <p className="text-[14px] font-bold text-[#1F2430]">Log expense</p>
+                <p className="text-[14px] text-[#475569]">Split purchases</p>
               </button>
 
               <button
@@ -547,57 +525,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] transition-all cursor-pointer group"
               >
                 <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
-                  <Calendar className="w-4 h-4" />
+                  <Shuffle className="w-4 h-4" />
                 </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Secret Draft</p>
-                <p className="text-xs text-[#64748B]">Chore preferences</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  onNavigateTab('apartment');
-                }}
-                className="p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-left hover:bg-[#F1F5F9] transition-all cursor-pointer group"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#475569] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
-                  <Building2 className="w-4 h-4" />
-                </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Apartment</p>
-                <p className="text-xs text-[#64748B]">Rules & roomies</p>
+                <p className="text-[14px] font-bold text-[#1F2430]">Pick wishes</p>
+                <p className="text-[14px] text-[#475569]">Chore preferences</p>
               </button>
             </div>
-          </InfoCard>
-
-          {/* 3. APARTMENT SNAPSHOT & INVITE CARD */}
-          <InfoCard padding="md" className="bg-linear-to-br from-[#FAF5FF] to-white border border-[#E9D5FF] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="type-label text-[#7E22CE]">Apartment Code</span>
-              <button
-                type="button"
-                onClick={copyInviteCode}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#7E22CE] hover:underline cursor-pointer"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                Copy
-              </button>
-            </div>
-            <div className="p-3 rounded-2xl bg-white border border-[#E9D5FF] flex items-center justify-between">
-              <span className="font-mono font-black text-xl text-[#1F2430] tracking-wider">
-                #{household.inviteCode}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onNavigateTab('apartment')}
-              >
-                Details
-              </Button>
-            </div>
-            <p className="type-secondary text-xs">
-              Share code with new roomies to request apartment membership.
-            </p>
           </InfoCard>
         </div>
       </div>
@@ -614,14 +547,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               await onCompleteChore(choreId, photoUrl);
             }
             setDoneChoreModalTarget(null);
-            showToast('Chore marked as complete! Streak updated. 🔥', 'success');
+            showToast('Chore marked as complete! Streak updated.', 'success');
           }}
         />
       )}
     </div>
   );
 
-  // Helper renderer for feed cards
+  // Helper renderer for compact feed list rows (Section 17)
   function renderActivityCard(act: ChatMessage) {
     const text = act.body.toLowerCase();
     const isDraft = text.includes('draft') || text.includes('reveal');
@@ -634,96 +567,87 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     const isExpense = text.includes('expense') || text.includes('₺') || text.includes('paid');
 
     const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
-    const cardTint = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
     const icon = isDraft ? (
-      <Sparkles className="w-5 h-5" />
+      <Shuffle className="w-5 h-5" />
     ) : isChore ? (
-      <Sparkles className="w-5 h-5" />
+      <ClipboardCheck className="w-5 h-5" />
     ) : isExpense ? (
       <Receipt className="w-5 h-5" />
     ) : (
       <MessageSquare className="w-5 h-5" />
     );
 
+    const isRevealReady = act.linkTarget?.screen === 'chore-reveal' || text.includes('reveal ready');
+    const isJoinReq = text.includes('wants to join') || text.includes('join request') || act.linkTarget?.screen === 'members';
+    const isExpenseNeedsAction = isExpense && (text.includes('needs your agreement') || text.includes('pending your approval') || text.includes('verify'));
+
+    const timeFormatted = new Date(act.createdAt).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const categoryLabel = isDraft ? 'Chore Draft' : isChore ? 'Chores' : isExpense ? 'Money' : 'Apartment';
+
     return (
-      <ActionCard
+      <div
         key={act.id}
-        tint={cardTint}
-        iconTile={<IconTile icon={icon} color={tileColor} size="sm" />}
-        title={act.body}
-        subtitle={new Date(act.createdAt).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
-        actions={
-          <div className="flex items-center gap-2.5 w-full">
-            {isChore && (
-              <>
-                <Button
-                  variant="teal"
-                  size="sm"
-                  onClick={async () => {
-                    sound.playSuccess();
-                    if (onGiveKudos) {
-                      await onGiveKudos('ch_bathroom', 'u2', 'great_job', 'Great job keeping it fresh!');
-                    }
-                    showToast('Sent kudos to your roomie! 👏', 'success');
-                  }}
-                  icon={<Heart className="w-3.5 h-3.5" />}
-                >
-                  Give kudos
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onNavigateTab('chores')}
-                >
-                  View chore
-                </Button>
-              </>
-            )}
-
-            {isExpense && (
-              <>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    onNavigateTab('expenses');
-                    if (act.linkTarget?.id) onSelectExpense(act.linkTarget.id);
-                  }}
-                  icon={<Receipt className="w-3.5 h-3.5" />}
-                >
-                  View Bill
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onNavigateTab('expenses')}
-                >
-                  Ledger
-                </Button>
-              </>
-            )}
-
-            {(isDraft || (!isChore && !isExpense)) && (
-              <Button
-                variant="indigo"
-                size="sm"
-                onClick={() => {
-                  if (act.linkTarget?.screen === 'chore-reveal') {
-                    onOpenChoreReveal();
-                  } else {
-                    onNavigateTab('chat');
-                  }
-                }}
-              >
-                {act.linkTarget?.screen === 'chore-reveal' ? 'Open Reveal 🎭' : 'Reply in Chat'}
-              </Button>
-            )}
+        className="p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <IconTile icon={icon} color={tileColor} size="sm" />
+          <div className="min-w-0">
+            <p className="text-[14px] font-bold text-[#1F2430] leading-snug">{act.body}</p>
+            <p className="type-secondary text-[14px] flex items-center gap-1.5 mt-0.5">
+              <span>{timeFormatted}</span>
+              <span>•</span>
+              <span className="font-semibold text-[#475569]">{categoryLabel}</span>
+            </p>
           </div>
-        }
-      />
+        </div>
+
+        {/* Action button ONLY on items that need a response */}
+        {isRevealReady && (
+          <div className="shrink-0">
+            <Button
+              variant="indigo"
+              size="sm"
+              onClick={onOpenChoreReveal}
+              icon={<Sparkles className="w-3.5 h-3.5" />}
+            >
+              Reveal schedule
+            </Button>
+          </div>
+        )}
+
+        {isJoinReq && (
+          <div className="shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onNavigateTab('apartment')}
+              icon={<UserPlus className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+            >
+              Review request
+            </Button>
+          </div>
+        )}
+
+        {isExpenseNeedsAction && (
+          <div className="shrink-0">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                onNavigateTab('expenses');
+                if (act.linkTarget?.id) onSelectExpense(act.linkTarget.id);
+              }}
+              icon={<Receipt className="w-3.5 h-3.5" />}
+            >
+              Review receipt
+            </Button>
+          </div>
+        )}
+      </div>
     );
   }
 };

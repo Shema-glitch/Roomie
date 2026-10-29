@@ -4,9 +4,10 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
+import { IconTile } from '../../components/common/IconTile';
 import { User, Chore, KudosType } from '../../types';
 import { sound } from '../../services/sound';
-import { Heart, Sparkles, AlertCircle, Send } from 'lucide-react';
+import { Heart, AlertCircle, Send, Flame } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
 interface KudosModalProps {
@@ -48,7 +49,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
       showToast(
         selectedType === 'needs_look'
           ? `Private note sent to ${targetUser.name.split(' ')[0]}.`
-          : `Kudos sent to ${targetUser.name.split(' ')[0]}! 🌟`,
+          : `Kudos sent to ${targetUser.name.split(' ')[0]}!`,
         'reward'
       );
       setNote('');
@@ -75,8 +76,13 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             <h4 className="type-section-heading">
               {targetUser.name}
             </h4>
-            <p className="type-secondary">
-              Streak: {targetUser.streakDays} days 🔥 • {targetUser.points} points
+            <p className="type-secondary flex items-center gap-1.5 mt-0.5">
+              <span className="inline-flex items-center gap-1 font-bold text-[#FF6B4A]">
+                <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
+                {targetUser.streakDays} days
+              </span>
+              <span>•</span>
+              <span>{targetUser.points} points</span>
             </p>
           </div>
         </div>
@@ -99,11 +105,9 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <div className="w-9 h-9 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
-              <Heart className="w-5 h-5 fill-white" />
-            </div>
+            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="coral" size="sm" />
             <div>
-              <p className="type-body font-bold">Thanks! 💖</p>
+              <p className="type-body font-bold">Thanks!</p>
               <p className="type-secondary">Warm appreciation (+10 pts)</p>
             </div>
           </button>
@@ -120,11 +124,9 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <div className="w-9 h-9 rounded-full bg-[#FFC93C] text-[#8A6200] flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
+            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="amber" size="sm" />
             <div>
-              <p className="type-body font-bold">Great job! 🌟</p>
+              <p className="type-body font-bold">Great job!</p>
               <p className="type-secondary">Super clean result (+10 pts)</p>
             </div>
           </button>
@@ -141,11 +143,9 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <div className="w-9 h-9 rounded-full bg-[#EEF0FD] text-[#5B5BD6] flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5" />
-            </div>
+            <IconTile icon={<AlertCircle className="w-5 h-5" />} color="indigo" size="sm" />
             <div>
-              <p className="type-body font-bold">Needs another look 👀</p>
+              <p className="type-body font-bold">Needs another look</p>
               <p className="type-secondary">
                 Private note between you two
               </p>

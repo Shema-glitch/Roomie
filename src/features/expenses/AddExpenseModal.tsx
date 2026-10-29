@@ -44,7 +44,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
       if (participants.length > 1) {
         setParticipants(participants.filter((id) => id !== userId));
       } else {
-        showToast('At least one roommate must share the expense', 'error');
+        showToast('At least one roomie must share the expense', 'error');
       }
     } else {
       setParticipants([...participants, userId]);
@@ -100,8 +100,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add Shared Expense"
-      subtitle="Paid by you • Fair split with roommates"
+      title="Add shared expense"
+      subtitle="Paid by you • Fair split with roomies"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}

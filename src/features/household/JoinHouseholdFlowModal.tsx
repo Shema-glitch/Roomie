@@ -3,7 +3,8 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
-import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Home } from 'lucide-react';
+import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus } from 'lucide-react';
+import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 
@@ -104,9 +105,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 }}
                 className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
-                <div className="w-12 h-12 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center shrink-0">
-                  <QrCode className="w-6 h-6" />
-                </div>
+                <IconTile icon={<QrCode className="w-6 h-6" />} color="coral" size="md" />
                 <div>
                   <h4 className="type-section-heading">
                     Scan Roomie QR Code
@@ -125,9 +124,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 }}
                 className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
-                <div className="w-12 h-12 rounded-2xl bg-[#E6FAF8] text-[#19B5A5] flex items-center justify-center shrink-0">
-                  <Home className="w-6 h-6" />
-                </div>
+                <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" />
                 <div>
                   <h4 className="type-section-heading">
                     Type Apartment Invite Code
@@ -210,9 +207,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center shrink-0">
-                  <Home className="w-5 h-5" />
-                </div>
+                <IconTile icon={<Building2 className="w-5 h-5" />} color="coral" size="sm" />
                 <div>
                   <h4 className="type-section-heading">
                     Apartment 4B Lefkoşa

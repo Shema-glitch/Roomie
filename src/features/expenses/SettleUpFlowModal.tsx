@@ -221,7 +221,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                       </div>
                       {isSelected && (
                         <div className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
-                          <Check className="w-4 h-4 stroke-[3]" />
+                          <Check className="w-4 h-4" />
                         </div>
                       )}
                     </div>
@@ -368,7 +368,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
               </div>
 
               <div className="type-secondary bg-white p-3 rounded-xl border border-[#E6E8EE] leading-relaxed">
-                💡 <strong>Fairness principle:</strong> Roomie will notify {recipient?.name.split(' ')[0]} to confirm receipt. Both taps are required before the payment is counted as fully settled.
+                <strong>Fairness principle:</strong> Roomie will notify {recipient?.name.split(' ')[0]} to confirm receipt. Both taps are required before the payment is counted as fully settled.
               </div>
             </Card>
 
@@ -381,9 +381,9 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 size="md"
                 disabled={loading}
                 onClick={handleConfirmPaid}
-                icon={<Check className="w-4 h-4 stroke-[3]" />}
+                icon={<Check className="w-4 h-4" />}
               >
-                {loading ? 'Submitting...' : 'Mark paid'}
+                {loading ? 'Submitting...' : 'Mark as paid'}
               </Button>
             </div>
           </div>

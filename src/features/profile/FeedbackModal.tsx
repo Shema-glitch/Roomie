@@ -36,7 +36,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     <Modal
       isOpen={isOpen}
       onClose={handleReset}
-      title={isSubmitted ? 'Thank You! 💖' : 'Feedback & Suggestions'}
+      title={isSubmitted ? 'Thank you' : 'Feedback and suggestions'}
       subtitle={
         isSubmitted
           ? 'You help us make student living wonderful'
@@ -48,7 +48,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
           <MascotView
             state="celebrating"
             size="lg"
-            bubbleText="You are awesome! 🎉"
+            bubbleText="You are awesome!"
           />
           <h3 className="type-title">
             Thanks for sharing your thoughts
