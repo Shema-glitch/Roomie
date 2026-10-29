@@ -159,18 +159,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {/* TOP BAR / PROGRESS HEADER */}
       {stage !== 'welcome' && (
         <div className="pt-2 pb-4 flex items-center gap-3 w-full">
-          <Button
-            variant="tertiary"
-            size="sm"
+          <button
+            type="button"
             onClick={handleBack}
-            icon={<ChevronLeft className="w-4 h-4 text-[#475569]" />}
+            className="w-10 h-10 rounded-2xl border-2 border-[#E6E8EE] bg-white flex items-center justify-center text-[#475569] hover:text-[#1F2430] hover:border-[#CBD5E1] transition-all cursor-pointer shadow-xs active:translate-y-[2px] shrink-0"
             aria-label="Go back"
           >
-            Back
-          </Button>
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
           {stage !== 'signin' && (
-            <div className="flex-1 h-3 bg-[#E6E8EE] rounded-full overflow-hidden p-0.5">
+            <div className="flex-1 h-3.5 bg-[#E6E8EE] rounded-full overflow-hidden p-0.5">
               <div
                 className="h-full bg-[#FF6B4A] rounded-full transition-all duration-300"
                 style={{ width: `${getProgress()}%` }}
