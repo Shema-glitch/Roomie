@@ -154,6 +154,12 @@ function MainApp() {
     }
     return false;
   });
+  const [splashRevealed, setSplashRevealed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !!sessionStorage.getItem('roomie_splash_seen');
+    }
+    return true;
+  });
 
   const handleManualSync = () => {
     sound.playTap();
@@ -331,7 +337,9 @@ function MainApp() {
       <>
         {showSplash && (
           <SplashScreen
+            onRevealStart={() => setSplashRevealed(true)}
             onFinish={() => {
+              setSplashRevealed(true);
               setShowSplash(false);
               if (typeof window !== 'undefined') {
                 sessionStorage.setItem('roomie_splash_seen', '1');
@@ -340,6 +348,7 @@ function MainApp() {
           />
         )}
         <WelcomeScreen
+          isRevealed={splashRevealed}
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
             if (res.success) {
@@ -445,7 +454,9 @@ function MainApp() {
     >
       {showSplash && (
         <SplashScreen
+          onRevealStart={() => setSplashRevealed(true)}
           onFinish={() => {
+            setSplashRevealed(true);
             setShowSplash(false);
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('roomie_splash_seen', '1');

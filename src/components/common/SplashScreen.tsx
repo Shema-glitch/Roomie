@@ -3,9 +3,10 @@ import { MascotView } from './MascotView';
 
 interface SplashScreenProps {
   onFinish: () => void;
+  onRevealStart?: () => void;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealStart }) => {
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
 
@@ -20,8 +21,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
       if (pct >= 100) {
         clearInterval(interval);
-        // Start the slow circular opening transition
+        // Start the slow circular transition shrinking upward to reveal content
         setExiting(true);
+        onRevealStart?.();
 
         // Allow 1.2s for the slow circle transition before unmounting
         setTimeout(() => {
@@ -31,7 +33,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
     }, 40);
 
     return () => clearInterval(interval);
-  }, [onFinish]);
+  }, [onFinish, onRevealStart]);
 
   const getLoadingMessage = (p: number) => {
     if (p < 25) return 'Waking up Roomie...';
@@ -46,11 +48,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         exiting ? 'pointer-events-none' : ''
       }`}
       style={{
-        clipPath: exiting ? 'circle(0% at 50% 50%)' : 'circle(150% at 50% 50%)',
+        clipPath: exiting ? 'circle(0% at 50% -10%)' : 'circle(150% at 50% 50%)',
         transition: 'clip-path 1.2s cubic-bezier(0.65, 0, 0.35, 1)',
       }}
     >
-      <div className="flex flex-col items-center space-y-6 text-center px-6 max-w-xs w-full">
+      <div
+        className={`flex flex-col items-center space-y-6 text-center px-6 max-w-xs w-full transition-all duration-700 ease-out ${
+          exiting ? 'opacity-0 -translate-y-12 scale-95' : 'opacity-100 translate-y-0 scale-100'
+        }`}
+      >
         {/* Mascot in tactile white sticker container */}
         <div className="w-32 h-32 rounded-full bg-white shadow-2xl flex items-center justify-center p-3 border-4 border-white/30 animate-bounce-soft">
           <MascotView state="celebrating" size="md" />

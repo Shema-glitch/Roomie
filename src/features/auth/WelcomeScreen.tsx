@@ -28,6 +28,7 @@ interface WelcomeScreenProps {
   onSignIn: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
   onSignUp: (name: string, email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
   onQuickStart: () => void;
+  isRevealed?: boolean;
 }
 
 type ScreenStage =
@@ -44,6 +45,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onSignIn,
   onSignUp,
   onQuickStart,
+  isRevealed = true,
 }) => {
   const { showToast } = useToast();
 
@@ -187,51 +189,61 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 1. WELCOME SCREEN (Duolingo Landing) */}
       {stage === 'welcome' && (
-        <>
+        <div key="welcome" className="flex-1 flex flex-col justify-between">
           <div className="pt-8 sm:pt-14 flex flex-col items-center text-center">
-            <MascotView
-              state="celebrating"
-              size="xl"
-              bubbleText="Welcome to Roomie!"
-            />
+            <div className={isRevealed ? 'animate-pop-in' : 'opacity-0'}>
+              <MascotView
+                state="celebrating"
+                size="xl"
+                bubbleText="Welcome to Roomie!"
+              />
+            </div>
 
             <div className="mt-5 space-y-2">
-              <h1 className="font-heading font-black text-[28px] sm:text-[34px] leading-tight text-[#1F2430] tracking-tight">
+              <h1 className={`font-heading font-black text-[28px] sm:text-[34px] leading-tight text-[#1F2430] tracking-tight ${
+                isRevealed ? 'animate-fade-up delay-150' : 'opacity-0'
+              }`}>
                 The joyful way to share a home.
               </h1>
-              <p className="type-body text-[#6B7280] max-w-xs mx-auto text-sm sm:text-base leading-relaxed">
+              <p className={`type-body text-[#6B7280] max-w-xs mx-auto text-sm sm:text-base leading-relaxed ${
+                isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
+              }`}>
                 Fair chores, quiet splits, and happy flatmates living in harmony.
               </p>
             </div>
           </div>
 
           <div className="my-8 space-y-3.5">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => {
-                sound.playTap();
-                setStage('onboarding_intro');
-              }}
-              icon={<ArrowRight className="w-5 h-5" />}
-            >
-              Get Started
-            </Button>
+            <div className={isRevealed ? 'animate-fade-up delay-300' : 'opacity-0'}>
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={() => {
+                  sound.playTap();
+                  setStage('onboarding_intro');
+                }}
+                icon={<ArrowRight className="w-5 h-5" />}
+              >
+                Get Started
+              </Button>
+            </div>
 
-            <Button
-              variant="secondary"
-              size="lg"
-              fullWidth
-              onClick={() => {
-                sound.playTap();
-                setStage('signin');
-              }}
-            >
-              I already have an account
-            </Button>
+            <div className={isRevealed ? 'animate-fade-up delay-350' : 'opacity-0'}>
+              <Button
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={() => {
+                  sound.playTap();
+                  setStage('signin');
+                }}
+              >
+                I already have an account
+              </Button>
+            </div>
 
-            <div className="pt-2 text-center">
+            <div className={`pt-2 text-center ${isRevealed ? 'animate-fade-up delay-400' : 'opacity-0'}`}>
               <button
                 type="button"
                 onClick={onQuickStart}
@@ -243,25 +255,27 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
 
-          <div className="text-center pb-2">
+          <div className={`text-center pb-2 ${isRevealed ? 'animate-fade-in delay-500' : 'opacity-0'}`}>
             <p className="type-secondary text-xs text-[#8F9CAE] leading-relaxed max-w-xs mx-auto">
               By continuing, you agree to Roomie's Community Guidelines and Privacy Policy.
             </p>
           </div>
-        </>
+        </div>
       )}
 
       {/* 2. ONBOARDING INTRO (Duolingo: "Just 2 questions before...") */}
       {stage === 'onboarding_intro' && (
-        <div className="flex-1 flex flex-col justify-between py-6 text-center items-center">
-          <div className="space-y-6 my-auto max-w-xs animate-bounce-soft">
-            <MascotView
-              state="celebrating"
-              size="xl"
-              bubbleText="Ready for flat harmony?"
-            />
+        <div key="onboarding_intro" className="flex-1 flex flex-col justify-between py-6 text-center items-center">
+          <div className="space-y-6 my-auto max-w-xs">
+            <div className="animate-pop-in">
+              <MascotView
+                state="celebrating"
+                size="xl"
+                bubbleText="Ready for flat harmony?"
+              />
+            </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 animate-fade-up delay-150">
               <h2 className="font-heading font-black text-3xl text-[#1F2430] leading-tight">
                 Just <span className="text-[#FF6B4A]">2 quick questions</span> before your first use!
               </h2>
@@ -271,7 +285,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
 
-          <div className="w-full pt-6">
+          <div className="w-full pt-6 animate-fade-up delay-300">
             <Button
               variant="primary"
               size="lg"
@@ -289,9 +303,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 2. ONBOARDING: QUESTION 1 (Situation) */}
       {stage === 'onboarding_situation' && (
-        <div className="flex-1 flex flex-col justify-between py-4">
+        <div key="onboarding_situation" className="flex-1 flex flex-col justify-between py-4">
           <div className="space-y-6">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 animate-fade-up">
               <MascotView state="thinking" size="sm" />
               <div className="space-y-1">
                 <h2 className="font-heading font-black text-2xl text-[#1F2430]">
@@ -305,48 +319,49 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
             <div className="space-y-3">
               {[
-                { id: 'uni_flat', icon: <Home className="w-5 h-5" />, title: 'Student apartment / University flat', desc: 'Sharing with friends or classmates' },
-                { id: 'shared_flat', icon: <Users className="w-5 h-5" />, title: 'Private shared flat', desc: 'Young professionals or friends sharing rent' },
-                { id: 'new_roomies', icon: <Smile className="w-5 h-5" />, title: 'Moving into a new place soon', desc: 'Setting up rules & chores from scratch' },
-                { id: 'exploring', icon: <Compass className="w-5 h-5" />, title: 'Just curious & exploring', desc: 'Checking out how Roomie works' },
+                { id: 'uni_flat', icon: <Home className="w-5 h-5" />, title: 'Student apartment / University flat', desc: 'Sharing with friends or classmates', delay: 'delay-75' },
+                { id: 'shared_flat', icon: <Users className="w-5 h-5" />, title: 'Private shared flat', desc: 'Young professionals or friends sharing rent', delay: 'delay-150' },
+                { id: 'new_roomies', icon: <Smile className="w-5 h-5" />, title: 'Moving into a new place soon', desc: 'Setting up rules & chores from scratch', delay: 'delay-200' },
+                { id: 'exploring', icon: <Compass className="w-5 h-5" />, title: 'Just curious & exploring', desc: 'Checking out how Roomie works', delay: 'delay-250' },
               ].map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    sound.playTap();
-                    setSituation(opt.id);
-                  }}
-                  className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.99] ${
-                    situation === opt.id
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED] shadow-xs'
-                      : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3.5">
-                    <span className={`p-2.5 rounded-xl ${situation === opt.id ? 'bg-[#FF6B4A] text-white' : 'bg-[#F1F3F9] text-[#475569]'}`}>
-                      {opt.icon}
-                    </span>
-                    <div>
-                      <h4 className="font-heading font-black text-[15px] text-[#1F2430]">
-                        {opt.title}
-                      </h4>
-                      <p className="type-secondary text-xs text-[#6B7280]">
-                        {opt.desc}
-                      </p>
+                <div key={opt.id} className={`animate-fade-up ${opt.delay}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playTap();
+                      setSituation(opt.id);
+                    }}
+                    className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.99] ${
+                      situation === opt.id
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED] shadow-xs'
+                        : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className={`p-2.5 rounded-xl ${situation === opt.id ? 'bg-[#FF6B4A] text-white' : 'bg-[#F1F3F9] text-[#475569]'}`}>
+                        {opt.icon}
+                      </span>
+                      <div>
+                        <h4 className="font-heading font-black text-[15px] text-[#1F2430]">
+                          {opt.title}
+                        </h4>
+                        <p className="type-secondary text-xs text-[#6B7280]">
+                          {opt.desc}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {situation === opt.id && (
-                    <span className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-                </button>
+                    {situation === opt.id && (
+                      <span className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-6 animate-fade-up delay-300">
             <Button
               variant="primary"
               size="lg"
@@ -365,15 +380,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 3. MOTIVATION INTERSTITIAL 1 (Duolingo Cheer) */}
       {stage === 'onboarding_motivate_1' && (
-        <div className="flex-1 flex flex-col justify-between py-6 text-center items-center">
+        <div key="onboarding_motivate_1" className="flex-1 flex flex-col justify-between py-6 text-center items-center">
           <div className="space-y-6 my-auto max-w-xs">
-            <MascotView
-              state="cheering"
-              size="xl"
-              bubbleText="You're in good hands!"
-            />
+            <div className="animate-pop-in">
+              <MascotView
+                state="cheering"
+                size="xl"
+                bubbleText="You're in good hands!"
+              />
+            </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 animate-fade-up delay-150">
               <h2 className="font-heading font-black text-2xl text-[#1F2430]">
                 88% of flatmates say clear chores prevent house drama.
               </h2>
@@ -383,7 +400,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
 
-          <div className="w-full pt-6">
+          <div className="w-full pt-6 animate-fade-up delay-300">
             <Button
               variant="primary"
               size="lg"
@@ -401,9 +418,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 4. ONBOARDING: QUESTION 2 (Biggest Headache) */}
       {stage === 'onboarding_headache' && (
-        <div className="flex-1 flex flex-col justify-between py-4">
+        <div key="onboarding_headache" className="flex-1 flex flex-col justify-between py-4">
           <div className="space-y-6">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 animate-fade-up">
               <MascotView state="thinking" size="sm" />
               <div className="space-y-1">
                 <h2 className="font-heading font-black text-2xl text-[#1F2430]">
@@ -417,43 +434,44 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
             <div className="space-y-3">
               {[
-                { id: 'dishes', icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Dishes piling up in the sink' },
-                { id: 'bills', icon: <Receipt className="w-5 h-5" />, title: 'Splitting grocery bills & utilities' },
-                { id: 'trash', icon: <Trash2 className="w-5 h-5" />, title: 'Knowing who takes out the trash & bins' },
-                { id: 'fairness', icon: <Scale className="w-5 h-5" />, title: 'One person feeling like they do all the cleaning' },
+                { id: 'dishes', icon: <UtensilsCrossed className="w-5 h-5" />, title: 'Dishes piling up in the sink', delay: 'delay-75' },
+                { id: 'bills', icon: <Receipt className="w-5 h-5" />, title: 'Splitting grocery bills & utilities', delay: 'delay-150' },
+                { id: 'trash', icon: <Trash2 className="w-5 h-5" />, title: 'Knowing who takes out the trash & bins', delay: 'delay-200' },
+                { id: 'fairness', icon: <Scale className="w-5 h-5" />, title: 'One person feeling like they do all the cleaning', delay: 'delay-250' },
               ].map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    sound.playTap();
-                    setHeadache(opt.id);
-                  }}
-                  className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.99] ${
-                    headache === opt.id
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED] shadow-xs'
-                      : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3.5">
-                    <span className={`p-2.5 rounded-xl ${headache === opt.id ? 'bg-[#FF6B4A] text-white' : 'bg-[#F1F3F9] text-[#475569]'}`}>
-                      {opt.icon}
-                    </span>
-                    <h4 className="font-heading font-black text-[15px] text-[#1F2430]">
-                      {opt.title}
-                    </h4>
-                  </div>
-                  {headache === opt.id && (
-                    <span className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-                </button>
+                <div key={opt.id} className={`animate-fade-up ${opt.delay}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playTap();
+                      setHeadache(opt.id);
+                    }}
+                    className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between gap-3 transition-all cursor-pointer active:scale-[0.99] ${
+                      headache === opt.id
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED] shadow-xs'
+                        : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <span className={`p-2.5 rounded-xl ${headache === opt.id ? 'bg-[#FF6B4A] text-white' : 'bg-[#F1F3F9] text-[#475569]'}`}>
+                        {opt.icon}
+                      </span>
+                      <h4 className="font-heading font-black text-[15px] text-[#1F2430]">
+                        {opt.title}
+                      </h4>
+                    </div>
+                    {headache === opt.id && (
+                      <span className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
 
-          <div className="pt-6">
+          <div className="pt-6 animate-fade-up delay-300">
             <Button
               variant="primary"
               size="lg"
@@ -472,15 +490,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 5. MOTIVATION INTERSTITIAL 2 (Secret Draft Solution) */}
       {stage === 'onboarding_motivate_2' && (
-        <div className="flex-1 flex flex-col justify-between py-6 text-center items-center">
+        <div key="onboarding_motivate_2" className="flex-1 flex flex-col justify-between py-6 text-center items-center">
           <div className="space-y-6 my-auto max-w-xs">
-            <MascotView
-              state="celebrating"
-              size="xl"
-              bubbleText="Say goodbye to sticky notes!"
-            />
+            <div className="animate-pop-in">
+              <MascotView
+                state="celebrating"
+                size="xl"
+                bubbleText="Say goodbye to sticky notes!"
+              />
+            </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 animate-fade-up delay-150">
               <h2 className="font-heading font-black text-2xl text-[#1F2430]">
                 With the Secret Draft, chores balance out automatically.
               </h2>
@@ -490,7 +510,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
 
-          <div className="w-full pt-6">
+          <div className="w-full pt-6 animate-fade-up delay-300">
             <Button
               variant="primary"
               size="lg"
@@ -508,9 +528,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 6. CREATE PROFILE (Sign Up Form — Only after engaging) */}
       {stage === 'signup' && (
-        <div className="flex-1 flex flex-col justify-between py-2">
+        <div key="signup" className="flex-1 flex flex-col justify-between py-2">
           <div className="space-y-4">
-            <div className="text-center space-y-1">
+            <div className="text-center space-y-1 animate-fade-up">
               <MascotView state="cheering" size="sm" bubbleText="Almost there!" />
               <h2 className="font-heading font-black text-2xl text-[#1F2430]">
                 Save your flat profile
@@ -520,80 +540,82 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               </p>
             </div>
 
-            <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
-              <form onSubmit={handleSignUpSubmit} className="space-y-4">
-                <div>
-                  <label className="type-label block mb-1.5 text-xs">Full name</label>
-                  <div className="relative flex items-center">
-                    <User className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Alex Johnson"
-                      autoFocus
-                      required
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
-                    />
+            <div className="animate-fade-up delay-150">
+              <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+                <form onSubmit={handleSignUpSubmit} className="space-y-4">
+                  <div>
+                    <label className="type-label block mb-1.5 text-xs">Full name</label>
+                    <div className="relative flex items-center">
+                      <User className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Alex Johnson"
+                        autoFocus
+                        required
+                        className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="type-label block mb-1.5 text-xs">Email address</label>
-                  <div className="relative flex items-center">
-                    <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@university.edu"
-                      required
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
-                    />
+                  <div>
+                    <label className="type-label block mb-1.5 text-xs">Email address</label>
+                    <div className="relative flex items-center">
+                      <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@university.edu"
+                        required
+                        className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="type-label block mb-1.5 text-xs">Create password</label>
-                  <div className="relative flex items-center">
-                    <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      required
-                      className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
-                      aria-label="Toggle password visibility"
+                  <div>
+                    <label className="type-label block mb-1.5 text-xs">Create password</label>
+                    <div className="relative flex items-center">
+                      <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="At least 6 characters"
+                        required
+                        className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
+                        aria-label="Toggle password visibility"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <span className="text-[12px] text-[#6B7280] mt-1 block">
+                      Use at least 6 characters.
+                    </span>
+                  </div>
+
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      disabled={loading}
+                      type="submit"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+                      {loading ? 'Creating account...' : 'Create Account & Enter'}
+                    </Button>
                   </div>
-                  <span className="text-[12px] text-[#6B7280] mt-1 block">
-                    Use at least 6 characters.
-                  </span>
-                </div>
+                </form>
+              </Card>
+            </div>
 
-                <div className="pt-2">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    disabled={loading}
-                    type="submit"
-                  >
-                    {loading ? 'Creating account...' : 'Create Account & Enter'}
-                  </Button>
-                </div>
-              </form>
-            </Card>
-
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 animate-fade-in delay-250">
               <button
                 type="button"
                 onClick={() => setStage('signin')}
@@ -614,9 +636,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
       {/* 7. LOG IN (Direct Log In for returning users) */}
       {stage === 'signin' && (
-        <div className="flex-1 flex flex-col justify-between py-2">
+        <div key="signin" className="flex-1 flex flex-col justify-between py-2">
           <div className="space-y-4">
-            <div className="text-center space-y-1">
+            <div className="text-center space-y-1 animate-fade-up">
               <MascotView state="thinking" size="md" bubbleText="Welcome back!" />
               <h2 className="font-heading font-black text-2xl text-[#1F2430]">
                 Log in to your flat
@@ -626,90 +648,92 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               </p>
             </div>
 
-            <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
-              <form onSubmit={handleSignInSubmit} className="space-y-4">
-                <div>
-                  <label className="type-label block mb-1.5 text-xs">Email address</label>
-                  <div className="relative flex items-center">
-                    <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@university.edu"
-                      autoFocus
-                      required
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
-                    />
-                  </div>
-                </div>
-
-                {!useMagicLink && (
+            <div className="animate-fade-up delay-150">
+              <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+                <form onSubmit={handleSignInSubmit} className="space-y-4">
                   <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="type-label block text-xs">Password</label>
-                      <button
-                        type="button"
-                        onClick={() => setUseMagicLink(true)}
-                        className="text-[12px] font-bold text-[#FF6B4A] hover:underline cursor-pointer"
-                      >
-                        Email magic link instead
-                      </button>
-                    </div>
+                    <label className="type-label block mb-1.5 text-xs">Email address</label>
                     <div className="relative flex items-center">
-                      <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                      <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                       <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required={!useMagicLink}
-                        className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@university.edu"
+                        autoFocus
+                        required
+                        className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
-                        aria-label="Toggle password visibility"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
                     </div>
                   </div>
-                )}
 
-                {useMagicLink && (
-                  <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFDDA0] flex items-center justify-between gap-2 text-xs text-[#8A6300]">
-                    <span>We will send a 1-tap sign-in link to your email.</span>
-                    <button
-                      type="button"
-                      onClick={() => setUseMagicLink(false)}
-                      className="font-bold underline cursor-pointer shrink-0"
+                  {!useMagicLink && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="type-label block text-xs">Password</label>
+                        <button
+                          type="button"
+                          onClick={() => setUseMagicLink(true)}
+                          className="text-[12px] font-bold text-[#FF6B4A] hover:underline cursor-pointer"
+                        >
+                          Email magic link instead
+                        </button>
+                      </div>
+                      <div className="relative flex items-center">
+                        <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          required={!useMagicLink}
+                          className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
+                          aria-label="Toggle password visibility"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {useMagicLink && (
+                    <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFDDA0] flex items-center justify-between gap-2 text-xs text-[#8A6300]">
+                      <span>We will send a 1-tap sign-in link to your email.</span>
+                      <button
+                        type="button"
+                        onClick={() => setUseMagicLink(false)}
+                        className="font-bold underline cursor-pointer shrink-0"
+                      >
+                        Use password
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      disabled={loading}
+                      type="submit"
                     >
-                      Use password
-                    </button>
+                      {loading
+                        ? 'Logging in...'
+                        : useMagicLink
+                        ? 'Send Magic Link ✉️'
+                        : 'Log In'}
+                    </Button>
                   </div>
-                )}
+                </form>
+              </Card>
+            </div>
 
-                <div className="pt-2">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    disabled={loading}
-                    type="submit"
-                  >
-                    {loading
-                      ? 'Logging in...'
-                      : useMagicLink
-                      ? 'Send Magic Link ✉️'
-                      : 'Log In'}
-                  </Button>
-                </div>
-              </form>
-            </Card>
-
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 animate-fade-in delay-250">
               <button
                 type="button"
                 onClick={() => setStage('onboarding_situation')}
