@@ -6,29 +6,101 @@
 import React, { useState, useEffect } from 'react';
 import { ToastProvider, useToast } from './components/common/Toast';
 import { OfflineBanner } from './components/common/OfflineBanner';
-import { WelcomeScreen } from './features/auth/WelcomeScreen';
-import { OnboardingModal } from './features/auth/OnboardingModal';
-import { HomeScreen } from './features/feed/HomeScreen';
-import { ChoresScreen } from './features/chores/ChoresScreen';
-import { SecretDraftScreen } from './features/chores/SecretDraftScreen';
-import { WaitingDraftScreen } from './features/chores/WaitingDraftScreen';
-import { ChoreRevealScreen } from './features/chores/ChoreRevealScreen';
-import { ExpensesScreen } from './features/expenses/ExpensesScreen';
-import { ChatScreen } from './features/chat/ChatScreen';
-import { ApartmentScreen } from './features/members/ApartmentScreen';
-import { HouseholdSwitcherModal } from './features/household/HouseholdSwitcherModal';
-import { CreateHouseholdFlowModal } from './features/household/CreateHouseholdFlowModal';
-import { JoinHouseholdFlowModal } from './features/household/JoinHouseholdFlowModal';
-import { JoinRequestReviewModal } from './features/household/JoinRequestReviewModal';
-import { ShowQRModal } from './features/household/ShowQRModal';
-import { NotificationsModal } from './features/notifications/NotificationsModal';
-import { ProfileSettingsModal } from './features/profile/ProfileSettingsModal';
-import { FeedbackModal } from './features/profile/FeedbackModal';
 import { SyncStatusPanel, SyncStatusType } from './components/common/SyncStatusPanel';
 import { Avatar } from './components/common/Avatar';
 import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
 import { sound } from './services/sound';
+
+// Lazy-loaded Screens & Modals with skeleton fallbacks
+const WelcomeScreen = React.lazy(() =>
+  import('./features/auth/WelcomeScreen').then((m) => ({ default: m.WelcomeScreen }))
+);
+const OnboardingModal = React.lazy(() =>
+  import('./features/auth/OnboardingModal').then((m) => ({ default: m.OnboardingModal }))
+);
+const HomeScreen = React.lazy(() =>
+  import('./features/feed/HomeScreen').then((m) => ({ default: m.HomeScreen }))
+);
+const ChoresScreen = React.lazy(() =>
+  import('./features/chores/ChoresScreen').then((m) => ({ default: m.ChoresScreen }))
+);
+const SecretDraftScreen = React.lazy(() =>
+  import('./features/chores/SecretDraftScreen').then((m) => ({ default: m.SecretDraftScreen }))
+);
+const WaitingDraftScreen = React.lazy(() =>
+  import('./features/chores/WaitingDraftScreen').then((m) => ({ default: m.WaitingDraftScreen }))
+);
+const ChoreRevealScreen = React.lazy(() =>
+  import('./features/chores/ChoreRevealScreen').then((m) => ({ default: m.ChoreRevealScreen }))
+);
+const ExpensesScreen = React.lazy(() =>
+  import('./features/expenses/ExpensesScreen').then((m) => ({ default: m.ExpensesScreen }))
+);
+const ChatScreen = React.lazy(() =>
+  import('./features/chat/ChatScreen').then((m) => ({ default: m.ChatScreen }))
+);
+const ApartmentScreen = React.lazy(() =>
+  import('./features/members/ApartmentScreen').then((m) => ({ default: m.ApartmentScreen }))
+);
+const HouseholdSwitcherModal = React.lazy(() =>
+  import('./features/household/HouseholdSwitcherModal').then((m) => ({
+    default: m.HouseholdSwitcherModal,
+  }))
+);
+const CreateHouseholdFlowModal = React.lazy(() =>
+  import('./features/household/CreateHouseholdFlowModal').then((m) => ({
+    default: m.CreateHouseholdFlowModal,
+  }))
+);
+const JoinHouseholdFlowModal = React.lazy(() =>
+  import('./features/household/JoinHouseholdFlowModal').then((m) => ({
+    default: m.JoinHouseholdFlowModal,
+  }))
+);
+const JoinRequestReviewModal = React.lazy(() =>
+  import('./features/household/JoinRequestReviewModal').then((m) => ({
+    default: m.JoinRequestReviewModal,
+  }))
+);
+const ShowQRModal = React.lazy(() =>
+  import('./features/household/ShowQRModal').then((m) => ({ default: m.ShowQRModal }))
+);
+const NotificationsModal = React.lazy(() =>
+  import('./features/notifications/NotificationsModal').then((m) => ({
+    default: m.NotificationsModal,
+  }))
+);
+const ProfileSettingsModal = React.lazy(() =>
+  import('./features/profile/ProfileSettingsModal').then((m) => ({
+    default: m.ProfileSettingsModal,
+  }))
+);
+const FeedbackModal = React.lazy(() =>
+  import('./features/profile/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
+);
+
+// Fallback Skeletons
+const ScreenSkeleton: React.FC = () => (
+  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4 animate-pulse">
+    <div className="h-28 bg-[#E6E8EE]/70 rounded-3xl w-full" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="h-44 bg-[#E6E8EE]/70 rounded-3xl" />
+      <div className="h-44 bg-[#E6E8EE]/70 rounded-3xl" />
+    </div>
+    <div className="h-64 bg-[#E6E8EE]/70 rounded-3xl w-full" />
+  </div>
+);
+
+const ModalSkeleton: React.FC = () => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-xs">
+    <div className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 animate-pulse">
+      <div className="h-6 bg-[#E6E8EE] rounded-xl w-1/2" />
+      <div className="h-20 bg-[#E6E8EE]/60 rounded-2xl" />
+      <div className="h-10 bg-[#E6E8EE] rounded-xl w-full" />
+    </div>
+  </div>
+);
 import {
   User,
   Household,
@@ -238,71 +310,79 @@ function MainApp() {
   // Not signed in
   if (!isAuthenticated) {
     return (
-      <WelcomeScreen
-        onSignIn={(email) => {
-          setIsAuthenticated(true);
-          setShowOnboarding(true);
-        }}
-        onSignUp={(name, email) => {
-          api.updateCurrentUser({ name, email });
-          setCurrentUser((prev) => (prev ? { ...prev, name, email } : null));
-          setIsAuthenticated(true);
-          setShowOnboarding(true);
-        }}
-        onQuickStart={() => {
-          setIsAuthenticated(true);
-        }}
-      />
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <WelcomeScreen
+          onSignIn={(email) => {
+            setIsAuthenticated(true);
+            setShowOnboarding(true);
+          }}
+          onSignUp={(name, email) => {
+            api.updateCurrentUser({ name, email });
+            setCurrentUser((prev) => (prev ? { ...prev, name, email } : null));
+            setIsAuthenticated(true);
+            setShowOnboarding(true);
+          }}
+          onQuickStart={() => {
+            setIsAuthenticated(true);
+          }}
+        />
+      </React.Suspense>
     );
   }
 
   // Full-screen Chore Reveal
   if (draftFlowState === 'reveal') {
     return (
-      <ChoreRevealScreen
-        assignments={draftRound.assignments}
-        chores={chores}
-        users={members.map((m) => m.user)}
-        reducedMotion={settings.reducedMotion}
-        onFinish={async (updatedAssignments) => {
-          if (updatedAssignments) {
-            await api.updateAssignments(updatedAssignments);
-          }
-          await api.markDraftRevealed();
-          await loadData();
-          setDraftFlowState('none');
-          setActiveTab('chores');
-        }}
-      />
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <ChoreRevealScreen
+          assignments={draftRound.assignments}
+          chores={chores}
+          users={members.map((m) => m.user)}
+          reducedMotion={settings.reducedMotion}
+          onFinish={async (updatedAssignments) => {
+            if (updatedAssignments) {
+              await api.updateAssignments(updatedAssignments);
+            }
+            await api.markDraftRevealed();
+            await loadData();
+            setDraftFlowState('none');
+            setActiveTab('chores');
+          }}
+        />
+      </React.Suspense>
     );
   }
 
   // Full-screen Secret Draft Picks
   if (draftFlowState === 'picking') {
     return (
-      <SecretDraftScreen
-        chores={chores}
-        roommates={members.map((m) => m.user)}
-        currentUser={currentUser}
-        onSubmitPicks={async (picks: DraftPick[]) => {
-          await api.submitDraftPicks(picks);
-          await loadData();
-          setDraftFlowState('waiting');
-        }}
-        onCancel={() => setDraftFlowState('none')}
-      />
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <SecretDraftScreen
+          chores={chores}
+          roommates={members.map((m) => m.user)}
+          currentUser={currentUser}
+          onSubmitPicks={async (picks: DraftPick[]) => {
+            await api.submitDraftPicks(picks);
+            await loadData();
+            setDraftFlowState('waiting');
+          }}
+          onCancel={() => setDraftFlowState('none')}
+        />
+      </React.Suspense>
     );
   }
 
   // Full-screen Waiting for draft picks
   if (draftFlowState === 'waiting') {
     return (
-      <WaitingDraftScreen
-        draftRound={draftRound}
-        roommates={members.map((m) => m.user)}
-        onStartReveal={() => setDraftFlowState('reveal')}
-        onEditPicks={() => setDraftFlowState('picking')}
-      />
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <WaitingDraftScreen
+          draftRound={draftRound}
+          roommates={members.map((m) => m.user)}
+          onStartReveal={() => setDraftFlowState('reveal')}
+          onEditPicks={() => setDraftFlowState('picking')}
+        />
+      </React.Suspense>
     );
   }
 
@@ -491,7 +571,8 @@ function MainApp() {
 
       {/* MAIN VIEW CONTENT - Fluid Responsive Container */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 overflow-y-auto">
-        {activeTab === 'feed' && (
+        <React.Suspense fallback={<ScreenSkeleton />}>
+          {activeTab === 'feed' && (
           <HomeScreen
             currentUser={currentUser}
             household={activeHousehold}
@@ -666,6 +747,7 @@ function MainApp() {
             }}
           />
         )}
+        </React.Suspense>
       </main>
 
       {/* BOTTOM NAVIGATION BAR - Mobile only */}
@@ -709,156 +791,163 @@ function MainApp() {
       </nav>
 
       {/* MODALS */}
-      <OnboardingModal
-        isOpen={showOnboarding}
-        onComplete={() => setShowOnboarding(false)}
-      />
+      <React.Suspense fallback={<ModalSkeleton />}>
+        {showOnboarding && (
+          <OnboardingModal
+            isOpen={showOnboarding}
+            onComplete={() => setShowOnboarding(false)}
+          />
+        )}
 
-      <HouseholdSwitcherModal
-        isOpen={householdSwitcherOpen}
-        onClose={() => setHouseholdSwitcherOpen(false)}
-        households={households}
-        activeHouseholdId={activeHousehold.id}
-        onSelectHousehold={async (hId) => {
-          await api.setActiveHousehold(hId);
-          await loadData();
-          showToast('Switched household!', 'info');
-        }}
-        onCreateNew={() => setCreateHouseholdOpen(true)}
-        onJoinWithCode={() => setJoinHouseholdOpen(true)}
-      />
+        {householdSwitcherOpen && (
+          <HouseholdSwitcherModal
+            isOpen={householdSwitcherOpen}
+            onClose={() => setHouseholdSwitcherOpen(false)}
+            households={households}
+            activeHouseholdId={activeHousehold.id}
+            onSelectHousehold={async (hId) => {
+              await api.setActiveHousehold(hId);
+              await loadData();
+              showToast('Switched household!', 'info');
+            }}
+            onCreateNew={() => setCreateHouseholdOpen(true)}
+            onJoinWithCode={() => setJoinHouseholdOpen(true)}
+          />
+        )}
 
-      <CreateHouseholdFlowModal
-        isOpen={createHouseholdOpen}
-        onClose={() => setCreateHouseholdOpen(false)}
-        onCreate={async (name, currency) => {
-          const newH = await api.createHousehold(name, currency);
-          await loadData();
-          return newH;
-        }}
-      />
+        {createHouseholdOpen && (
+          <CreateHouseholdFlowModal
+            isOpen={createHouseholdOpen}
+            onClose={() => setCreateHouseholdOpen(false)}
+            onCreate={async (name, currency) => {
+              const newH = await api.createHousehold(name, currency);
+              await loadData();
+              return newH;
+            }}
+          />
+        )}
 
-      <JoinHouseholdFlowModal
-        isOpen={joinHouseholdOpen}
-        onClose={() => setJoinHouseholdOpen(false)}
-        onJoin={async (code) => {
-          const res = await api.joinHousehold(code);
-          await loadData();
-          return res;
-        }}
-      />
+        {joinHouseholdOpen && (
+          <JoinHouseholdFlowModal
+            isOpen={joinHouseholdOpen}
+            onClose={() => setJoinHouseholdOpen(false)}
+            onJoin={async (code) => {
+              const res = await api.joinHousehold(code);
+              await loadData();
+              return res;
+            }}
+          />
+        )}
 
-      <JoinRequestReviewModal
-        isOpen={Boolean(reviewJoinRequest)}
-        onClose={() => setReviewJoinRequest(null)}
-        joinRequest={reviewJoinRequest}
-        currentUser={currentUser}
-        currentMembership={members.find((m) => m.user.id === currentUser.id)?.membership || null}
-        onVote={async (reqId, vote) => {
-          await api.voteJoinRequest(reqId, vote);
-          await loadData();
-        }}
-        onDecide={async (reqId, approve) => {
-          await api.decideJoinRequest(reqId, approve);
-          await loadData();
-        }}
-      />
+        {Boolean(reviewJoinRequest) && (
+          <JoinRequestReviewModal
+            isOpen={Boolean(reviewJoinRequest)}
+            onClose={() => setReviewJoinRequest(null)}
+            joinRequest={reviewJoinRequest}
+            currentUser={currentUser}
+            currentMembership={members.find((m) => m.user.id === currentUser.id)?.membership || null}
+            onVote={async (reqId, vote) => {
+              await api.voteJoinRequest(reqId, vote);
+              await loadData();
+            }}
+            onDecide={async (reqId, approve) => {
+              await api.decideJoinRequest(reqId, approve);
+              await loadData();
+            }}
+          />
+        )}
 
-      <ShowQRModal
-        isOpen={showQROpen}
-        onClose={() => setShowQROpen(false)}
-        household={activeHousehold}
-        onRefreshCode={async () => {
-          const newCode = await api.refreshInviteCode(activeHousehold.id);
-          await loadData();
-          return newCode;
-        }}
-        onToggleInvites={async () => {
-          const active = await api.toggleInvites(activeHousehold.id);
-          await loadData();
-          return active;
-        }}
-      />
+        {showQROpen && (
+          <ShowQRModal
+            isOpen={showQROpen}
+            onClose={() => setShowQROpen(false)}
+            household={activeHousehold}
+            onRefreshCode={async () => {
+              const newCode = await api.refreshInviteCode(activeHousehold.id);
+              await loadData();
+              return newCode;
+            }}
+            onToggleInvites={async () => {
+              const active = await api.toggleInvites(activeHousehold.id);
+              await loadData();
+              return active;
+            }}
+          />
+        )}
 
-      <SyncStatusPanel
-        isOpen={syncPanelOpen}
-        onClose={() => setSyncPanelOpen(false)}
-        status={syncStatus}
-        onSetStatus={(st) => {
-          setSyncStatus(st);
-          setIsOffline(st === 'offline');
-        }}
-        lastSyncedTime={lastSyncedTime}
-        onTriggerSync={handleManualSync}
-        householdName={activeHousehold?.name}
-      />
+        {notificationsOpen && (
+          <NotificationsModal
+            isOpen={notificationsOpen}
+            onClose={() => setNotificationsOpen(false)}
+            notifications={notifications}
+            draftRound={draftRound}
+            currentUser={currentUser}
+            onMarkRead={async (id) => {
+              await api.markNotificationRead(id);
+              await loadData();
+            }}
+            onMarkAllRead={async () => {
+              await api.markAllNotificationsRead();
+              await loadData();
+            }}
+            onActionClick={(target) => {
+              if (target.screen === 'expenses') setActiveTab('expenses');
+              if (target.screen === 'chores') setActiveTab('chores');
+              if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
+              if (target.screen === 'chore-draft') setDraftFlowState('picking');
+              if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
+              if (target.screen === 'members' || target.screen === 'apartment') setActiveTab('apartment');
+            }}
+          />
+        )}
 
-      <NotificationsModal
-        isOpen={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        notifications={notifications}
-        draftRound={draftRound}
-        currentUser={currentUser}
-        onMarkRead={async (id) => {
-          await api.markNotificationRead(id);
-          await loadData();
-        }}
-        onMarkAllRead={async () => {
-          await api.markAllNotificationsRead();
-          await loadData();
-        }}
-        onActionClick={(target) => {
-          if (target.screen === 'expenses') setActiveTab('expenses');
-          if (target.screen === 'chores') setActiveTab('chores');
-          if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
-          if (target.screen === 'chore-draft') setDraftFlowState('picking');
-          if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
-          if (target.screen === 'members' || target.screen === 'apartment') setActiveTab('apartment');
-        }}
-      />
+        {profileSettingsOpen && (
+          <ProfileSettingsModal
+            isOpen={profileSettingsOpen}
+            onClose={() => setProfileSettingsOpen(false)}
+            currentUser={currentUser}
+            settings={settings}
+            onUpdateSettings={async (updates) => {
+              const s = await api.updateSettings(updates);
+              setSettings(s);
+              return s;
+            }}
+            onUpdateProfile={async (updates) => {
+              const u = await api.updateUserProfile(updates);
+              setCurrentUser(u);
+              await loadData();
+              return u;
+            }}
+            onExportData={() => {
+              const data = api.exportData();
+              const blob = new Blob([data], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `roomie-data-${activeHousehold.name.toLowerCase().replace(/\s+/g, '-')}.json`;
+              a.click();
+              showToast('Household data exported!', 'success');
+            }}
+            onDeleteAccount={() => {
+              api.resetData();
+              loadData();
+              showToast('Account data reset to fresh demo state.', 'info');
+            }}
+            onSignOut={() => {
+              setIsAuthenticated(false);
+              showToast('Signed out of Roomie', 'info');
+            }}
+            onOpenFeedback={() => setFeedbackOpen(true)}
+          />
+        )}
 
-      <ProfileSettingsModal
-        isOpen={profileSettingsOpen}
-        onClose={() => setProfileSettingsOpen(false)}
-        currentUser={currentUser}
-        settings={settings}
-        onUpdateSettings={async (updates) => {
-          const s = await api.updateSettings(updates);
-          setSettings(s);
-          return s;
-        }}
-        onUpdateProfile={async (updates) => {
-          const u = await api.updateUserProfile(updates);
-          setCurrentUser(u);
-          await loadData();
-          return u;
-        }}
-        onExportData={() => {
-          const data = api.exportData();
-          const blob = new Blob([data], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `roomie-data-${activeHousehold.name.toLowerCase().replace(/\s+/g, '-')}.json`;
-          a.click();
-          showToast('Household data exported!', 'success');
-        }}
-        onDeleteAccount={() => {
-          api.resetData();
-          loadData();
-          showToast('Account data reset to fresh demo state.', 'info');
-        }}
-        onSignOut={() => {
-          setIsAuthenticated(false);
-          showToast('Signed out of Roomie', 'info');
-        }}
-        onOpenFeedback={() => setFeedbackOpen(true)}
-      />
-
-      <FeedbackModal
-        isOpen={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-      />
+        {feedbackOpen && (
+          <FeedbackModal
+            isOpen={feedbackOpen}
+            onClose={() => setFeedbackOpen(false)}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 }

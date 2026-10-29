@@ -1,13 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from 'recharts';
 import { Expense, ExpenseCategory } from '../../types';
-import { THEME } from '../../theme/tokens';
 import { Card } from '../../components/common/Card';
 import { ShoppingCart, Zap, Home, Building2, MoreHorizontal, PieChart as PieChartIcon } from 'lucide-react';
 
@@ -31,12 +23,12 @@ const CATEGORY_CONFIG: Record<
 > = {
   rent: {
     name: 'Rent',
-    color: '#FF6B4A', // Coral (Money module)
+    color: '#FF6B4A', // Coral
     icon: <Building2 className="w-4 h-4" />,
   },
   groceries: {
     name: 'Groceries',
-    color: '#8B5CF6', // Purple / Violet (distinct from reward yellow)
+    color: '#8B5CF6', // Violet
     icon: <ShoppingCart className="w-4 h-4" />,
   },
   utilities: {
@@ -46,7 +38,7 @@ const CATEGORY_CONFIG: Record<
   },
   household: {
     name: 'Household',
-    color: '#3B82F6', // Blue (distinct from reward yellow)
+    color: '#3B82F6', // Blue
     icon: <Home className="w-4 h-4" />,
   },
   other: {
@@ -96,10 +88,31 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
   }, [chartData]);
 
   if (chartData.length === 0 || totalSpending === 0) {
-    return null; // When no expenses, the screen already renders its empty state
+    return null;
   }
 
   const activeCategory = activeIndex !== null ? chartData[activeIndex] : null;
+
+  // SVG Donut geometry
+  const size = 180;
+  const strokeWidth = 24;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+
+  // Compute slice offsets
+  let cumulativePercent = 0;
+  const slices = chartData.map((item, index) => {
+    const fraction = item.value / totalSpending;
+    const strokeDasharray = `${fraction * circumference} ${circumference}`;
+    const strokeDashoffset = -cumulativePercent * circumference;
+    cumulativePercent += fraction;
+    return {
+      ...item,
+      strokeDasharray,
+      strokeDashoffset,
+      index,
+    };
+  });
 
   return (
     <Card
@@ -113,18 +126,12 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
             <PieChartIcon className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="type-section-heading">
-              Spending breakdown
-            </h4>
-            <p className="type-secondary">
-              Category distribution across shared purchases
-            </p>
+            <h4 className="type-section-heading">Spending breakdown</h4>
+            <p className="type-secondary">Category distribution across shared purchases</p>
           </div>
         </div>
         <div className="text-right shrink-0 whitespace-nowrap pl-3">
-          <span className="type-label block mb-0.5 whitespace-nowrap">
-            Total logged
-          </span>
+          <span className="type-label block mb-0.5 whitespace-nowrap">Total logged</span>
           <span className="type-section-heading whitespace-nowrap">
             {currencySymbol}
             {totalSpending.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -132,72 +139,50 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
         </div>
       </div>
 
-      {/* Donut Chart with Centered Total */}
+      {/* Lightweight Custom SVG Donut Chart */}
       <div className="relative h-48 w-full flex items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload as CategoryData;
-                  const pct = ((data.value / totalSpending) * 100).toFixed(1);
-                  return (
-                    <div className="bg-[#1F2430] text-white px-3 py-1.5 rounded-xl shadow-lg border border-[#374151] text-[14px]">
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: data.color }}
-                        />
-                        <span>{data.name}</span>
-                      </div>
-                      <div className="mt-0.5 text-white/90">
-                        {currencySymbol}
-                        {data.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({pct}%)
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={52}
-              outerRadius={74}
-              paddingAngle={3}
-              dataKey="value"
-              cornerRadius={6}
-              onMouseEnter={(_, index) => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex(null)}
-              cursor="pointer"
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${entry.category}`}
-                  fill={entry.color}
-                  stroke="#FFFFFF"
-                  strokeWidth={2}
-                  opacity={activeIndex === null || activeIndex === index ? 1 : 0.6}
-                  style={{ transition: 'opacity 0.2s ease' }}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          className="transform -rotate-90 overflow-visible"
+        >
+          {slices.map((slice) => {
+            const isSelected = activeIndex === slice.index;
+            const isDimmed = activeIndex !== null && !isSelected;
+            return (
+              <circle
+                key={slice.category}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="transparent"
+                stroke={slice.color}
+                strokeWidth={isSelected ? strokeWidth + 4 : strokeWidth}
+                strokeDasharray={slice.strokeDasharray}
+                strokeDashoffset={slice.strokeDashoffset}
+                strokeLinecap="round"
+                opacity={isDimmed ? 0.45 : 1}
+                className="cursor-pointer transition-all duration-200"
+                onMouseEnter={() => setActiveIndex(slice.index)}
+                onMouseLeave={() => setActiveIndex(null)}
+                onClick={() => setActiveIndex(activeIndex === slice.index ? null : slice.index)}
+              />
+            );
+          })}
+        </svg>
 
-        {/* Center label inside the donut: ₺4,820 and 4 categories */}
+        {/* Center label inside donut */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
           <span className="type-section-heading leading-tight text-[#1F2430]">
             {activeCategory
               ? `${currencySymbol}${Math.round(activeCategory.value).toLocaleString('en-US')}`
-              : `${currencySymbol}4,820`}
+              : `${currencySymbol}${Math.round(totalSpending).toLocaleString('en-US')}`}
           </span>
-          <span className="type-secondary mt-0.5 text-[14px] text-[#475569]">
+          <span className="type-secondary mt-0.5 text-[13px] text-[#475569]">
             {activeCategory
               ? `${((activeCategory.value / totalSpending) * 100).toFixed(0)}% • ${activeCategory.name}`
-              : '4 categories'}
+              : `${chartData.length} categories`}
           </span>
         </div>
       </div>
@@ -234,9 +219,7 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
                   {currencySymbol}
                   {item.value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
-                <span className="type-secondary">
-                  {pct}%
-                </span>
+                <span className="type-secondary">{pct}%</span>
               </div>
             </div>
           );
