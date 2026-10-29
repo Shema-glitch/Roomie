@@ -162,28 +162,29 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           {/* User Profile Card or Edit Form */}
           {!isEditingProfile ? (
             <Card padding="md" variant="calm" className="flex items-center justify-between gap-3 bg-[#F7F8FB]">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Avatar
                   src={currentUser.avatar}
                   name={currentUser.name}
                   flag={currentUser.flag}
                   size="lg"
                 />
-                <div>
-                  <h4 className="type-section-heading">
+                <div className="min-w-0 flex-1">
+                  <h4 className="type-section-heading truncate">
                     {currentUser.name}
                   </h4>
-                  <p className="type-secondary">{currentUser.email}</p>
-                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430]">
-                    <span>{currentUser.country} {currentUser.flag}</span>
-                    <span>•</span>
-                    <span className="text-[#FF6B4A] font-bold">{currentUser.points} points</span>
+                  <p className="type-secondary truncate" title={currentUser.email}>{currentUser.email}</p>
+                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430] truncate">
+                    <span className="truncate">{currentUser.country} {currentUser.flag}</span>
+                    <span className="shrink-0">•</span>
+                    <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} points</span>
                   </div>
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
+                className="shrink-0"
                 onClick={() => {
                   sound.playTap();
                   setEditName(currentUser.name);
@@ -194,7 +195,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 }}
                 icon={<Pencil className="w-3.5 h-3.5" />}
               >
-                Edit profile
+                Edit
               </Button>
             </Card>
           ) : (

@@ -92,29 +92,32 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
         {/* Single-Source Chore Draft State Banner */}
         {draftState.state !== 'reveal_done' && (
-          <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border border-[#C7D2FE] flex items-center justify-between gap-3 shadow-2xs">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border border-[#C7D2FE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3 min-w-0">
               <IconTile icon={<Shuffle className="w-5 h-5" />} color="indigo" size="sm" />
-              <div>
-                <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[14px] font-bold text-[#1F2430]">{draftState.bannerTitle}</p>
-                  <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-white text-[#5B5BD6] border border-[#DDD6FE]">
+                  <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-white text-[#5B5BD6] border border-[#DDD6FE] shrink-0">
                     {draftState.badgeLabel}
                   </span>
                 </div>
                 <p className="text-[13px] text-[#475569]">{draftState.bannerSubtitle}</p>
               </div>
             </div>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                onClose();
-                onActionClick({ screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft' });
-              }}
-            >
-              {draftState.actionLabel}
-            </Button>
+            <div className="w-full sm:w-auto shrink-0 flex justify-end">
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  onClose();
+                  onActionClick({ screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft' });
+                }}
+              >
+                {draftState.actionLabel}
+              </Button>
+            </div>
           </div>
         )}
 

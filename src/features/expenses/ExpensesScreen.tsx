@@ -160,7 +160,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   const disputedExpenses = expenses.filter((e) => e.status === 'disputed');
 
   return (
-    <div className="w-full select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-28 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Grouped Expenses Ledger ================= */}

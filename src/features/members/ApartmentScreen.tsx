@@ -171,7 +171,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   };
 
   return (
-    <div className="w-full select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-28 md:pb-8">
       {/* 1. APARTMENT CARD WITH INVITE CODE, QR & FRIENDLY GOVERNANCE (Flat white InfoCard per Section 17) */}
       <div className="mb-6">
         <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">

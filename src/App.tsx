@@ -482,7 +482,7 @@ function MainApp() {
               }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer"
             >
-              <span className="type-section-heading max-w-[140px] sm:max-w-[200px] md:max-w-none whitespace-nowrap">
+              <span className="type-section-heading max-w-[120px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
                 {activeHousehold.name}
               </span>
               <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />

@@ -193,7 +193,9 @@ export const MascotView: React.FC<MascotViewProps> = ({
     <div className={`inline-flex flex-col items-center select-none ${className}`}>
       {bubbleText && (
         <div
-          className="mb-2 px-3 py-1.5 rounded-2xl text-[14px] font-bold shadow-sm max-w-[220px] text-center border relative"
+          className={`px-3 py-1.5 rounded-2xl text-[14px] font-bold shadow-sm max-w-[220px] text-center border relative ${
+            state === 'celebrating' ? 'mb-4' : 'mb-2'
+          }`}
           style={{
             backgroundColor: THEME.colors.surface,
             borderColor: THEME.colors.line,

@@ -133,7 +133,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const draftState = getChoreDraftState(draftRound, currentUser.id);
 
   return (
-    <div className="w-full select-none pb-20 md:pb-8">
+    <div className="w-full select-none pb-28 md:pb-8">
       {/* Responsive Desktop 12-Column Grid */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Draft Hero & Grouped Chores ================= */}
@@ -605,7 +605,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               type="text"
               value={newChoreName}
               onChange={(e) => setNewChoreName(e.target.value)}
-              placeholder="e.g. Balcony plants watering, Vacuum hallway"
+              placeholder="e.g. Water plants, Vacuum hallway"
               className="w-full px-3.5 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[15px] font-semibold text-[#1F2430]"
               required
             />

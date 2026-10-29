@@ -110,7 +110,7 @@ function getInitialStore(): AppStore {
   const households: Household[] = [
     {
       id: 'h_main',
-      name: 'Apartment 4B Lefkoşa',
+      name: 'Sunny Flat 4B',
       currency: 'TRY',
       inviteCode: 'CYP4B892',
       invitesEnabled: true,
@@ -456,7 +456,7 @@ function getInitialStore(): AppStore {
         householdId: 'h_main',
         senderId: 'u_amina',
         type: 'text',
-        body: 'Hey roomies! Welcome to Apartment 4B! Who is cooking dinner tonight? 🥘',
+        body: 'Hey roomies! Welcome to our flat! Who is cooking dinner tonight? 🥘',
         createdAt: '2026-10-23T10:15:00Z',
         reactions: [{ emoji: '😋', userIds: ['u_curr', 'u_lucas'] }],
       },
@@ -596,7 +596,7 @@ function getInitialStore(): AppStore {
       userId: 'u_curr',
       type: 'household',
       title: 'New roomie join request',
-      body: 'Tariq Al-Mansoor (Egypt 🇪🇬) wants to join Apartment 4B.',
+      body: 'Tariq Al-Mansoor wants to join your flat.',
       read: false,
       createdAt: '2026-10-22T14:30:00Z',
       linkTarget: { screen: 'members' },

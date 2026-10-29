@@ -85,7 +85,7 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
               Waiting for Roomie Approval
             </h4>
             <p className="type-secondary leading-relaxed">
-              Your request for Apartment 4B was sent to your future roomies.
+              Your join request was sent to your future roomies.
             </p>
             <div className="type-secondary bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
               Once the apartment admin confirms your request, you will gain full access to chores and shared expenses.

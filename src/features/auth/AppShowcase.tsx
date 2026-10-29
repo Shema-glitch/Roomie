@@ -61,25 +61,23 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
   useEffect(() => {
     if (!isActive || isPaused) return;
 
-    const TICK = 40;
-    const increment = (TICK / SLIDE_DURATION) * 100;
+    const startTime = Date.now();
+    const initialProgress = progress;
 
     const interval = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + increment;
-        if (next >= 100) {
-          clearInterval(interval);
-          if (currentSlide < SLIDES.length - 1) {
-            setCurrentSlide((s) => s + 1);
-            return 0;
-          } else {
-            onComplete();
-            return 100;
-          }
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, initialProgress + (elapsed / SLIDE_DURATION) * 100);
+      setProgress(pct);
+
+      if (pct >= 100) {
+        clearInterval(interval);
+        if (currentSlide < SLIDES.length - 1) {
+          setCurrentSlide((s) => s + 1);
+        } else {
+          onComplete();
         }
-        return next;
-      });
-    }, TICK);
+      }
+    }, 40);
 
     return () => clearInterval(interval);
   }, [isActive, isPaused, currentSlide, onComplete]);
