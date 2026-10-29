@@ -32,6 +32,7 @@ interface WelcomeScreenProps {
 
 type ScreenStage =
   | 'welcome'
+  | 'onboarding_intro'
   | 'onboarding_situation'
   | 'onboarding_motivate_1'
   | 'onboarding_headache'
@@ -63,14 +64,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   // Progress percentage for Duolingo-style progress bar
   const getProgress = (): number => {
     switch (stage) {
+      case 'onboarding_intro':
+        return 10;
       case 'onboarding_situation':
-        return 20;
+        return 30;
       case 'onboarding_motivate_1':
-        return 40;
+        return 50;
       case 'onboarding_headache':
-        return 65;
+        return 70;
       case 'onboarding_motivate_2':
-        return 85;
+        return 88;
       case 'signup':
         return 100;
       default:
@@ -131,8 +134,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const handleBack = () => {
     sound.playTap();
     switch (stage) {
-      case 'onboarding_situation':
+      case 'onboarding_intro':
         setStage('welcome');
+        break;
+      case 'onboarding_situation':
+        setStage('onboarding_intro');
         break;
       case 'onboarding_motivate_1':
         setStage('onboarding_situation');
@@ -155,17 +161,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto">
+    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto animate-circle-opening">
       {/* TOP BAR / PROGRESS HEADER */}
       {stage !== 'welcome' && (
-        <div className="pt-2 pb-4 flex items-center gap-3 w-full">
+        <div className="pt-2 pb-4 flex items-center gap-2 w-full">
           <button
             type="button"
             onClick={handleBack}
-            className="w-10 h-10 rounded-2xl border-2 border-[#E6E8EE] bg-white flex items-center justify-center text-[#475569] hover:text-[#1F2430] hover:border-[#CBD5E1] transition-all cursor-pointer shadow-xs active:translate-y-[2px] shrink-0"
+            className="p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-90 transition-transform cursor-pointer shrink-0 focus:outline-none"
             aria-label="Go back"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-7 h-7 stroke-[2.5]" />
           </button>
 
           {stage !== 'signin' && (
@@ -206,7 +212,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               fullWidth
               onClick={() => {
                 sound.playTap();
-                setStage('onboarding_situation');
+                setStage('onboarding_intro');
               }}
               icon={<ArrowRight className="w-5 h-5" />}
             >
@@ -243,6 +249,42 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </p>
           </div>
         </>
+      )}
+
+      {/* 2. ONBOARDING INTRO (Duolingo: "Just 2 questions before...") */}
+      {stage === 'onboarding_intro' && (
+        <div className="flex-1 flex flex-col justify-between py-6 text-center items-center">
+          <div className="space-y-6 my-auto max-w-xs animate-bounce-soft">
+            <MascotView
+              state="celebrating"
+              size="xl"
+              bubbleText="Ready for flat harmony?"
+            />
+
+            <div className="space-y-2.5">
+              <h2 className="font-heading font-black text-3xl text-[#1F2430] leading-tight">
+                Just <span className="text-[#FF6B4A]">2 quick questions</span> before your first use!
+              </h2>
+              <p className="type-body text-[#6B7280] text-sm leading-relaxed">
+                We'll customize your flat preferences so chore drafts and expense splits feel effortless from day one.
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full pt-6">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => {
+                sound.playSuccess();
+                setStage('onboarding_situation');
+              }}
+            >
+              Let's Do It
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* 2. ONBOARDING: QUESTION 1 (Situation) */}

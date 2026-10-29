@@ -101,6 +101,7 @@ const ModalSkeleton: React.FC = () => (
     </div>
   </div>
 );
+import { SplashScreen } from './components/common/SplashScreen';
 import {
   User,
   Household,
@@ -147,6 +148,13 @@ function MainApp() {
   const [syncPanelOpen, setSyncPanelOpen] = useState<boolean>(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('Just now');
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const hasSeen = sessionStorage.getItem('roomie_splash_seen');
+      return !hasSeen;
+    }
+    return false;
+  });
 
   const handleManualSync = () => {
     sound.playTap();
@@ -315,6 +323,19 @@ function MainApp() {
           Try again
         </button>
       </div>
+    );
+  }
+
+  if (showSplash) {
+    return (
+      <SplashScreen
+        onFinish={() => {
+          setShowSplash(false);
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('roomie_splash_seen', '1');
+          }
+        }}
+      />
     );
   }
 

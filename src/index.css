@@ -156,6 +156,35 @@
   }
 }
 
+/* Circular Opening & Reveal Animations */
+@keyframes circle-expand-in {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0.9;
+  }
+  100% {
+    clip-path: circle(150% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-soft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-circle-opening {
+  animation: circle-expand-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
+}
+
 /* Custom scrollbar for mobile feel */
 ::-webkit-scrollbar {
   width: 6px;
