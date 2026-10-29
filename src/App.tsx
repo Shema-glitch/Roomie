@@ -12,10 +12,9 @@ import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
 import { sound } from './services/sound';
 
+import { WelcomeScreen } from './features/auth/WelcomeScreen';
+
 // Lazy-loaded Screens & Modals with skeleton fallbacks
-const WelcomeScreen = React.lazy(() =>
-  import('./features/auth/WelcomeScreen').then((m) => ({ default: m.WelcomeScreen }))
-);
 const OnboardingModal = React.lazy(() =>
   import('./features/auth/OnboardingModal').then((m) => ({ default: m.OnboardingModal }))
 );
@@ -326,23 +325,20 @@ function MainApp() {
     );
   }
 
-  if (showSplash) {
-    return (
-      <SplashScreen
-        onFinish={() => {
-          setShowSplash(false);
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem('roomie_splash_seen', '1');
-          }
-        }}
-      />
-    );
-  }
-
   // Not signed in
   if (!isAuthenticated) {
     return (
-      <React.Suspense fallback={<ScreenSkeleton />}>
+      <>
+        {showSplash && (
+          <SplashScreen
+            onFinish={() => {
+              setShowSplash(false);
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('roomie_splash_seen', '1');
+              }
+            }}
+          />
+        )}
         <WelcomeScreen
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
@@ -366,7 +362,7 @@ function MainApp() {
             loadData();
           }}
         />
-      </React.Suspense>
+      </>
     );
   }
 
@@ -447,6 +443,17 @@ function MainApp() {
         settings.reducedMotion ? 'motion-reduce' : ''
       }`}
     >
+      {showSplash && (
+        <SplashScreen
+          onFinish={() => {
+            setShowSplash(false);
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('roomie_splash_seen', '1');
+            }
+          }}
+        />
+      )}
+
       {/* Offline banner simulation */}
       <OfflineBanner
         isOffline={isOffline || syncStatus === 'offline'}

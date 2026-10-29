@@ -161,7 +161,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto animate-circle-opening">
+    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto">
       {/* TOP BAR / PROGRESS HEADER */}
       {stage !== 'welcome' && (
         <div className="pt-2 pb-4 flex items-center gap-2 w-full">
