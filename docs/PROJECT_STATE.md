@@ -13,6 +13,7 @@
   - `Roomie Build Spec (v1)`
   - `Roomie Design and Branding Doc (v1)`
   - `Data and Offline Spec`
+  - `Roomie Roadmap, Features and How It Works (docs/ROADMAP.md)`
 
 ---
 
