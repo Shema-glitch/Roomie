@@ -97,15 +97,15 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <div className="pt-4 sm:pt-6 flex flex-col items-center text-center">
         {mode !== 'welcome' ? (
           <div className="w-full flex items-center justify-between mb-4">
-            <button
-              type="button"
+            <Button
+              variant="tertiary"
+              size="sm"
               onClick={() => setMode('welcome')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#1F2430] py-1.5 px-3 rounded-full bg-white border border-[#E6E8EE] cursor-pointer transition-colors"
+              icon={<ChevronLeft className="w-4 h-4 text-[#475569]" />}
             >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
-            <span className="text-xs font-bold text-[#FF6B4A] bg-[#FFF0ED] px-2.5 py-1 rounded-full border border-[#FFD7CF]">
+              Back
+            </Button>
+            <span className="text-xs font-bold font-heading text-[#FF6B4A] bg-[#FFF0ED] px-3 py-1 rounded-full border border-[#FFD7CF]">
               Roomie
             </span>
           </div>
@@ -181,19 +181,19 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
         ) : (
-          <Card padding="lg" className="bg-white border border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
-            {/* Segmented Tab Switcher (Sign In vs Sign Up) */}
-            <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#F1F3F7]">
+          <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+            {/* Segmented Tab Switcher (Sign In vs Sign Up) matching ApartmentScreen */}
+            <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
               <button
                 type="button"
                 onClick={() => {
                   setMode('signin');
                   setUseMagicLink(false);
                 }}
-                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
                   mode === 'signin'
-                    ? 'bg-white text-[#1F2430] shadow-xs'
-                    : 'text-[#6B7280] hover:text-[#1F2430]'
+                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
                 Sign In
@@ -204,10 +204,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                   setMode('signup');
                   setUseMagicLink(false);
                 }}
-                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
                   mode === 'signup'
-                    ? 'bg-white text-[#1F2430] shadow-xs'
-                    : 'text-[#6B7280] hover:text-[#1F2430]'
+                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
                 Create Account
@@ -216,11 +216,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
             {/* SIGN IN FORM */}
             {mode === 'signin' && (
-              <form onSubmit={handleSignInSubmit} className="space-y-3.5">
+              <form onSubmit={handleSignInSubmit} className="space-y-4">
                 <div>
-                  <label className="type-label block mb-1 text-xs">Email address</label>
+                  <label className="type-label block mb-1.5 text-xs">Email address</label>
                   <div className="relative flex items-center">
-                    <Mail className="w-4 h-4 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
@@ -228,37 +228,37 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                       placeholder="e.g. alex@student.emu.edu.tr"
                       autoFocus
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] text-sm text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:bg-white focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                     />
                   </div>
                 </div>
 
                 {!useMagicLink && (
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1.5">
                       <label className="type-label block text-xs">Password</label>
                       <button
                         type="button"
                         onClick={() => setUseMagicLink(true)}
-                        className="text-[11px] font-bold text-[#FF6B4A] hover:underline cursor-pointer"
+                        className="text-[12px] font-bold text-[#FF6B4A] hover:underline cursor-pointer"
                       >
-                        Email me a magic link instead
+                        Email magic link instead
                       </button>
                     </div>
                     <div className="relative flex items-center">
-                      <Lock className="w-4 h-4 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                      <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
                         required={!useMagicLink}
-                        className="w-full pl-10 pr-10 py-2.5 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] text-sm text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:bg-white focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all"
+                        className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1"
+                        className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
                         aria-label="Toggle password visibility"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -268,7 +268,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 )}
 
                 {useMagicLink && (
-                  <div className="p-3 rounded-2xl bg-[#FFF8E6] border border-[#FFDDA0] flex items-center justify-between gap-2 text-xs text-[#8A6300]">
+                  <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFDDA0] flex items-center justify-between gap-2 text-xs text-[#8A6300]">
                     <span>We will send a 1-tap sign-in link to your email.</span>
                     <button
                       type="button"
@@ -283,7 +283,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <div className="pt-2">
                   <Button
                     variant="primary"
-                    size="md"
+                    size="lg"
                     fullWidth
                     disabled={loading}
                     type="submit"
@@ -292,7 +292,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                       ? 'Signing in...'
                       : useMagicLink
                       ? 'Send Magic Link ✉️'
-                      : 'Sign in to Flat'}
+                      : 'Sign In to Flat'}
                   </Button>
                 </div>
               </form>
@@ -300,11 +300,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
             {/* SIGN UP FORM */}
             {mode === 'signup' && (
-              <form onSubmit={handleSignUpSubmit} className="space-y-3.5">
+              <form onSubmit={handleSignUpSubmit} className="space-y-4">
                 <div>
-                  <label className="type-label block mb-1 text-xs">Your full name</label>
+                  <label className="type-label block mb-1.5 text-xs">Your full name</label>
                   <div className="relative flex items-center">
-                    <User className="w-4 h-4 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <User className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type="text"
                       value={name}
@@ -312,48 +312,48 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                       placeholder="e.g. Alex Johnson"
                       autoFocus
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] text-sm text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:bg-white focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="type-label block mb-1 text-xs">Email address</label>
+                  <label className="type-label block mb-1.5 text-xs">Email address</label>
                   <div className="relative flex items-center">
-                    <Mail className="w-4 h-4 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g. alex@student.emu.edu.tr"
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] text-sm text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:bg-white focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all"
+                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="type-label block mb-1 text-xs">Create password</label>
+                  <label className="type-label block mb-1.5 text-xs">Create password</label>
                   <div className="relative flex items-center">
-                    <Lock className="w-4 h-4 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 6 characters"
                       required
-                      className="w-full pl-10 pr-10 py-2.5 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] text-sm text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:bg-white focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all"
+                      className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1"
+                      className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
                       aria-label="Toggle password visibility"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  <span className="text-[11px] text-[#6B7280] mt-1 block">
+                  <span className="text-[12px] text-[#6B7280] mt-1 block">
                     Use at least 6 characters. You can also sign in via magic link anytime.
                   </span>
                 </div>
@@ -361,7 +361,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 <div className="pt-2">
                   <Button
                     variant="primary"
-                    size="md"
+                    size="lg"
                     fullWidth
                     disabled={loading}
                     type="submit"
