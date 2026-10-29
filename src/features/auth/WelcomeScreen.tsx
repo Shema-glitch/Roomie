@@ -53,7 +53,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   const [stage, setStage] = useState<ScreenStage>(() => {
     if (typeof window !== 'undefined') {
-      const hasSeen = sessionStorage.getItem('roomie_showcase_seen');
+      const hasSeen = localStorage.getItem('roomie_walkthrough_seen');
       if (!hasSeen) return 'showcase';
     }
     return 'welcome';
@@ -175,17 +175,20 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <AppShowcase
         onComplete={() => {
           if (typeof window !== 'undefined') {
-            sessionStorage.setItem('roomie_showcase_seen', '1');
+            localStorage.setItem('roomie_walkthrough_seen', '1');
           }
           setStage('onboarding_intro');
         }}
         onSkip={() => {
           if (typeof window !== 'undefined') {
-            sessionStorage.setItem('roomie_showcase_seen', '1');
+            localStorage.setItem('roomie_walkthrough_seen', '1');
           }
           setStage('welcome');
         }}
         onSignIn={() => {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('roomie_walkthrough_seen', '1');
+          }
           setStage('signin');
         }}
       />
