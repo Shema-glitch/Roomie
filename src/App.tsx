@@ -337,10 +337,9 @@ function MainApp() {
       <>
         {showSplash && (
           <SplashScreen
-            onRevealStart={() => setSplashRevealed(true)}
             onFinish={() => {
-              setSplashRevealed(true);
               setShowSplash(false);
+              setSplashRevealed(true);
               if (typeof window !== 'undefined') {
                 sessionStorage.setItem('roomie_splash_seen', '1');
               }
@@ -454,10 +453,9 @@ function MainApp() {
     >
       {showSplash && (
         <SplashScreen
-          onRevealStart={() => setSplashRevealed(true)}
           onFinish={() => {
-            setSplashRevealed(true);
             setShowSplash(false);
+            setSplashRevealed(true);
             if (typeof window !== 'undefined') {
               sessionStorage.setItem('roomie_splash_seen', '1');
             }

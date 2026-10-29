@@ -173,6 +173,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   if (stage === 'showcase') {
     return (
       <AppShowcase
+        isActive={isRevealed}
         onComplete={() => {
           if (typeof window !== 'undefined') {
             localStorage.setItem('roomie_walkthrough_seen', '1');
@@ -223,7 +224,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {/* 1. WELCOME SCREEN (Duolingo Landing) */}
       {stage === 'welcome' && (
         <div key="welcome" className="flex-1 flex flex-col justify-between">
-          <div className="pt-8 sm:pt-14 flex flex-col items-center text-center">
+          <div className="pt-4 sm:pt-8 flex flex-col items-center text-center">
             <div className={isRevealed ? 'animate-pop-in' : 'opacity-0'}>
               <MascotView
                 state="celebrating"
@@ -232,8 +233,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               />
             </div>
 
-            <div className="mt-5 space-y-2">
-              <h1 className={`font-heading font-black text-[28px] sm:text-[34px] leading-tight text-[#1F2430] tracking-tight ${
+            <div className="mt-4 space-y-2">
+              <h1 className={`font-heading font-black text-[26px] sm:text-[32px] leading-tight text-[#1F2430] tracking-tight ${
                 isRevealed ? 'animate-fade-up delay-150' : 'opacity-0'
               }`}>
                 The joyful way to share a home.
@@ -246,7 +247,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           </div>
 
-          <div className="my-8 space-y-3.5">
+          <div className="my-4 sm:my-6 space-y-3">
             <div className={isRevealed ? 'animate-fade-up delay-300' : 'opacity-0'}>
               <Button
                 variant="primary"
@@ -283,7 +284,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                <span>See how Roomie works</span>
+                <span>Replay presentation</span>
               </button>
               <span className="text-[#CBD5E1]">•</span>
               <button
