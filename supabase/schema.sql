@@ -445,3 +445,187 @@ CREATE POLICY "House agreements viewable by members" ON public.house_agreements
 -- Notifications: Only visible to target user
 CREATE POLICY "Notifications viewable only by owner" ON public.notifications
   FOR ALL TO authenticated USING (user_id = auth.uid());
+
+-- ------------------------------------------------------------------------------
+-- 14. CHORE COMPLETION LOGS (Data Handling Spec Section 4)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.chore_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  chore_id UUID NOT NULL REFERENCES public.chores(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  completed_at TIMESTAMPTZ DEFAULT NOW(),
+  photo_url TEXT NULL,
+  thumbnail_url TEXT NULL,
+  note TEXT DEFAULT '',
+  kudos JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_chore_logs_version BEFORE UPDATE ON public.chore_logs
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.chore_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Chore logs viewable by members" ON public.chore_logs
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 15. RECURRING BILLS (Roadmap Phase 3 & Section 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.recurring_bills (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  amount NUMERIC(12, 2) NOT NULL,
+  category expense_category NOT NULL DEFAULT 'rent',
+  due_day INTEGER NOT NULL CHECK (due_day BETWEEN 1 AND 31),
+  split_rule JSONB NOT NULL DEFAULT '{"type":"equal"}'::jsonb,
+  payer_id UUID REFERENCES public.profiles(id),
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_recurring_bills_version BEFORE UPDATE ON public.recurring_bills
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.recurring_bills ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Recurring bills viewable by members" ON public.recurring_bills
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 16. SHARED SHOPPING LIST (Roadmap Phase 3 & Section 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.shopping_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  added_by UUID NOT NULL REFERENCES public.profiles(id),
+  status TEXT NOT NULL DEFAULT 'needed', -- 'needed' | 'in_cart' | 'purchased'
+  is_low BOOLEAN NOT NULL DEFAULT false,
+  purchased_by UUID REFERENCES public.profiles(id),
+  purchased_at TIMESTAMPTZ NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_shopping_items_version BEFORE UPDATE ON public.shopping_items
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.shopping_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Shopping items viewable by members" ON public.shopping_items
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 17. MOVE-IN CONDITION SNAPSHOTS (Roadmap Phase 3 & Section 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.move_in_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  room_name TEXT NOT NULL,
+  condition_notes TEXT DEFAULT '',
+  photos TEXT[] DEFAULT '{}',
+  confirmed_by JSONB DEFAULT '[]'::jsonb, -- array of { userId, confirmedAt }
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_move_in_snapshots_version BEFORE UPDATE ON public.move_in_snapshots
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.move_in_snapshots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Move-in snapshots viewable by members" ON public.move_in_snapshots
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 18. MAINTENANCE & LANDLORD LOG (Roadmap Phase 3 & Section 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.maintenance_issues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  reported_by UUID NOT NULL REFERENCES public.profiles(id),
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'reported', -- 'reported' | 'notified_landlord' | 'fixed'
+  photos TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_maintenance_issues_version BEFORE UPDATE ON public.maintenance_issues
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.maintenance_issues ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Maintenance issues viewable by members" ON public.maintenance_issues
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 19. WEEKLY ANONYMOUS VIBE PULSE (Roadmap Phase 2 & Section 7)
+-- Anonymous: individual responses are strictly unlinked to user_id
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.vibe_pulses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  week_start DATE NOT NULL,
+  score INTEGER NOT NULL CHECK (score BETWEEN 1 AND 5),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1
+);
+
+CREATE TRIGGER trg_vibe_pulses_version BEFORE UPDATE ON public.vibe_pulses
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.vibe_pulses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Vibe pulses viewable by members" ON public.vibe_pulses
+  FOR SELECT TO authenticated USING (public.is_household_member(household_id));
+CREATE POLICY "Vibe pulses insertable by members" ON public.vibe_pulses
+  FOR INSERT TO authenticated WITH CHECK (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 20. FAVOR TOKENS (Roadmap Phase 2 & Section 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.favor_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  balance INTEGER NOT NULL DEFAULT 3 CHECK (balance >= 0 AND balance <= 10),
+  history JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ NULL,
+  version INTEGER DEFAULT 1,
+  UNIQUE(household_id, user_id)
+);
+
+CREATE TRIGGER trg_favor_tokens_version BEFORE UPDATE ON public.favor_tokens
+FOR EACH ROW EXECUTE FUNCTION set_updated_and_version();
+
+ALTER TABLE public.favor_tokens ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Favor tokens viewable by members" ON public.favor_tokens
+  FOR ALL TO authenticated USING (public.is_household_member(household_id));
+
+-- ------------------------------------------------------------------------------
+-- 21. SUPABASE STORAGE BUCKETS
+-- Private buckets for receipts, chore proof photos, and avatars
+-- ------------------------------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public)
+VALUES 
+  ('receipts', 'receipts', false),
+  ('chore-proof', 'chore-proof', false),
+  ('snapshots', 'snapshots', false),
+  ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
