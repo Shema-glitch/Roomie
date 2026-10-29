@@ -1,0 +1,7 @@
+{
+  "name": "Roomie",
+  "description": "A playful, fair household companion app for shared apartments to balance expenses, draft chores, and live peacefully.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
