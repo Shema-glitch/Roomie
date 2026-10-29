@@ -359,7 +359,11 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Helper security function: checks if auth.uid() is active member of household
 CREATE OR REPLACE FUNCTION public.is_household_member(h_id UUID)
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM public.memberships
@@ -368,7 +372,7 @@ BEGIN
       AND status = 'active'
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Profiles: Anyone authenticated can read flatmates; users can update own profile
 CREATE POLICY "Profiles readable by authenticated users" ON public.profiles

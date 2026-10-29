@@ -149,7 +149,25 @@
 
 ## 4. Test Suite Summary
 
-- Total unit tests: **13 / 13 passing** (`npm test`).
+- Total unit tests: **15 / 15 passing** (`npm test`).
+  - 2 outbox queue idempotency and retry tests (`outbox.test.ts`).
   - 4 balance and debt simplification tests (`balances.test.ts`, `logic.test.ts`).
   - 5 chore draft state transition tests (`choreDraft.test.ts`).
   - 4 chore draft matching and `suggest_for` constraint tests (`logic.test.ts`).
+
+---
+
+## 5. Live Supabase Backend & Realtime Integration (Phase 1)
+
+- **Supabase Connected via MCP**: URL `https://ebiyvhodxrliiwdzonzu.supabase.co` with publishable keys configured in `.env`.
+- **Database Schema**: All 21 tables deployed to remote PostgreSQL:
+  - `profiles`, `households`, `memberships`, `join_requests`
+  - `expenses`, `expense_shares`, `settlements`
+  - `chores`, `draft_rounds`, `draft_picks`, `chore_assignments`, `chore_logs`
+  - `chat_messages`, `meeting_topics`, `house_agreements`, `notifications`
+  - `recurring_bills`, `shopping_items`, `move_in_snapshots`, `maintenance_issues`
+  - `vibe_pulses` (anonymous), `favor_tokens`
+- **Security & RLS**: All tables have RLS enabled with `is_household_member` function (`SECURITY DEFINER`, search_path set).
+- **Storage Buckets Provisioned**: `receipts`, `chore-proof`, `snapshots`, `avatars`.
+- **Realtime Publication**: `supabase_realtime` publication configured for chat, chores, expenses, draft rounds, and notifications.
+- **Typed SDK**: `src/types/database.types.ts` generated directly from remote schema and wired into `src/services/supabase.ts`.
