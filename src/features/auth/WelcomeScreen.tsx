@@ -3,6 +3,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
+import { AppShowcase } from './AppShowcase';
 import {
   Mail,
   Lock,
@@ -32,6 +33,7 @@ interface WelcomeScreenProps {
 }
 
 type ScreenStage =
+  | 'showcase'
   | 'welcome'
   | 'onboarding_intro'
   | 'onboarding_situation'
@@ -49,7 +51,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 }) => {
   const { showToast } = useToast();
 
-  const [stage, setStage] = useState<ScreenStage>('welcome');
+  const [stage, setStage] = useState<ScreenStage>(() => {
+    if (typeof window !== 'undefined') {
+      const hasSeen = sessionStorage.getItem('roomie_showcase_seen');
+      if (!hasSeen) return 'showcase';
+    }
+    return 'welcome';
+  });
 
   // Onboarding survey answers
   const [situation, setSituation] = useState<string>('');
@@ -162,6 +170,28 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     }
   };
 
+  if (stage === 'showcase') {
+    return (
+      <AppShowcase
+        onComplete={() => {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('roomie_showcase_seen', '1');
+          }
+          setStage('onboarding_intro');
+        }}
+        onSkip={() => {
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('roomie_showcase_seen', '1');
+          }
+          setStage('welcome');
+        }}
+        onSignIn={() => {
+          setStage('signin');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto">
       {/* TOP BAR / PROGRESS HEADER */}
@@ -243,14 +273,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               </Button>
             </div>
 
-            <div className={`pt-2 text-center ${isRevealed ? 'animate-fade-up delay-400' : 'opacity-0'}`}>
+            <div className={`pt-2 text-center flex items-center justify-center gap-2 ${isRevealed ? 'animate-fade-up delay-400' : 'opacity-0'}`}>
+              <button
+                type="button"
+                onClick={() => setStage('showcase')}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+                <span>See how Roomie works</span>
+              </button>
+              <span className="text-[#CBD5E1]">•</span>
               <button
                 type="button"
                 onClick={onQuickStart}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-2 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                <span>Explore demo flat</span>
+                <span>Demo flat</span>
               </button>
             </div>
           </div>
