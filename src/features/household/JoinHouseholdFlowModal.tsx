@@ -26,6 +26,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [hasCamera, setHasCamera] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [joinedDirectly, setJoinedDirectly] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -142,7 +143,9 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
       const res = await onJoin(code);
       if (res.success) {
         sound.playSuccess();
-        setStep(4); // Waiting for approval
+        const isDirect = res.message?.toLowerCase().includes('welcome') || res.message?.toLowerCase().includes('joined');
+        setJoinedDirectly(Boolean(isDirect));
+        setStep(4);
       } else {
         showToast(res.message, 'error');
       }
@@ -353,27 +356,29 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
           </div>
         )}
 
-        {/* STEP 4: WAITING FOR APPROVAL */}
+        {/* STEP 4: WAITING FOR APPROVAL OR JOINED */}
         {step === 4 && (
           <div className="flex flex-col items-center text-center space-y-4 py-3">
             <MascotView
-              state="calm"
+              state={joinedDirectly ? 'celebrating' : 'calm'}
               size="lg"
-              bubbleText="Hold tight! The apartment is reviewing."
+              bubbleText={joinedDirectly ? "You're in! Welcome to the flat!" : 'Hold tight! The flat is reviewing.'}
             />
 
             <div className="space-y-1 max-w-xs">
               <h3 className="type-title">
-                Request Sent!
+                {joinedDirectly ? 'Joined Flat! 🎉' : 'Request Sent!'}
               </h3>
               <p className="type-secondary leading-relaxed">
-                Your request to join Apartment 4B Lefkoşa has been delivered. Roomies will review and vote.
+                {joinedDirectly
+                  ? `You are now an active member! Chores, expenses, and chats are all ready for you.`
+                  : `Your request to join has been delivered. Roomies will review and vote.`}
               </p>
             </div>
 
             <div className="w-full pt-2">
               <Button variant="primary" size="md" fullWidth onClick={handleClose}>
-                Done
+                {joinedDirectly ? 'Enter Apartment' : 'Done'}
               </Button>
             </div>
           </div>

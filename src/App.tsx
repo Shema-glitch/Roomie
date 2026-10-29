@@ -748,6 +748,8 @@ function MainApp() {
             topics={topics}
             agreements={agreements}
             roommates={roommatesList}
+            joinRequests={joinRequests}
+            onReviewJoinRequest={(req) => setReviewJoinRequest(req)}
             onShowQR={() => setShowQROpen(true)}
             onHandoverAdmin={async (toUserId) => {
               await api.handoverAdmin(toUserId);

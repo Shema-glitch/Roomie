@@ -1122,35 +1122,54 @@ class ApiService {
     const formattedCode = code.trim().toUpperCase();
     if (supabase) {
       try {
-        const { data: targetH } = await supabase
-          .from('households')
-          .select('*')
-          .eq('invite_code', formattedCode)
-          .maybeSingle();
+        // Attempt direct join via secure RPC
+        const { data: directJoin, error: directJoinErr } = await (supabase.rpc as any)('join_household_by_code', {
+          p_code: formattedCode,
+        });
 
-        if (targetH) {
-          if (targetH.invites_enabled === false) {
-            return { success: false, message: 'Invites are currently turned off for this apartment.' };
+        if (!directJoinErr && directJoin && directJoin.success) {
+          await this.getHouseholds();
+          if (directJoin.household_id) {
+            this.store.activeHouseholdId = directJoin.household_id;
+            this.save();
           }
+          return {
+            success: true,
+            message: directJoin.message || `Welcome to ${directJoin.name}!`,
+          };
+        }
+
+        // If direct join was not successful, check if household exists to submit request
+        const { data: targetH } = await (supabase.rpc as any)('lookup_household_by_invite', {
+          p_code: formattedCode,
+        });
+
+        if (targetH && targetH.length > 0) {
+          const flat = targetH[0];
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            await supabase.from('join_requests').insert({
-              household_id: targetH.id,
-              user_name: this.store.currentUser.name,
-              user_email: this.store.currentUser.email,
+            const { error: reqErr } = await supabase.from('join_requests').insert({
+              household_id: flat.id,
+              user_id: user.id,
+              user_name: this.store.currentUser.name || user.email?.split('@')[0] || 'Roomie',
+              user_email: user.email || this.store.currentUser.email,
               user_country: this.store.currentUser.country,
               user_flag: this.store.currentUser.flag,
               user_avatar: this.store.currentUser.avatar,
-            });
-            return {
-              success: true,
-              household: mapHousehold(targetH),
-              message: 'Request submitted! Roomies will review before you enter.',
-            };
+              status: 'pending',
+              votes: [],
+            } as any);
+            if (!reqErr) {
+              return {
+                success: true,
+                household: mapHousehold(flat),
+                message: 'Request submitted! Roomies will review before you enter.',
+              };
+            }
           }
         }
       } catch (err) {
-        console.warn('Join household Supabase lookup error:', err);
+        console.warn('Join household Supabase error:', err);
       }
     }
 
@@ -1217,10 +1236,55 @@ class ApiService {
 
   public async getJoinRequests(householdId?: string): Promise<JoinRequest[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    return this.store.joinRequests.filter(r => r.householdId === hid);
+    if (supabase) {
+      try {
+        const { data: requests } = await supabase
+          .from('join_requests')
+          .select('*')
+          .eq('household_id', hid)
+          .eq('status', 'pending');
+
+        if (requests && requests.length > 0) {
+          return requests.map((r: any) => ({
+            id: r.id,
+            householdId: r.household_id,
+            userName: r.user_name,
+            userEmail: r.user_email,
+            userCountry: r.user_country || '',
+            userFlag: r.user_flag || '🌍',
+            userAvatar: r.user_avatar || '',
+            createdAt: r.created_at || new Date().toISOString(),
+            votes: (r.votes as any) || [],
+            status: r.status as any,
+          }));
+        }
+      } catch {
+        // fallback
+      }
+    }
+    return this.store.joinRequests.filter(r => r.householdId === hid && r.status === 'pending');
   }
 
   public async voteJoinRequest(requestId: string, vote: 'ok' | 'unsure'): Promise<void> {
+    if (supabase) {
+      try {
+        const { data: req } = await supabase.from('join_requests').select('votes').eq('id', requestId).maybeSingle();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (req && user) {
+          const votes: any[] = Array.isArray(req.votes) ? [...(req.votes as any[])] : [];
+          const existingIdx = votes.findIndex((v: any) => v && v.userId === user.id);
+          if (existingIdx >= 0) {
+            votes[existingIdx] = { ...votes[existingIdx], vote };
+          } else {
+            votes.push({ userId: user.id, vote });
+          }
+          await supabase.from('join_requests').update({ votes } as any).eq('id', requestId);
+        }
+      } catch (err) {
+        console.warn('Supabase voteJoinRequest error:', err);
+      }
+    }
+
     const req = this.store.joinRequests.find(r => r.id === requestId);
     if (req) {
       const existingVote = req.votes.find(v => v.userId === this.store.currentUser.id);
@@ -1234,6 +1298,18 @@ class ApiService {
   }
 
   public async decideJoinRequest(requestId: string, approve: boolean): Promise<void> {
+    if (supabase) {
+      try {
+        if (approve) {
+          await (supabase.rpc as any)('approve_join_request', { p_request_id: requestId });
+        } else {
+          await supabase.from('join_requests').update({ status: 'rejected' }).eq('id', requestId);
+        }
+      } catch (err) {
+        console.warn('Supabase decideJoinRequest error:', err);
+      }
+    }
+
     const req = this.store.joinRequests.find(r => r.id === requestId);
     if (req) {
       req.status = approve ? 'approved' : 'rejected';
@@ -1276,7 +1352,7 @@ class ApiService {
           userId: this.store.currentUser.id,
           type: 'household',
           title: 'Roomie approved',
-          body: `${req.userName} has officially joined Apartment 4B as an active member.`,
+          body: `${req.userName} has officially joined as an active member.`,
           read: false,
           createdAt: new Date().toISOString(),
           linkTarget: { screen: 'apartment' },
@@ -1284,13 +1360,6 @@ class ApiService {
         // add welcome message to chat
         this.addMessage(req.householdId, null, 'activity', `${req.userName} has joined the apartment! Say hello! 👋`, {
           screen: 'apartment',
-        });
-      } else {
-        // Mark pending join request notification as read
-        this.store.notifications.forEach((n) => {
-          if (n.type === 'household' && n.title.toLowerCase().includes('join request')) {
-            n.read = true;
-          }
         });
       }
       this.save();

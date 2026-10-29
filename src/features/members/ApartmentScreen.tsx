@@ -7,7 +7,7 @@ import { SectionTitle } from '../../components/common/SectionTitle';
 import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { Modal } from '../../components/common/Modal';
-import { User, Household, Membership, MeetingTopic, HouseAgreement } from '../../types';
+import { User, Household, Membership, MeetingTopic, HouseAgreement, JoinRequest } from '../../types';
 import { sound } from '../../services/sound';
 import {
   Shield,
@@ -36,6 +36,8 @@ interface ApartmentScreenProps {
   topics: MeetingTopic[];
   agreements: HouseAgreement[];
   roommates: User[];
+  joinRequests?: JoinRequest[];
+  onReviewJoinRequest?: (req: JoinRequest) => void;
   onShowQR: () => void;
   onHandoverAdmin: (toUserId: string) => Promise<void>;
   onLeaveHousehold: () => Promise<void>;
@@ -53,6 +55,8 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   topics,
   agreements,
   roommates,
+  joinRequests,
+  onReviewJoinRequest,
   onShowQR,
   onHandoverAdmin,
   onLeaveHousehold,
@@ -217,6 +221,43 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
           </div>
         </InfoCard>
       </div>
+
+      {/* Pending Join Requests Banner */}
+      {joinRequests && joinRequests.length > 0 && (
+        <div className="mb-5 space-y-2.5">
+          <h3 className="type-section-heading flex items-center gap-2">
+            <span>Pending Join Requests</span>
+            <span className="px-2 py-0.5 rounded-full bg-[#FF6B4A]/10 text-[#FF6B4A] text-xs font-bold">
+              {joinRequests.length}
+            </span>
+          </h3>
+          {joinRequests.map((req) => (
+            <div
+              key={req.id}
+              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 shadow-xs"
+            >
+              <div className="flex items-center gap-3">
+                <Avatar src={req.userAvatar} name={req.userName} flag={req.userFlag} size="md" />
+                <div>
+                  <h4 className="font-bold text-[#1F2430] text-sm">
+                    {req.userName}
+                  </h4>
+                  <p className="text-xs text-[#475569]">
+                    {req.userEmail} • {req.votes.length} vote{req.votes.length !== 1 ? 's' : ''} cast
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onReviewJoinRequest?.(req)}
+              >
+                Review
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Mobile / Tablet Segmented Section Switcher (Only visible on < lg screens) */}
       <div className="lg:hidden mb-5">
