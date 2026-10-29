@@ -243,15 +243,26 @@ function MainApp() {
   };
 
   useEffect(() => {
-    // Check url param for autostart
+    // Check if user has an active Supabase session or demo url param
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('autostart') === '1') {
+      if (params.get('autostart') === '1' || params.get('demo') === '1') {
         setIsAuthenticated(true);
-        setShowOnboarding(false);
+        loadData();
+        return;
       }
     }
-    loadData();
+
+    api.getSession().then((session) => {
+      if (session) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+      loadData();
+    }).catch(() => {
+      loadData();
+    });
   }, []);
 
   // Supabase Realtime subscription scoped to active household
@@ -307,6 +318,37 @@ function MainApp() {
     );
   }
 
+  // Not signed in
+  if (!isAuthenticated) {
+    return (
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <WelcomeScreen
+          onSignIn={async (email, password) => {
+            const res = await api.signInWithSupabase(email, password);
+            if (res.success) {
+              setIsAuthenticated(true);
+              await loadData();
+            }
+            return res;
+          }}
+          onSignUp={async (name, email, password) => {
+            const res = await api.signUpWithSupabase(email, password, name);
+            if (res.success) {
+              setIsAuthenticated(true);
+              setShowOnboarding(true);
+              await loadData();
+            }
+            return res;
+          }}
+          onQuickStart={() => {
+            setIsAuthenticated(true);
+            loadData();
+          }}
+        />
+      </React.Suspense>
+    );
+  }
+
   if (!currentUser || !activeHousehold || !draftRound) {
     return (
       <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center">
@@ -315,29 +357,6 @@ function MainApp() {
           Loading Apartment 4B...
         </h2>
       </div>
-    );
-  }
-
-  // Not signed in
-  if (!isAuthenticated) {
-    return (
-      <React.Suspense fallback={<ScreenSkeleton />}>
-        <WelcomeScreen
-          onSignIn={(email) => {
-            setIsAuthenticated(true);
-            setShowOnboarding(true);
-          }}
-          onSignUp={(name, email) => {
-            api.updateCurrentUser({ name, email });
-            setCurrentUser((prev) => (prev ? { ...prev, name, email } : null));
-            setIsAuthenticated(true);
-            setShowOnboarding(true);
-          }}
-          onQuickStart={() => {
-            setIsAuthenticated(true);
-          }}
-        />
-      </React.Suspense>
     );
   }
 
@@ -944,7 +963,8 @@ function MainApp() {
               loadData();
               showToast('Account data reset to fresh demo state.', 'info');
             }}
-            onSignOut={() => {
+            onSignOut={async () => {
+              await api.signOut();
               setIsAuthenticated(false);
               showToast('Signed out of Roomie', 'info');
             }}

@@ -120,6 +120,43 @@ class OutboxService {
     this.items = [];
     this.save();
   }
+
+  private syncHandler?: (item: OutboxItem) => Promise<boolean>;
+
+  public setSyncHandler(handler: (item: OutboxItem) => Promise<boolean>) {
+    this.syncHandler = handler;
+  }
+
+  public async flush(): Promise<void> {
+    if (!this.syncHandler) return;
+    const pending = this.getPending();
+    for (const item of pending) {
+      this.markSyncing(item.id);
+      try {
+        const ok = await this.syncHandler(item);
+        if (ok) {
+          this.markSuccess(item.id);
+        } else {
+          this.markFailed(item.id, 'Sync handler returned false');
+        }
+      } catch (err: any) {
+        this.markFailed(item.id, err?.message || 'Sync failed');
+      }
+    }
+  }
+
+  public initAutoFlush() {
+    if (typeof window === 'undefined') return;
+    window.addEventListener('online', () => {
+      this.flush();
+    });
+    // Check periodically if online and pending items exist
+    setInterval(() => {
+      if (typeof navigator !== 'undefined' && navigator.onLine && this.getPendingCount() > 0) {
+        this.flush();
+      }
+    }, 15000);
+  }
 }
 
 export const outbox = new OutboxService();

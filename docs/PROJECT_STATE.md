@@ -171,9 +171,11 @@
 - **Storage Buckets Provisioned**: `receipts`, `chore-proof`, `snapshots`, `avatars`.
 - **Realtime Publication**: `supabase_realtime` publication configured for chat, chores, expenses, draft rounds, and notifications.
 - **Typed SDK**: `src/types/database.types.ts` generated directly from remote schema and wired into `src/services/supabase.ts`.
+- **Live Supabase Auth & Session Persistence**: `signUpWithSupabase`, `signInWithSupabase`, `signOut`, and `getSession` wired in `api.ts`, `WelcomeScreen.tsx`, and `App.tsx` with email/password and magic link options.
+- **Bi-Directional Supabase Data Layer**: Read methods in `api.ts` (`getCurrentUser`, `getHouseholds`, `getHouseholdMembers`, `getExpenses`, `getChores`, `getMessages`, `getSettlements`, `joinHousehold`, `createHousehold`) pull live records from PostgreSQL with automatic local store fallback.
 - **Photo Compression Pipeline**: Client-side canvas compression (`src/utils/photoPipeline.ts`) wired directly into `AddExpenseFlowModal.tsx` (receipts) and `DoneFlowModal.tsx` (chore proof) with signed URL upload to Supabase Storage.
 - **Live Camera QR Scan**: Live video stream with `BarcodeDetector` API and fallback in `JoinHouseholdFlowModal.tsx`.
-- **Outbox Queue Integration**: Mutations (`addExpense`, `respondToExpense`, `completeChore`, `sendMessage`) optimistic update locally, enqueue in `outbox`, and dispatch to Supabase in the background.
+- **Outbox Queue & Auto-Replay**: Mutations optimistic update locally, enqueue in `outbox`, dispatch to Supabase, and automatically re-flush via `window.addEventListener('online')` and periodic background timer.
 - **Realtime Sync Subscription**: `subscribeToHousehold` in `api.ts` wired to `App.tsx` reloading data on websocket events.
-- **PWA & Offline**: `manifest.json` standalone app config and `sw.js` push listener and caching registered in `main.tsx`.
-- **Bundle Budget**: Total first screen JavaScript: **~156 kB gzip** (under 200 kB budget).
+- **PWA & Offline Installation**: `manifest.json`, `sw.js` push listener and caching, `beforeinstallprompt` capture, and "Install app" button in `ProfileSettingsModal.tsx`.
+- **Bundle Budget**: Total first screen JavaScript: **~158 kB gzip** (safely under 200 kB budget).

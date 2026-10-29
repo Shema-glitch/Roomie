@@ -21,6 +21,7 @@ import {
   Check,
   X,
   AlertCircle,
+  Smartphone,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -134,6 +135,18 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       showToast('Could not save profile', 'error');
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+  const handleInstallApp = () => {
+    sound.playTap();
+    if (typeof window !== 'undefined' && window.deferredPrompt) {
+      window.deferredPrompt.prompt();
+      window.deferredPrompt.userChoice.then(() => {
+        window.deferredPrompt = null;
+      });
+    } else {
+      showToast('Tap Share in Safari / Menu in Chrome and choose "Add to Home Screen" 📱', 'info');
     }
   };
 
@@ -392,7 +405,16 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <span className="type-label block">
               Account & Feedback
             </span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleInstallApp}
+                icon={<Smartphone className="w-3.5 h-3.5 text-[#19B5A5]" />}
+              >
+                Install app
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -404,7 +426,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               >
                 Feedback
               </Button>
+            </div>
 
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"

@@ -636,11 +636,168 @@ function getInitialStore(): AppStore {
   };
 }
 
+// --- Supabase Postgres Row Mappers ---
+function mapProfileToUser(p: any): User {
+  if (!p) {
+    return {
+      id: 'u_curr',
+      name: 'Roomie',
+      email: '',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      country: '',
+      countryCode: 'XX',
+      flag: '🌐',
+      isHome: true,
+      streakDays: 0,
+      points: 0,
+      awayUntil: null,
+    };
+  }
+  return {
+    id: p.id,
+    name: p.name || 'Roomie',
+    email: p.email || '',
+    avatar: p.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    country: p.country || '',
+    countryCode: p.country_code || 'XX',
+    flag: p.flag || '🌐',
+    isHome: p.is_home ?? true,
+    streakDays: p.streak_days ?? 0,
+    points: p.points ?? 0,
+    awayUntil: p.away_until || null,
+  };
+}
+
+function mapHousehold(h: any): Household {
+  return {
+    id: h.id,
+    name: h.name,
+    currency: h.currency || 'TRY',
+    inviteCode: h.invite_code,
+    invitesEnabled: h.invites_enabled ?? true,
+    createdBy: h.created_by,
+    settings: h.settings || { rotationInterval: 'weekly', rotatingAdmin: false, quietHours: '23:00 - 08:00' },
+    createdAt: h.created_at,
+  };
+}
+
+function mapExpense(e: any, shares: any[] = []): Expense {
+  return {
+    id: e.id,
+    householdId: e.household_id,
+    paidBy: e.paid_by,
+    title: e.title,
+    amount: Number(e.amount),
+    category: e.category,
+    receiptUrl: e.receipt_url || undefined,
+    date: e.date,
+    status: e.status,
+    shares: shares.map((s) => ({
+      userId: s.user_id,
+      shareAmount: Number(s.share_amount),
+      response: s.response,
+      disputeReason: s.dispute_reason || undefined,
+    })),
+    createdAt: e.created_at,
+  };
+}
+
+function mapSettlement(s: any): Settlement {
+  return {
+    id: s.id,
+    householdId: s.household_id,
+    fromUser: s.from_user,
+    toUser: s.to_user,
+    amount: Number(s.amount),
+    status: s.status,
+    confirmedAt: s.confirmed_at || undefined,
+    createdAt: s.created_at,
+  };
+}
+
+function mapChore(c: any): Chore {
+  return {
+    id: c.id,
+    householdId: c.household_id,
+    name: c.name,
+    frequency: c.frequency,
+    effortLevel: c.effort_level,
+    active: c.active ?? true,
+    description: c.description || '',
+    iconName: c.icon_name || 'Sparkles',
+  };
+}
+
+function mapChatMessage(m: any): ChatMessage {
+  return {
+    id: m.id,
+    householdId: m.household_id,
+    senderId: m.sender_id,
+    type: m.type,
+    body: m.body,
+    linkTarget: m.link_target || undefined,
+    reactions: m.reactions || [],
+    createdAt: m.created_at,
+  };
+}
+
 class ApiService {
   private store: AppStore;
 
   constructor() {
     this.store = this.load();
+    outbox.setSyncHandler(this.processOutboxItem.bind(this));
+    outbox.initAutoFlush();
+  }
+
+  private async processOutboxItem(item: any): Promise<boolean> {
+    if (!supabase) return false;
+    try {
+      if (item.type === 'create_expense') {
+        const exp = item.payload.expense;
+        const { error } = await supabase.from('expenses').insert({
+          household_id: exp.householdId,
+          paid_by: exp.paidBy,
+          title: exp.title,
+          amount: exp.amount,
+          category: exp.category,
+          receipt_url: exp.receiptUrl,
+          date: exp.date,
+          status: exp.status,
+        });
+        return !error;
+      }
+      if (item.type === 'agree_expense' || item.type === 'dispute_expense') {
+        const { expenseId, response, disputeReason } = item.payload;
+        const { error } = await supabase
+          .from('expense_shares')
+          .update({ response, dispute_reason: disputeReason || null })
+          .eq('expense_id', expenseId);
+        return !error;
+      }
+      if (item.type === 'complete_chore') {
+        const { choreId, photoUrl } = item.payload;
+        const { error } = await supabase
+          .from('chore_assignments')
+          .update({ completed_today: true, last_photo_url: photoUrl || null })
+          .eq('chore_id', choreId);
+        return !error;
+      }
+      if (item.type === 'send_message') {
+        const msg = item.payload.message;
+        const { error } = await supabase.from('chat_messages').insert({
+          household_id: msg.householdId,
+          sender_id: msg.senderId,
+          type: msg.type,
+          body: msg.body,
+          link_target: msg.linkTarget as any,
+        });
+        return !error;
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private load(): AppStore {
@@ -675,8 +832,84 @@ class ApiService {
     return this.store;
   }
 
+  // --- Supabase Authentication ---
+  public async getSession() {
+    if (!supabase) return null;
+    const { data } = await supabase.auth.getSession();
+    return data.session;
+  }
+
+  public async signUpWithSupabase(email: string, password?: string, name?: string): Promise<{ success: boolean; message: string }> {
+    if (!supabase) {
+      this.updateCurrentUser({ name: name || email.split('@')[0], email });
+      return { success: true, message: 'Signed up in local demo mode.' };
+    }
+    const pass = password || 'RoomieApp2026!';
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password: pass,
+      options: {
+        data: { name: name || email.split('@')[0] },
+      },
+    });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    if (data.user) {
+      await this.getCurrentUser();
+    }
+    return { success: true, message: 'Account created! Welcome to Roomie.' };
+  }
+
+  public async signInWithSupabase(email: string, password?: string): Promise<{ success: boolean; message: string }> {
+    if (!supabase) {
+      this.updateCurrentUser({ email });
+      return { success: true, message: 'Signed in in local demo mode.' };
+    }
+    if (password) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        return { success: false, message: error.message };
+      }
+      await this.getCurrentUser();
+      return { success: true, message: 'Welcome back!' };
+    }
+    // Passwordless OTP magic link
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    return { success: true, message: 'Magic link sent to your email!' };
+  }
+
+  public async signOut(): Promise<void> {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+  }
+
   // --- Users & Auth ---
   public async getCurrentUser(): Promise<User> {
+    if (supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const mapped = mapProfileToUser(profile);
+            this.store.currentUser = mapped;
+            return mapped;
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
     return { ...this.store.currentUser };
   }
 
@@ -685,6 +918,27 @@ class ApiService {
     // sync in users list
     this.store.users = this.store.users.map(u => (u.id === this.store.currentUser.id ? this.store.currentUser : u));
     this.save();
+
+    if (supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('profiles').update({
+            name: updates.name,
+            avatar: updates.avatar,
+            country: updates.country,
+            country_code: updates.countryCode,
+            flag: updates.flag,
+            is_home: updates.isHome,
+            away_until: updates.awayUntil,
+            points: updates.points,
+            streak_days: updates.streakDays,
+          }).eq('id', user.id);
+        }
+      } catch (err) {
+        console.warn('Profile sync error:', err);
+      }
+    }
     return this.store.currentUser;
   }
 
@@ -701,6 +955,36 @@ class ApiService {
 
   // --- Households & Memberships ---
   public async getHouseholds(): Promise<Household[]> {
+    if (supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: memberships } = await supabase
+            .from('memberships')
+            .select('household_id, role, status, households(*)')
+            .eq('user_id', user.id)
+            .eq('status', 'active');
+
+          if (memberships && memberships.length > 0) {
+            const liveHouseholds = memberships
+              .map((m: any) => m.households)
+              .filter(Boolean)
+              .map(mapHousehold);
+
+            if (liveHouseholds.length > 0) {
+              this.store.households = liveHouseholds;
+              if (!this.store.activeHouseholdId || !liveHouseholds.some(h => h.id === this.store.activeHouseholdId)) {
+                this.store.activeHouseholdId = liveHouseholds[0].id;
+              }
+              this.save();
+              return liveHouseholds;
+            }
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
     return [...this.store.households];
   }
 
@@ -741,21 +1025,58 @@ class ApiService {
       },
       createdAt: new Date().toISOString(),
     };
+
+    if (supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: createdH } = await supabase
+            .from('households')
+            .insert({
+              name,
+              currency,
+              invite_code: code,
+              created_by: user.id,
+            })
+            .select('*')
+            .single();
+
+          if (createdH) {
+            newHousehold.id = createdH.id;
+            await supabase.from('memberships').insert({
+              household_id: createdH.id,
+              user_id: user.id,
+              role: 'admin',
+              status: 'active',
+            });
+            // insert default chores
+            await supabase.from('chores').insert([
+              { household_id: createdH.id, name: 'Bathroom Scrub', frequency: 'weekly', effort_level: 'heavy', active: true, description: 'Clean shower & toilet', icon_name: 'Bath' },
+              { household_id: createdH.id, name: 'Dishes & Sink', frequency: 'daily', effort_level: 'medium', active: true, description: 'Unload dishwasher & wipe sink', icon_name: 'Sparkles' },
+              { household_id: createdH.id, name: 'Take Out Trash', frequency: 'daily', effort_level: 'light', active: true, description: 'Empty kitchen and hall bins', icon_name: 'Trash2' },
+            ]);
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase household creation fallback:', err);
+      }
+    }
+
     this.store.households.push(newHousehold);
-    this.store.activeHouseholdId = id;
+    this.store.activeHouseholdId = newHousehold.id;
     this.store.memberships.push({
       id: 'm_' + Math.random().toString(36).substring(2, 7),
       userId: this.store.currentUser.id,
-      householdId: id,
+      householdId: newHousehold.id,
       role: 'admin',
       status: 'active',
       joinedAt: new Date().toISOString(),
     });
     // add default chores
     this.store.chores.push(
-      { id: 'ch_' + Math.random(), householdId: id, name: 'Bathroom Scrub', frequency: 'weekly', effortLevel: 'heavy', active: true, description: 'Clean shower & toilet', iconName: 'Bath' },
-      { id: 'ch_' + Math.random(), householdId: id, name: 'Dishes & Sink', frequency: 'daily', effortLevel: 'medium', active: true, description: 'Unload dishwasher & wipe sink', iconName: 'Sparkles' },
-      { id: 'ch_' + Math.random(), householdId: id, name: 'Take Out Trash', frequency: 'daily', effortLevel: 'light', active: true, description: 'Empty kitchen and hall bins', iconName: 'Trash2' }
+      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Bathroom Scrub', frequency: 'weekly', effortLevel: 'heavy', active: true, description: 'Clean shower & toilet', iconName: 'Bath' },
+      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Dishes & Sink', frequency: 'daily', effortLevel: 'medium', active: true, description: 'Unload dishwasher & wipe sink', iconName: 'Sparkles' },
+      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Take Out Trash', frequency: 'daily', effortLevel: 'light', active: true, description: 'Empty kitchen and hall bins', iconName: 'Trash2' }
     );
     this.save();
     return newHousehold;
@@ -769,6 +1090,14 @@ class ApiService {
     household.inviteCode = newCode;
     household.invitesEnabled = true;
     this.save();
+
+    if (supabase) {
+      try {
+        await supabase.from('households').update({ invite_code: newCode, invites_enabled: true }).eq('id', hid);
+      } catch (err) {
+        console.warn('Supabase refresh code error:', err);
+      }
+    }
     return newCode;
   }
 
@@ -778,11 +1107,54 @@ class ApiService {
     if (!household) throw new Error('Apartment not found');
     household.invitesEnabled = enabled !== undefined ? enabled : !(household.invitesEnabled ?? true);
     this.save();
+
+    if (supabase) {
+      try {
+        await supabase.from('households').update({ invites_enabled: household.invitesEnabled }).eq('id', hid);
+      } catch (err) {
+        console.warn('Supabase toggle invites error:', err);
+      }
+    }
     return household.invitesEnabled;
   }
 
   public async joinHousehold(code: string): Promise<{ success: boolean; household?: Household; message: string }> {
-    const target = this.store.households.find(h => h.inviteCode.toUpperCase() === code.trim().toUpperCase());
+    const formattedCode = code.trim().toUpperCase();
+    if (supabase) {
+      try {
+        const { data: targetH } = await supabase
+          .from('households')
+          .select('*')
+          .eq('invite_code', formattedCode)
+          .maybeSingle();
+
+        if (targetH) {
+          if (targetH.invites_enabled === false) {
+            return { success: false, message: 'Invites are currently turned off for this apartment.' };
+          }
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('join_requests').insert({
+              household_id: targetH.id,
+              user_name: this.store.currentUser.name,
+              user_email: this.store.currentUser.email,
+              user_country: this.store.currentUser.country,
+              user_flag: this.store.currentUser.flag,
+              user_avatar: this.store.currentUser.avatar,
+            });
+            return {
+              success: true,
+              household: mapHousehold(targetH),
+              message: 'Request submitted! Roomies will review before you enter.',
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('Join household Supabase lookup error:', err);
+      }
+    }
+
+    const target = this.store.households.find(h => h.inviteCode.toUpperCase() === formattedCode);
     if (!target) {
       return { success: false, message: 'Invite code not found. Check with your roomies.' };
     }
@@ -811,6 +1183,31 @@ class ApiService {
 
   public async getHouseholdMembers(householdId?: string): Promise<{ user: User; membership: Membership }[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase) {
+      try {
+        const { data: members } = await supabase
+          .from('memberships')
+          .select('id, user_id, household_id, role, status, joined_at, profiles(*)')
+          .eq('household_id', hid)
+          .eq('status', 'active');
+
+        if (members && members.length > 0) {
+          return members.map((m: any) => ({
+            user: mapProfileToUser(m.profiles),
+            membership: {
+              id: m.id,
+              userId: m.user_id,
+              householdId: m.household_id,
+              role: m.role as any,
+              status: m.status as any,
+              joinedAt: m.joined_at || new Date().toISOString(),
+            },
+          }));
+        }
+      } catch {
+        // fallback
+      }
+    }
     const members = this.store.memberships.filter(m => m.householdId === hid && m.status === 'active');
     return members.map(m => {
       const u = this.store.users.find(user => user.id === m.userId) || this.store.currentUser;
@@ -932,6 +1329,23 @@ class ApiService {
   // --- Expenses & Balances ---
   public async getExpenses(householdId?: string): Promise<Expense[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase) {
+      try {
+        const { data: expRows } = await supabase
+          .from('expenses')
+          .select('*, expense_shares(*)')
+          .eq('household_id', hid)
+          .order('created_at', { ascending: false });
+
+        if (expRows && expRows.length > 0) {
+          const liveExpenses = expRows.map((e: any) => mapExpense(e, e.expense_shares || []));
+          this.store.expenses = liveExpenses;
+          return liveExpenses;
+        }
+      } catch (err) {
+        console.warn('Supabase getExpenses fallback:', err);
+      }
+    }
     return this.store.expenses
       .filter(e => e.householdId === hid)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -1121,12 +1535,45 @@ class ApiService {
 
   public async getSettlements(householdId?: string): Promise<Settlement[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase) {
+      try {
+        const { data: setRows } = await supabase
+          .from('settlements')
+          .select('*')
+          .eq('household_id', hid);
+
+        if (setRows && setRows.length > 0) {
+          const liveSets = setRows.map(mapSettlement);
+          this.store.settlements = liveSets;
+          return liveSets;
+        }
+      } catch (err) {
+        console.warn('Supabase getSettlements fallback:', err);
+      }
+    }
     return this.store.settlements.filter(s => s.householdId === hid);
   }
 
   // --- Chores & The Draft ---
   public async getChores(householdId?: string): Promise<Chore[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase) {
+      try {
+        const { data: choreRows } = await supabase
+          .from('chores')
+          .select('*')
+          .eq('household_id', hid)
+          .eq('active', true);
+
+        if (choreRows && choreRows.length > 0) {
+          const liveChores = choreRows.map(mapChore);
+          this.store.chores = liveChores;
+          return liveChores;
+        }
+      } catch (err) {
+        console.warn('Supabase getChores fallback:', err);
+      }
+    }
     return this.store.chores.filter(c => c.householdId === hid);
   }
 
@@ -1319,6 +1766,23 @@ class ApiService {
   // --- Chat ---
   public async getMessages(householdId?: string): Promise<ChatMessage[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase) {
+      try {
+        const { data: msgRows } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('household_id', hid)
+          .order('created_at', { ascending: true });
+
+        if (msgRows && msgRows.length > 0) {
+          const liveMsgs = msgRows.map(mapChatMessage);
+          this.store.messages[hid] = liveMsgs;
+          return liveMsgs;
+        }
+      } catch (err) {
+        console.warn('Supabase getMessages fallback:', err);
+      }
+    }
     return this.store.messages[hid] || [];
   }
 

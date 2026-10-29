@@ -3,11 +3,12 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { THEME } from '../../theme/tokens';
-import { Shuffle, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { Shuffle, ArrowRight, ShieldCheck, HeartHandshake, Lock } from 'lucide-react';
+import { useToast } from '../../components/common/Toast';
 
 interface WelcomeScreenProps {
-  onSignIn: (email: string) => void;
-  onSignUp: (name: string, email: string) => void;
+  onSignIn: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
+  onSignUp: (name: string, email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
   onQuickStart: () => void;
 }
 
@@ -16,9 +17,44 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onSignUp,
   onQuickStart,
 }) => {
+  const { showToast } = useToast();
   const [mode, setMode] = useState<'welcome' | 'signin' | 'signup'>('welcome');
   const [email, setEmail] = useState('kai.tanaka@student.emu.edu.tr');
+  const [password, setPassword] = useState('RoomieApp2026!');
   const [name, setName] = useState('Kai Tanaka');
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleSignInSubmit = async () => {
+    if (!email.trim()) {
+      showToast('Please enter your email', 'error');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await onSignIn(email.trim(), password || undefined);
+      if (res && !res.success) {
+        showToast(res.message || 'Could not sign in', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUpSubmit = async () => {
+    if (!name.trim() || !email.trim()) {
+      showToast('Please enter your name and email', 'error');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await onSignUp(name.trim(), email.trim(), password || undefined);
+      if (res && !res.success) {
+        showToast(res.message || 'Could not create account', 'error');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-6 max-w-md mx-auto">
@@ -82,7 +118,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <Card padding="lg" className="space-y-4">
             <div className="text-center">
               <h2 className="type-title">Sign in</h2>
-              <p className="type-secondary">Enter your student or personal email</p>
+              <p className="type-secondary">Enter your email and password</p>
             </div>
             <div>
               <label className="type-label block mb-1">Email address</label>
@@ -94,13 +130,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
+            <div>
+              <label className="type-label block mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
+              />
+            </div>
             <Button
               variant="primary"
               size="md"
               fullWidth
-              onClick={() => onSignIn(email)}
+              disabled={loading}
+              onClick={handleSignInSubmit}
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
             <button
               onClick={() => setMode('welcome')}
@@ -137,13 +184,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
+            <div>
+              <label className="type-label block mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
+              />
+            </div>
             <Button
               variant="primary"
               size="md"
               fullWidth
-              onClick={() => onSignUp(name, email)}
+              disabled={loading}
+              onClick={handleSignUpSubmit}
             >
-              Create account
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
             <button
               onClick={() => setMode('welcome')}
