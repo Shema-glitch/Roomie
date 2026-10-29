@@ -118,3 +118,114 @@ test('matchChores balances effort points and respects wishes', () => {
   assert.equal(result.effortDistribution['user_1'], 3);
   assert.equal(result.effortDistribution['user_2'], 3);
 });
+
+test('suggest_for acts as tie-break when effort is equal on non-heavy chores', () => {
+  const roommates = ['user_1', 'user_2'];
+  const chore: Chore = {
+    id: 'c_sweep',
+    householdId: 'h1',
+    name: 'Sweeping',
+    frequency: 'weekly',
+    effortLevel: 'medium',
+    active: true,
+    description: 'Sweep hallway and kitchen',
+    iconName: 'Sparkles',
+  };
+
+  // user_1 suggests user_2 for sweeping; neither marked want or avoid
+  const picks: DraftPick[] = [
+    { userId: 'user_1', choreId: 'c_sweep', pickType: 'suggest_for', targetUserId: 'user_2' },
+  ];
+
+  const result = matchChores([chore], picks, roommates);
+  const sweepAssign = result.assignments.find((a) => a.choreId === 'c_sweep');
+  // user_2 was suggested and efforts are equal -> user_2 receives the chore
+  assert.equal(sweepAssign?.userId, 'user_2');
+});
+
+test('suggest_for NEVER overrides an avoid pick', () => {
+  const roommates = ['user_1', 'user_2'];
+  const chore: Chore = {
+    id: 'c_sweep',
+    householdId: 'h1',
+    name: 'Sweeping',
+    frequency: 'weekly',
+    effortLevel: 'medium',
+    active: true,
+    description: 'Sweep hallway and kitchen',
+    iconName: 'Sparkles',
+  };
+
+  // user_1 suggests user_2 for sweeping, BUT user_2 explicitly avoids sweeping
+  const picks: DraftPick[] = [
+    { userId: 'user_1', choreId: 'c_sweep', pickType: 'suggest_for', targetUserId: 'user_2' },
+    { userId: 'user_2', choreId: 'c_sweep', pickType: 'avoid' },
+  ];
+
+  const result = matchChores([chore], picks, roommates);
+  const sweepAssign = result.assignments.find((a) => a.choreId === 'c_sweep');
+  // Avoid must strictly take precedence over suggestion
+  assert.equal(sweepAssign?.userId, 'user_1');
+});
+
+test('suggest_for cannot be used to push heavy chores onto other roommates', () => {
+  const roommates = ['user_1', 'user_2'];
+  const chore: Chore = {
+    id: 'c_deep_kitchen',
+    householdId: 'h1',
+    name: 'Deep Clean Kitchen',
+    frequency: 'weekly',
+    effortLevel: 'heavy',
+    active: true,
+    description: 'Scrub stove, oven, counters and fridge',
+    iconName: 'Utensils',
+  };
+
+  // user_1 suggests user_2 for heavy chore; user_2 has not consented/wanted it
+  const picks: DraftPick[] = [
+    { userId: 'user_1', choreId: 'c_deep_kitchen', pickType: 'suggest_for', targetUserId: 'user_2' },
+  ];
+
+  const result = matchChores([chore], picks, roommates);
+  const assign = result.assignments.find((a) => a.choreId === 'c_deep_kitchen');
+  // Suggestion is ignored for heavy chores to prevent pushing heavy work onto others
+  assert.equal(assign?.userId, 'user_1');
+});
+
+test('suggest_for cannot push chores onto roommates who already have higher effort', () => {
+  const roommates = ['user_1', 'user_2'];
+  const chores: Chore[] = [
+    {
+      id: 'c_mop',
+      householdId: 'h1',
+      name: 'Mopping',
+      frequency: 'weekly',
+      effortLevel: 'medium',
+      active: true,
+      description: 'Mop floor',
+      iconName: 'Sparkles',
+    },
+    {
+      id: 'c_trash',
+      householdId: 'h1',
+      name: 'Trash',
+      frequency: 'weekly',
+      effortLevel: 'light',
+      active: true,
+      description: 'Take out bins',
+      iconName: 'Trash2',
+    },
+  ];
+
+  // user_2 wants mopping (takes on 2 effort points)
+  // user_1 suggests user_2 also take trash (light chore)
+  const picks: DraftPick[] = [
+    { userId: 'user_2', choreId: 'c_mop', pickType: 'want' },
+    { userId: 'user_1', choreId: 'c_trash', pickType: 'suggest_for', targetUserId: 'user_2' },
+  ];
+
+  const result = matchChores(chores, picks, roommates);
+  const trashAssign = result.assignments.find((a) => a.choreId === 'c_trash');
+  // user_1 has 0 effort points and user_2 has 2; effort fairness overrides suggestion
+  assert.equal(trashAssign?.userId, 'user_1');
+});
