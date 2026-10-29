@@ -168,6 +168,11 @@
   - `recurring_bills`, `shopping_items`, `move_in_snapshots`, `maintenance_issues`
   - `vibe_pulses` (anonymous), `favor_tokens`
 - **Security & RLS**: All tables have RLS enabled with `is_household_member` function (`SECURITY DEFINER`, search_path set).
+- **Multi-Device Live Joining**:
+  - `join_household_by_code(p_code text)` RPC securely checks invite code and adds new member to `memberships`.
+  - `lookup_household_by_invite(p_code text)` allows non-members to look up flat metadata with invite code.
+  - `approve_join_request(p_request_id uuid)` allows flat admin to approve pending requests and activate membership in Supabase.
+  - Pending join requests rendered dynamically in `ApartmentScreen.tsx` with modal review.
 - **Storage Buckets Provisioned**: `receipts`, `chore-proof`, `snapshots`, `avatars`.
 - **Realtime Publication**: `supabase_realtime` publication configured for chat, chores, expenses, draft rounds, and notifications.
 - **Typed SDK**: `src/types/database.types.ts` generated directly from remote schema and wired into `src/services/supabase.ts`.
@@ -178,4 +183,4 @@
 - **Outbox Queue & Auto-Replay**: Mutations optimistic update locally, enqueue in `outbox`, dispatch to Supabase, and automatically re-flush via `window.addEventListener('online')` and periodic background timer.
 - **Realtime Sync Subscription**: `subscribeToHousehold` in `api.ts` wired to `App.tsx` reloading data on websocket events.
 - **PWA & Offline Installation**: `manifest.json`, `sw.js` push listener and caching, `beforeinstallprompt` capture, and "Install app" button in `ProfileSettingsModal.tsx`.
-- **Bundle Budget**: Total first screen JavaScript: **~158 kB gzip** (safely under 200 kB budget).
+- **Bundle Budget**: Total first screen JavaScript: **~149 kB gzip** (safely under 200 kB budget).
