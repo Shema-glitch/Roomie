@@ -352,9 +352,9 @@ function MainApp() {
   if (!currentUser || !activeHousehold || !draftRound) {
     return (
       <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center">
-        <MascotView state="thinking" size="lg" bubbleText="Waking up Roomie..." />
+        <MascotView state="thinking" size="lg" bubbleText="Getting your flat ready..." />
         <h2 className="type-title mt-4">
-          Loading Apartment 4B...
+          Loading your apartment...
         </h2>
       </div>
     );
@@ -719,6 +719,7 @@ function MainApp() {
             roommates={roommatesList}
             currentUser={currentUser}
             draftRound={draftRound}
+            householdName={activeHousehold.name}
             onSendMessage={async (text) => {
               const m = await api.sendMessage(text);
               await loadData();

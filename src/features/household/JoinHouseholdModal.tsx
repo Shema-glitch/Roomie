@@ -144,10 +144,6 @@ export const JoinHouseholdModal: React.FC<JoinHouseholdModalProps> = ({
               {loading ? 'Submitting...' : 'Join'}
             </Button>
           </div>
-
-          <div className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] type-secondary">
-            <strong>Hint:</strong> Try invite code <code>CYP-7492</code> to simulate joining Apartment 4B.
-          </div>
         </div>
       )}
     </Modal>

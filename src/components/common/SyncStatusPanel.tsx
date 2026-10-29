@@ -24,7 +24,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
   onSetStatus,
   lastSyncedTime,
   onTriggerSync,
-  householdName = 'Apartment 4B Lefkoşa',
+  householdName = 'Your Apartment',
 }) => {
   const getStatusConfig = () => {
     switch (status) {

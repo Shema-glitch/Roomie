@@ -139,12 +139,12 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeClasses = () => {
     switch (size) {
       case 'sm':
-        return 'min-h-[44px] min-w-[44px] px-3.5 py-2 text-[14px] font-bold whitespace-nowrap';
+        return 'min-h-[44px] min-w-[44px] px-3.5 py-2 text-[13px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
       case 'lg':
-        return 'min-h-[54px] px-6 py-3.5 text-[18px] font-bold whitespace-nowrap';
+        return 'min-h-[56px] px-6 py-3.5 text-[16px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
       case 'md':
       default:
-        return 'min-h-[48px] px-5 py-2.5 text-[16px] font-bold whitespace-nowrap';
+        return 'min-h-[48px] px-5 py-2.5 text-[14px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
     }
   };
 

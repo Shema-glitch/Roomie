@@ -251,8 +251,8 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 placeholder="e.g. CYP-7492"
                 className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-widest focus:outline-none focus:border-[#FF6B4A] uppercase text-center"
               />
-              <p className="type-secondary mt-1 text-center">
-                Try code <strong>CYP-7492</strong> to join Apartment 4B.
+              <p className="type-secondary mt-1.5 text-center text-xs text-[#6B7280]">
+                Enter the 8-character code shared by your flatmate or landlord.
               </p>
             </div>
 
@@ -326,16 +326,16 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 <IconTile icon={<Building2 className="w-5 h-5" />} color="coral" size="sm" />
                 <div>
                   <h4 className="type-section-heading">
-                    Apartment 4B Lefkoşa
+                    Apartment Invite Code
                   </h4>
-                  <p className="type-secondary">
-                    Code: {code} • 4 roomies active
+                  <p className="type-secondary font-mono font-bold text-sm text-[#FF6B4A]">
+                    {code}
                   </p>
                 </div>
               </div>
 
-              <div className="type-secondary bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
-                Your request will be shared with the roomies. Every member sees your request and votes OK or Not sure, then the admin approves.
+              <div className="type-secondary bg-white p-3 rounded-2xl border-2 border-[#E6E8EE] leading-relaxed text-xs">
+                You are connecting to this apartment. Once joined, your chores, balances, and flat chat will automatically synchronize.
               </div>
             </Card>
 

@@ -13,6 +13,7 @@ interface ChatScreenProps {
   roommates: User[];
   currentUser: User;
   draftRound?: DraftRound | null;
+  householdName?: string;
   onSendMessage: (text: string) => Promise<ChatMessage>;
   onAddReaction: (messageId: string, emoji: string) => Promise<void>;
   onNavigateAction: (target: { screen: string; id?: string }) => void;
@@ -23,6 +24,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   roommates,
   currentUser,
   draftRound,
+  householdName,
   onSendMessage,
   onAddReaction,
   onNavigateAction,
@@ -95,7 +97,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       <div className="py-2.5 px-1 flex items-center justify-between border-b border-[#E6E8EE] mb-2 shrink-0">
         <div>
           <h3 className="font-heading font-black text-xl text-[#1F2430]">
-            Apartment 4B Chat
+            {householdName ? `${householdName} Chat` : 'Flat Chat'}
           </h3>
           <p className="text-sm font-semibold text-[#475569]">
             {roommates.length} roomies in this group

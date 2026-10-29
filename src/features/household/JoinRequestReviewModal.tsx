@@ -63,7 +63,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Roomie Join Request"
-      subtitle="Review applicant for Apartment 4B"
+      subtitle="Review applicant for your apartment"
     >
       <div className="space-y-5">
         {/* Applicant Block */}
