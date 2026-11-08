@@ -201,3 +201,30 @@
 - **Removed Hardcoded Mock Copy Across the App**:
   - Replaced hardcoded "Apartment 4B Lefkoşa" in loading screen, chat header, join flow preview, and join request modal with dynamic household names and professional instructions.
 
+
+
+---
+
+## 7. Comprehensive UX Audit & Usability Fixes (Completed)
+
+- **Navigation Deep-Linking**:
+  - Wired `selectedExpenseId` state from `App.tsx` through `HomeScreen`, `ChatScreen`, `NotificationsModal`, and `ExpensesScreen`.
+  - Notifications and activity feed items for expenses now automatically open and focus the specific expense detail modal instead of landing on a generic expenses tab.
+- **Multi-Currency System-Wide Dynamism**:
+  - Implemented `getCurrencySymbol(currency?: string)` and `formatCurrency(amount, currency, forceDecimals)` in `stateTable.ts`.
+  - Converted all hardcoded `₺` symbols across `ExpensesScreen`, `HomeScreen`, `ApartmentScreen`, `EditSplitModal`, `AddExpenseFlowModal`, `SettleUpFlowModal`, and `ExpenseDetailModal` to render the household's configured currency (`TRY`, `USD`, or `EUR`).
+  - Updated activity feed regex to recognize `$`, `€`, and `₺` automatically.
+- **Dispute Flow Usability**:
+  - Expense card "Dispute" button now prompts the user with `DisputeReasonModal` so they can state the actual dispute reason before submission, replacing silent default reason submission.
+- **Dynamic Split Exclusions**:
+  - Replaced hardcoded mock text ("Quick exclude Lucas (₺0)" and lactose logic) in `EditSplitModal` with dynamic presets derived from disputing roommates and equal splits.
+- **Apartment Agreements Creation**:
+  - Added an "Add rule" button and category modal to `ApartmentScreen` under the rules sub-tab, enabling roomies to add flat agreements directly from the UI.
+- **Mobile Viewport & Bottom Navigation Harmony**:
+  - Replaced fixed page padding with mobile bottom navigation clearance (`pt-5 pb-24 md:py-8`) across all tab screens.
+  - Optimized `ChatScreen.tsx` with `flex flex-col h-full` and `App.tsx` chat viewport containment (`h-[calc(100dvh-64px)] pb-20`), fixing mobile input bar placement above the bottom nav without double-scroll containers.
+- **Orphan File Removal**:
+  - Deleted legacy duplicate modals: `AddExpenseModal.tsx`, `SettleUpModal.tsx`, `DoneActionModal.tsx`, `CreateHouseholdModal.tsx`, and `JoinHouseholdModal.tsx`.
+- **Bundle & Test Verification**:
+  - All **15 / 15 unit tests passing**.
+  - Production build in **1.00s**, initial JavaScript gzip bundle at **~103.4 kB** (budget: < 200 kB).
