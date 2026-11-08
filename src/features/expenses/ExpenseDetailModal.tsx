@@ -8,6 +8,7 @@ import { DisputeReasonModal } from './DisputeReasonModal';
 import { Expense, User } from '../../types';
 import { Check, AlertCircle, Receipt, MessageSquare, Split, ShieldAlert } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { getCurrencySymbol } from '../../utils/stateTable';
 
 interface ExpenseDetailModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface ExpenseDetailModalProps {
   expense: Expense | null;
   roommates: User[];
   currentUser: User;
+  currency?: string;
   onRespond: (expenseId: string, response: 'agreed' | 'disputed', reason?: string) => Promise<void>;
   onEditSplit?: () => void;
   onResolveDispute?: () => Promise<void>;
@@ -27,6 +29,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
   expense,
   roommates,
   currentUser,
+  currency = 'TRY',
   onRespond,
   onEditSplit,
   onResolveDispute,
@@ -38,6 +41,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
   if (!expense) return null;
 
+  const sym = getCurrencySymbol(currency);
   const payer = roommates.find((r) => r.id === expense.paidBy);
   const myShare = expense.shares.find((s) => s.userId === currentUser.id);
   const isPayer = expense.paidBy === currentUser.id;
@@ -107,7 +111,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             </div>
             <div className="text-right">
               <span className="type-title text-[#FF6B4A]">
-                ₺{expense.amount.toFixed(2)}
+                {sym}{expense.amount.toFixed(2)}
               </span>
               <div className="mt-1">
                 <Chip
@@ -205,7 +209,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
                     <div className="flex items-center gap-2">
                       <span className="text-[14px] font-bold text-[#1F2430]">
-                        ₺{s.shareAmount.toFixed(2)}
+                        {sym}{s.shareAmount.toFixed(2)}
                       </span>
                       <Chip
                         status={
@@ -229,7 +233,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {!isPayer && myShare && myShare.response === 'pending' && (
             <div className="pt-2 border-t border-[#E6E8EE] space-y-2">
               <p className="type-secondary">
-                Your share is ₺{myShare.shareAmount.toFixed(2)}. Do you agree?
+                Your share is {sym}{myShare.shareAmount.toFixed(2)}. Do you agree?
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button

@@ -90,7 +90,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col h-[calc(100dvh-150px)] w-full max-w-5xl mx-auto pb-6 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
+      className="flex flex-col h-full w-full max-w-5xl mx-auto pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
       onClick={() => setActiveReactionMsgId(null)}
     >
       {/* Header Info */}
@@ -111,7 +111,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       </div>
 
       {/* Messages Scroll Area with right padding so bubbles never touch scrollbar */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
         {/* Single-Source Chore Draft State Pill */}
         {draftState.state !== 'reveal_done' && (
           <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2 shadow-2xs">

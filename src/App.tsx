@@ -142,6 +142,7 @@ function MainApp() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<Tab>('feed');
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatusType>('synced');
   const [syncPanelOpen, setSyncPanelOpen] = useState<boolean>(false);
@@ -360,7 +361,7 @@ function MainApp() {
             const res = await api.signUpWithSupabase(email, password, name);
             if (res.success) {
               setIsAuthenticated(true);
-              setShowOnboarding(true);
+              setShowOnboarding(false);
               await loadData();
             }
             return res;
@@ -488,7 +489,7 @@ function MainApp() {
               <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
             </button>
 
-            {/* Quick Apartment Code Pill - Only on wide desktop (xl:), NEVER on tablet */}
+            {/* Quick Apartment Code Pill */}
             <button
               type="button"
               onClick={() => {
@@ -540,9 +541,9 @@ function MainApp() {
             })}
           </nav>
 
-          {/* Right Header Controls - always shrink-0 */}
+          {/* Right Header Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Sync Status Button with text label and taps open sync panel */}
+            {/* Sync Status Button */}
             <button
               type="button"
               onClick={() => {
@@ -599,7 +600,7 @@ function MainApp() {
               </span>
             </button>
 
-            {/* Notifications button with badge */}
+            {/* Notifications button */}
             <button
               onClick={() => {
                 sound.playTap();
@@ -636,8 +637,8 @@ function MainApp() {
         </div>
       </header>
 
-      {/* MAIN VIEW CONTENT - Fluid Responsive Container */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8 overflow-y-auto">
+      {/* MAIN VIEW CONTENT - With clean mobile padding (pt-5 pb-24 md:py-8) */}
+      <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${activeTab === 'chat' ? 'pt-3 pb-20 md:py-6 h-[calc(100dvh-64px)] overflow-hidden flex flex-col' : 'pt-5 pb-24 md:py-8 overflow-y-auto'}`}>
         <React.Suspense fallback={<ScreenSkeleton />}>
           {activeTab === 'feed' && (
           <HomeScreen
@@ -655,6 +656,7 @@ function MainApp() {
             onOpenChoreReveal={() => setDraftFlowState('reveal')}
             onOpenDraftPicks={() => setDraftFlowState('picking')}
             onSelectExpense={(id) => {
+              setSelectedExpenseId(id);
               setActiveTab('expenses');
             }}
             onSelectJoinRequest={(req) => setReviewJoinRequest(req)}
@@ -713,6 +715,9 @@ function MainApp() {
             settlements={settlements}
             roommates={roommatesList}
             currentUser={currentUser}
+            currency={activeHousehold.currency}
+            initialExpenseId={selectedExpenseId}
+            onClearInitialExpense={() => setSelectedExpenseId(null)}
             balances={balances}
             onAddExpense={async (title, amount, cat, participants, receiptUrl) => {
               const exp = await api.addExpense(title, amount, cat, participants, receiptUrl);
@@ -767,12 +772,15 @@ function MainApp() {
               await loadData();
             }}
             onNavigateAction={(target) => {
-              if (target.screen === 'expenses') setActiveTab('expenses');
+              if (target.screen === 'expenses') {
+                if (target.id) setSelectedExpenseId(target.id);
+                setActiveTab('expenses');
+              }
               if (target.screen === 'chores') setActiveTab('chores');
               if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
               if (target.screen === 'chore-draft') setDraftFlowState('picking');
               if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
-              if (target.screen === 'members') setActiveTab('apartment');
+              if (target.screen === 'members' || target.screen === 'apartment') setActiveTab('apartment');
             }}
           />
         )}
@@ -961,7 +969,10 @@ function MainApp() {
               await loadData();
             }}
             onActionClick={(target) => {
-              if (target.screen === 'expenses') setActiveTab('expenses');
+              if (target.screen === 'expenses') {
+                if (target.id) setSelectedExpenseId(target.id);
+                setActiveTab('expenses');
+              }
               if (target.screen === 'chores') setActiveTab('chores');
               if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
               if (target.screen === 'chore-draft') setDraftFlowState('picking');

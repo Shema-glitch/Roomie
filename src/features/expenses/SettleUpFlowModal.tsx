@@ -7,6 +7,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { Settlement, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   HandCoins,
   Check,
@@ -23,6 +24,7 @@ interface SettleUpFlowModalProps {
   onClose: () => void;
   roommates: User[];
   currentUser: User;
+  currency?: string;
   pendingSettlements: Settlement[];
   debtsToPay: { toUserId: string; amount: number }[];
   onMarkPaid: (toUserId: string, amount: number) => Promise<Settlement>;
@@ -34,65 +36,68 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
   onClose,
   roommates,
   currentUser,
+  currency = 'TRY',
   pendingSettlements = [],
   debtsToPay = [],
   onMarkPaid,
   onConfirmSettlement,
 }) => {
   const { showToast } = useToast();
+  const sym = getCurrencySymbol(currency);
+  const currencyLabel = currency || 'TRY';
 
   // Multi-step:
   // 1: Recipient -> 2: Amount & Method -> 3: Review -> 4: Pending Confirmation
   const [step, setStep] = useState<number>(1);
-  const [selectedRecipientId, setSelectedRecipientId] = useState<string>(
-    debtsToPay[0]?.toUserId || roommates.find((r) => r.id !== currentUser.id)?.id || ''
-  );
-  const [amountStr, setAmountStr] = useState<string>(
-    debtsToPay[0] ? debtsToPay[0].amount.toFixed(2) : '100.00'
-  );
-  const [method, setMethod] = useState<'cash' | 'transfer'>('cash');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [settledRecipient, setSettledRecipient] = useState<User | null>(null);
-
-  // Incoming settlements for current user to confirm
-  const confirmationsForMe = pendingSettlements.filter(
-    (s) => s.toUser === currentUser.id && s.status === 'marked_paid'
-  );
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>('');
+  const [amountStr, setAmountStr] = useState<string>('');
+  const [method, setMethod] = useState<'cash' | 'bank'>('bank');
+  const [loading, setLoading] = useState(false);
 
   const amountNum = parseFloat(amountStr) || 0;
   const recipient = roommates.find((r) => r.id === selectedRecipientId);
 
+  // Incoming settlements that require current user's confirmation
+  const confirmationsForMe = pendingSettlements.filter(
+    (s) => s.toUser === currentUser.id && s.status === 'marked_paid'
+  );
+
+  const resetForm = () => {
+    setStep(1);
+    setSelectedRecipientId('');
+    setAmountStr('');
+    setMethod('bank');
+    setLoading(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
   const handleNext = () => {
     sound.playTap();
-    if (step === 2) {
-      if (amountNum <= 0) {
-        showToast('Please enter a valid payment amount', 'error');
-        return;
-      }
-    }
-    setStep((prev) => prev + 1);
+    setStep((prev) => Math.min(prev + 1, 4));
   };
 
   const handleBack = () => {
     sound.playTap();
-    if (step > 1) {
-      setStep((prev) => prev - 1);
-    } else {
-      handleClose();
-    }
+    setStep((prev) => Math.max(prev - 1, 1));
   };
 
   const handleConfirmPaid = async () => {
-    if (!selectedRecipientId || amountNum <= 0) return;
+    if (!selectedRecipientId || amountNum <= 0) {
+      showToast('Please specify valid recipient and amount', 'error');
+      return;
+    }
+
     setLoading(true);
+    sound.playSuccess();
     try {
-      sound.playSuccess();
       await onMarkPaid(selectedRecipientId, amountNum);
-      setSettledRecipient(recipient || null);
       setStep(4);
-      showToast('Marked as paid! Awaiting recipient confirmation.', 'success');
     } catch {
-      showToast('Could not record payment', 'error');
+      showToast('Could not register settlement', 'error');
     } finally {
       setLoading(false);
     }
@@ -100,43 +105,33 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
 
   const handleConfirmReceived = async (settlementId: string) => {
     setLoading(true);
+    sound.playSuccess();
     try {
-      sound.playCelebration();
       await onConfirmSettlement(settlementId);
-      showToast('Payment confirmed! Ledger updated.', 'reward');
+      showToast('Payment confirmed and balanced!', 'success');
     } catch {
-      showToast('Confirmation failed', 'error');
+      showToast('Could not confirm settlement', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setStep(1);
-    onClose();
-  };
+  const settledRecipient = roommates.find((r) => r.id === selectedRecipientId);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 4 ? 'Payment Submitted' : `Settle Up (${step}/3)`}
-      subtitle={
-        step === 1
-          ? 'Step 1: Choose roomie to pay'
-          : step === 2
-          ? 'Step 2: Amount and payment method'
-          : step === 3
-          ? 'Step 3: Review and mark as paid'
-          : 'Waiting for roomie confirmation'
-      }
+      title={step < 4 ? 'Settle Up Balances' : 'Payment Notification Sent'}
+      subtitle={step < 4 ? `Step ${step} of 3` : 'Awaiting confirmation'}
+      maxWidth="md"
     >
       <div className="space-y-4">
-        {/* Pending incoming confirmations for this user */}
-        {confirmationsForMe.length > 0 && step === 1 && (
+        {/* Incoming Confirmations Alert Box */}
+        {confirmationsForMe.length > 0 && (
           <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] space-y-2">
-            <div className="flex items-center gap-1.5 type-label">
-              <ShieldCheck className="w-4 h-4 text-[#8A6200]" />
+            <div className="flex items-center gap-2 type-label text-[#8A6200]">
+              <AlertCircle className="w-4 h-4 text-[#FFC93C]" />
               <span>Roomies sent you payments</span>
             </div>
             {confirmationsForMe.map((s) => {
@@ -150,7 +145,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                     <Avatar src={payer?.avatar} name={payer?.name || ''} size="xs" />
                     <div>
                       <p className="type-body font-bold">
-                        {payer?.name} sent <span className="text-[#3DBE6D]">₺{s.amount.toFixed(2)}</span>
+                        {payer?.name} sent <span className="text-[#3DBE6D]">{sym}{s.amount.toFixed(2)}</span>
                       </p>
                       <p className="type-secondary">Marked as paid</p>
                     </div>
@@ -211,7 +206,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                           <p className="type-secondary">
                             {debt ? (
                               <span className="text-[#FF6B4A] font-bold">
-                                You owe ₺{debt.amount.toFixed(2)}
+                                You owe {sym}{debt.amount.toFixed(2)}
                               </span>
                             ) : (
                               'No debt owed'
@@ -258,11 +253,11 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
 
             <div>
               <label className="type-label block mb-1">
-                Amount Paid (₺ TRY)
+                Amount Paid ({currencyLabel} {sym})
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 type-big-number text-[#64748B]">
-                  ₺
+                  {sym}
                 </span>
                 <input
                   type="number"
@@ -276,46 +271,46 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
               </div>
             </div>
 
-            <div>
-              <label className="type-label block mb-2">
+            {/* Payment Method */}
+            <div className="space-y-2">
+              <span className="type-label block">
                 How did you pay?
-              </label>
+              </span>
               <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
+                <div
+                  onClick={() => {
+                    sound.playTap();
+                    setMethod('bank');
+                  }}
+                  className={`p-3 rounded-2xl border flex items-center gap-2 cursor-pointer transition-all ${
+                    method === 'bank'
+                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50'
+                      : 'border-[#E6E8EE] bg-white'
+                  }`}
+                >
+                  <Banknote className="w-5 h-5 text-[#19B5A5]" />
+                  <span className="type-body font-bold text-sm">Bank Transfer / IBAN</span>
+                </div>
+
+                <div
                   onClick={() => {
                     sound.playTap();
                     setMethod('cash');
                   }}
-                  className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                  className={`p-3 rounded-2xl border flex items-center gap-2 cursor-pointer transition-all ${
                     method === 'cash'
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50'
+                      : 'border-[#E6E8EE] bg-white'
                   }`}
                 >
-                  <Banknote className="w-5 h-5" />
-                  <span className="text-[14px] font-bold">Physical Cash</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playTap();
-                    setMethod('transfer');
-                  }}
-                  className={`p-3 rounded-2xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
-                    method === 'transfer'
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
-                  }`}
-                >
-                  <HandCoins className="w-5 h-5" />
-                  <span className="text-[14px] font-bold">Bank Transfer</span>
-                </button>
+                  <HandCoins className="w-5 h-5 text-[#19B5A5]" />
+                  <span className="type-body font-bold text-sm">Cash in Person</span>
+                </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={handleBack}>
+              <Button variant="secondary" size="md" onClick={handleBack}>
                 Back
               </Button>
               <Button
@@ -331,22 +326,22 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
           </div>
         )}
 
-        {/* STEP 3: REVIEW & MARK AS PAID */}
+        {/* STEP 3: REVIEW & CONFIRM */}
         {step === 3 && (
           <div className="space-y-4">
             <div>
               <h4 className="type-section-heading">
-                Review payment details
+                Confirm payment details
               </h4>
               <p className="type-secondary mt-0.5">
-                Ensure you have completed the cash or bank transaction.
+                Review the settlement before sending notice to your roomie.
               </p>
             </div>
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#E6E8EE]">
                 <div>
-                  <span className="type-label block mb-1">
+                  <span className="type-label block">
                     Payment To
                   </span>
                   <h4 className="type-section-heading">
@@ -355,7 +350,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="type-big-number text-[#FF6B4A]">
-                    ₺{amountNum.toFixed(2)}
+                    {sym}{amountNum.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -403,7 +398,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 Marked as Paid
               </h3>
               <p className="type-secondary leading-relaxed">
-                We let <span className="text-[#1F2430] font-bold">{settledRecipient?.name}</span> know you sent ₺{amountNum.toFixed(2)}. Once they tap Confirm, your balances will be settled.
+                We let <span className="text-[#1F2430] font-bold">{settledRecipient?.name}</span> know you sent {sym}{amountNum.toFixed(2)}. Once they tap Confirm, your balances will be settled.
               </p>
             </div>
 

@@ -11,6 +11,7 @@ import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { processPhoto } from '../../utils/photoPipeline';
 import { uploadPhotoToStorage } from '../../services/supabase';
+import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   ShoppingCart,
   Zap,
@@ -35,6 +36,7 @@ interface AddExpenseFlowModalProps {
   onClose: () => void;
   roommates: User[];
   currentUser: User;
+  currency?: string;
   onAddExpense: (
     title: string,
     amount: number,
@@ -50,136 +52,123 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
   onClose,
   roommates,
   currentUser,
+  currency = 'TRY',
   onAddExpense,
 }) => {
   const { showToast } = useToast();
-
-  // Multi-step state: 1 to 6
-  // 1: Payer -> 2: Details & Amount -> 3: Split Options -> 4: Receipt Capture -> 5: Review -> 6: Success
-  const [step, setStep] = useState<number>(1);
-
-  // Form values
-  const [payerId, setPayerId] = useState<string>(currentUser.id);
-  const [title, setTitle] = useState<string>('');
-  const [amountStr, setAmountStr] = useState<string>('');
-  const [category, setCategory] = useState<ExpenseCategory>('groceries');
-  const [splitType, setSplitType] = useState<'equal' | 'custom'>('equal');
-  const [participants, setParticipants] = useState<string[]>(roommates.map((r) => r.id));
-  const [customShares, setCustomShares] = useState<Record<string, string>>({});
-  const [receiptUrl, setReceiptUrl] = useState<string>('');
-  const [compressing, setCompressing] = useState<boolean>(false);
-  const [photoDetails, setPhotoDetails] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [createdExpense, setCreatedExpense] = useState<Expense | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sym = getCurrencySymbol(currency);
+  const currencyLabel = currency || 'TRY';
+
+  // Multi-step:
+  // 1: Payer -> 2: Category -> 3: Title & Amount -> 4: Receipt (optional) -> 5: Split -> 6: Review & Submit
+  const [step, setStep] = useState<number>(1);
+  const [payerId, setPayerId] = useState<string>(currentUser.id);
+  const [category, setCategory] = useState<ExpenseCategory>('groceries');
+  const [title, setTitle] = useState('');
+  const [amountStr, setAmountStr] = useState('');
+  const [participants, setParticipants] = useState<string[]>(roommates.map((r) => r.id));
+  const [splitType, setSplitType] = useState<'equal' | 'custom'>('equal');
+  const [receiptUrl, setReceiptUrl] = useState<string | undefined>(undefined);
+  const [receiptCompressing, setReceiptCompressing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const amountNum = parseFloat(amountStr) || 0;
+  const sharePerPerson =
+    participants.length > 0 ? (amountNum / participants.length).toFixed(2) : '0.00';
 
-  // Toggle participant
+  const resetForm = () => {
+    setStep(1);
+    setPayerId(currentUser.id);
+    setCategory('groceries');
+    setTitle('');
+    setAmountStr('');
+    setParticipants(roommates.map((r) => r.id));
+    setSplitType('equal');
+    setReceiptUrl(undefined);
+    setReceiptCompressing(false);
+    setLoading(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const handleNext = () => {
+    sound.playTap();
+    setStep((prev) => Math.min(prev + 1, 6));
+  };
+
+  const handleBack = () => {
+    sound.playTap();
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setReceiptCompressing(true);
+    sound.playTap();
+    try {
+      const processed = await processPhoto(file);
+      const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.jpg`;
+      const finalUrl = await uploadPhotoToStorage('receipts', fileName, processed.fullBlob, processed.fullDataUrl);
+      setReceiptUrl(finalUrl);
+      showToast('Receipt attached & compressed!', 'success');
+    } catch (err) {
+      showToast('Could not process receipt', 'error');
+    } finally {
+      setReceiptCompressing(false);
+    }
+  };
+
   const toggleParticipant = (userId: string) => {
     sound.playTap();
     if (participants.includes(userId)) {
-      if (participants.length > 1) {
-        setParticipants(participants.filter((id) => id !== userId));
-      } else {
+      if (participants.length === 1) {
         showToast('At least one roomie must share this expense', 'error');
+        return;
       }
+      setParticipants(participants.filter((id) => id !== userId));
     } else {
       setParticipants([...participants, userId]);
     }
   };
 
-  // Real client-side compressed photo capture
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      setCompressing(true);
-      const processed = await processPhoto(file);
-      const sizeKb = Math.round(processed.sizeBytes / 1024);
-      setPhotoDetails(`${processed.width}×${processed.height} px • ${sizeKb} KB`);
-
-      const fileName = `receipt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.jpg`;
-      const finalUrl = await uploadPhotoToStorage('receipts', fileName, processed.fullBlob, processed.fullDataUrl);
-      setReceiptUrl(finalUrl);
-      sound.playPop();
-      showToast(`Receipt compressed (${sizeKb} KB) & attached!`, 'info');
-    } catch {
-      showToast('Could not process receipt photo', 'error');
-    } finally {
-      setCompressing(false);
-    }
-  };
-
-  // Sample receipt fallback (for testing/desktop without camera)
-  const handleSampleReceipt = () => {
-    sound.playPop();
-    const samples = [
-      'https://images.unsplash.com/photo-1554415707-9e44667ff469?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
-    ];
-    setReceiptUrl(samples[Math.floor(Math.random() * samples.length)]);
-    setPhotoDetails('Sample preview');
-    showToast('Sample receipt attached.', 'info');
-  };
-
-  const handleNext = () => {
-    sound.playTap();
-    if (step === 2) {
-      if (!title.trim() || amountNum <= 0) {
-        showToast('Please enter what it was for and a valid amount', 'error');
-        return;
-      }
-    }
-    setStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    sound.playTap();
-    if (step > 1) {
-      setStep((prev) => prev - 1);
-    } else {
-      handleClose();
-    }
-  };
-
   const handleSubmit = async () => {
+    if (!title.trim() || amountNum <= 0 || participants.length === 0) {
+      showToast('Please fill in title, valid amount, and participants', 'error');
+      return;
+    }
+
     setLoading(true);
+    sound.playSuccess();
     try {
-      sound.playSuccess();
-      const exp = await onAddExpense(
+      await onAddExpense(
         title.trim(),
         amountNum,
         category,
         participants,
-        receiptUrl || undefined,
+        receiptUrl,
         payerId
       );
-      setCreatedExpense(exp);
-      setStep(6); // Success confirmation screen
+      setStep(6);
     } catch {
-      showToast('Could not save expense', 'error');
+      showToast('Could not log expense', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClose = () => {
-    setStep(1);
-    setTitle('');
-    setAmountStr('');
-    setReceiptUrl('');
-    setCreatedExpense(null);
-    setPayerId(currentUser.id);
-    setParticipants(roommates.map((r) => r.id));
-    onClose();
-  };
-
-  const sharePerPerson =
-    participants.length > 0 && amountNum > 0
-      ? (amountNum / participants.length).toFixed(2)
-      : '0.00';
+  const categories: { id: ExpenseCategory; label: string; icon: React.ReactNode; desc: string }[] = [
+    { id: 'groceries', label: 'Groceries & Food', icon: <ShoppingCart className="w-5 h-5" />, desc: 'Supermarket, fruit & veg, bakery' },
+    { id: 'utilities', label: 'Utilities & Bills', icon: <Zap className="w-5 h-5" />, desc: 'Electricity, gas cylinders, water bottles' },
+    { id: 'household', label: 'Household Essentials', icon: <Home className="w-5 h-5" />, desc: 'Cleaning supplies, toilet paper, detergent' },
+    { id: 'rent', label: 'Rent & Landlord', icon: <Building2 className="w-5 h-5" />, desc: 'Apartment monthly rent or building fee' },
+    { id: 'other', label: 'Other Shared Items', icon: <MoreHorizontal className="w-5 h-5" />, desc: 'Taxi rides, shared dinner, router' },
+  ];
 
   const payer = roommates.find((r) => r.id === payerId) || currentUser;
 
@@ -187,61 +176,31 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 6 ? 'Expense logged' : `Add Expense (${step}/5)`}
-      subtitle={
-        step === 1
-          ? 'Step 1: Choose who paid for this'
-          : step === 2
-          ? 'Step 2: Enter title, amount and category'
-          : step === 3
-          ? 'Step 3: Select roomie split'
-          : step === 4
-          ? 'Step 4: Attach receipt photo'
-          : step === 5
-          ? 'Step 5: Review & confirm breakdown'
-          : 'Awaiting roomie agreement'
-      }
+      title={step < 6 ? 'Log Shared Expense' : 'Expense Logged! 🎉'}
+      subtitle={step < 6 ? `Step ${step} of 5` : 'Awaiting roomie agreements'}
+      maxWidth="md"
     >
       <div className="space-y-4">
-        {/* Progress Bar (Calm style) */}
-        {step <= 5 && (
-          <div className="flex gap-1.5 w-full">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`h-1.5 rounded-full flex-1 transition-all ${
-                  s === step
-                    ? 'bg-[#FF6B4A]'
-                    : s < step
-                    ? 'bg-[#19B5A5]'
-                    : 'bg-[#E6E8EE]'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* STEP 1: CHOOSE PAYER */}
+        {/* STEP 1: CHOOSE WHO PAID */}
         {step === 1 && (
           <div className="space-y-4">
             <div>
               <h4 className="type-section-heading">
-                Who paid the bill?
+                Who paid for this?
               </h4>
               <p className="type-secondary mt-0.5">
-                Select which roomie paid at the store or covered the utility.
+                Default is you, but you can record an expense on behalf of another roomie.
               </p>
             </div>
 
             <div className="space-y-2">
               {roommates.map((r) => {
                 const isSelected = payerId === r.id;
-                const isMe = r.id === currentUser.id;
                 return (
                   <div
                     key={r.id}
                     onClick={() => {
-                      sound.playPop();
+                      sound.playTap();
                       setPayerId(r.id);
                     }}
                     className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
@@ -254,10 +213,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                       <Avatar src={r.avatar} name={r.name} flag={r.flag} size="md" />
                       <div>
                         <h4 className="type-section-heading">
-                          {r.name} {isMe ? '(You)' : ''}
+                          {r.name} {r.id === currentUser.id ? '(You)' : ''}
                         </h4>
                         <p className="type-secondary">
-                          From {r.country}
+                          {r.id === currentUser.id ? 'You paid out of pocket' : 'Roomie paid'}
                         </p>
                       </div>
                     </div>
@@ -272,28 +231,88 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             </div>
 
             <div className="pt-2">
-              <Button
-                variant="primary"
-                size="md"
-                fullWidth
-                onClick={handleNext}
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
+              <Button variant="primary" size="lg" fullWidth onClick={handleNext} icon={<ArrowRight className="w-5 h-5" />}>
                 Continue
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: DETAILS & AMOUNT */}
+        {/* STEP 2: CATEGORY */}
         {step === 2 && (
+          <div className="space-y-4">
+            <div>
+              <h4 className="type-section-heading">
+                Select category
+              </h4>
+              <p className="type-secondary mt-0.5">
+                Helps your apartment track monthly spending transparently.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              {categories.map((cat) => {
+                const isSelected = category === cat.id;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => {
+                      sound.playTap();
+                      setCategory(cat.id);
+                    }}
+                    className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-xs'
+                        : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                          isSelected ? 'bg-[#FF6B4A] text-white' : 'bg-[#F1F5F9] text-[#475569]'
+                        }`}
+                      >
+                        {cat.icon}
+                      </div>
+                      <div>
+                        <h4 className="type-section-heading">
+                          {cat.label}
+                        </h4>
+                        <p className="type-secondary">
+                          {cat.desc}
+                        </p>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
+                        <Check className="w-4 h-4" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <Button variant="secondary" size="md" onClick={handleBack}>
+                Back
+              </Button>
+              <Button variant="primary" size="md" onClick={handleNext} icon={<ArrowRight className="w-4 h-4" />}>
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: TITLE & AMOUNT */}
+        {step === 3 && (
           <div className="space-y-4">
             <div>
               <h4 className="type-section-heading">
                 Expense details & amount
               </h4>
               <p className="type-secondary mt-0.5">
-                Paid by {payer.name} in Turkish Lira (₺ TRY).
+                Paid by {payer.name} in {currencyLabel} ({sym}).
               </p>
             </div>
 
@@ -307,7 +326,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Lemar weekly groceries, Water 19L refills"
+                placeholder="e.g. Lemar weekly groceries, Water refills"
                 className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
               />
             </div>
@@ -315,11 +334,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             {/* Amount */}
             <div>
               <label className="type-label block mb-1.5">
-                Total Amount (₺ TRY)
+                Total Amount ({currencyLabel} {sym})
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black font-heading text-[#6B7280]">
-                  ₺
+                  {sym}
                 </span>
                 <input
                   type="number"
@@ -328,42 +347,49 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-[#E6E8EE] bg-white type-title text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
                 />
               </div>
             </div>
 
-            {/* Category */}
+            {/* Optional Receipt Photo */}
             <div>
               <label className="type-label block mb-1.5">
-                Category
+                Receipt Photo (optional)
               </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {[
-                  { id: 'groceries', label: 'Groceries', icon: <ShoppingCart className="w-4 h-4" /> },
-                  { id: 'rent', label: 'Rent', icon: <Building2 className="w-4 h-4" /> },
-                  { id: 'utilities', label: 'Utilities', icon: <Zap className="w-4 h-4" /> },
-                  { id: 'household', label: 'House', icon: <Home className="w-4 h-4" /> },
-                  { id: 'other', label: 'Other', icon: <MoreHorizontal className="w-4 h-4" /> },
-                ].map((c) => (
+              {receiptUrl ? (
+                <div className="relative rounded-2xl overflow-hidden border border-[#E6E8EE] max-h-40">
+                  <img src={receiptUrl} alt="Receipt" className="w-full h-36 object-cover" />
                   <button
                     type="button"
-                    key={c.id}
-                    onClick={() => {
-                      sound.playTap();
-                      setCategory(c.id as ExpenseCategory);
-                    }}
-                    className={`py-2.5 px-1 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
-                      category === c.id
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                        : 'border-[#E6E8EE] bg-white text-[#6B7280]'
-                    }`}
+                    onClick={() => setReceiptUrl(undefined)}
+                    className="absolute top-2 right-2 px-2.5 py-1 rounded-xl bg-black/60 text-white text-xs font-bold hover:bg-black/80"
                   >
-                    {c.icon}
-                    <span className="text-[14px] font-normal">{c.label}</span>
+                    Remove
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    disabled={receiptCompressing}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full p-4 rounded-2xl border-2 border-dashed border-[#CBD5E1] bg-[#F7F8FB] hover:border-[#FF6B4A] hover:bg-[#FFF5F2] flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <Camera className="w-5 h-5 text-[#FF6B4A]" />
+                    <span className="type-secondary font-bold text-[#FF6B4A]">
+                      {receiptCompressing ? 'Compressing photo...' : 'Upload receipt or snap photo'}
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -377,21 +403,21 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Next
+                Continue
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 3: SPLIT OPTIONS */}
-        {step === 3 && (
+        {/* STEP 4: SPLIT CONFIGURATION */}
+        {step === 4 && (
           <div className="space-y-4">
             <div>
               <h4 className="type-section-heading">
                 Choose how to split
               </h4>
               <p className="type-secondary mt-0.5">
-                Splitting ₺{amountNum.toFixed(2)} fairly.
+                Splitting {sym}{amountNum.toFixed(2)} fairly.
               </p>
             </div>
 
@@ -442,7 +468,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                           {r.name} {r.id === currentUser.id ? '(You)' : ''}
                         </h4>
                         <p className="type-secondary">
-                          {isSelected ? `Share: ₺${shareAmount}` : 'Excluded from split'}
+                          {isSelected ? `Share: ${sym}${shareAmount}` : 'Excluded from split'}
                         </p>
                       </div>
                     </div>
@@ -459,7 +485,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] type-secondary font-bold text-[#8A6200] flex items-center justify-between">
               <span>Each roomie owes:</span>
               <span className="type-section-heading text-[#8A6200]">
-                ₺{sharePerPerson}
+                {sym}{sharePerPerson}
               </span>
             </Card>
 
@@ -474,101 +500,13 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >
-                Next
+                Review
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 4: RECEIPT CAPTURE */}
-        {step === 4 && (
-          <div className="space-y-4 text-center">
-            <div className="text-left">
-              <h4 className="type-section-heading">
-                Capture receipt photo
-              </h4>
-              <p className="type-secondary mt-0.5">
-                Receipts keep everything transparent and prevent disputes.
-              </p>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {receiptUrl ? (
-              <div className="space-y-2">
-                <div className="relative rounded-2xl overflow-hidden border-2 border-[#19B5A5] shadow-xs max-h-52">
-                  <img
-                    src={receiptUrl}
-                    alt="Captured receipt"
-                    className="w-full h-44 object-cover"
-                  />
-                  <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    {photoDetails || 'Receipt attached'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReceiptUrl('');
-                    setPhotoDetails('');
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                  className="type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
-                >
-                  Remove photo
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div
-                  onClick={() => !compressing && fileInputRef.current?.click()}
-                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-[#FF6B4A] hover:bg-[#FFF0ED]/20 cursor-pointer transition-all bg-[#F7F8FB]"
-                >
-                  <IconTile icon={compressing ? <Upload className="w-7 h-7 animate-bounce" /> : <Camera className="w-7 h-7" />} color="coral" size="lg" />
-                  <div>
-                    <h4 className="type-section-heading">
-                      {compressing ? 'Compressing photo...' : 'Take or Upload Receipt'}
-                    </h4>
-                    <p className="type-secondary mt-0.5">
-                      {compressing ? 'Auto-optimizing under 300 KB' : 'Tap to take photo or choose from library'}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSampleReceipt}
-                  className="type-secondary font-bold text-[#FF6B4A] hover:underline cursor-pointer text-center w-full"
-                >
-                  Or use sample receipt preview
-                </button>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button variant="outline" size="md" onClick={handleBack}>
-                Back
-              </Button>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleNext}
-                icon={<ArrowRight className="w-4 h-4" />}
-              >
-                {receiptUrl ? 'Review' : 'Skip'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 5: REVIEW & SUMMARY */}
+        {/* STEP 5: REVIEW & CONFIRM */}
         {step === 5 && (
           <div className="space-y-4">
             <div>
@@ -576,16 +514,14 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 Review expense summary
               </h4>
               <p className="type-secondary mt-0.5">
-                Verify details before notifying roomies.
+                Make sure details look accurate before logging.
               </p>
             </div>
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#E6E8EE]">
                 <div>
-                  <span className="type-label block mb-1">
-                    {category}
-                  </span>
+                  <span className="type-label block">{category}</span>
                   <h3 className="type-section-heading">
                     {title}
                   </h3>
@@ -593,7 +529,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="type-big-number text-[#FF6B4A]">
-                    ₺{amountNum.toFixed(2)}
+                    {sym}{amountNum.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -615,7 +551,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                         <span className="type-body">{u?.name}</span>
                       </div>
                       <span className="type-section-heading">
-                        ₺{sharePerPerson}
+                        {sym}{sharePerPerson}
                       </span>
                     </div>
                   );
@@ -661,7 +597,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 Expense Logged
               </h3>
               <p className="type-secondary leading-relaxed">
-                <span className="text-[#1F2430] font-bold">₺{amountNum.toFixed(2)}</span> for "{title}" has been shared with your roomies.
+                <span className="text-[#1F2430] font-bold">{sym}{amountNum.toFixed(2)}</span> for "{title}" has been shared with your roomies.
               </p>
             </div>
 

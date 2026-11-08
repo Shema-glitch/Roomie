@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActionCard } from '../../components/common/ActionCard';
 import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile, IconTileColor } from '../../components/common/IconTile';
@@ -9,11 +9,12 @@ import { AddExpenseFlowModal } from './AddExpenseFlowModal';
 import { ExpenseDetailModal } from './ExpenseDetailModal';
 import { SettleUpFlowModal } from './SettleUpFlowModal';
 import { EditSplitModal } from './EditSplitModal';
+import { DisputeReasonModal } from './DisputeReasonModal';
 import { SpendingBreakdownChart } from './SpendingBreakdownChart';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Expense, Settlement, User, ExpenseCategory } from '../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../utils/balances';
-import { formatPlural, formatCurrencyTRY } from '../../utils/stateTable';
+import { formatPlural, getCurrencySymbol } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
 import {
   Plus,
@@ -45,6 +46,9 @@ interface ExpensesScreenProps {
   settlements: Settlement[];
   roommates: User[];
   currentUser: User;
+  currency?: string;
+  initialExpenseId?: string | null;
+  onClearInitialExpense?: () => void;
   balances: {
     userSummaries: Record<string, number>;
     simplifiedDebts: NetBalance[];
@@ -75,6 +79,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   settlements,
   roommates,
   currentUser,
+  currency = 'TRY',
+  initialExpenseId,
+  onClearInitialExpense,
   balances,
   onAddExpense,
   onRespondExpense,
@@ -86,12 +93,25 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   onOpenChat,
 }) => {
   const { showToast } = useToast();
+  const sym = getCurrencySymbol(currency);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [cardDisputeTarget, setCardDisputeTarget] = useState<Expense | null>(null);
   const [editSplitTarget, setEditSplitTarget] = useState<Expense | null>(null);
   const [settleModalOpen, setSettleModalOpen] = useState(false);
   const [breakdownExpanded, setBreakdownExpanded] = useState(true);
   const [showCalculationInfo, setShowCalculationInfo] = useState(false);
+
+  // Auto-open expense from deep-link
+  useEffect(() => {
+    if (initialExpenseId) {
+      const found = expenses.find((e) => e.id === initialExpenseId);
+      if (found) {
+        setSelectedExpense(found);
+        onClearInitialExpense?.();
+      }
+    }
+  }, [initialExpenseId, expenses, onClearInitialExpense]);
 
   const formatExpenseDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -160,94 +180,107 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   const disputedExpenses = expenses.filter((e) => e.status === 'disputed');
 
   return (
-    <div className="w-full select-none pb-28 md:pb-8">
-      {/* Responsive Desktop 12-Column Grid */}
-      <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-        {/* ================= LEFT COLUMN: Grouped Expenses Ledger ================= */}
-        <div className="w-full lg:col-span-7 self-start space-y-6">
-          {/* Header Row: Action in ONE place ('+ Log expense') per Section 17 */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <SectionTitle
-              title="Apartment Expenses Ledger"
-              subtitle="Equal split and roomie agreements"
-            />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setAddModalOpen(true)}
-              icon={<Plus className="w-4 h-4" />}
-            >
-              Log expense
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Top Header & Fast Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="type-title">Expenses & money</h2>
+          <p className="type-secondary mt-0.5">
+            Fair shared flat ledger with consent-first splits
+          </p>
+        </div>
 
-          {/* EMPTY STATE */}
-          {expenses.length === 0 && settlements.length === 0 && (
-            <EmptyState
-              title="No expenses logged yet"
-              description="Keep splits transparent by recording apartment groceries, electricity, or water."
-              mascotState="idle"
-              bubbleText="No debts, peaceful living!"
-              actionLabel="Log expense"
-              actionIcon={<Plus className="w-4 h-4" />}
-              onAction={() => setAddModalOpen(true)}
-            />
-          )}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              sound.playTap();
+              setAddModalOpen(true);
+            }}
+            icon={<Plus className="w-5 h-5" />}
+          >
+            Log expense
+          </Button>
+        </div>
+      </div>
 
-          {/* SEMANTIC GROUP 1: NEEDS YOUR AGREEMENT (ONLY PAID BY SOMEONE ELSE) */}
+      {/* Main Two-Column Layout for Desktop / Stack for Mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ================= LEFT COLUMN: Purchases & Approvals ================= */}
+        <div className="w-full lg:col-span-7 space-y-6">
+          {/* SEMANTIC GROUP 1: NEEDS YOUR AGREEMENT (HIGH PRIORITY ACTION CARDS) */}
           {needsMyAgreementExpenses.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="type-section-heading text-[#8A6200]">Needs your agreement</span>
-                  <Chip status="pending" label={`${needsMyAgreementExpenses.length} Pending`} size="sm" />
+                  <span className="type-section-heading text-[#FF6B4A]">Needs your agreement</span>
+                  <Chip status="pending" label={`${needsMyAgreementExpenses.length} Action Required`} size="sm" />
                 </div>
-                <span className="type-secondary text-[14px]">Paid by roomie • verify your share</span>
+                <span className="type-secondary text-[14px]">Tap to review or dispute</span>
               </div>
 
               {needsMyAgreementExpenses.map((exp) => renderExpenseCard(exp, 'needs-my-answer'))}
             </div>
           )}
 
-          {/* SEMANTIC GROUP 2: WAITING FOR ROOMIES (YOUR PENDING EXPENSES) */}
+          {/* SEMANTIC GROUP 2: WAITING FOR ROOMIES */}
           {waitingForRoomiesExpenses.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="type-section-heading text-[#475569]">Waiting for roomies</span>
-                  <Chip status="pending" label={`${waitingForRoomiesExpenses.length} Awaiting`} size="sm" />
+                  <span className="type-section-heading">Waiting for roomies</span>
+                  <Chip status="pending" label={`${waitingForRoomiesExpenses.length} Pending`} size="sm" />
                 </div>
-                <span className="type-secondary text-[14px]">Waiting for other roomies to agree</span>
+                {waitingForRoomiesExpenses.some((e) => e.paidBy === currentUser.id) && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      sound.playTap();
+                      if (onRemindRoomies) {
+                        await onRemindRoomies('Please review and agree to shared purchases 🙏');
+                        showToast('Sent gentle reminder to roomies!', 'info');
+                      }
+                    }}
+                    className="text-[14px] font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Bell className="w-3.5 h-3.5" /> Remind all
+                  </button>
+                )}
               </div>
 
               {waitingForRoomiesExpenses.map((exp) => renderExpenseCard(exp, 'waiting-roomies'))}
             </div>
           )}
 
-          {/* SEMANTIC GROUP 3: SHARED APARTMENT PURCHASES (AGREED) */}
-          {agreedExpenses.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-2">
-                  <span className="type-section-heading">Shared purchases</span>
-                  <Chip status="agreed" label={`${agreedExpenses.length} Agreed`} size="sm" />
-                </div>
-                <span className="type-secondary text-[14px]">Counted in net apartment balance</span>
+          {/* SEMANTIC GROUP 3: AGREED & CONFIRMED EXPENSES */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-2">
+                <span className="type-section-heading">Agreed purchases</span>
+                <Chip status="agreed" label={`${agreedExpenses.length} Confirmed`} size="sm" />
               </div>
-
-              {agreedExpenses.map((exp) => renderExpenseCard(exp, 'agreed'))}
+              <span className="type-secondary text-[14px]">Counted in final balance</span>
             </div>
-          )}
 
-          {/* SEMANTIC GROUP 4: DIRECT SETTLEMENTS */}
+            {agreedExpenses.length === 0 ? (
+              <InfoCard padding="md" className="text-center type-secondary bg-white">
+                No agreed expenses yet. When all roomies agree, purchases appear here.
+              </InfoCard>
+            ) : (
+              agreedExpenses.map((exp) => renderExpenseCard(exp, 'agreed'))
+            )}
+          </div>
+
+          {/* SEMANTIC GROUP 4: SETTLEMENT LOG (DIRECT BILATERAL PAYMENTS) */}
           {settlements.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-2">
-                  <span className="type-section-heading">Direct settle up payments</span>
-                  <Chip status="paid" label={`${settlements.length} Transfers`} size="sm" />
+                  <span className="type-section-heading">Direct settlements</span>
+                  <Chip status="agreed" label={`${settlements.length} Transfers`} size="sm" />
                 </div>
-                <span className="type-secondary text-[14px]">Settled balances</span>
+                <span className="type-secondary text-[14px]">Cash or bank transfers</span>
               </div>
 
               {settlements.map((s) => {
@@ -261,7 +294,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                     key={s.id}
                     tint="neutral"
                     iconTile={<IconTile icon={<Banknote className="w-5 h-5" />} color="teal" size="sm" />}
-                    title={`₺${formatCurrency(s.amount)} paid directly`}
+                    title={`${sym}${formatCurrency(s.amount)} paid directly`}
                     subtitle={`${fromUser?.name.split(' ')[0] || 'Roomie'} to ${toUser?.name.split(' ')[0] || 'Roomie'} • ${formatExpenseDate(s.createdAt)}`}
                     detail={
                       <div className="flex items-center justify-between type-secondary text-[14px]">
@@ -299,7 +332,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             </div>
           )}
 
-          {/* EMPTY STATE IF FILTER HAS NO ITEMS */}
+          {/* EMPTY STATE IF NO ITEMS */}
           {expenses.length === 0 && (
             <EmptyState
               title="No apartment expenses logged yet"
@@ -328,11 +361,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
               <div className="flex items-baseline gap-2">
                 <span className="type-big-number">
                   {myNet > 0.05 ? (
-                    <span className="text-[#2CA358]">+₺{formatCurrency(myNet)}</span>
+                    <span className="text-[#2CA358]">+{sym}{formatCurrency(myNet)}</span>
                   ) : myNet < -0.05 ? (
-                    <span className="text-[#E5484D]">-₺{formatCurrency(Math.abs(myNet))}</span>
+                    <span className="text-[#E5484D]">-{sym}{formatCurrency(Math.abs(myNet))}</span>
                   ) : (
-                    <span className="text-[#1F2430]">₺0.00</span>
+                    <span className="text-[#1F2430]">{sym}0.00</span>
                   )}
                 </span>
               </div>
@@ -372,7 +405,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                             {toUser?.id === currentUser.id ? 'You' : toUser?.name.split(' ')[0]}
                           </span>
                           <span className="font-heading font-bold text-[18px]">
-                            ₺{formatCurrency(d.amount)}
+                            {sym}{formatCurrency(d.amount)}
                           </span>
                         </div>
                       );
@@ -413,33 +446,33 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                         <div className="flex justify-between items-center">
                           <span>Total you paid for flat (agreed):</span>
                           <span className="font-mono font-bold text-[#2CA358]">
-                            +₺{formatCurrency(balances.calculationBreakdowns?.[currentUser.id]?.totalPaidAgreed ?? 3200)}
+                            +{sym}{formatCurrency(balances.calculationBreakdowns?.[currentUser.id]?.totalPaidAgreed ?? 0)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>Your share across agreed expenses:</span>
                           <span className="font-mono font-bold text-[#E5484D]">
-                            -₺{formatCurrency(
-                              (balances.calculationBreakdowns?.[currentUser.id]?.ownShareOfOwnExpenses ?? 800) +
-                              (balances.calculationBreakdowns?.[currentUser.id]?.owedByMeToOtherPayers ?? 300)
+                            -{sym}{formatCurrency(
+                              (balances.calculationBreakdowns?.[currentUser.id]?.ownShareOfOwnExpenses ?? 0) +
+                              (balances.calculationBreakdowns?.[currentUser.id]?.owedByMeToOtherPayers ?? 0)
                             )}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>Confirmed settlements received:</span>
                           <span className="font-mono font-bold text-[#475569]">
-                            ₺{formatCurrency(balances.calculationBreakdowns?.[currentUser.id]?.settlementsReceived ?? 0)}
+                            {sym}{formatCurrency(balances.calculationBreakdowns?.[currentUser.id]?.settlementsReceived ?? 0)}
                           </span>
                         </div>
                         <div className="pt-1.5 border-t border-[#E6E8EE] flex justify-between items-center font-bold text-[#1F2430]">
                           <span>Your Net Balance:</span>
                           <span className="font-mono font-black text-base text-[#2CA358]">
-                            +₺{formatCurrency(myNet)}
+                            {myNet >= 0 ? '+' : '-'}{sym}{formatCurrency(Math.abs(myNet))}
                           </span>
                         </div>
                       </div>
                       <p className="text-[14px] text-[#475569] italic">
-                        Pending purchases (Shoe Rack, Cleaners) and disputes (Cheese) are excluded until confirmed by all roomies.
+                        Pending purchases and disputes are excluded until confirmed by all roomies.
                       </p>
                     </div>
                   )}
@@ -451,93 +484,85 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
               </div>
             }
             actions={
-              myNet > 0.05 ? (
-                // IF I AM OWED MONEY: "Remind" / "Confirm payment"
-                <div className="grid grid-cols-2 gap-3 w-full">
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={async () => {
-                      sound.playSuccess();
-                      if (onRemindRoomies) {
-                        await onRemindRoomies();
-                      }
-                      showToast('Friendly payment reminder sent to roomies!', 'success');
-                    }}
-                    icon={<Bell className="w-4 h-4" />}
-                  >
-                    Remind
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => {
-                      sound.playTap();
-                      setSettleModalOpen(true);
-                    }}
-                    icon={<CheckCircle2 className="w-4 h-4 text-[#2CA358]" />}
-                  >
-                    Confirm payment
-                  </Button>
-                </div>
-              ) : myNet < -0.05 ? (
-                // IF I OWE MONEY: "Settle up" only
-                <div className="w-full">
+              <div className="w-full">
+                {myNet > 0.05 ? (
+                  <div className="grid grid-cols-2 gap-3 w-full">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={async () => {
+                        sound.playTap();
+                        if (onRemindRoomies) {
+                          await onRemindRoomies('Gentle reminder to settle apartment balances when you have a moment 🙏');
+                          showToast('Reminder posted to flat chat!', 'success');
+                        }
+                      }}
+                      icon={<Bell className="w-4 h-4" />}
+                    >
+                      Remind
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      onClick={() => {
+                        sound.playTap();
+                        setSettleModalOpen(true);
+                      }}
+                    >
+                      Confirm payment
+                    </Button>
+                  </div>
+                ) : myNet < -0.05 ? (
                   <Button
                     variant="primary"
                     size="md"
                     fullWidth
-                    onClick={() => setSettleModalOpen(true)}
+                    onClick={() => {
+                      sound.playTap();
+                      setSettleModalOpen(true);
+                    }}
                     icon={<Banknote className="w-4 h-4" />}
                   >
-                    Settle up
+                    Settle up now
                   </Button>
-                </div>
-              ) : (
-                <div className="w-full py-1 text-center">
-                  <span className="text-[14px] font-bold text-[#2CA358] inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" /> All apartment balances settled
-                  </span>
-                </div>
-              )
+                ) : (
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth
+                    onClick={() => {
+                      sound.playTap();
+                      setSettleModalOpen(true);
+                    }}
+                  >
+                    Payment history
+                  </Button>
+                )}
+              </div>
             }
           />
 
-          {/* 2. SPENDING BREAKDOWN & ANALYTICS CARD */}
-          <InfoCard
-            tint="neutral"
-            padding="md"
-            className="border-2 border-[#E6E8EE] space-y-3 bg-white shadow-sm"
-          >
+          {/* 2. SPENDING BREAKDOWN BY CATEGORY */}
+          <InfoCard padding="md" className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <IconTile icon={<PieChart className="w-5 h-5" />} color="coral" size="sm" />
-                <div>
-                  <h4 className="type-card-title">
-                    Spending by category
-                  </h4>
-                  <p className="type-secondary text-[14px]">
-                    Monthly breakdown and charts
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <IconTile icon={<PieChart className="w-5 h-5" />} color="amber" size="sm" />
+                <span className="type-section-heading">Spending by category</span>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  sound.playTap();
-                  setBreakdownExpanded(!breakdownExpanded);
-                }}
-                icon={breakdownExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <button
+                type="button"
+                onClick={() => setBreakdownExpanded(!breakdownExpanded)}
+                className="type-secondary font-bold text-[14px] text-[#FF6B4A] hover:underline cursor-pointer"
               >
                 {breakdownExpanded ? 'Collapse' : 'Expand'}
-              </Button>
+              </button>
             </div>
 
             {breakdownExpanded && (
-              <div className="pt-2 border-t border-[#E6E8EE]">
-                <SpendingBreakdownChart expenses={expenses} />
-              </div>
+              <SpendingBreakdownChart
+                expenses={agreedExpenses.length > 0 ? agreedExpenses : expenses}
+                currencySymbol={sym}
+              />
             )}
           </InfoCard>
         </div>
@@ -549,6 +574,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         onClose={() => setAddModalOpen(false)}
         roommates={roommates}
         currentUser={currentUser}
+        currency={currency}
         onAddExpense={onAddExpense}
       />
 
@@ -558,6 +584,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         expense={selectedExpense}
         roommates={roommates}
         currentUser={currentUser}
+        currency={currency}
         onRespond={onRespondExpense}
         onEditSplit={() => {
           if (selectedExpense) {
@@ -578,6 +605,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         onClose={() => setSettleModalOpen(false)}
         roommates={roommates}
         currentUser={currentUser}
+        currency={currency}
         debtsToPay={myDebtsToPay}
         pendingSettlements={settlements}
         onMarkPaid={onMarkPaid}
@@ -590,12 +618,26 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           onClose={() => setEditSplitTarget(null)}
           expense={editSplitTarget}
           roommates={roommates}
+          currency={currency}
           onSaveSplit={async (expenseId, adjustedShares) => {
             if (onEditSplit) {
               await onEditSplit(expenseId, adjustedShares);
               showToast('Split updated and resolved!', 'success');
             }
             setEditSplitTarget(null);
+          }}
+        />
+      )}
+
+      {cardDisputeTarget && (
+        <DisputeReasonModal
+          isOpen={Boolean(cardDisputeTarget)}
+          onClose={() => setCardDisputeTarget(null)}
+          expenseTitle={cardDisputeTarget.title}
+          onSubmitDispute={async (reason) => {
+            await onRespondExpense(cardDisputeTarget.id, 'disputed', reason);
+            showToast('Expense marked as disputed', 'info');
+            setCardDisputeTarget(null);
           }}
         />
       )}
@@ -654,7 +696,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {/* Right Financial Hub: Big Total Amount & Tactile Chip */}
           <div className="text-right shrink-0 flex flex-col items-end gap-1">
             <span className="font-heading font-black text-lg sm:text-xl text-[#1F2430]">
-              ₺{formatCurrency(exp.amount)}
+              {sym}{formatCurrency(exp.amount)}
             </span>
             <Chip
               status={
@@ -700,7 +742,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
               </span>
             ) : myShare ? (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#F0F4FF] text-[#4353C4] font-bold text-[14px]">
-                Your share: ₺{formatCurrency(myShare.shareAmount)}
+                Your share: {sym}{formatCurrency(myShare.shareAmount)}
               </span>
             ) : null}
 
@@ -732,11 +774,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     sound.playTap();
-                    await onRespondExpense(exp.id, 'disputed', 'Split needs discussion');
-                    showToast('Expense marked as disputed', 'info');
+                    setCardDisputeTarget(exp);
                   }}
                   icon={<XCircle className="w-3.5 h-3.5 text-[#E5484D]" />}
                 >

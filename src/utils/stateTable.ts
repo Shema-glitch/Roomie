@@ -159,15 +159,42 @@ export function isAssignmentDueToday(
 }
 
 /**
- * Currency formatter with Turkish Lira symbol and comma separators (e.g. ₺4,820 or ₺780.00)
+ * Returns symbol for a currency code (default: TRY ₺)
  */
-export function formatCurrencyTRY(amount: number | undefined | null, forceDecimals: boolean = false): string {
+export function getCurrencySymbol(currency?: string): string {
+  switch (currency?.toUpperCase()) {
+    case 'USD':
+      return '$';
+    case 'EUR':
+      return '€';
+    case 'TRY':
+    default:
+      return '₺';
+  }
+}
+
+/**
+ * Currency formatter with configurable currency symbol and comma separators
+ */
+export function formatCurrency(
+  amount: number | undefined | null,
+  currency: string = 'TRY',
+  forceDecimals: boolean = false
+): string {
   const num = amount ?? 0;
+  const sym = getCurrencySymbol(currency);
   const hasFractions = num % 1 !== 0;
-  return '₺' + num.toLocaleString('en-US', {
+  return sym + num.toLocaleString('en-US', {
     minimumFractionDigits: forceDecimals || hasFractions ? 2 : 0,
     maximumFractionDigits: 2,
   });
+}
+
+/**
+ * Legacy TRY currency formatter (e.g. ₺4,820 or ₺780.00)
+ */
+export function formatCurrencyTRY(amount: number | undefined | null, forceDecimals: boolean = false): string {
+  return formatCurrency(amount, 'TRY', forceDecimals);
 }
 
 /**

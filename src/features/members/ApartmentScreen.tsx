@@ -9,6 +9,7 @@ import { Chip } from '../../components/common/Chip';
 import { Modal } from '../../components/common/Modal';
 import { User, Household, Membership, MeetingTopic, HouseAgreement, JoinRequest } from '../../types';
 import { sound } from '../../services/sound';
+import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   Shield,
   QrCode,
@@ -66,6 +67,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   onAddAgreement,
 }) => {
   const { showToast } = useToast();
+  const sym = getCurrencySymbol(household?.currency);
 
   // Mobile / Tablet Tab Switcher (Visible on < lg screens)
   const [mobileTab, setMobileTab] = useState<'roomies' | 'meetings'>('roomies');
@@ -79,8 +81,11 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [acknowledgeDebt, setAcknowledgeDebt] = useState(false);
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
+  const [addAgreementModalOpen, setAddAgreementModalOpen] = useState(false);
   const [newTopicTitle, setNewTopicTitle] = useState('');
   const [newTopicDesc, setNewTopicDesc] = useState('');
+  const [newRuleCategory, setNewRuleCategory] = useState('quiet_hours');
+  const [newRuleText, setNewRuleText] = useState('');
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -148,6 +153,23 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
     }
   };
 
+  const handleAddAgreementSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRuleText.trim()) return;
+    setLoading(true);
+    try {
+      sound.playSuccess();
+      await onAddAgreement(newRuleText.trim(), newRuleCategory);
+      showToast('Apartment agreement saved to house rules!', 'success');
+      setNewRuleText('');
+      setAddAgreementModalOpen(false);
+    } catch {
+      showToast('Could not save rule', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVote = async (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => {
     sound.playTap();
     try {
@@ -172,7 +194,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
 
   return (
     <div className="w-full select-none pb-28 md:pb-8">
-      {/* 1. APARTMENT CARD WITH INVITE CODE, QR & FRIENDLY GOVERNANCE (Flat white InfoCard per Section 17) */}
+      {/* 1. APARTMENT CARD WITH INVITE CODE, QR & FRIENDLY GOVERNANCE */}
       <div className="mb-6">
         <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">
           <div className="flex items-start gap-3.5">
@@ -259,7 +281,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </div>
       )}
 
-      {/* Mobile / Tablet Segmented Section Switcher (Only visible on < lg screens) */}
+      {/* Mobile / Tablet Segmented Section Switcher */}
       <div className="lg:hidden mb-5">
         <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
           <button
@@ -295,7 +317,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </div>
       </div>
 
-      {/* RESPONSIVE 2-COLUMN DESKTOP GRID (lg:grid lg:grid-cols-12 lg:gap-8 items-start) */}
+      {/* RESPONSIVE 2-COLUMN DESKTOP GRID */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Roomies Directory & Community ================= */}
         <div
@@ -316,7 +338,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             />
           </div>
 
-          {/* Roomies 2-Column Responsive Card Grid with Uniform Card Wrapping */}
+          {/* Roomies 2-Column Responsive Card Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
             {members.map(({ user, membership }) => {
               const isMe = user.id === currentUser.id;
@@ -396,7 +418,6 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
-
           {/* 2. HOUSE MEETINGS & APARTMENT RULES CONTAINER */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
             <div className="flex items-center justify-between">
@@ -404,14 +425,25 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                 <h3 className="type-section-heading">House discussions and rules</h3>
                 <p className="type-secondary text-[14px]">Agreed standards and votes</p>
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setProposeModalOpen(true)}
-                icon={<Plus className="w-3.5 h-3.5" />}
-              >
-                Propose
-              </Button>
+              {meetingsSubTab === 'topics' ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setProposeModalOpen(true)}
+                  icon={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Propose
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setAddAgreementModalOpen(true)}
+                  icon={<Plus className="w-3.5 h-3.5" />}
+                >
+                  Add rule
+                </Button>
+              )}
             </div>
 
             {/* Sub-tab Switcher (Discussions vs Rules) */}
@@ -483,7 +515,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                         }
                         actions={
                           <div className="w-full space-y-2.5">
-                            {/* Voting Buttons: Identical styling, counts hidden until voted */}
+                            {/* Voting Buttons */}
                             <div className="flex items-center justify-between gap-2">
                               <span className="type-label text-[14px]">Your vote:</span>
                               <div className="flex gap-2">
@@ -562,7 +594,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                       key={agr.id}
                       tint="coral"
                       iconTile={<IconTile icon={<FileCheck className="w-5 h-5" />} color="coral" size="sm" />}
-                      title={agr.category.toUpperCase()}
+                      title={agr.category.toUpperCase().replace('_', ' ')}
                       subtitle="Consensus agreement"
                       detail={
                         <p className="type-body text-[14px] font-medium mt-1 leading-relaxed text-[#1F2430]">
@@ -629,6 +661,66 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               disabled={!newTopicTitle.trim() || loading}
             >
               {loading ? 'Submitting...' : 'Propose Topic'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Add Flat Rule / Agreement Modal */}
+      <Modal
+        isOpen={addAgreementModalOpen}
+        onClose={() => setAddAgreementModalOpen(false)}
+        title="Add Apartment Agreement"
+        subtitle="Record a consensus rule for your flat"
+        size="md"
+      >
+        <form onSubmit={handleAddAgreementSubmit} className="space-y-4">
+          <div>
+            <label className="type-label block mb-1.5">Category</label>
+            <select
+              value={newRuleCategory}
+              onChange={(e) => setNewRuleCategory(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[15px] font-semibold text-[#1F2430]"
+            >
+              <option value="quiet_hours">Quiet Hours & Rest</option>
+              <option value="cleaning">Kitchen & Cleaning Standards</option>
+              <option value="guests">Guests & Visitors</option>
+              <option value="groceries">Shared Pantry & Fridge</option>
+              <option value="bills">Utilities & AC Usage</option>
+              <option value="general">General Respect</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="type-label block mb-1.5">Agreement Rule Text</label>
+            <textarea
+              value={newRuleText}
+              onChange={(e) => setNewRuleText(e.target.value)}
+              placeholder="e.g. Headphones in common areas after 23:00 on weekdays."
+              rows={3}
+              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
+              required
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => setAddAgreementModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              fullWidth
+              disabled={!newRuleText.trim() || loading}
+            >
+              {loading ? 'Saving...' : 'Save Agreement'}
             </Button>
           </div>
         </form>
@@ -718,7 +810,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             <div className="p-4 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-2">
               <div className="flex items-center gap-2 text-[#E5484D] font-bold">
                 <AlertTriangle className="w-5 h-5" />
-                <span>You have an unsettled balance of ₺{Math.abs(netBalance).toFixed(2)}</span>
+                <span>You have an unsettled balance of {sym}{Math.abs(netBalance).toFixed(2)}</span>
               </div>
               <p className="text-sm text-[#475569]">
                 Leaving before settling up may disrupt shared expense agreements with your roomies.

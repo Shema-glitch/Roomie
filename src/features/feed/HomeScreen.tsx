@@ -33,7 +33,7 @@ import {
   Shuffle,
   ClipboardCheck,
 } from 'lucide-react';
-import { isAssignmentDueToday, CHORE_REWARD_POINTS, getChoreDraftState } from '../../utils/stateTable';
+import { isAssignmentDueToday, CHORE_REWARD_POINTS, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
 
 interface HomeScreenProps {
   currentUser: User;
@@ -80,6 +80,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
   const [feedFilter, setFeedFilter] = useState<'all' | 'chores' | 'expenses' | 'drafts'>('all');
 
+  const sym = getCurrencySymbol(household?.currency);
+
   // Single-source chore draft state across views
   const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
 
@@ -106,7 +108,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         text.includes('clean') ||
         text.includes('dishes') ||
         text.includes('bathroom'));
-    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('paid');
+    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('$') || text.includes('€') || text.includes('paid');
 
     if (feedFilter === 'chores') return isChore;
     if (feedFilter === 'expenses') return isExpense;
@@ -141,7 +143,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Priority Focus & Activity Feed ================= */}
         <div className="w-full lg:col-span-8 self-start space-y-6">
-          {/* 1. HERO MASCOT GREETING CARD (No duplicated apartment name or presence) */}
+          {/* 1. HERO MASCOT GREETING CARD */}
           <InfoCard
             tint="coral"
             padding="lg"
@@ -186,28 +188,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 </span>
               }
               actions={
-                <div className="grid grid-cols-2 gap-3 w-full">
+                <div className="w-full">
                   <Button
                     variant="indigo"
                     size="md"
-                    onClick={() => {
-                      sound.playSuccess();
-                      showToast(`Voted OK for ${pendingJoinRequests[0].userName}!`, 'success');
-                      onSelectJoinRequest(pendingJoinRequests[0]);
-                    }}
-                    icon={<CheckCircle2 className="w-4 h-4" />}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="md"
+                    fullWidth
                     onClick={() => {
                       sound.playTap();
                       onSelectJoinRequest(pendingJoinRequests[0]);
                     }}
+                    icon={<UserPlus className="w-4 h-4" />}
                   >
-                    Review
+                    Review & Decide Request
                   </Button>
                 </div>
               }
@@ -324,14 +316,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     <span className="type-big-number">
                       {netBalance > 0.05 ? (
                         <span className="text-[#2CA358]">
-                          +₺{netBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          +{sym}{netBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       ) : netBalance < -0.05 ? (
                         <span className="text-[#E5484D]">
-                          -₺{Math.abs(netBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          -{sym}{Math.abs(netBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       ) : (
-                        <span className="text-[#1F2430]">₺0.00</span>
+                        <span className="text-[#1F2430]">{sym}0.00</span>
                       )}
                     </span>
                   </div>
@@ -544,7 +536,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </Button>
           </InfoCard>
 
-          {/* 2. QUICK ACTION DOCK (Real actions only per Section 17) */}
+          {/* 2. QUICK ACTION DOCK */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
             <h3 className="type-section-heading">Quick actions</h3>
             <div className="grid grid-cols-2 gap-2.5">
@@ -605,7 +597,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     </div>
   );
 
-  // Helper renderer for compact feed list rows (Section 17)
+  // Helper renderer for compact feed list rows
   function renderActivityCard(act: ChatMessage) {
     const text = act.body.toLowerCase();
     const isDraft = text.includes('draft') || text.includes('reveal');
@@ -615,7 +607,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         text.includes('clean') ||
         text.includes('dishes') ||
         text.includes('bathroom'));
-    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('paid');
+    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('$') || text.includes('€') || text.includes('paid');
 
     const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
     const icon = isDraft ? (
