@@ -78,6 +78,9 @@ const ProfileSettingsModal = React.lazy(() =>
 const FeedbackModal = React.lazy(() =>
   import('./features/profile/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
 );
+const AppShowcase = React.lazy(() =>
+  import('./features/auth/AppShowcase').then((m) => ({ default: m.AppShowcase }))
+);
 
 // Fallback Skeletons
 const ScreenSkeleton: React.FC = () => (
@@ -143,6 +146,8 @@ function MainApp() {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
+  const [selectedExpenseAction, setSelectedExpenseAction] = useState<'add' | 'settle' | 'confirm' | null>(null);
+  const [showShowcase, setShowShowcase] = useState<boolean>(false);
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatusType>('synced');
   const [syncPanelOpen, setSyncPanelOpen] = useState<boolean>(false);
@@ -437,6 +442,7 @@ function MainApp() {
           roommates={members.map((m) => m.user)}
           onStartReveal={() => setDraftFlowState('reveal')}
           onEditPicks={() => setDraftFlowState('picking')}
+          onClose={() => setDraftFlowState('none')}
         />
       </React.Suspense>
     );
@@ -673,6 +679,14 @@ function MainApp() {
               await api.giveKudos(choreId, targetUserId, type, note);
               await loadData();
             }}
+            onOpenExpensesAction={(action) => {
+              setSelectedExpenseAction(action);
+              setActiveTab('expenses');
+            }}
+            onRemindRoomies={async () => {
+              await api.remindRoomies('Gentle reminder to settle apartment balances when you have a moment 🙏');
+              await loadData();
+            }}
           />
         )}
 
@@ -718,6 +732,8 @@ function MainApp() {
             currency={activeHousehold.currency}
             initialExpenseId={selectedExpenseId}
             onClearInitialExpense={() => setSelectedExpenseId(null)}
+            initialAction={selectedExpenseAction}
+            onClearInitialAction={() => setSelectedExpenseAction(null)}
             balances={balances}
             onAddExpense={async (title, amount, cat, participants, receiptUrl) => {
               const exp = await api.addExpense(title, amount, cat, participants, receiptUrl);
@@ -823,6 +839,8 @@ function MainApp() {
               await loadData();
               return a;
             }}
+            onOpenHouseholdSwitcher={() => setHouseholdSwitcherOpen(true)}
+            onOpenHowItWorks={() => setShowOnboarding(true)}
           />
         )}
         </React.Suspense>
@@ -874,6 +892,16 @@ function MainApp() {
           <OnboardingModal
             isOpen={showOnboarding}
             onComplete={() => setShowOnboarding(false)}
+            currency={activeHousehold.currency}
+          />
+        )}
+
+        {showShowcase && (
+          <AppShowcase
+            isActive={showShowcase}
+            onComplete={() => setShowShowcase(false)}
+            onSkip={() => setShowShowcase(false)}
+            onSignIn={() => setShowShowcase(false)}
           />
         )}
 
@@ -1020,6 +1048,8 @@ function MainApp() {
               showToast('Signed out of Roomie', 'info');
             }}
             onOpenFeedback={() => setFeedbackOpen(true)}
+            onOpenHowItWorks={() => setShowOnboarding(true)}
+            onOpenShowcase={() => setShowShowcase(true)}
           />
         )}
 

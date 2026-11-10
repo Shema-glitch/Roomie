@@ -33,6 +33,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
 
   const okCount = joinRequest.votes.filter((v) => v.vote === 'ok').length;
   const unsureCount = joinRequest.votes.filter((v) => v.vote === 'unsure').length;
+  const myVote = joinRequest.votes?.find((v) => v.userId === currentUser.id)?.vote;
 
   const handleVote = async (vote: 'ok' | 'unsure') => {
     try {

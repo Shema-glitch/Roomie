@@ -26,6 +26,7 @@ import {
   Send,
   MessageSquare,
   Users,
+  Sparkles,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -46,6 +47,8 @@ interface ApartmentScreenProps {
   onVoteTopic: (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => Promise<void>;
   onAddComment: (topicId: string, text: string) => Promise<void>;
   onAddAgreement: (text: string, category: string) => Promise<HouseAgreement>;
+  onOpenHouseholdSwitcher?: () => void;
+  onOpenHowItWorks?: () => void;
 }
 
 export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
@@ -65,6 +68,8 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   onVoteTopic,
   onAddComment,
   onAddAgreement,
+  onOpenHouseholdSwitcher,
+  onOpenHowItWorks,
 }) => {
   const { showToast } = useToast();
   const sym = getCurrencySymbol(household?.currency);
@@ -230,6 +235,26 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             >
               Copy code
             </Button>
+            {onOpenHouseholdSwitcher && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenHouseholdSwitcher}
+                icon={<Building2 className="w-4 h-4 text-[#475569]" />}
+              >
+                Switch flat
+              </Button>
+            )}
+            {onOpenHowItWorks && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenHowItWorks}
+                icon={<Sparkles className="w-4 h-4 text-[#FF6B4A]" />}
+              >
+                Flat guide
+              </Button>
+            )}
             {isAdmin && members.length > 1 && (
               <Button
                 variant="secondary"

@@ -4,13 +4,14 @@ import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { User, DraftRound } from '../../types';
-import { Sparkles, Check, Clock, ArrowRight } from 'lucide-react';
+import { Sparkles, Check, Clock, ArrowLeft } from 'lucide-react';
 
 interface WaitingDraftScreenProps {
   draftRound: DraftRound;
   roommates: User[];
   onStartReveal: () => void;
   onEditPicks: () => void;
+  onClose?: () => void;
 }
 
 export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
@@ -18,6 +19,7 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
   roommates,
   onStartReveal,
   onEditPicks,
+  onClose,
 }) => {
   // Determine who has submitted picks
   const submittedUserIds = new Set(draftRound.picks.map((p) => p.userId));
@@ -26,7 +28,19 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
   return (
     <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto text-center select-none">
       {/* Top Section */}
-      <div className="pt-6">
+      <div className="pt-2">
+        {onClose && (
+          <div className="flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="type-label text-[#64748B] hover:text-[#1F2430] flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded-lg hover:bg-black/5 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to apartment
+            </button>
+          </div>
+        )}
+
         <MascotView
           state={isReady ? 'cheering' : 'thinking'}
           size="xl"
@@ -94,9 +108,16 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
         >
           {isReady ? 'Start reveal' : 'Reveal now'}
         </Button>
-        <Button variant="ghost" size="sm" fullWidth onClick={onEditPicks}>
-          Edit picks
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" size="sm" fullWidth onClick={onEditPicks}>
+            Edit picks
+          </Button>
+          {onClose && (
+            <Button variant="secondary" size="sm" fullWidth onClick={onClose}>
+              Back to flat
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

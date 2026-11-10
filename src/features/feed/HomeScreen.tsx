@@ -54,6 +54,8 @@ interface HomeScreenProps {
   onToggleHomeStatus: () => void;
   onCompleteChore?: (choreId: string, photoUrl?: string) => Promise<void>;
   onGiveKudos?: (choreId: string, targetUserId: string, type: KudosType, note?: string) => Promise<void>;
+  onOpenExpensesAction?: (action: 'add' | 'settle' | 'confirm') => void;
+  onRemindRoomies?: () => Promise<void>;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -75,6 +77,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onToggleHomeStatus,
   onCompleteChore,
   onGiveKudos,
+  onOpenExpensesAction,
+  onRemindRoomies,
 }) => {
   const { showToast } = useToast();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
@@ -184,7 +188,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               subtitle="Doorkeeper approval needed to confirm access"
               detail={
                 <span className="text-sm text-[#5B5BD6] font-bold">
-                  Roomies are voting: {pendingJoinRequests[0].votes ? Object.keys(pendingJoinRequests[0].votes).length : 1} vote recorded
+                  Roomies are voting: {pendingJoinRequests[0].votes?.length || 0} vote${(pendingJoinRequests[0].votes?.length || 0) === 1 ? '' : 's'} recorded
                 </span>
               }
               actions={
@@ -347,7 +351,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         <Button
                           variant="primary"
                           size="md"
-                          onClick={() => onNavigateTab('expenses')}
+                          onClick={async () => {
+                            sound.playTap();
+                            if (onRemindRoomies) {
+                              await onRemindRoomies();
+                              showToast('Reminder posted to flat chat!', 'success');
+                            } else {
+                              onNavigateTab('expenses');
+                            }
+                          }}
                           icon={<Bell className="w-4 h-4" />}
                         >
                           Remind
@@ -355,7 +367,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         <Button
                           variant="secondary"
                           size="md"
-                          onClick={() => onNavigateTab('expenses')}
+                          onClick={() => {
+                            sound.playTap();
+                            if (onOpenExpensesAction) {
+                              onOpenExpensesAction('confirm');
+                            } else {
+                              onNavigateTab('expenses');
+                            }
+                          }}
                         >
                           Confirm payment
                         </Button>
@@ -365,7 +384,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         <Button
                           variant="primary"
                           size="md"
-                          onClick={() => onNavigateTab('expenses')}
+                          onClick={() => {
+                            sound.playTap();
+                            if (onOpenExpensesAction) {
+                              onOpenExpensesAction('settle');
+                            } else {
+                              onNavigateTab('expenses');
+                            }
+                          }}
                           icon={<Receipt className="w-4 h-4" />}
                         >
                           Settle up
@@ -544,7 +570,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 type="button"
                 onClick={() => {
                   sound.playTap();
-                  onNavigateTab('expenses');
+                  if (onOpenExpensesAction) {
+                    onOpenExpensesAction('add');
+                  } else {
+                    onNavigateTab('expenses');
+                  }
                 }}
                 className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] transition-all cursor-pointer group"
               >

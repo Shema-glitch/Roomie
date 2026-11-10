@@ -223,7 +223,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               <span>
                 Roomie {currentMemberIndex + 1} of {activeMembers.length}
               </span>
-              <span className="text-[#19B5A5] font-bold">Chore Reveal</span>
+              <button type="button" onClick={() => setPhase('summary')} className="text-xs font-bold text-[#5B5BD6] hover:underline cursor-pointer">Skip to schedule →</button>
             </div>
             {/* Progress segment indicator */}
             <div className="flex gap-1.5 w-full mb-4">

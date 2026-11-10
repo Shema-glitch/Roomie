@@ -3,7 +3,9 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { AppShowcase } from './AppShowcase';
+const AppShowcase = React.lazy(() =>
+  import('./AppShowcase').then((m) => ({ default: m.AppShowcase }))
+);
 import {
   Mail,
   Lock,

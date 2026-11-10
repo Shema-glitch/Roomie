@@ -161,7 +161,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               msg.body.toLowerCase().includes('bathroom');
             const isExpense =
               msg.body.toLowerCase().includes('expense') ||
-              msg.body.toLowerCase().includes('₺') ||
+              msg.body.includes('₺') || msg.body.includes('$') || msg.body.includes('€') ||
               msg.body.toLowerCase().includes('paid');
             const isDraft =
               msg.body.toLowerCase().includes('draft') ||

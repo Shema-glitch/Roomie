@@ -18,9 +18,10 @@ import {
 interface OnboardingModalProps {
   isOpen: boolean;
   onComplete: () => void;
+  currency?: string;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete, currency = "TRY" }) => {
   const [step, setStep] = useState<number>(0);
   const [notificationsAllowed, setNotificationsAllowed] = useState(false);
 
@@ -53,7 +54,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
       content: (
         <div className="space-y-3.5 my-2">
           <p className="type-secondary leading-relaxed">
-            Log shared groceries, electricity bills, or water refills in Turkish Lira (₺ TRY).
+            Log shared groceries, electricity bills, or household necessities in your apartment's currency (${currency}).
           </p>
           <div className="p-4 rounded-2xl bg-[#E6FAF8] border border-[#BBEFEA] space-y-2">
             <div className="flex items-center gap-2 text-[#19B5A5] font-bold text-[14px]">

@@ -36,6 +36,8 @@ interface ProfileSettingsModalProps {
   onDeleteAccount: () => void;
   onSignOut?: () => void;
   onOpenFeedback: () => void;
+  onOpenHowItWorks?: () => void;
+  onOpenShowcase?: () => void;
 }
 
 const PRESET_AVATARS = [

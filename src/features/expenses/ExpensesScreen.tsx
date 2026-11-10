@@ -26,6 +26,7 @@ import {
   Home,
   Building2,
   CheckCircle2,
+  Check,
   AlertCircle,
   ChevronDown,
   ChevronUp,
@@ -49,6 +50,8 @@ interface ExpensesScreenProps {
   currency?: string;
   initialExpenseId?: string | null;
   onClearInitialExpense?: () => void;
+  initialAction?: 'add' | 'settle' | 'confirm' | null;
+  onClearInitialAction?: () => void;
   balances: {
     userSummaries: Record<string, number>;
     simplifiedDebts: NetBalance[];
@@ -82,6 +85,8 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   currency = 'TRY',
   initialExpenseId,
   onClearInitialExpense,
+  initialAction,
+  onClearInitialAction,
   balances,
   onAddExpense,
   onRespondExpense,
@@ -310,6 +315,25 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                         label={s.status === 'confirmed' ? 'Confirmed' : 'Pending Receipt'}
                         size="sm"
                       />
+                    }
+                    actions={
+                      isMeReceiver && s.status === 'marked_paid' ? (
+                        <div className="w-full">
+                          <Button
+                            variant="reward"
+                            size="sm"
+                            fullWidth
+                            onClick={async () => {
+                              sound.playSuccess();
+                              await onConfirmSettlement(s.id);
+                              showToast(`Confirmed receipt of ${sym}${formatCurrency(s.amount)}!`, 'success');
+                            }}
+                            icon={<Check className="w-4 h-4" />}
+                          >
+                            Confirm Payment Received ({sym}{formatCurrency(s.amount)})
+                          </Button>
+                        </div>
+                      ) : undefined
                     }
                   />
                 );
