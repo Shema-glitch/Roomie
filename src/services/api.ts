@@ -1008,9 +1008,14 @@ class ApiService {
     return res;
   }
 
-  public async createHousehold(name: string, currency: 'TRY' | 'USD' | 'EUR'): Promise<Household> {
+  public async createHousehold(
+    name: string,
+    currency: 'TRY' | 'USD' | 'EUR',
+    options?: { rotationInterval?: 'weekly' | 'monthly'; starterChores?: string[] }
+  ): Promise<Household> {
     const id = 'h_' + Math.random().toString(36).substring(2, 9);
     const code = this.generateInviteCode();
+    const rotationInterval = options?.rotationInterval ?? 'weekly';
     const newHousehold: Household = {
       id,
       name,
@@ -1019,12 +1024,46 @@ class ApiService {
       invitesEnabled: true,
       createdBy: this.store.currentUser.id,
       settings: {
-        rotationInterval: 'weekly',
+        rotationInterval,
         rotatingAdmin: false,
         quietHours: '23:00 - 08:00',
       },
       createdAt: new Date().toISOString(),
     };
+
+    const starterPresetMap: Record<string, { frequency: 'daily' | 'weekly'; effortLevel: 'light' | 'medium' | 'heavy'; description: string; iconName: string }> = {
+      'Deep Clean Bathroom': { frequency: 'weekly', effortLevel: 'heavy', description: 'Clean shower, sink & toilet', iconName: 'Bath' },
+      'Dishwasher & Sink': { frequency: 'daily', effortLevel: 'medium', description: 'Unload dishwasher & wipe sink', iconName: 'Sparkles' },
+      'Take Out Trash': { frequency: 'daily', effortLevel: 'light', description: 'Empty kitchen and hall bins', iconName: 'Trash2' },
+      'Kitchen Counters': { frequency: 'daily', effortLevel: 'light', description: 'Wipe stove, counters & dining table', iconName: 'Sparkles' },
+      'Living Room Sweep & Mop': { frequency: 'weekly', effortLevel: 'medium', description: 'Vacuum rug and mop shared floor', iconName: 'Home' },
+      'Cook House Dinner': { frequency: 'weekly', effortLevel: 'heavy', description: 'Shared flat dinner & cleanup', iconName: 'Utensils' },
+      'Supermarket Supply Run': { frequency: 'weekly', effortLevel: 'light', description: 'Restock paper goods & cleaning basics', iconName: 'ShoppingBag' },
+    };
+
+    const selectedNames = options?.starterChores?.length
+      ? options.starterChores
+      : ['Deep Clean Bathroom', 'Dishwasher & Sink', 'Take Out Trash'];
+
+    const buildStarterChores = (householdId: string): Chore[] =>
+      selectedNames.map((choreName, idx) => {
+        const preset = starterPresetMap[choreName] || {
+          frequency: 'weekly' as const,
+          effortLevel: 'medium' as const,
+          description: 'Shared household task',
+          iconName: 'Sparkles',
+        };
+        return {
+          id: 'ch_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substring(2, 6),
+          householdId,
+          name: choreName,
+          frequency: preset.frequency,
+          effortLevel: preset.effortLevel,
+          active: true,
+          description: preset.description,
+          iconName: preset.iconName,
+        };
+      });
 
     if (supabase) {
       try {
@@ -1049,12 +1088,17 @@ class ApiService {
               role: 'admin',
               status: 'active',
             });
-            // insert default chores
-            await supabase.from('chores').insert([
-              { household_id: createdH.id, name: 'Bathroom Scrub', frequency: 'weekly', effort_level: 'heavy', active: true, description: 'Clean shower & toilet', icon_name: 'Bath' },
-              { household_id: createdH.id, name: 'Dishes & Sink', frequency: 'daily', effort_level: 'medium', active: true, description: 'Unload dishwasher & wipe sink', icon_name: 'Sparkles' },
-              { household_id: createdH.id, name: 'Take Out Trash', frequency: 'daily', effort_level: 'light', active: true, description: 'Empty kitchen and hall bins', icon_name: 'Trash2' },
-            ]);
+            await supabase.from('chores').insert(
+              buildStarterChores(createdH.id).map((ch) => ({
+                household_id: createdH.id,
+                name: ch.name,
+                frequency: ch.frequency,
+                effort_level: ch.effortLevel,
+                active: true,
+                description: ch.description,
+                icon_name: ch.iconName,
+              }))
+            );
           }
         }
       } catch (err) {
@@ -1072,12 +1116,7 @@ class ApiService {
       status: 'active',
       joinedAt: new Date().toISOString(),
     });
-    // add default chores
-    this.store.chores.push(
-      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Bathroom Scrub', frequency: 'weekly', effortLevel: 'heavy', active: true, description: 'Clean shower & toilet', iconName: 'Bath' },
-      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Dishes & Sink', frequency: 'daily', effortLevel: 'medium', active: true, description: 'Unload dishwasher & wipe sink', iconName: 'Sparkles' },
-      { id: 'ch_' + Math.random(), householdId: newHousehold.id, name: 'Take Out Trash', frequency: 'daily', effortLevel: 'light', active: true, description: 'Empty kitchen and hall bins', iconName: 'Trash2' }
-    );
+    this.store.chores.push(...buildStarterChores(newHousehold.id));
     this.save();
     return newHousehold;
   }

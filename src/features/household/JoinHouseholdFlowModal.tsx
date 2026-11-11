@@ -12,13 +12,15 @@ import { useBackHandler } from '../../utils/useBackHandler';
 interface JoinHouseholdFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onJoin: (code: string) => Promise<{ success: boolean; message: string }>;
+  onJoin: (code: string) => Promise<{ success: boolean; household?: { name: string }; message: string }>;
+  onCompleted?: (status: 'joined' | 'requested', info: { code: string; householdName?: string }) => void;
 }
 
 export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   isOpen,
   onClose,
   onJoin,
+  onCompleted,
 }) => {
   const { showToast } = useToast();
   // 1: Choose Method -> 2: Camera or Code Entry -> 3: Apartment Preview -> 4: Waiting Approval
@@ -28,6 +30,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const [hasCamera, setHasCamera] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [joinedDirectly, setJoinedDirectly] = useState<boolean>(false);
+  const [matchedHouseholdName, setMatchedHouseholdName] = useState<string | undefined>(undefined);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -153,6 +156,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
         sound.playSuccess();
         const isDirect = res.message?.toLowerCase().includes('welcome') || res.message?.toLowerCase().includes('joined');
         setJoinedDirectly(Boolean(isDirect));
+        setMatchedHouseholdName(res.household?.name);
         setStep(4);
       } else {
         showToast(res.message, 'error');
@@ -165,11 +169,19 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   };
 
   const handleClose = () => {
+    const completedStep = step === 4;
+    const status = joinedDirectly ? 'joined' : 'requested';
+    const snapshotCode = code;
+    const snapshotName = matchedHouseholdName;
     stopCamera();
     setStep(1);
     setCode('');
+    setMatchedHouseholdName(undefined);
     setIsScanning(false);
     onClose();
+    if (completedStep) {
+      onCompleted?.(status, { code: snapshotCode, householdName: snapshotName });
+    }
   };
 
   return (

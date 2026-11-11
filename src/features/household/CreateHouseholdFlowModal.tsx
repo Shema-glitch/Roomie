@@ -22,13 +22,19 @@ import { useBackHandler } from '../../utils/useBackHandler';
 interface CreateHouseholdFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, currency: CurrencyCode) => Promise<Household>;
+  onCreate: (
+    name: string,
+    currency: CurrencyCode,
+    options?: { rotationInterval?: 'weekly' | 'monthly'; starterChores?: string[] }
+  ) => Promise<Household>;
+  onCompleted?: (household: Household) => void;
 }
 
 export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> = ({
   isOpen,
   onClose,
   onCreate,
+  onCompleted,
 }) => {
   const { showToast } = useToast();
   // 1: Name -> 2: Currency & Rotation -> 3: Starter Chores -> 4: Complete & QR
@@ -74,7 +80,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
     setLoading(true);
     try {
       sound.playCelebration();
-      const h = await onCreate(name.trim(), currency);
+      const h = await onCreate(name.trim(), currency, {
+        rotationInterval: rotation,
+        starterChores,
+      });
       setCreatedHousehold(h);
       setStep(4);
       showToast(`Apartment "${h.name}" created!`, 'success');
@@ -94,10 +103,14 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
   };
 
   const handleClose = () => {
+    const completed = createdHousehold;
     setStep(1);
     setName('');
     setCreatedHousehold(null);
     onClose();
+    if (completed) {
+      onCompleted?.(completed);
+    }
   };
 
   return (
@@ -374,7 +387,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
             </Card>
 
             <Button variant="primary" size="md" fullWidth onClick={handleClose}>
-              Done
+              {onCompleted ? 'Enter My Apartment' : 'Done'}
             </Button>
           </div>
         )}

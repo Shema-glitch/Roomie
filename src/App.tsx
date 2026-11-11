@@ -16,6 +16,9 @@ import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandle
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 
 // Lazy-loaded Screens & Modals with skeleton fallbacks
+const HouseholdSetupScreen = React.lazy(() =>
+  import('./features/auth/HouseholdSetupScreen').then((m) => ({ default: m.HouseholdSetupScreen }))
+);
 const OnboardingModal = React.lazy(() =>
   import('./features/auth/OnboardingModal').then((m) => ({ default: m.OnboardingModal }))
 );
@@ -144,6 +147,7 @@ function MainApp() {
 
   // App lifecycle & auth states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [needsHouseholdSetup, setNeedsHouseholdSetup] = useState<boolean>(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [navState, setNavState] = useState<{ current: Tab; history: Tab[] }>({
     current: 'feed',
@@ -246,6 +250,7 @@ function MainApp() {
   // Predictive Back: pop tab navigation history back toward Home ('feed')
   useBackHandler(
     isAuthenticated &&
+      !needsHouseholdSetup &&
       Boolean(activeHousehold) &&
       draftFlowState === 'none' &&
       !showShowcase &&
@@ -395,6 +400,7 @@ function MainApp() {
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
             if (res.success) {
+              setNeedsHouseholdSetup(false);
               setIsAuthenticated(true);
               await loadData();
             }
@@ -403,6 +409,7 @@ function MainApp() {
           onSignUp={async (name, email, password) => {
             const res = await api.signUpWithSupabase(email, password, name);
             if (res.success) {
+              setNeedsHouseholdSetup(true);
               setIsAuthenticated(true);
               setShowOnboarding(false);
               await loadData();
@@ -410,11 +417,47 @@ function MainApp() {
             return res;
           }}
           onQuickStart={() => {
+            setNeedsHouseholdSetup(false);
             setIsAuthenticated(true);
             loadData();
           }}
         />
       </>
+    );
+  }
+
+  if (needsHouseholdSetup) {
+    return (
+      <React.Suspense fallback={<ScreenSkeleton />}>
+        <HouseholdSetupScreen
+          currentUser={currentUser}
+          onCreateHousehold={async (name, currency, options) => {
+            const newH = await api.createHousehold(name, currency, options);
+            await loadData();
+            return newH;
+          }}
+          onJoinHousehold={async (code) => {
+            const res = await api.joinHousehold(code);
+            await loadData();
+            return res;
+          }}
+          onSetupComplete={() => {
+            setNeedsHouseholdSetup(false);
+            setNavState({ current: 'feed', history: ['feed'] });
+            loadData();
+          }}
+          onExploreDemo={() => {
+            setNeedsHouseholdSetup(false);
+            setNavState({ current: 'feed', history: ['feed'] });
+            loadData();
+          }}
+          onBackToWelcome={async () => {
+            await api.signOut();
+            setNeedsHouseholdSetup(false);
+            setIsAuthenticated(false);
+          }}
+        />
+      </React.Suspense>
     );
   }
 
@@ -953,8 +996,8 @@ function MainApp() {
           <CreateHouseholdFlowModal
             isOpen={createHouseholdOpen}
             onClose={() => setCreateHouseholdOpen(false)}
-            onCreate={async (name, currency) => {
-              const newH = await api.createHousehold(name, currency);
+            onCreate={async (name, currency, options) => {
+              const newH = await api.createHousehold(name, currency, options);
               await loadData();
               return newH;
             }}
@@ -1072,6 +1115,7 @@ function MainApp() {
             }}
             onSignOut={async () => {
               await api.signOut();
+              setNeedsHouseholdSetup(false);
               setIsAuthenticated(false);
               showToast('Signed out of Roomie', 'info');
             }}
