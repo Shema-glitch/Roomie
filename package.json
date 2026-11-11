@@ -13,7 +13,10 @@
     "cap:sync": "npx cap sync android",
     "cap:dev": "node scripts/cap-sync-dev.mjs",
     "cap:apk": "node scripts/cap-sync-dev.mjs --build",
-    "cap:apk:bundle": "node scripts/cap-sync-dev.mjs --bundle --build"
+    "cap:apk:bundle": "node scripts/cap-sync-dev.mjs --bundle --build",
+    "phone": "node scripts/cap-sync-dev.mjs --reverse-only --launch",
+    "phone:port": "node scripts/cap-sync-dev.mjs --build --install --launch",
+    "phone:bundle": "node scripts/cap-sync-dev.mjs --bundle --build --install --launch"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",
