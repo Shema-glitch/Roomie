@@ -13,6 +13,11 @@ import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
 import { sound } from './services/sound';
 import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandler';
+import {
+  captureInviteCodeFromLocation,
+  setPendingInviteCode,
+  subscribeToAppDeepLinks,
+} from './utils/inviteLink';
 
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 
@@ -152,6 +157,15 @@ function MainApp() {
     api.hasLocalSession() ? api.needsHouseholdSetup() : false
   );
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => api.isDemoMode());
+  const [pendingInviteCode, setPendingInviteCodeState] = useState<string | null>(() =>
+    captureInviteCodeFromLocation()
+  );
+  const authGateRef = React.useRef({ isAuthenticated: false, needsHouseholdSetup: false });
+  authGateRef.current = { isAuthenticated, needsHouseholdSetup };
+  const updatePendingInviteCode = (code: string | null) => {
+    setPendingInviteCode(code);
+    setPendingInviteCodeState(code);
+  };
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [navState, setNavState] = useState<{ current: Tab; history: Tab[] }>({
     current: 'feed',
@@ -350,10 +364,18 @@ function MainApp() {
       if (session) {
         setIsAuthenticated(true);
         const hList = await api.getHouseholds();
-        setNeedsHouseholdSetup(hList.length === 0 || api.needsHouseholdSetup());
+        const needsSetup = hList.length === 0 || api.needsHouseholdSetup();
+        setNeedsHouseholdSetup(needsSetup);
+        if (!needsSetup && pendingInviteCode) {
+          setJoinHouseholdOpen(true);
+        }
       } else if (api.hasLocalSession()) {
         setIsAuthenticated(true);
-        setNeedsHouseholdSetup(api.needsHouseholdSetup());
+        const needsSetup = api.needsHouseholdSetup();
+        setNeedsHouseholdSetup(needsSetup);
+        if (!needsSetup && pendingInviteCode) {
+          setJoinHouseholdOpen(true);
+        }
       } else {
         setIsAuthenticated(false);
         setNeedsHouseholdSetup(false);
@@ -366,6 +388,35 @@ function MainApp() {
       }
       loadData();
     });
+
+    const unsubLinks = subscribeToAppDeepLinks((code) => {
+      setPendingInviteCodeState(code);
+      if (authGateRef.current.isAuthenticated && !authGateRef.current.needsHouseholdSetup) {
+        setJoinHouseholdOpen(true);
+      }
+    });
+
+    const unsubAuth = api.onAuthStateChange(async (event, hasSession) => {
+      if (api.isDemoMode()) return;
+      if (hasSession && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        setIsDemoMode(false);
+        setIsAuthenticated(true);
+        if (event === 'SIGNED_IN') {
+          const hList = await api.getHouseholds();
+          const needsSetup = hList.length === 0 || api.needsHouseholdSetup();
+          setNeedsHouseholdSetup(needsSetup);
+          await loadData();
+        }
+      } else if (!hasSession && event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+        setNeedsHouseholdSetup(false);
+      }
+    });
+
+    return () => {
+      unsubLinks();
+      unsubAuth();
+    };
   }, []);
 
   // Supabase Realtime subscription scoped to active household
@@ -428,10 +479,13 @@ function MainApp() {
       <>
         <WelcomeScreen
           isRevealed={!showSplash}
+          pendingInviteCode={pendingInviteCode}
+          onDismissInvite={() => updatePendingInviteCode(null)}
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
             if (res.success) {
               const shouldSetup = api.needsHouseholdSetup();
+              setIsDemoMode(false);
               setNeedsHouseholdSetup(shouldSetup);
               setIsAuthenticated(true);
               await loadData();
@@ -440,7 +494,8 @@ function MainApp() {
           }}
           onSignUp={async (name, email, password) => {
             const res = await api.signUpWithSupabase(email, password, name);
-            if (res.success) {
+            if (res.success && !res.requiresEmailVerification) {
+              setIsDemoMode(false);
               setNeedsHouseholdSetup(true);
               setIsAuthenticated(true);
               setShowOnboarding(false);
@@ -465,6 +520,8 @@ function MainApp() {
       <React.Suspense fallback={<ScreenSkeleton />}>
         <HouseholdSetupScreen
           currentUser={currentUser}
+          pendingInviteCode={pendingInviteCode}
+          onClearPendingInvite={() => updatePendingInviteCode(null)}
           onCreateHousehold={async (name, currency, options) => {
             const newH = await api.createHousehold(name, currency, options);
             await loadData();
@@ -1057,11 +1114,15 @@ function MainApp() {
         {joinHouseholdOpen && (
           <JoinHouseholdFlowModal
             isOpen={joinHouseholdOpen}
+            initialCode={pendingInviteCode}
             onClose={() => setJoinHouseholdOpen(false)}
             onJoin={async (code) => {
               const res = await api.joinHousehold(code);
               await loadData();
               return res;
+            }}
+            onCompleted={() => {
+              updatePendingInviteCode(null);
             }}
           />
         )}

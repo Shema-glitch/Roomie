@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { IconTile } from '../../components/common/IconTile';
@@ -13,12 +13,15 @@ import {
   ChevronRight,
   Clock,
   Home,
+  QrCode,
   Sparkles,
   UserPlus,
 } from 'lucide-react';
 
 interface HouseholdSetupScreenProps {
   currentUser: User | null;
+  pendingInviteCode?: string | null;
+  onClearPendingInvite?: () => void;
   onCreateHousehold: (
     name: string,
     currency: CurrencyCode,
@@ -34,6 +37,8 @@ interface HouseholdSetupScreenProps {
 
 export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
   currentUser,
+  pendingInviteCode,
+  onClearPendingInvite,
   onCreateHousehold,
   onJoinHousehold,
   onSetupComplete,
@@ -41,11 +46,17 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
   onBackToWelcome,
 }) => {
   const [createOpen, setCreateOpen] = useState(false);
-  const [joinOpen, setJoinOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(Boolean(pendingInviteCode));
   const [pendingRequest, setPendingRequest] = useState<{
     code: string;
     householdName?: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (pendingInviteCode) {
+      setJoinOpen(true);
+    }
+  }, [pendingInviteCode]);
 
   const firstName = currentUser?.name?.trim().split(' ')[0] || 'Flatmate';
 
@@ -92,6 +103,39 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             Set up your own apartment in seconds, or join your flatmates with an invite code.
           </p>
         </div>
+
+        {pendingInviteCode && !pendingRequest && (
+          <Card
+            padding="md"
+            className="bg-[#F0FDFB] border-2 border-[#19B5A5]/45 rounded-3xl animate-fade-up"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="font-heading font-black text-sm text-[#1F2430] truncate">
+                    Invite ready: {pendingInviteCode}
+                  </p>
+                  <p className="type-secondary text-xs text-[#475569]">
+                    Tap to confirm and join your flatmates
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => {
+                  sound.playTap();
+                  setJoinOpen(true);
+                }}
+              >
+                Join
+              </Button>
+            </div>
+          </Card>
+        )}
 
         {pendingRequest && (
           <Card
@@ -192,9 +236,11 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
 
       <JoinHouseholdFlowModal
         isOpen={joinOpen}
+        initialCode={pendingInviteCode}
         onClose={() => setJoinOpen(false)}
         onJoin={onJoinHousehold}
         onCompleted={(status, info) => {
+          onClearPendingInvite?.();
           if (status === 'joined') {
             onSetupComplete();
           } else {

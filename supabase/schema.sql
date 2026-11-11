@@ -374,39 +374,42 @@ BEGIN
 END;
 $$;
 
+REVOKE EXECUTE ON FUNCTION public.is_household_member(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_household_member(uuid) TO authenticated;
+
 -- Profiles: Anyone authenticated can read flatmates; users can update own profile
 CREATE POLICY "Profiles readable by authenticated users" ON public.profiles
   FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Users can update own profile" ON public.profiles
-  FOR UPDATE TO authenticated USING (id = auth.uid());
+  FOR UPDATE TO authenticated USING (id = (SELECT auth.uid()));
 
--- Households: Active members can view and update
+-- Households: Active members (and creator during insert/setup) can view and update
 CREATE POLICY "Households viewable by active members" ON public.households
-  FOR SELECT TO authenticated USING (public.is_household_member(id));
+  FOR SELECT TO authenticated USING (public.is_household_member(id) OR (SELECT auth.uid()) = created_by);
 CREATE POLICY "Households insertable by authenticated users" ON public.households
-  FOR INSERT TO authenticated WITH CHECK (created_by = auth.uid());
+  FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = created_by);
 CREATE POLICY "Households updatable by active members" ON public.households
   FOR UPDATE TO authenticated USING (public.is_household_member(id));
 
 -- Memberships: Members can see household roster
 CREATE POLICY "Memberships viewable by flatmates" ON public.memberships
-  FOR SELECT TO authenticated USING (public.is_household_member(household_id) OR user_id = auth.uid());
+  FOR SELECT TO authenticated USING (public.is_household_member(household_id) OR user_id = (SELECT auth.uid()));
 CREATE POLICY "Memberships manageable by household admin" ON public.memberships
   FOR ALL TO authenticated USING (
     EXISTS (
       SELECT 1 FROM public.memberships
       WHERE household_id = public.memberships.household_id
-        AND user_id = auth.uid()
+        AND user_id = (SELECT auth.uid())
         AND role = 'admin'
         AND status = 'active'
     )
   );
 
--- Join requests: Active members can view and vote
+-- Join requests: Active members (and requester) can view and vote
 CREATE POLICY "Join requests viewable by active members" ON public.join_requests
-  FOR SELECT TO authenticated USING (public.is_household_member(household_id));
+  FOR SELECT TO authenticated USING (public.is_household_member(household_id) OR user_id = (SELECT auth.uid()));
 CREATE POLICY "Join requests insertable by any authenticated user" ON public.join_requests
-  FOR INSERT TO authenticated WITH CHECK (true);
+  FOR INSERT TO authenticated WITH CHECK (user_id IS NULL OR user_id = (SELECT auth.uid()));
 CREATE POLICY "Join requests updatable by active members" ON public.join_requests
   FOR UPDATE TO authenticated USING (public.is_household_member(household_id));
 

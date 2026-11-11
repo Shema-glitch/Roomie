@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, MailCheck } from 'lucide-react';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
@@ -14,8 +14,14 @@ const AppShowcase = React.lazy(() =>
 
 interface WelcomeScreenProps {
   onSignIn: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
-  onSignUp: (name: string, email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
+  onSignUp: (
+    name: string,
+    email: string,
+    password?: string
+  ) => Promise<{ success: boolean; message?: string; requiresEmailVerification?: boolean }>;
   onQuickStart: () => void;
+  pendingInviteCode?: string | null;
+  onDismissInvite?: () => void;
   isRevealed?: boolean;
 }
 
@@ -37,11 +43,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onSignIn,
   onSignUp,
   onQuickStart,
+  pendingInviteCode,
+  onDismissInvite,
   isRevealed = true,
 }) => {
   const { showToast } = useToast();
 
   const [stage, setStage] = useState<ScreenStage>(() => {
+    if (pendingInviteCode) {
+      return 'welcome';
+    }
     if (typeof window !== 'undefined' && !localStorage.getItem('roomie_walkthrough_seen')) {
       return 'showcase';
     }
@@ -53,6 +64,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [useMagicLink, setUseMagicLink] = useState(false);
+  const [verificationSentTo, setVerificationSentTo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const exitShowcaseTo = (nextStage: Exclude<ScreenStage, 'showcase'>) => {
@@ -123,9 +135,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
     setLoading(true);
     try {
-      const res = await onSignUp(name.trim(), email.trim().toLowerCase(), password);
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await onSignUp(name.trim(), cleanEmail, password);
       if (res && !res.success) {
         showToast(res.message || 'Could not create account.', 'error');
+      } else if (res?.requiresEmailVerification) {
+        setVerificationSentTo(cleanEmail);
+        showToast(res.message || 'Check your email to confirm your account.', 'success');
+        setStage('signin');
       }
     } finally {
       setLoading(false);
@@ -176,7 +193,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       {stage === 'welcome' && (
         <WelcomeLanding
           isRevealed={isRevealed}
+          pendingInviteCode={pendingInviteCode}
+          onDismissInvite={onDismissInvite}
           onGetStarted={() => {
+            setVerificationSentTo(null);
             setSignUpStep('name');
             setStage('signup');
           }}
@@ -203,20 +223,34 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       )}
 
       {stage === 'signin' && (
-        <SignInForm
-          email={email}
-          password={password}
-          useMagicLink={useMagicLink}
-          loading={loading}
-          onEmailChange={setEmail}
-          onPasswordChange={setPassword}
-          onToggleMagicLink={setUseMagicLink}
-          onSubmit={handleSignInSubmit}
-          onSwitchToSignUp={() => {
-            setSignUpStep('name');
-            setStage('signup');
-          }}
-        />
+        <div className="flex-1 flex flex-col">
+          {verificationSentTo && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-start gap-2.5">
+              <MailCheck className="w-5 h-5 text-[#4F46E5] shrink-0 mt-0.5" />
+              <div className="text-left text-xs leading-relaxed text-[#3730A3]">
+                <p className="font-black">Confirm your email to continue</p>
+                <p className="mt-0.5 text-[#4338CA]">
+                  We sent a verification link to <span className="font-bold">{verificationSentTo}</span>. Once confirmed, sign in below.
+                </p>
+              </div>
+            </div>
+          )}
+          <SignInForm
+            email={email}
+            password={password}
+            useMagicLink={useMagicLink}
+            loading={loading}
+            onEmailChange={setEmail}
+            onPasswordChange={setPassword}
+            onToggleMagicLink={setUseMagicLink}
+            onSubmit={handleSignInSubmit}
+            onSwitchToSignUp={() => {
+              setVerificationSentTo(null);
+              setSignUpStep('name');
+              setStage('signup');
+            }}
+          />
+        </div>
       )}
     </div>
   );

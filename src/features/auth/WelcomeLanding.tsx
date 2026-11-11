@@ -2,10 +2,12 @@ import React from 'react';
 import { Button } from '../../components/common/Button';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, QrCode, Sparkles, X } from 'lucide-react';
 
 interface WelcomeLandingProps {
   isRevealed: boolean;
+  pendingInviteCode?: string | null;
+  onDismissInvite?: () => void;
   onGetStarted: () => void;
   onSignIn: () => void;
   onReplayShowcase: () => void;
@@ -14,6 +16,8 @@ interface WelcomeLandingProps {
 
 export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
   isRevealed,
+  pendingInviteCode,
+  onDismissInvite,
   onGetStarted,
   onSignIn,
   onReplayShowcase,
@@ -21,13 +25,13 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
 }) => {
   return (
     <div key="welcome" className="flex-1 flex flex-col justify-between pt-8 sm:pt-10 pb-2">
-      <div className="my-auto space-y-8">
+      <div className="my-auto space-y-6">
         <div className="flex flex-col items-center text-center">
           <div className={isRevealed ? 'animate-pop-in' : 'opacity-0'}>
             <MascotView
               state="celebrating"
               size="xl"
-              bubbleText="Welcome to Roomie!"
+              bubbleText={pendingInviteCode ? 'You got a flat invite!' : 'Welcome to Roomie!'}
             />
           </div>
 
@@ -49,6 +53,37 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
           </div>
         </div>
 
+        {pendingInviteCode && (
+          <div
+            className={`p-3.5 rounded-3xl bg-[#F0FDFB] border-2 border-[#19B5A5]/40 text-left space-y-1.5 ${
+              isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 text-xs font-black text-[#0F8B7D] uppercase tracking-wider min-w-0">
+                <QrCode className="w-4 h-4 shrink-0" />
+                <span className="truncate">Invite Code: {pendingInviteCode}</span>
+              </div>
+              {onDismissInvite && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playTap();
+                    onDismissInvite();
+                  }}
+                  className="p-1 text-[#6B7280] hover:text-[#1F2430] rounded-full hover:bg-white/70 cursor-pointer shrink-0"
+                  aria-label="Dismiss invite"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <p className="type-secondary text-xs text-[#475569] leading-relaxed">
+              No app download needed — create an account or sign in right here to join this flat immediately.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-3">
           <div className={isRevealed ? 'animate-fade-up delay-300' : 'opacity-0'}>
             <Button
@@ -61,7 +96,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
               }}
               icon={<ArrowRight className="w-5 h-5" />}
             >
-              Get Started
+              {pendingInviteCode ? 'Create Account & Join Flat' : 'Get Started'}
             </Button>
           </div>
 

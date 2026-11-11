@@ -26,6 +26,7 @@ import { matchChores } from '../utils/matching';
 import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
 import { outbox } from './outbox';
 import { hashLocalPassword, validateEmail, validatePassword } from '../utils/authValidation';
+import { getPendingInviteCode } from '../utils/inviteLink';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 const STORAGE_KEY = 'roomie_prototype_v3_store';
@@ -853,7 +854,8 @@ class ApiService {
 
   // --- Household Setup & Session Helpers ---
   public hasLocalSession(): boolean {
-    if (supabase) return false;
+    const isDemo = this.store.householdSetupMode === 'demo';
+    if (supabase && !isDemo) return false;
     const sess = this.store.localSession;
     if (sess && sess.expiresAt > Date.now()) {
       return true;
@@ -872,14 +874,12 @@ class ApiService {
   }
 
   public isDemoMode(): boolean {
-    return (
-      this.store.householdSetupMode === 'demo' ||
-      this.store.currentUser.id === 'u_curr'
-    );
+    if (this.store.householdSetupMode === 'demo') return true;
+    return !supabase && this.store.currentUser.id === 'u_curr' && !this.store.householdSetupMode;
   }
 
   private getScopedLocalHouseholds(): Household[] {
-    if (this.store.householdSetupMode === 'demo' || this.store.currentUser.id === 'u_curr') {
+    if (this.isDemoMode()) {
       return [...this.store.households];
     }
     const memberIds = new Set(
@@ -902,18 +902,20 @@ class ApiService {
     if (mode === 'demo') return false;
 
     const myFlats = this.getScopedLocalHouseholds();
-    if (mode === 'pending') return true;
-    if (mode === 'configured' && myFlats.length > 0) return false;
-
-    // Auto-detect accounts created before flat setup existed or with zero flats
-    const hasCustomProfile = this.store.currentUser.email !== 'kai.tanaka@student.emu.edu.tr';
-    if (hasCustomProfile && myFlats.length === 0) {
-      this.store.householdSetupMode = 'pending';
-      this.syncAccountSetupMode('pending');
-      this.save();
-      return true;
+    if (myFlats.length > 0) {
+      if (mode === 'pending') return true;
+      if (mode !== 'configured') {
+        this.store.householdSetupMode = 'configured';
+        this.syncAccountSetupMode('configured');
+        this.save();
+      }
+      return false;
     }
-    if (hasCustomProfile && !this.store.households.some((h) => h.createdBy === this.store.currentUser.id)) {
+
+    if (mode === 'pending') return true;
+
+    const hasCustomProfile = this.store.currentUser.email !== 'kai.tanaka@student.emu.edu.tr';
+    if (supabase || hasCustomProfile) {
       this.store.householdSetupMode = 'pending';
       this.syncAccountSetupMode('pending');
       this.save();
@@ -923,11 +925,24 @@ class ApiService {
   }
 
   public markDemoMode(useSampleProfile = false): void {
+    const seed = getInitialStore();
+    if (!this.store.households.some((h) => h.id === 'h_main')) {
+      this.store.households = seed.households;
+      this.store.memberships = seed.memberships;
+      this.store.users = seed.users;
+      this.store.expenses = seed.expenses;
+      this.store.settlements = seed.settlements;
+      this.store.personalExpenses = seed.personalExpenses;
+      this.store.chores = seed.chores;
+      this.store.draftRounds = seed.draftRounds;
+      this.store.messages = seed.messages;
+      this.store.meetingTopics = seed.meetingTopics;
+      this.store.agreements = seed.agreements;
+      this.store.notifications = seed.notifications;
+    }
     if (useSampleProfile) {
-      const kai = this.store.users.find((u) => u.id === 'u_curr');
-      if (kai) {
-        this.store.currentUser = { ...kai };
-      }
+      const kai = this.store.users.find((u) => u.id === 'u_curr') || seed.currentUser;
+      this.store.currentUser = { ...kai };
       this.store.activeHouseholdId = 'h_main';
     }
     this.store.householdSetupMode = 'demo';
@@ -959,7 +974,31 @@ class ApiService {
     return data.session;
   }
 
-  public async signUpWithSupabase(email: string, password?: string, name?: string): Promise<{ success: boolean; message: string }> {
+  public onAuthStateChange(callback: (event: string, hasSession: boolean) => void): () => void {
+    if (!supabase) return () => {};
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      callback(event, Boolean(session));
+    });
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }
+
+  private getAuthRedirectUrl(): string | undefined {
+    if (typeof window === 'undefined' || !/^https?:$/.test(window.location.protocol)) {
+      return undefined;
+    }
+    const pendingCode = getPendingInviteCode();
+    return pendingCode
+      ? `${window.location.origin}/?code=${encodeURIComponent(pendingCode)}`
+      : window.location.origin;
+  }
+
+  public async signUpWithSupabase(
+    email: string,
+    password?: string,
+    name?: string
+  ): Promise<{ success: boolean; message: string; requiresEmailVerification?: boolean }> {
     const cleanEmail = email.trim().toLowerCase();
     const emailCheck = validateEmail(cleanEmail);
     if (!emailCheck.valid) {
@@ -1013,22 +1052,36 @@ class ApiService {
       return { success: true, message: 'Account created! Let’s set up your flat.' };
     }
 
+    const emailRedirectTo = this.getAuthRedirectUrl();
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
       password: password!,
       options: {
         data: { name: cleanName },
+        emailRedirectTo,
       },
     });
     if (error) {
       return { success: false, message: error.message };
     }
+    this.store.localSessionActive = false;
+    this.store.localSession = null;
+    this.store.householdSetupMode = 'pending';
+
+    if (!data.session) {
+      this.save();
+      return {
+        success: true,
+        requiresEmailVerification: true,
+        message: 'Confirmation email sent! Check your inbox, tap the verification link, then sign in.',
+      };
+    }
+
     if (data.user) {
       await this.getCurrentUser();
     }
-    this.store.householdSetupMode = 'pending';
     this.save();
-    return { success: true, message: 'Account created! Welcome to Roomie.' };
+    return { success: true, requiresEmailVerification: false, message: 'Account created! Welcome to Roomie.' };
   }
 
   public async signInWithSupabase(email: string, password?: string): Promise<{ success: boolean; message: string }> {
@@ -1092,11 +1145,17 @@ class ApiService {
     }
 
     if (password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       if (error) {
         return { success: false, message: error.message };
       }
+      if (this.store.householdSetupMode === 'demo') {
+        this.store.householdSetupMode = undefined;
+      }
+      this.store.localSessionActive = false;
+      this.store.localSession = null;
       await this.getCurrentUser();
+      await this.getHouseholds();
       this.save();
       return { success: true, message: 'Welcome back!' };
     }
@@ -1111,6 +1170,9 @@ class ApiService {
   public async signOut(): Promise<void> {
     this.store.localSessionActive = false;
     this.store.localSession = null;
+    if (this.store.householdSetupMode === 'demo') {
+      this.store.householdSetupMode = undefined;
+    }
     this.save();
     if (supabase) {
       await supabase.auth.signOut();
@@ -1119,7 +1181,7 @@ class ApiService {
 
   // --- Users & Auth ---
   public async getCurrentUser(): Promise<User> {
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -1148,7 +1210,7 @@ class ApiService {
     this.store.users = this.store.users.map(u => (u.id === this.store.currentUser.id ? this.store.currentUser : u));
     this.save();
 
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -1184,30 +1246,49 @@ class ApiService {
 
   // --- Households & Memberships ---
   public async getHouseholds(): Promise<Household[]> {
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: memberships } = await supabase
+          const { data: memberships, error } = await supabase
             .from('memberships')
-            .select('household_id, role, status, households(*)')
+            .select('id, household_id, user_id, role, status, joined_at, households(*)')
             .eq('user_id', user.id)
             .eq('status', 'active');
 
-          if (memberships && memberships.length > 0) {
+          if (!error && Array.isArray(memberships)) {
             const liveHouseholds = memberships
               .map((m: any) => m.households)
               .filter(Boolean)
               .map(mapHousehold);
 
-            if (liveHouseholds.length > 0) {
-              this.store.households = liveHouseholds;
-              if (!this.store.activeHouseholdId || !liveHouseholds.some(h => h.id === this.store.activeHouseholdId)) {
-                this.store.activeHouseholdId = liveHouseholds[0].id;
-              }
+            this.store.households = liveHouseholds;
+            this.store.memberships = [
+              ...this.store.memberships.filter((m) => m.userId !== user.id),
+              ...memberships.map((m: any) => ({
+                id: m.id,
+                userId: m.user_id,
+                householdId: m.household_id,
+                role: m.role as Membership['role'],
+                status: m.status as Membership['status'],
+                joinedAt: m.joined_at || new Date().toISOString(),
+              })),
+            ];
+
+            if (liveHouseholds.length === 0) {
+              this.store.activeHouseholdId = '';
               this.save();
-              return liveHouseholds;
+              return [];
             }
+
+            if (!this.store.activeHouseholdId || !liveHouseholds.some(h => h.id === this.store.activeHouseholdId)) {
+              this.store.activeHouseholdId = liveHouseholds[0].id;
+            }
+            if (this.store.householdSetupMode === 'pending') {
+              this.store.householdSetupMode = 'configured';
+            }
+            this.save();
+            return liveHouseholds;
           }
         }
       } catch {
@@ -1295,7 +1376,8 @@ class ApiService {
         };
       });
 
-    if (supabase) {
+    let syncedChores = buildStarterChores(newHousehold.id);
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -1312,23 +1394,30 @@ class ApiService {
 
           if (createdH) {
             newHousehold.id = createdH.id;
+            newHousehold.createdBy = user.id;
+            this.store.currentUser.id = user.id;
             await supabase.from('memberships').insert({
               household_id: createdH.id,
               user_id: user.id,
               role: 'admin',
               status: 'active',
             });
-            await supabase.from('chores').insert(
-              buildStarterChores(createdH.id).map((ch) => ({
-                household_id: createdH.id,
-                name: ch.name,
-                frequency: ch.frequency,
-                effort_level: ch.effortLevel,
-                active: true,
-                description: ch.description,
-                icon_name: ch.iconName,
-              }))
-            );
+            const starterPayload = buildStarterChores(createdH.id).map((ch) => ({
+              household_id: createdH.id,
+              name: ch.name,
+              frequency: ch.frequency,
+              effort_level: ch.effortLevel,
+              active: true,
+              description: ch.description,
+              icon_name: ch.iconName,
+            }));
+            const { data: insertedChores } = await supabase
+              .from('chores')
+              .insert(starterPayload)
+              .select('*');
+            syncedChores = insertedChores && insertedChores.length > 0
+              ? insertedChores.map(mapChore)
+              : buildStarterChores(createdH.id);
           }
         }
       } catch (err) {
@@ -1346,7 +1435,7 @@ class ApiService {
       status: 'active',
       joinedAt: new Date().toISOString(),
     });
-    this.store.chores.push(...buildStarterChores(newHousehold.id));
+    this.store.chores.push(...syncedChores);
     this.store.householdSetupMode = 'configured';
     this.syncAccountSetupMode('configured');
     this.save();
@@ -1362,7 +1451,7 @@ class ApiService {
     household.invitesEnabled = true;
     this.save();
 
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         await supabase.from('households').update({ invite_code: newCode, invites_enabled: true }).eq('id', hid);
       } catch (err) {
@@ -1379,7 +1468,7 @@ class ApiService {
     household.invitesEnabled = enabled !== undefined ? enabled : !(household.invitesEnabled ?? true);
     this.save();
 
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         await supabase.from('households').update({ invites_enabled: household.invitesEnabled }).eq('id', hid);
       } catch (err) {
@@ -1391,7 +1480,7 @@ class ApiService {
 
   public async joinHousehold(code: string): Promise<{ success: boolean; household?: Household; message: string }> {
     const formattedCode = code.trim().toUpperCase();
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         // Attempt direct join via secure RPC
         const { data: directJoin, error: directJoinErr } = await (supabase.rpc as any)('join_household_by_code', {
@@ -1474,7 +1563,7 @@ class ApiService {
 
   public async getHouseholdMembers(householdId?: string): Promise<{ user: User; membership: Membership }[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: members } = await supabase
           .from('memberships')
@@ -1508,7 +1597,7 @@ class ApiService {
 
   public async getJoinRequests(householdId?: string): Promise<JoinRequest[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: requests } = await supabase
           .from('join_requests')
@@ -1538,7 +1627,7 @@ class ApiService {
   }
 
   public async voteJoinRequest(requestId: string, vote: 'ok' | 'unsure'): Promise<void> {
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         const { data: req } = await supabase.from('join_requests').select('votes').eq('id', requestId).maybeSingle();
         const { data: { user } } = await supabase.auth.getUser();
@@ -1570,7 +1659,7 @@ class ApiService {
   }
 
   public async decideJoinRequest(requestId: string, approve: boolean): Promise<void> {
-    if (supabase) {
+    if (supabase && !this.isDemoMode()) {
       try {
         if (approve) {
           await (supabase.rpc as any)('approve_join_request', { p_request_id: requestId });
@@ -1670,7 +1759,7 @@ class ApiService {
   // --- Expenses & Balances ---
   public async getExpenses(householdId?: string): Promise<Expense[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode() && hid) {
       try {
         const { data: expRows } = await supabase
           .from('expenses')
@@ -1678,9 +1767,12 @@ class ApiService {
           .eq('household_id', hid)
           .order('created_at', { ascending: false });
 
-        if (expRows && expRows.length > 0) {
+        if (Array.isArray(expRows)) {
           const liveExpenses = expRows.map((e: any) => mapExpense(e, e.expense_shares || []));
-          this.store.expenses = liveExpenses;
+          this.store.expenses = [
+            ...this.store.expenses.filter((e) => e.householdId !== hid),
+            ...liveExpenses,
+          ];
           return liveExpenses;
         }
       } catch (err) {
@@ -1719,26 +1811,28 @@ class ApiService {
       createdAt: new Date().toISOString(),
     };
     this.store.expenses.unshift(newExpense);
-    const action = outbox.enqueue(hid, 'create_expense', { expense: newExpense });
-    if (supabase) {
-      const sb = supabase;
-      Promise.resolve(
-        sb.from('expenses').insert({
-          household_id: hid,
-          paid_by: this.store.currentUser.id,
-          title: newExpense.title,
-          amount: newExpense.amount,
-          category: newExpense.category,
-          receipt_url: newExpense.receiptUrl,
-          date: newExpense.date,
-          status: newExpense.status,
-        })
-      )
-        .then(({ error }) => {
-          if (!error) outbox.markSuccess(action.id);
-          else outbox.markFailed(action.id, error.message);
-        })
-        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+    if (!this.isDemoMode()) {
+      const action = outbox.enqueue(hid, 'create_expense', { expense: newExpense });
+      if (supabase) {
+        const sb = supabase;
+        Promise.resolve(
+          sb.from('expenses').insert({
+            household_id: hid,
+            paid_by: this.store.currentUser.id,
+            title: newExpense.title,
+            amount: newExpense.amount,
+            category: newExpense.category,
+            receipt_url: newExpense.receiptUrl,
+            date: newExpense.date,
+            status: newExpense.status,
+          })
+        )
+          .then(({ error }) => {
+            if (!error) outbox.markSuccess(action.id);
+            else outbox.markFailed(action.id, error.message);
+          })
+          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      }
     }
 
     this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} logged an expense: ${title} (₺${amount.toFixed(2)})`, {
@@ -1758,24 +1852,26 @@ class ApiService {
       if (disputeReason) share.disputeReason = disputeReason;
     }
 
-    const action = outbox.enqueue(
-      exp.householdId,
-      response === 'agreed' ? 'agree_expense' : 'dispute_expense',
-      { expenseId, response, disputeReason }
-    );
-    if (supabase) {
-      const sb = supabase;
-      Promise.resolve(
-        sb.from('expense_shares')
-          .update({ response, dispute_reason: disputeReason || null })
-          .eq('expense_id', expenseId)
-          .eq('user_id', this.store.currentUser.id)
-      )
-        .then(({ error }) => {
-          if (!error) outbox.markSuccess(action.id);
-          else outbox.markFailed(action.id, error.message);
-        })
-        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+    if (!this.isDemoMode()) {
+      const action = outbox.enqueue(
+        exp.householdId,
+        response === 'agreed' ? 'agree_expense' : 'dispute_expense',
+        { expenseId, response, disputeReason }
+      );
+      if (supabase) {
+        const sb = supabase;
+        Promise.resolve(
+          sb.from('expense_shares')
+            .update({ response, dispute_reason: disputeReason || null })
+            .eq('expense_id', expenseId)
+            .eq('user_id', this.store.currentUser.id)
+        )
+          .then(({ error }) => {
+            if (!error) outbox.markSuccess(action.id);
+            else outbox.markFailed(action.id, error.message);
+          })
+          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      }
     }
     // Update overall expense status
     if (exp.shares.some(s => s.response === 'disputed')) {
@@ -1876,16 +1972,19 @@ class ApiService {
 
   public async getSettlements(householdId?: string): Promise<Settlement[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode() && hid) {
       try {
         const { data: setRows } = await supabase
           .from('settlements')
           .select('*')
           .eq('household_id', hid);
 
-        if (setRows && setRows.length > 0) {
+        if (Array.isArray(setRows)) {
           const liveSets = setRows.map(mapSettlement);
-          this.store.settlements = liveSets;
+          this.store.settlements = [
+            ...this.store.settlements.filter((s) => s.householdId !== hid),
+            ...liveSets,
+          ];
           return liveSets;
         }
       } catch (err) {
@@ -1898,7 +1997,7 @@ class ApiService {
   // --- Chores & The Draft ---
   public async getChores(householdId?: string): Promise<Chore[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode() && hid) {
       try {
         const { data: choreRows } = await supabase
           .from('chores')
@@ -1906,9 +2005,12 @@ class ApiService {
           .eq('household_id', hid)
           .eq('active', true);
 
-        if (choreRows && choreRows.length > 0) {
+        if (Array.isArray(choreRows)) {
           const liveChores = choreRows.map(mapChore);
-          this.store.chores = liveChores;
+          this.store.chores = [
+            ...this.store.chores.filter((c) => c.householdId !== hid),
+            ...liveChores,
+          ];
           return liveChores;
         }
       } catch (err) {
@@ -1920,7 +2022,8 @@ class ApiService {
 
   public async addChore(name: string, frequency: 'daily' | 'weekly', effortLevel: 'light' | 'medium' | 'heavy', description: string): Promise<Chore> {
     const hid = this.store.activeHouseholdId;
-    const newChore: Chore = {
+    const iconName = effortLevel === 'heavy' ? 'Bath' : effortLevel === 'medium' ? 'Sparkles' : 'Trash2';
+    let newChore: Chore = {
       id: 'ch_' + Date.now(),
       householdId: hid,
       name,
@@ -1928,8 +2031,32 @@ class ApiService {
       effortLevel,
       active: true,
       description,
-      iconName: effortLevel === 'heavy' ? 'Bath' : effortLevel === 'medium' ? 'Sparkles' : 'Trash2',
+      iconName,
     };
+
+    if (supabase && !this.isDemoMode() && hid) {
+      try {
+        const { data: inserted } = await supabase
+          .from('chores')
+          .insert({
+            household_id: hid,
+            name,
+            frequency,
+            effort_level: effortLevel,
+            active: true,
+            description,
+            icon_name: iconName,
+          })
+          .select('*')
+          .single();
+        if (inserted) {
+          newChore = mapChore(inserted);
+        }
+      } catch (err) {
+        console.warn('Supabase addChore fallback:', err);
+      }
+    }
+
     this.store.chores.push(newChore);
     this.save();
     return newChore;
@@ -1937,6 +2064,58 @@ class ApiService {
 
   public async getDraftRound(householdId?: string): Promise<DraftRound> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase && !this.isDemoMode() && hid) {
+      try {
+        const { data: existing } = await supabase
+          .from('draft_rounds')
+          .select('*, draft_picks(*), chore_assignments(*)')
+          .eq('household_id', hid)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        let roundRow: any = existing;
+        if (!roundRow) {
+          const { data: created } = await supabase
+            .from('draft_rounds')
+            .insert({ household_id: hid, status: 'collecting' })
+            .select('*, draft_picks(*), chore_assignments(*)')
+            .single();
+          roundRow = created;
+        }
+
+        if (roundRow) {
+          const liveRound: DraftRound = {
+            id: roundRow.id,
+            householdId: roundRow.household_id,
+            status: roundRow.status,
+            createdAt: roundRow.created_at || new Date().toISOString(),
+            revealedAt: roundRow.revealed_at || undefined,
+            picks: (roundRow.draft_picks || []).map((p: any) => ({
+              userId: p.user_id,
+              choreId: p.chore_id,
+              type: p.pick_type,
+              targetUserId: p.target_user_id || undefined,
+            })),
+            assignments: (roundRow.chore_assignments || []).map((a: any) => ({
+              choreId: a.chore_id,
+              userId: a.user_id,
+              scheduledDays: a.scheduled_days || ['Daily'],
+              scheduledTime: a.scheduled_time || '18:00',
+              completedToday: Boolean(a.completed_today),
+              lastPhotoUrl: a.last_photo_url || undefined,
+              kudos: Array.isArray(a.kudos) ? a.kudos : [],
+            })),
+          };
+          this.store.draftRounds[hid] = liveRound;
+          this.save();
+          return liveRound;
+        }
+      } catch (err) {
+        console.warn('Supabase getDraftRound fallback:', err);
+      }
+    }
+
     if (!this.store.draftRounds[hid]) {
       this.store.draftRounds[hid] = {
         id: 'dr_' + Date.now(),
@@ -2047,19 +2226,21 @@ class ApiService {
       this.store.currentUser.points += 20;
       const chore = this.store.chores.find(c => c.id === choreId);
 
-      const action = outbox.enqueue(hid, 'complete_chore', { choreId, photoUrl });
-      if (supabase) {
-        const sb = supabase;
-        Promise.resolve(
-          sb.from('chore_assignments')
-            .update({ completed_today: true, last_photo_url: photoUrl || null })
-            .eq('chore_id', choreId)
-        )
-          .then(({ error }) => {
-            if (!error) outbox.markSuccess(action.id);
-            else outbox.markFailed(action.id, error.message);
-          })
-          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      if (!this.isDemoMode()) {
+        const action = outbox.enqueue(hid, 'complete_chore', { choreId, photoUrl });
+        if (supabase) {
+          const sb = supabase;
+          Promise.resolve(
+            sb.from('chore_assignments')
+              .update({ completed_today: true, last_photo_url: photoUrl || null })
+              .eq('chore_id', choreId)
+          )
+            .then(({ error }) => {
+              if (!error) outbox.markSuccess(action.id);
+              else outbox.markFailed(action.id, error.message);
+            })
+            .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+        }
       }
 
       this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`, {
@@ -2107,7 +2288,7 @@ class ApiService {
   // --- Chat ---
   public async getMessages(householdId?: string): Promise<ChatMessage[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase) {
+    if (supabase && !this.isDemoMode() && hid) {
       try {
         const { data: msgRows } = await supabase
           .from('chat_messages')
@@ -2115,7 +2296,7 @@ class ApiService {
           .eq('household_id', hid)
           .order('created_at', { ascending: true });
 
-        if (msgRows && msgRows.length > 0) {
+        if (Array.isArray(msgRows)) {
           const liveMsgs = msgRows.map(mapChatMessage);
           this.store.messages[hid] = liveMsgs;
           return liveMsgs;
@@ -2132,30 +2313,32 @@ class ApiService {
     const msg = this.addMessage(hid, this.store.currentUser.id, 'text', body);
     this.save();
 
-    const action = outbox.enqueue(hid, 'send_message', { message: msg });
-    if (supabase) {
-      const sb = supabase;
-      Promise.resolve(
-        sb.from('chat_messages').insert({
-          household_id: hid,
-          sender_id: msg.senderId,
-          type: msg.type,
-          body: msg.body,
-          link_target: msg.linkTarget as any,
-        })
-      )
-        .then(({ error }) => {
-          if (!error) outbox.markSuccess(action.id);
-          else outbox.markFailed(action.id, error.message);
-        })
-        .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+    if (!this.isDemoMode()) {
+      const action = outbox.enqueue(hid, 'send_message', { message: msg });
+      if (supabase) {
+        const sb = supabase;
+        Promise.resolve(
+          sb.from('chat_messages').insert({
+            household_id: hid,
+            sender_id: msg.senderId,
+            type: msg.type,
+            body: msg.body,
+            link_target: msg.linkTarget as any,
+          })
+        )
+          .then(({ error }) => {
+            if (!error) outbox.markSuccess(action.id);
+            else outbox.markFailed(action.id, error.message);
+          })
+          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      }
     }
 
     return msg;
   }
 
   public subscribeToHousehold(householdId: string, onUpdate: () => void): () => void {
-    if (!supabase) return () => {};
+    if (!supabase || this.isDemoMode() || !householdId) return () => {};
     const sb = supabase;
     try {
       const channel = sb

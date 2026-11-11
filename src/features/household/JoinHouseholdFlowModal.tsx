@@ -8,12 +8,14 @@ import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 import { useBackHandler } from '../../utils/useBackHandler';
+import { extractInviteCodeFromInput } from '../../utils/inviteLink';
 
 interface JoinHouseholdFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
   onJoin: (code: string) => Promise<{ success: boolean; household?: { name: string }; message: string }>;
   onCompleted?: (status: 'joined' | 'requested', info: { code: string; householdName?: string }) => void;
+  initialCode?: string | null;
 }
 
 export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
@@ -21,6 +23,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   onClose,
   onJoin,
   onCompleted,
+  initialCode,
 }) => {
   const { showToast } = useToast();
   // 1: Choose Method -> 2: Camera or Code Entry -> 3: Apartment Preview -> 4: Waiting Approval
@@ -31,6 +34,15 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [joinedDirectly, setJoinedDirectly] = useState<boolean>(false);
   const [matchedHouseholdName, setMatchedHouseholdName] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const normalized = extractInviteCodeFromInput(initialCode);
+    if (normalized) {
+      setCode(normalized);
+      setStep(3);
+    }
+  }, [isOpen, initialCode]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -68,7 +80,9 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHasCamera(false);
-      handleSimulateScanFallback();
+      setIsScanning(false);
+      showToast('Camera unavailable — enter the invite code or paste link below.', 'info');
+      setStep(2);
       return;
     }
 
@@ -94,16 +108,13 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
             const barcodes = await barcodeDetector.detect(videoRef.current);
             if (barcodes.length > 0) {
               const rawVal = barcodes[0].rawValue || '';
-              // Extract code from link or raw text
-              const detectedCode = rawVal.includes('code=')
-                ? new URLSearchParams(rawVal.split('?')[1]).get('code') || rawVal
-                : rawVal;
+              const detectedCode = extractInviteCodeFromInput(rawVal) || rawVal.trim().toUpperCase();
 
               stopCamera();
               setIsScanning(false);
-              setCode(detectedCode.trim().toUpperCase());
+              setCode(detectedCode);
               sound.playSuccess();
-              showToast(`Scanned: ${detectedCode.toUpperCase()}`, 'reward');
+              showToast(`Scanned: ${detectedCode}`, 'reward');
               setStep(3);
               return;
             }
@@ -115,35 +126,28 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
         scanLoopRef.current = requestAnimationFrame(scanFrame);
       } else {
-        // Fallback simulation timer if BarcodeDetector is not natively present
-        setTimeout(() => {
-          stopCamera();
-          setIsScanning(false);
-          setCode('CYP-7492');
-          sound.playSuccess();
-          showToast('Scanned: CYP-7492!', 'reward');
-          setStep(3);
-        }, 2200);
+        stopCamera();
+        setIsScanning(false);
+        setHasCamera(false);
+        showToast('Live QR decoding is unavailable in this browser — enter or paste the invite link below.', 'info');
+        setStep(2);
       }
     } catch {
       setHasCamera(false);
       stopCamera();
-      handleSimulateScanFallback();
+      setIsScanning(false);
+      showToast('Camera unavailable — enter the invite code or link manually.', 'info');
+      setStep(2);
     }
   };
 
-  const handleSimulateScanFallback = () => {
-    setTimeout(() => {
-      setIsScanning(false);
-      setCode('CYP-7492');
-      sound.playSuccess();
-      showToast('QR Scanned: CYP-7492!', 'reward');
-      setStep(3); // Preview apartment
-    }, 1500);
-  };
-
   const handleCodeSubmit = () => {
-    if (!code.trim()) return;
+    const extracted = extractInviteCodeFromInput(code);
+    if (!extracted) {
+      showToast('Please enter a valid invite code or paste the invite link.', 'error');
+      return;
+    }
+    setCode(extracted);
     sound.playTap();
     setStep(3); // Preview apartment
   };
@@ -267,12 +271,12 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
               <input
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. CYP-7492"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-widest focus:outline-none focus:border-[#FF6B4A] uppercase text-center"
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="e.g. CYP-7492 or invite link"
+                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-wide focus:outline-none focus:border-[#FF6B4A] text-center"
               />
               <p className="type-secondary mt-1.5 text-center text-xs text-[#6B7280]">
-                Enter the 8-character code shared by your flatmate or landlord.
+                Enter the 8-character code or paste a Roomie invite link from your flatmate.
               </p>
             </div>
 
