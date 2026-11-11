@@ -11,6 +11,7 @@ import { Avatar } from './components/common/Avatar';
 import { MascotView } from './components/common/MascotView';
 import { api } from './services/api';
 import { sound } from './services/sound';
+import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandler';
 
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 
@@ -144,7 +145,21 @@ function MainApp() {
   // App lifecycle & auth states
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<Tab>('feed');
+  const [navState, setNavState] = useState<{ current: Tab; history: Tab[] }>({
+    current: 'feed',
+    history: ['feed'],
+  });
+  const activeTab = navState.current;
+  const tabHistory = navState.history;
+
+  const setActiveTab = (nextTab: Tab) => {
+    setNavState((prev) => {
+      if (prev.current === nextTab) return prev;
+      const nextHist: Tab[] =
+        nextTab === 'feed' ? ['feed'] : [...prev.history.slice(-9), nextTab];
+      return { current: nextTab, history: nextHist };
+    });
+  };
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [selectedExpenseAction, setSelectedExpenseAction] = useState<'add' | 'settle' | 'confirm' | null>(null);
   const [showShowcase, setShowShowcase] = useState<boolean>(false);
@@ -217,6 +232,39 @@ function MainApp() {
 
   // Full-screen flows for Chore draft & reveal
   const [draftFlowState, setDraftFlowState] = useState<'none' | 'picking' | 'waiting' | 'reveal'>('none');
+
+  // Initialize Capacitor Android hardware/predictive back bridge & StatusBar once
+  useEffect(() => {
+    return initCapacitorNativeBridge();
+  }, []);
+
+  // Predictive Back: close showcase overlay
+  useBackHandler(showShowcase, 60, () => {
+    setShowShowcase(false);
+  });
+
+  // Predictive Back: pop tab navigation history back toward Home ('feed')
+  useBackHandler(
+    isAuthenticated &&
+      Boolean(activeHousehold) &&
+      draftFlowState === 'none' &&
+      !showShowcase &&
+      (tabHistory.length > 1 || activeTab !== 'feed'),
+    10,
+    () => {
+      sound.playTap();
+      setNavState((prev) => {
+        if (prev.history.length > 1) {
+          const nextHist = prev.history.slice(0, -1);
+          return {
+            current: nextHist[nextHist.length - 1] || 'feed',
+            history: nextHist,
+          };
+        }
+        return { current: 'feed', history: ['feed'] };
+      });
+    }
+  );
 
   // Load initial data
   const loadData = async () => {
@@ -454,9 +502,9 @@ function MainApp() {
 
   return (
     <div
-      className={`min-h-screen bg-[#F7F8FB] flex flex-col justify-between w-full relative ${
-        settings.reducedMotion ? 'motion-reduce' : ''
-      }`}
+      className={`min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between w-full relative ${
+        activeTab === 'chat' ? 'h-[100dvh] overflow-hidden' : ''
+      } ${settings.reducedMotion ? 'motion-reduce' : ''}`}
     >
       {showSplash && (
         <SplashScreen
@@ -477,7 +525,7 @@ function MainApp() {
       />
 
       {/* TOP APP BAR - Responsive Header with Desktop Tabs */}
-      <header className="sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full">
+      <header className="sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full pt-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
           {/* Left: Apartment Switcher dropdown & Invite code chip */}
           <div className="flex items-center gap-2 shrink-0">
@@ -644,7 +692,7 @@ function MainApp() {
       </header>
 
       {/* MAIN VIEW CONTENT - With clean mobile padding (pt-5 pb-24 md:py-8) */}
-      <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${activeTab === 'chat' ? 'pt-3 pb-20 md:py-6 h-[calc(100dvh-64px)] overflow-hidden flex flex-col' : 'pt-5 pb-24 md:py-8 overflow-y-auto'}`}>
+      <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${activeTab === 'chat' ? 'pt-3 pb-[calc(5rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] md:py-6 min-h-0 overflow-hidden flex flex-col' : 'pt-5 pb-24 md:py-8 overflow-y-auto'}`}>
         <React.Suspense fallback={<ScreenSkeleton />}>
           {activeTab === 'feed' && (
           <HomeScreen
@@ -849,7 +897,7 @@ function MainApp() {
       {/* BOTTOM NAVIGATION BAR - Mobile only */}
       <nav
         aria-label="Main Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-[#E6E8EE] px-2 py-2 flex items-center justify-around z-30 shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-md border-t border-[#E6E8EE] px-2 pt-2 pb-[calc(0.5rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] flex items-center justify-around z-30 shadow-lg"
       >
         {[
           { id: 'feed', label: 'Home', icon: <Home className="w-5 h-5" /> },

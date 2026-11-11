@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface SettleUpFlowModalProps {
   isOpen: boolean;
@@ -79,6 +80,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
     sound.playTap();
     setStep((prev) => Math.min(prev + 1, 4));
   };
+
+  useBackHandler(isOpen && step > 1 && step < 4, 110, () => {
+    handleBack();
+  });
 
   const handleBack = () => {
     sound.playTap();

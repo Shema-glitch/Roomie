@@ -7,6 +7,7 @@ import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus, X
 import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface JoinHouseholdFlowModalProps {
   isOpen: boolean;
@@ -49,6 +50,13 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
       stopCamera();
     };
   }, []);
+
+  useBackHandler(isOpen && step > 1 && step < 4, 110, () => {
+    sound.playTap();
+    stopCamera();
+    setIsScanning(false);
+    setStep((s) => Math.max(1, s - 1));
+  });
 
   const startLiveCamera = async () => {
     sound.playTap();

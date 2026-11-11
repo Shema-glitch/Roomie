@@ -11,6 +11,7 @@ import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { Heart, Ban, Users, ArrowLeft, ArrowRight, Check, Shuffle, ClipboardCheck } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface SecretDraftScreenProps {
   chores: Chore[];
@@ -32,6 +33,16 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
   const [picks, setPicks] = useState<DraftPick[]>([]);
   const [suggestModalOpen, setSuggestModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useBackHandler(currentIndex > 0 && !suggestModalOpen, 55, () => {
+    sound.playTap();
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  });
+
+  useBackHandler(currentIndex === 0 && !suggestModalOpen, 50, () => {
+    sound.playTap();
+    onCancel();
+  });
 
   const activeChores = chores.filter((c) => c.active);
   const currentChore = activeChores[currentIndex];
@@ -95,7 +106,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
   const progressPercent = ((currentIndex + 1) / activeChores.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto select-none">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe max-w-md mx-auto select-none">
       {/* Top Header */}
       <div>
         <div className="flex items-center justify-between mb-3">

@@ -5,6 +5,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
+import { useBackHandler } from '../../utils/useBackHandler';
 import { User, Chore, ChoreAssignment } from '../../types';
 import {
   Sparkles,
@@ -62,6 +63,17 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
   });
 
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
+
+  useBackHandler(phase === 'revealing' && currentMemberIndex > 0, 55, () => {
+    sound.playTap();
+    setEditingChoreId(null);
+    setCurrentMemberIndex((prev) => Math.max(0, prev - 1));
+  });
+
+  useBackHandler(!(phase === 'revealing' && currentMemberIndex > 0), 50, () => {
+    sound.playTap();
+    onFinish();
+  });
 
   // Filter to roommates who have assignments
   const activeMembers = users.filter((u) =>
@@ -164,7 +176,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-lg mx-auto relative overflow-hidden select-none">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe max-w-lg mx-auto relative overflow-hidden select-none">
       {/* Confetti Particles on Summary */}
       {confettiActive && !reducedMotion && (
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">

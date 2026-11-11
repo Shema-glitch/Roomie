@@ -9,9 +9,16 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "test": "tsx --test src/**/*.test.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "cap:sync": "npx cap sync android",
+    "cap:dev": "node scripts/cap-sync-dev.mjs",
+    "cap:apk": "node scripts/cap-sync-dev.mjs --build",
+    "cap:apk:bundle": "node scripts/cap-sync-dev.mjs --bundle --build"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/status-bar": "^8.0.4",
     "@google/genai": "^2.4.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tailwindcss/vite": "^4.3.3",
@@ -24,6 +31,8 @@
     "vite": "^8.3.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",

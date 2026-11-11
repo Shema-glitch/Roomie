@@ -12,18 +12,20 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ isOffline, onToggl
   return (
     <div
       role="status"
-      className="bg-[#1F2430] text-white px-4 py-2 text-[14px] font-normal flex items-center justify-between sticky top-0 z-40 border-b border-[#374151]"
+      className="bg-[#1F2430] text-white sticky top-0 z-40 border-b border-[#374151] pt-safe"
     >
-      <div className="flex items-center gap-2">
-        <WifiOff className="w-4 h-4 text-[#FFC93C]" />
-        <span>Working offline — changes are saved locally</span>
+      <div className="px-4 py-2 text-[14px] font-normal flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <WifiOff className="w-4 h-4 text-[#FFC93C]" />
+          <span>Working offline — changes are saved locally</span>
+        </div>
+        <button
+          onClick={onToggle}
+          className="text-[14px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1 rounded-xl cursor-pointer flex items-center gap-1.5"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> Reconnect
+        </button>
       </div>
-      <button
-        onClick={onToggle}
-        className="text-[14px] font-bold bg-white/20 hover:bg-white/30 px-3 py-1 rounded-xl cursor-pointer flex items-center gap-1.5"
-      >
-        <RefreshCw className="w-3.5 h-3.5" /> Reconnect
-      </button>
     </div>
   );
 };

@@ -30,6 +30,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface AddExpenseFlowModalProps {
   isOpen: boolean;
@@ -99,6 +100,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     sound.playTap();
     setStep((prev) => Math.min(prev + 1, 6));
   };
+
+  useBackHandler(isOpen && step > 1, 110, () => {
+    handleBack();
+  });
 
   const handleBack = () => {
     sound.playTap();

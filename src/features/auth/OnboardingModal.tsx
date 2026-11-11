@@ -4,6 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { THEME } from '../../theme/tokens';
+import { useBackHandler } from '../../utils/useBackHandler';
 import {
   Sparkles,
   Smartphone,
@@ -24,6 +25,10 @@ interface OnboardingModalProps {
 export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComplete, currency = "TRY" }) => {
   const [step, setStep] = useState<number>(0);
   const [notificationsAllowed, setNotificationsAllowed] = useState(false);
+
+  useBackHandler(isOpen && step > 0, 110, () => {
+    setStep((prev) => Math.max(0, prev - 1));
+  });
 
   const slides = [
     {

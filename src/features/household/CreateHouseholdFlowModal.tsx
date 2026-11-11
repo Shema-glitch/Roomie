@@ -17,6 +17,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface CreateHouseholdFlowModalProps {
   isOpen: boolean;
@@ -44,6 +45,11 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
   const [createdHousehold, setCreatedHousehold] = useState<Household | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useBackHandler(isOpen && step > 1 && step < 4, 110, () => {
+    sound.playTap();
+    setStep((s) => Math.max(1, s - 1));
+  });
 
   const availableStarterChores = [
     'Deep Clean Bathroom',

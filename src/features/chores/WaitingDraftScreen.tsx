@@ -5,6 +5,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { User, DraftRound } from '../../types';
 import { Sparkles, Check, Clock, ArrowLeft } from 'lucide-react';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface WaitingDraftScreenProps {
   draftRound: DraftRound;
@@ -22,11 +23,15 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
   onClose,
 }) => {
   // Determine who has submitted picks
+  useBackHandler(Boolean(onClose), 50, () => {
+    onClose?.();
+  });
+
   const submittedUserIds = new Set(draftRound.picks.map((p) => p.userId));
   const isReady = draftRound.status === 'ready_to_reveal' || submittedUserIds.size >= roommates.length - 1;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto text-center select-none">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe max-w-md mx-auto text-center select-none">
       {/* Top Section */}
       <div className="pt-2">
         {onClose && (

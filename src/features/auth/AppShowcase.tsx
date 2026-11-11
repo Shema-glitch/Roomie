@@ -124,7 +124,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
       onPointerDown={() => setIsPaused(true)}
       onPointerUp={() => setIsPaused(false)}
     >
-      <div className="w-full max-w-md h-full flex flex-col justify-between p-4 sm:p-6 overflow-hidden">
+      <div className="w-full max-w-md h-full flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe overflow-hidden">
         {/* MINIMALIST TOP STORY BAR */}
         <div className="pt-2 pb-1 space-y-2 shrink-0">
           <div className="flex items-center justify-between gap-3">

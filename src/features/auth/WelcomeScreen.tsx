@@ -26,6 +26,7 @@ import {
   Scale,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface WelcomeScreenProps {
   onSignIn: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
@@ -154,6 +155,17 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     }
   };
 
+  useBackHandler(stage === 'showcase', 50, () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('roomie_walkthrough_seen', '1');
+    }
+    setStage('welcome');
+  });
+
+  useBackHandler(stage !== 'welcome' && stage !== 'showcase', 50, () => {
+    handleBack();
+  });
+
   const handleBack = () => {
     sound.playTap();
     switch (stage) {
@@ -219,7 +231,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 max-w-md mx-auto">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 pt-safe pb-safe max-w-md mx-auto">
       {/* TOP BAR / PROGRESS HEADER */}
       {stage !== 'welcome' && (
         <div className="pt-2 pb-4 flex items-center gap-2 w-full">

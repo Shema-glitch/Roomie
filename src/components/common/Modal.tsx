@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface ModalProps {
   isOpen: boolean;
@@ -24,6 +25,9 @@ export const Modal: React.FC<ModalProps> = ({
   size,
   showClose = true,
 }) => {
+  // Automatically register open modals into the mobile predictive back stack
+  useBackHandler(isOpen, 100, onClose);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -58,7 +62,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transform transition-all animate-in slide-in-from-bottom duration-200`}
+        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 transform transition-all animate-in slide-in-from-bottom duration-200`}
         style={{ backgroundColor: THEME.colors.surface }}
         onClick={(e) => e.stopPropagation()}
       >
