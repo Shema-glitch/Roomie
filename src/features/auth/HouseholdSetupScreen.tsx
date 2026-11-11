@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
-import { Chip } from '../../components/common/Chip';
 import { IconTile } from '../../components/common/IconTile';
 import { MascotView } from '../../components/common/MascotView';
 import { CurrencyCode, Household, User } from '../../types';
@@ -131,12 +130,9 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
               <IconTile icon={<Home className="w-6 h-6" />} color="coral" size="md" className="shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430] whitespace-nowrap">
-                    Create a New Flat
-                  </h2>
-                  <Chip variant="primary" size="xs" label="Fresh start" className="uppercase" />
-                </div>
+                <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430]">
+                  Create a New Flat
+                </h2>
                 <p className="type-secondary text-xs text-[#6B7280] mt-1 leading-relaxed">
                   Name your apartment, pick starter chores & invite roomies
                 </p>
