@@ -194,7 +194,7 @@ export const MascotView: React.FC<MascotViewProps> = ({
       {bubbleText && (
         <div
           className={`px-3 py-1.5 rounded-2xl text-[14px] font-bold shadow-sm max-w-[220px] text-center border relative ${
-            state === 'celebrating' ? 'mb-4' : 'mb-2'
+            state === 'celebrating' ? 'mb-7' : 'mb-2'
           }`}
           style={{
             backgroundColor: THEME.colors.surface,
