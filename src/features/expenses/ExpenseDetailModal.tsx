@@ -97,8 +97,8 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
       >
         <div className="space-y-4">
           {/* Header Amount */}
-          <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between">
-            <div>
+          <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
               <span className="type-label block">
                 {expense.category}
               </span>
@@ -109,8 +109,8 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 Paid by {payer?.name || 'Roomie'} {isPayer ? '(You)' : ''}
               </p>
             </div>
-            <div className="text-right">
-              <span className="type-title text-[#FF6B4A]">
+            <div className="text-right shrink-0">
+              <span className="type-title text-[#FF6B4A] whitespace-nowrap">
                 {sym}{expense.amount.toFixed(2)}
               </span>
               <div className="mt-1">
@@ -123,7 +123,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       : 'pending'
                   }
                   label={expense.status}
-                  size="sm"
+                  size="xs"
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
           {/* Roomie Splits Breakdown */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="type-label">
                 Roomie Splits ({expense.shares.length} people)
               </span>
@@ -172,7 +172,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                     onClose();
                     onEditSplit();
                   }}
-                  className="type-secondary font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="type-secondary font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
                 >
                   <Split className="w-3.5 h-3.5" /> Edit split
                 </button>
@@ -186,17 +186,17 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 return (
                   <div
                     key={s.userId}
-                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between"
+                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-2.5"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <Avatar
                         src={user?.avatar}
                         name={user?.name || 'User'}
                         flag={user?.flag}
                         size="xs"
                       />
-                      <div>
-                        <span className="text-[14px] font-bold text-[#1F2430]">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[14px] font-bold text-[#1F2430] block truncate">
                           {user?.name} {isMe ? '(You)' : ''}
                         </span>
                         {s.disputeReason && (
@@ -207,8 +207,8 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] font-bold text-[#1F2430]">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[14px] font-bold text-[#1F2430] whitespace-nowrap">
                         {sym}{s.shareAmount.toFixed(2)}
                       </span>
                       <Chip
@@ -220,7 +220,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                             : 'pending'
                         }
                         label={s.response}
-                        size="sm"
+                        size="xs"
                       />
                     </div>
                   </div>

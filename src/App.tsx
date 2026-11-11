@@ -600,18 +600,18 @@ function MainApp() {
       <header className={`sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full ${
         isOffline || syncStatus === 'offline' || isDemoMode ? '' : 'pt-safe'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-2 sm:gap-4">
           {/* Left: Apartment Switcher dropdown & Invite code chip */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 setHouseholdSwitcherOpen(true);
               }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer max-w-full min-w-0"
             >
-              <span className="type-section-heading max-w-[120px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
+              <span className="type-section-heading max-w-[135px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
                 {activeHousehold.name}
               </span>
               <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
@@ -678,7 +678,7 @@ function MainApp() {
                 sound.playTap();
                 setSyncPanelOpen(true);
               }}
-              className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all ${
+              className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all ${
                 syncStatus === 'syncing'
                   ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
                   : syncStatus === 'offline'
@@ -699,23 +699,22 @@ function MainApp() {
               aria-label="Apartment sync status"
             >
               {syncStatus === 'syncing' ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-[#5B5BD6]" />
+                <RefreshCw className="w-4 h-4 shrink-0 animate-spin text-[#5B5BD6]" />
               ) : syncStatus === 'offline' ? (
-                <CloudOff className="w-4 h-4 text-[#E5484D]" />
+                <CloudOff className="w-4 h-4 shrink-0 text-[#E5484D]" />
               ) : syncStatus === 'needs_attention' ? (
-                <AlertCircle className="w-4 h-4 text-[#8A6200]" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#8A6200]" />
               ) : (
-                <CloudCheck className="w-4 h-4 text-[#19B5A5]" />
+                <CloudCheck className="w-4 h-4 shrink-0 text-[#19B5A5]" />
               )}
               <span
-                className={`type-secondary font-bold text-[14px] ${
+                className={`type-secondary font-bold text-[12px] sm:text-[14px] whitespace-nowrap ${
+                  syncStatus === 'synced' ? 'hidden sm:inline text-[#19B5A5]' :
                   syncStatus === 'syncing'
                     ? 'text-[#5B5BD6]'
                     : syncStatus === 'offline'
                     ? 'text-[#E5484D]'
-                    : syncStatus === 'needs_attention'
-                    ? 'text-[#8A6200]'
-                    : 'text-[#19B5A5]'
+                    : 'text-[#8A6200]'
                 }`}
               >
                 {syncStatus === 'syncing'
@@ -723,7 +722,7 @@ function MainApp() {
                   : syncStatus === 'offline'
                   ? 'Offline'
                   : syncStatus === 'needs_attention'
-                  ? 'Needs attention'
+                  ? 'Attention'
                   : 'Synced'}
               </span>
             </button>
@@ -739,7 +738,7 @@ function MainApp() {
             >
               <Bell className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute 1 top-1 right-1 w-5 h-5 bg-[#FF6B4A] text-white rounded-full text-[14px] font-bold flex items-center justify-center border-2 border-white">
+                <span className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-white rounded-full text-[11px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
                   {unreadNotifsCount}
                 </span>
               )}

@@ -29,7 +29,7 @@ interface ChipProps {
   status?: StatusBadgeType;
   effort?: EffortLevel;
   icon?: React.ReactNode;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   onClick?: () => void;
   className?: string;
 }
@@ -167,18 +167,23 @@ export const Chip: React.FC<ChipProps> = ({
     }
   };
 
-  const sizeClasses = size === 'sm' ? 'px-3 py-1 text-[14px] font-normal' : 'px-3.5 py-1.5 text-[14px] font-semibold';
+  const sizeClasses =
+    size === 'xs'
+      ? 'px-2.5 py-0.5 text-[11px] sm:text-[12px] font-extrabold tracking-wide'
+      : size === 'sm'
+      ? 'px-2.5 py-0.5 text-[12px] sm:text-[13px] font-bold'
+      : 'px-3.5 py-1.5 text-[14px] font-semibold';
 
   return (
     <span
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border-[1.5px] shadow-2xs select-none ${sizeClasses} ${
+      className={`inline-flex items-center gap-1.5 rounded-full border-[1.5px] shadow-2xs select-none whitespace-nowrap shrink-0 max-w-full ${sizeClasses} ${
         onClick ? 'cursor-pointer active:scale-95 transition-transform' : ''
       } ${className}`}
       style={getStyles()}
     >
       {effectiveIcon && <span className="inline-flex shrink-0 items-center justify-center">{effectiveIcon}</span>}
-      <span className="leading-tight">{effectiveLabel}</span>
+      <span className="leading-tight truncate">{effectiveLabel}</span>
     </span>
   );
 };

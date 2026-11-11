@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { ActionCard } from '../../components/common/ActionCard';
 import { Button } from '../../components/common/Button';
+import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { JoinRequest, User, Membership } from '../../types';
 import { Check, HelpCircle } from 'lucide-react';
@@ -85,15 +86,11 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
 
         {/* Roomies' Opinions Section */}
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <span className="type-label">Roomies' opinions</span>
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] type-secondary">
-                {okCount} OK
-              </span>
-              <span className="px-3 py-1 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] type-secondary">
-                {unsureCount} not sure
-              </span>
+              <Chip variant="neutral" size="xs" label={`${okCount} OK`} />
+              <Chip variant="neutral" size="xs" label={`${unsureCount} not sure`} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3 mt-2.5">

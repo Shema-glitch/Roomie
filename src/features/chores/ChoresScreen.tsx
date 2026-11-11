@@ -237,13 +237,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('my');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
                   scheduleFilter === 'my'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                My schedule ({myAssignments.length})
+                My tasks ({myAssignments.length})
               </button>
               <button
                 type="button"
@@ -251,13 +251,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('all');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
                   scheduleFilter === 'all'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                All apartment chores ({assignments.length})
+                All chores ({assignments.length})
               </button>
             </div>
           </div>
@@ -277,14 +277,12 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
 
           {/* SEMANTIC GROUP 1: TODAY'S DUE TASKS */}
           <div className="space-y-3.5">
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="type-section-heading">Today's due tasks</span>
-                <span className="px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-[14px] font-black">
-                  {todayDueAssignments.length} Remaining
-                </span>
+                <Chip variant="primary" size="xs" label={`${todayDueAssignments.length} left`} />
               </div>
-              <span className="type-secondary text-[14px]">Complete on time to protect streak</span>
+              <span className="type-secondary text-[13px] sm:text-[14px]">Complete on time to protect streak</span>
             </div>
 
             {todayDueAssignments.length === 0 ? (
@@ -348,7 +346,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                           </Button>
                         </div>
                       ) : (
-                        <div className="w-full flex items-center justify-between">
+                        <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
                           <span className="type-secondary text-[14px] font-bold">
                             Pending {assignedUser?.name.split(' ')[0]}'s completion
                           </span>
@@ -371,12 +369,12 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
           {/* SEMANTIC GROUP 2: COMPLETED TODAY */}
           {todayCompletedAssignments.length > 0 && (
             <div className="space-y-3.5 pt-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="type-section-heading text-[#2CA358]">Completed today</span>
-                  <Chip status="agreed" label={`${todayCompletedAssignments.length} Done`} size="sm" />
+                  <Chip status="agreed" label={`${todayCompletedAssignments.length} Done`} size="xs" />
                 </div>
-                <span className="type-secondary text-[14px]">Streaks updated</span>
+                <span className="type-secondary text-[13px] sm:text-[14px]">Streaks updated</span>
               </div>
 
               {todayCompletedAssignments.map((a) => {
@@ -401,7 +399,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     detail={
                       <div className="space-y-1.5">
                         <p className="text-[14px] text-[#475569]">{chore.description}</p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Chip effort={chore.effortLevel} size="sm" />
                           <span className="text-[14px] font-bold text-[#2CA358]">
                             +{getEffortPoints(chore.effortLevel)} streak points awarded
@@ -410,11 +408,11 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                       </div>
                     }
                     badge={
-                      <Chip status="agreed" label="Completed" size="sm" />
+                      <Chip status="agreed" label="Done" size="xs" />
                     }
                     actions={
                       !isMe ? (
-                        <div className="w-full flex items-center justify-between">
+                        <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
                           <span className="type-secondary text-[14px]">
                             Praise your roomie's contribution!
                           </span>
@@ -428,7 +426,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                           </Button>
                         </div>
                       ) : (
-                        <div className="w-full flex items-center justify-between">
+                        <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
                           <span className="text-[14px] font-bold text-[#2CA358]">
                             Streak protected for today
                           </span>
@@ -475,19 +473,22 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
         <div className="w-full lg:col-span-5 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
           {/* 1. ROOMIE STREAKS LEADERBOARD */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-2.5">
+              <div className="min-w-0 flex-1">
                 <h3 className="type-section-heading flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-[#FF6B4A] fill-[#FF6B4A]" />
-                  Roomie streaks and kudos
+                  <Flame className="w-5 h-5 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
+                  <span className="truncate">Roomie streaks and kudos</span>
                 </h3>
                 <p className="type-secondary text-[14px]">
                   Apartment chore streaks and consistency
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold flex items-center gap-1">
-                ⭐ Top streak: {maxStreak}d
-              </span>
+              <Chip
+                variant="reward"
+                size="xs"
+                icon={<Sparkles className="w-3 h-3 text-[#8A6200]" />}
+                label={`Top: ${maxStreak}d`}
+              />
             </div>
 
             {/* Equal Streak Cards (No Numbered Rankings) */}
@@ -498,7 +499,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 return (
                   <div
                     key={r.id}
-                    className={`p-3 rounded-2xl flex items-center justify-between border transition-all ${
+                    className={`p-3 rounded-2xl flex items-center justify-between gap-2.5 border transition-all ${
                       isTopStreak
                         ? 'bg-linear-to-r from-[#FFF8E6] to-white border-[#FFE8A3] shadow-xs'
                         : isMe
@@ -506,7 +507,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                         : 'bg-white border-[#E6E8EE]'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                       <Avatar
                         src={r.avatar}
                         name={r.name}
@@ -515,39 +516,36 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                         statusRing={true}
                         size="sm"
                       />
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <p className="text-[14px] font-bold text-[#1F2430]">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <p className="text-[14px] font-bold text-[#1F2430] truncate">
                             {r.name}
                           </p>
-                          {isMe && <span className="text-[14px] font-bold text-[#FF6B4A] normal-case tracking-normal">(You)</span>}
-                          {isTopStreak && (
-                            <span className="px-2 py-0.5 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold inline-flex items-center gap-1 shadow-2xs">
-                              Streak star
-                            </span>
-                          )}
+                          {isMe && <span className="text-[13px] font-bold text-[#FF6B4A] shrink-0">(You)</span>}
                         </div>
-                        <p className="type-secondary text-[14px]">
+                        <p className="type-secondary text-[13px] whitespace-nowrap">
                           {r.points} reward points
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] border border-[#FFD7CF] text-[14px] font-bold">
-                        <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
-                        {r.streakDays}d
-                      </span>
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      <Chip
+                        variant={isTopStreak ? 'reward' : 'primary'}
+                        size="xs"
+                        icon={<Flame className="w-3 h-3 fill-[#FF6B4A] text-[#FF6B4A]" />}
+                        label={isTopStreak ? `Best • ${r.streakDays}d` : `${r.streakDays}d`}
+                      />
                       {!isMe && (
                         <button
                           type="button"
                           onClick={() => setKudosModalData({ chore: chores[0], target: r })}
-                          className="min-h-[36px] px-2.5 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold cursor-pointer transition-colors inline-flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]"
+                          className="min-h-[34px] px-2.5 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-[13px] font-bold cursor-pointer transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]"
                           title={`Send kudos to ${r.name}`}
                           aria-label={`Send kudos to ${r.name}`}
                         >
-                          <Heart className="w-3.5 h-3.5 fill-[#FFC93C] text-[#8A6200]" />
-                          <span>Kudos</span>
+                          <Heart className="w-3.5 h-3.5 fill-[#FFC93C] text-[#8A6200] shrink-0" />
+                          <span className="hidden sm:inline">Kudos</span>
                         </button>
                       )}
                     </div>

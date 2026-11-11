@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { User, DraftRound } from '../../types';
@@ -78,22 +79,28 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
               return (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]"
+                  className="flex items-center justify-between gap-2.5 p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
-                    <span className="type-section-heading">
+                    <span className="type-section-heading truncate">
                       {r.name}
                     </span>
                   </div>
                   {hasSubmitted ? (
-                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#3DBE6D] bg-[#EBF9F0] px-2.5 py-1 rounded-full border border-[#B8ECC8]">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" /> Ready
-                    </span>
+                    <Chip
+                      status="agreed"
+                      size="sm"
+                      label="Ready"
+                      icon={<Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    />
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#64748B] bg-[#E6E8EE] px-2.5 py-1 rounded-full">
-                      <Clock className="w-3.5 h-3.5" /> Picking...
-                    </span>
+                    <Chip
+                      variant="neutral"
+                      size="sm"
+                      label="Picking..."
+                      icon={<Clock className="w-3.5 h-3.5" />}
+                    />
                   )}
                 </div>
               );

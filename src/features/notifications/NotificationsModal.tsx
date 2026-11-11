@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { Chip } from '../../components/common/Chip';
 import { IconTile } from '../../components/common/IconTile';
 import { InAppNotification, DraftRound, User } from '../../types';
 import { THEME } from '../../theme/tokens';
@@ -58,7 +59,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
     >
       <div className="space-y-4">
         {/* Filter pills & Mark All Read */}
-        <div className="flex items-center justify-between pb-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
           <div className="flex gap-1.5">
             {[
               { id: 'all', label: 'All' },
@@ -68,7 +69,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id as any)}
-                className={`px-3 py-1.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer ${
                   filter === f.id
                     ? 'bg-[#1F2430] text-white'
                     : 'bg-[#F7F8FB] text-[#64748B] border border-[#E6E8EE]'
@@ -84,7 +85,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               onMarkAllRead();
               showToast('All notifications marked as read', 'info');
             }}
-            className="text-[14px] font-bold text-[#FF6B4A] hover:underline cursor-pointer"
+            className="text-[14px] font-bold text-[#FF6B4A] hover:underline whitespace-nowrap cursor-pointer"
           >
             Mark all read
           </button>
@@ -98,9 +99,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[14px] font-bold text-[#1F2430]">{draftState.bannerTitle}</p>
-                  <span className="text-[12px] font-bold px-2 py-0.5 rounded-full bg-white text-[#5B5BD6] border border-[#DDD6FE] shrink-0">
-                    {draftState.badgeLabel}
-                  </span>
+                  <Chip variant="info" size="xs" label={draftState.badgeLabel} />
                 </div>
                 <p className="text-[13px] text-[#475569]">{draftState.bannerSubtitle}</p>
               </div>

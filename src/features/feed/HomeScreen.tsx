@@ -162,12 +162,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   Keeping your apartment running peacefully today.
                 </p>
 
-                <div className="flex items-center gap-3 pt-1">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] text-[#8A6200] border-2 border-[#FFE8A3] text-sm font-black shadow-xs">
-                    <Flame className="w-4 h-4 text-[#FF6B4A] fill-[#FF6B4A]" />
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] text-[#8A6200] border-2 border-[#FFE8A3] text-sm font-black shadow-xs whitespace-nowrap">
+                    <Flame className="w-4 h-4 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
                     {currentUser.streakDays} Day Streak!
                   </div>
-                  <span className="text-sm font-extrabold text-[#475569]">
+                  <span className="text-sm font-extrabold text-[#475569] whitespace-nowrap">
                     {currentUser.points} pts
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               subtitle="Doorkeeper approval needed to confirm access"
               detail={
                 <span className="text-sm text-[#5B5BD6] font-bold">
-                  Roomies are voting: {pendingJoinRequests[0].votes?.length || 0} vote${(pendingJoinRequests[0].votes?.length || 0) === 1 ? '' : 's'} recorded
+                  Roomies are voting: {pendingJoinRequests[0].votes?.length || 0} {(pendingJoinRequests[0].votes?.length || 0) === 1 ? 'vote' : 'votes'} recorded
                 </span>
               }
               actions={
@@ -452,7 +452,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     sound.playTap();
                     setFeedFilter(f.id as any);
                   }}
-                  className={`min-h-[40px] px-3.5 py-1.5 rounded-2xl text-[14px] font-bold transition-all cursor-pointer ${
+                  className={`min-h-[40px] px-3.5 py-1.5 rounded-2xl text-[14px] font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
                     feedFilter === f.id
                       ? 'bg-[#1F2430] text-white shadow-xs'
                       : 'bg-white text-[#475569] border border-[#E6E8EE] hover:bg-[#F1F3F9]'
@@ -497,15 +497,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="w-full lg:col-span-4 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
           {/* 1. ROOMIES PRESENCE LIVE HUB */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
                 <h3 className="type-section-heading">Roomie presence</h3>
                 <p className="type-secondary text-[14px]">Live apartment status</p>
               </div>
               <Chip
                 status="active"
                 label={`${homeCount} of ${roommates.length} Home`}
-                size="sm"
+                size="xs"
               />
             </div>
 
@@ -516,13 +516,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 return (
                   <div
                     key={r.id}
-                    className={`p-2.5 rounded-2xl flex items-center justify-between border transition-all ${
+                    className={`p-2.5 rounded-2xl flex items-center justify-between gap-2.5 border transition-all ${
                       isMe
                         ? 'bg-[#F7F8FB] border-[#E2E5EC]'
                         : 'bg-white border-[#F1F3F9] hover:border-[#E2E5EC]'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <Avatar
                         src={r.avatar}
                         name={r.name}
@@ -531,20 +531,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         statusRing={true}
                         size="sm"
                       />
-                      <div>
-                        <p className="text-[14px] font-bold text-[#1F2430] flex items-center gap-1.5">
-                          <span>{isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[14px] font-bold text-[#1F2430] truncate">
+                          {isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}
                         </p>
-                        <p className="type-secondary text-[14px] flex items-center gap-1">
-                          <Flame className="w-3.5 h-3.5 text-[#FF6B4A] fill-[#FF6B4A]" />
-                          {r.streakDays}d streak • {r.points} pts
+                        <p className="type-secondary text-[13px] flex items-center gap-1 whitespace-nowrap">
+                          <Flame className="w-3.5 h-3.5 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
+                          <span>{r.streakDays}d streak • {r.points} pts</span>
                         </p>
                       </div>
                     </div>
                     <Chip
                       status={r.isHome ? 'active' : 'away'}
                       label={r.isHome ? 'Home' : 'Away'}
-                      size="sm"
+                      size="xs"
                     />
                   </div>
                 );

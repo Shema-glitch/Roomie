@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { Chip } from '../../components/common/Chip';
 import { IconTile } from '../../components/common/IconTile';
 import { MascotView } from '../../components/common/MascotView';
 import { CurrencyCode, Household, User } from '../../types';
@@ -65,14 +66,14 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             sound.playTap();
             onBackToWelcome();
           }}
-          className="inline-flex items-center gap-1 p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-95 transition-transform cursor-pointer focus:outline-none text-xs font-bold"
+          className="inline-flex items-center gap-1 p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-95 transition-transform cursor-pointer focus:outline-none text-xs font-bold whitespace-nowrap shrink-0"
           aria-label="Back to welcome"
         >
-          <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+          <ChevronLeft className="w-6 h-6 stroke-[2.5] shrink-0" />
           <span>Sign out</span>
         </button>
 
-        <div className="px-3 py-1 rounded-full bg-white border border-[#E6E8EE] text-xs font-bold text-[#475569] truncate max-w-[190px]">
+        <div className="px-3 py-1 rounded-full bg-white border border-[#E6E8EE] text-xs font-bold text-[#475569] truncate min-w-0 max-w-[58%] sm:max-w-[220px]">
           {currentUser?.name || currentUser?.email || 'New Flatmate'}
         </div>
       </div>
@@ -127,18 +128,16 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             }}
             className="w-full p-4 rounded-3xl border-2 border-[#FF6B4A] bg-white hover:bg-[#FFF9F7] shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
           >
-            <div className="flex items-center gap-3.5">
-              <IconTile icon={<Home className="w-6 h-6" />} color="coral" size="md" />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-heading font-black text-[16px] text-[#1F2430]">
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+              <IconTile icon={<Home className="w-6 h-6" />} color="coral" size="md" className="shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430] whitespace-nowrap">
                     Create a New Flat
                   </h2>
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A]">
-                    Fresh start
-                  </span>
+                  <Chip variant="primary" size="xs" label="Fresh start" className="uppercase" />
                 </div>
-                <p className="type-secondary text-xs text-[#6B7280] mt-0.5">
+                <p className="type-secondary text-xs text-[#6B7280] mt-1 leading-relaxed">
                   Name your apartment, pick starter chores & invite roomies
                 </p>
               </div>
@@ -154,13 +153,13 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             }}
             className="w-full p-4 rounded-3xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#19B5A5]/70"
           >
-            <div className="flex items-center gap-3.5">
-              <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" />
-              <div>
-                <h2 className="font-heading font-black text-[16px] text-[#1F2430]">
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+              <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" className="shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430]">
                   Join an Existing Flat
                 </h2>
-                <p className="type-secondary text-xs text-[#6B7280] mt-0.5">
+                <p className="type-secondary text-xs text-[#6B7280] mt-1 leading-relaxed">
                   Scan a roommate’s QR or enter an 8-letter invite code
                 </p>
               </div>

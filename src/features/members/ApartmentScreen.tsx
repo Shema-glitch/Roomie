@@ -272,24 +272,22 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
       {/* Pending Join Requests Banner */}
       {joinRequests && joinRequests.length > 0 && (
         <div className="mb-5 space-y-2.5">
-          <h3 className="type-section-heading flex items-center gap-2">
+          <h3 className="type-section-heading flex items-center gap-2 flex-wrap">
             <span>Pending Join Requests</span>
-            <span className="px-2 py-0.5 rounded-full bg-[#FF6B4A]/10 text-[#FF6B4A] text-xs font-bold">
-              {joinRequests.length}
-            </span>
+            <Chip variant="primary" size="xs" label={`${joinRequests.length}`} />
           </h3>
           {joinRequests.map((req) => (
             <div
               key={req.id}
-              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 shadow-xs"
+              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-wrap items-center justify-between gap-3 shadow-xs"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Avatar src={req.userAvatar} name={req.userName} flag={req.userFlag} size="md" />
-                <div>
-                  <h4 className="font-bold text-[#1F2430] text-sm">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-[#1F2430] text-sm truncate">
                     {req.userName}
                   </h4>
-                  <p className="text-xs text-[#475569]">
+                  <p className="text-xs text-[#475569] truncate">
                     {req.userEmail} • {req.votes.length} vote{req.votes.length !== 1 ? 's' : ''} cast
                   </p>
                 </div>
@@ -351,7 +349,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
           }`}
         >
           {/* Section Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <SectionTitle
               title={`Apartment Roomies (${members.length})`}
               subtitle="Apartment roomies, live status, and streaks"
@@ -359,7 +357,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             <Chip
               status="active"
               label={`${members.filter((m) => m.user.isHome).length} of ${members.length} Home`}
-              size="sm"
+              size="xs"
             />
           </div>
 
@@ -445,8 +443,8 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         >
           {/* 2. HOUSE MEETINGS & APARTMENT RULES CONTAINER */}
           <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
                 <h3 className="type-section-heading">House discussions and rules</h3>
                 <p className="type-secondary text-[14px]">Agreed standards and votes</p>
               </div>
@@ -479,7 +477,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                   sound.playTap();
                   setMeetingsSubTab('topics');
                 }}
-                className={`py-2 px-2.5 rounded-lg text-[14px] font-heading font-black transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
                   meetingsSubTab === 'topics'
                     ? 'bg-white text-[#1F2430] shadow-xs'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -493,13 +491,13 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                   sound.playTap();
                   setMeetingsSubTab('agreements');
                 }}
-                className={`py-2 px-2.5 rounded-lg text-[14px] font-heading font-black transition-all cursor-pointer ${
+                className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
                   meetingsSubTab === 'agreements'
                     ? 'bg-white text-[#1F2430] shadow-xs'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                Apartment rules ({agreements.length})
+                Rules ({agreements.length})
               </button>
             </div>
 
@@ -541,38 +539,38 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                         actions={
                           <div className="w-full space-y-2.5">
                             {/* Voting Buttons */}
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="type-label text-[14px]">Your vote:</span>
-                              <div className="flex gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <span className="type-label text-[14px] shrink-0">Your vote:</span>
+                              <div className="flex flex-wrap gap-2">
                                 <button
                                   type="button"
                                   onClick={() => handleVote(topic.id, 'agree')}
-                                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                                  className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
                                     myVote === 'agree'
                                       ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
                                       : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
                                   }`}
                                 >
-                                  <ThumbsUp className="w-3.5 h-3.5" />
+                                  <ThumbsUp className="w-3.5 h-3.5 shrink-0" />
                                   <span>Agree{myVote ? ` (${agreeVotes})` : ''}</span>
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleVote(topic.id, 'disagree')}
-                                  className={`min-h-[38px] px-3.5 py-1.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                                  className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
                                     myVote === 'disagree'
                                       ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
                                       : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
                                   }`}
                                 >
-                                  <ThumbsDown className="w-3.5 h-3.5" />
+                                  <ThumbsDown className="w-3.5 h-3.5 shrink-0" />
                                   <span>Disagree{myVote ? ` (${disagreeVotes})` : ''}</span>
                                 </button>
                               </div>
                             </div>
 
                             {/* Comment Input */}
-                            <div className="flex gap-1.5 pt-1">
+                            <div className="flex gap-1.5 pt-1 min-w-0">
                               <input
                                 type="text"
                                 placeholder="Add quiet comment..."
@@ -586,7 +584,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') handleComment(topic.id);
                                 }}
-                                className="flex-1 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
+                                className="flex-1 min-w-0 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
                               />
                               <Button
                                 variant="secondary"

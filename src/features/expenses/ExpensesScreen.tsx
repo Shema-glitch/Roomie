@@ -217,12 +217,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {/* SEMANTIC GROUP 1: NEEDS YOUR AGREEMENT (HIGH PRIORITY ACTION CARDS) */}
           {needsMyAgreementExpenses.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="type-section-heading text-[#FF6B4A]">Needs your agreement</span>
-                  <Chip status="pending" label={`${needsMyAgreementExpenses.length} Action Required`} size="sm" />
+                  <Chip status="pending" label={`${needsMyAgreementExpenses.length} Action Required`} size="xs" />
                 </div>
-                <span className="type-secondary text-[14px]">Tap to review or dispute</span>
+                <span className="type-secondary text-[13px] sm:text-[14px]">Tap to review or dispute</span>
               </div>
 
               {needsMyAgreementExpenses.map((exp) => renderExpenseCard(exp, 'needs-my-answer'))}
@@ -232,10 +232,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {/* SEMANTIC GROUP 2: WAITING FOR ROOMIES */}
           {waitingForRoomiesExpenses.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="type-section-heading">Waiting for roomies</span>
-                  <Chip status="pending" label={`${waitingForRoomiesExpenses.length} Pending`} size="sm" />
+                  <Chip status="pending" label={`${waitingForRoomiesExpenses.length} Pending`} size="xs" />
                 </div>
                 {waitingForRoomiesExpenses.some((e) => e.paidBy === currentUser.id) && (
                   <button
@@ -247,7 +247,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                         showToast('Sent gentle reminder to roomies!', 'info');
                       }
                     }}
-                    className="text-[14px] font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-[14px] font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
                   >
                     <Bell className="w-3.5 h-3.5" /> Remind all
                   </button>
@@ -260,12 +260,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
           {/* SEMANTIC GROUP 3: AGREED & CONFIRMED EXPENSES */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="type-section-heading">Agreed purchases</span>
-                <Chip status="agreed" label={`${agreedExpenses.length} Confirmed`} size="sm" />
+                <Chip status="agreed" label={`${agreedExpenses.length} Confirmed`} size="xs" />
               </div>
-              <span className="type-secondary text-[14px]">Counted in final balance</span>
+              <span className="type-secondary text-[13px] sm:text-[14px]">Counted in final balance</span>
             </div>
 
             {agreedExpenses.length === 0 ? (
@@ -280,12 +280,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {/* SEMANTIC GROUP 4: SETTLEMENT LOG (DIRECT BILATERAL PAYMENTS) */}
           {settlements.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="type-section-heading">Direct settlements</span>
-                  <Chip status="agreed" label={`${settlements.length} Transfers`} size="sm" />
+                  <Chip status="agreed" label={`${settlements.length} Transfers`} size="xs" />
                 </div>
-                <span className="type-secondary text-[14px]">Cash or bank transfers</span>
+                <span className="type-secondary text-[13px] sm:text-[14px]">Cash or bank transfers</span>
               </div>
 
               {settlements.map((s) => {
@@ -344,12 +344,12 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {/* SEMANTIC GROUP 5: DISPUTED PURCHASES */}
           {disputedExpenses.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="type-section-heading text-[#BF3337]">Disputed purchases</span>
-                  <Chip status="disputed" label={`${disputedExpenses.length} In Review`} size="sm" />
+                  <Chip status="disputed" label={`${disputedExpenses.length} In Review`} size="xs" />
                 </div>
-                <span className="type-secondary text-[14px]">Discuss in house meeting</span>
+                <span className="type-secondary text-[13px] sm:text-[14px]">Discuss in house meeting</span>
               </div>
 
               {disputedExpenses.map((exp) => renderExpenseCard(exp, 'disputed'))}
@@ -416,7 +416,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                       return (
                         <div
                           key={i}
-                          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between border ${
+                          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between gap-2 border ${
                             isMeDebtor
                               ? 'bg-[#FFF0ED] text-[#D94E30] border-[#FFD7CF]'
                               : isMeCreditor
@@ -424,11 +424,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                               : 'bg-white text-[#1F2430] border-[#E6E8EE]'
                           }`}
                         >
-                          <span>
+                          <span className="min-w-0 truncate">
                             {isMeDebtor ? 'You owe' : `${fromUser?.name.split(' ')[0]} owes`}{' '}
                             {toUser?.id === currentUser.id ? 'You' : toUser?.name.split(' ')[0]}
                           </span>
-                          <span className="font-heading font-bold text-[18px]">
+                          <span className="font-heading font-bold text-[18px] shrink-0 whitespace-nowrap">
                             {sym}{formatCurrency(d.amount)}
                           </span>
                         </div>
@@ -460,9 +460,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
                   {showCalculationInfo && (
                     <div className="mt-2 p-3 rounded-xl bg-white border border-[#E6E8EE] text-[14px] space-y-2">
-                      <div className="flex items-center justify-between font-bold text-[#1F2430]">
+                      <div className="flex flex-wrap items-center justify-between gap-2 font-bold text-[#1F2430]">
                         <span>Basis</span>
-                        <span className="px-2 py-0.5 rounded-md bg-[#EBF9F0] text-[#2CA358] text-[14px]">
+                        <span className="px-2 py-0.5 rounded-lg bg-[#EBF9F0] text-[#2CA358] text-[12px] sm:text-[13px] font-bold">
                           Only agreed expenses and confirmed settlements
                         </span>
                       </div>
@@ -719,7 +719,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
           {/* Right Financial Hub: Big Total Amount & Tactile Chip */}
           <div className="text-right shrink-0 flex flex-col items-end gap-1">
-            <span className="font-heading font-black text-lg sm:text-xl text-[#1F2430]">
+            <span className="font-heading font-black text-lg sm:text-xl text-[#1F2430] whitespace-nowrap">
               {sym}{formatCurrency(exp.amount)}
             </span>
             <Chip
@@ -737,7 +737,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                   ? 'Disputed'
                   : 'Pending'
               }
-              size="sm"
+              size="xs"
             />
           </div>
         </div>
@@ -761,17 +761,17 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             </span>
             <span className="text-[#CBD5E1] hidden sm:inline">•</span>
             {isPayerMe ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#EBF9F0] text-[#2CA358] font-bold text-[14px]">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#EBF9F0] text-[#2CA358] font-bold text-[13px] whitespace-nowrap">
                 You paid full
               </span>
             ) : myShare ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#F0F4FF] text-[#4353C4] font-bold text-[14px]">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#F0F4FF] text-[#4353C4] font-bold text-[13px] whitespace-nowrap">
                 Your share: {sym}{formatCurrency(myShare.shareAmount)}
               </span>
             ) : null}
 
             {isWaitingRoomies && pendingRoomies.length > 0 && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#FFFBEB] text-[#B45309] font-bold text-[14px]">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#FFFBEB] text-[#B45309] font-bold text-[13px] max-w-full">
                 Waiting for: {pendingRoomies.join(', ')}
               </span>
             )}

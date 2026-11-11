@@ -263,8 +263,8 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               }`}
             >
               {/* Member profile header */}
-              <div className="flex items-center justify-between pb-3 border-b border-[#E6E8EE]">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#E6E8EE]">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <Avatar
                     src={currentMember.avatar}
                     name={currentMember.name}
@@ -272,7 +272,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                     size="lg"
                   />
                   <div>
-                    <h3 className="type-section-heading">
+                    <h3 className="type-section-heading truncate">
                       {currentMember.name}
                     </h3>
                     <p className="type-secondary">
@@ -282,20 +282,22 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                 </div>
 
                 {/* Effort Badge */}
-                <div className="text-right">
-                  <span className="type-label block mb-0.5">
+                <div className="text-right shrink-0">
+                  <span className="type-label block mb-0.5 text-[11px]">
                     Effort load
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold">
-                    <Award className="w-3.5 h-3.5 text-[#FFC93C]" />
-                    {totalEffort} pts
-                  </span>
+                  <Chip
+                    variant="reward"
+                    size="sm"
+                    icon={<Award className="w-3.5 h-3.5 text-[#FFC93C]" />}
+                    label={`${totalEffort} pts`}
+                  />
                 </div>
               </div>
 
               {/* Assigned Chores List with Self-Scheduling */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="type-label">Assigned Chores This Week</span>
                   <span className="text-[14px] text-[#64748B] font-medium">Self-schedule times</span>
                 </div>
@@ -320,8 +322,8 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                         className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] space-y-2 transition-all"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex-1">
-                            <h4 className="type-section-heading text-[16px]">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="type-section-heading text-[16px] truncate">
                               {chore.name}
                             </h4>
                             <p className="type-secondary mt-0.5 flex items-center gap-1.5">
@@ -331,7 +333,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                               </span>
                             </p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <Chip
                               label={
                                 chore.effortLevel === 'heavy'
@@ -341,7 +343,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                                   : 'Light (1p)'
                               }
                               effort={chore.effortLevel}
-                              size="sm"
+                              size="xs"
                             />
                             <button
                               type="button"
@@ -496,21 +498,19 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                   key={member.id}
                   className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] space-y-2"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar
                         src={member.avatar}
                         name={member.name}
                         flag={member.flag}
                         size="sm"
                       />
-                      <span className="type-section-heading">
+                      <span className="type-section-heading truncate">
                         {member.name}
                       </span>
                     </div>
-                    <span className="text-[14px] font-bold text-[#8A6200] bg-[#FFF8E6] px-2.5 py-0.5 rounded-full border border-[#FFE8A3]">
-                      {mEffort} pts
-                    </span>
+                    <Chip variant="reward" size="xs" label={`${mEffort} pts`} />
                   </div>
 
                   <div className="space-y-1.5 pl-8">
@@ -523,10 +523,10 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                       return (
                         <div
                           key={a.choreId}
-                          className="flex items-center justify-between text-[14px] font-medium bg-white border border-[#E6E8EE] px-2.5 py-1 rounded-xl text-[#1F2430]"
+                          className="flex flex-wrap items-center justify-between gap-2 text-[14px] font-medium bg-white border border-[#E6E8EE] px-2.5 py-1.5 rounded-xl text-[#1F2430]"
                         >
-                          <span className="font-bold">{c?.name}</span>
-                          <span className="type-secondary text-xs">
+                          <span className="font-bold min-w-0 truncate">{c?.name}</span>
+                          <span className="type-secondary text-xs whitespace-nowrap shrink-0">
                             {sch.days.join(', ')} • {sch.time}
                           </span>
                         </div>
