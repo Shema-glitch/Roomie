@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Smartphone,
   Zap,
+  Bug,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -42,6 +43,7 @@ interface ProfileSettingsModalProps {
   onOpenHowItWorks?: () => void;
   onOpenShowcase?: () => void;
   onOpenHouseholdSetup?: () => void;
+  onOpenDebugInspector?: () => void;
 }
 
 const PRESET_AVATARS = [
@@ -68,6 +70,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onOpenHowItWorks,
   onOpenShowcase,
   onOpenHouseholdSetup,
+  onOpenDebugInspector,
 }) => {
   const { showToast } = useToast();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -455,6 +458,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     }}
                   >
                     How it works
+                  </Button>
+                )}
+                {onOpenDebugInspector && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenDebugInspector();
+                    }}
+                    icon={<Bug className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                  >
+                    Debug Layer
                   </Button>
                 )}
               </div>

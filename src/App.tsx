@@ -88,6 +88,11 @@ const ProfileSettingsModal = React.lazy(() =>
 const FeedbackModal = React.lazy(() =>
   import('./features/profile/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
 );
+const DebugInspectorModal = React.lazy(() =>
+  import('./components/common/DebugInspectorModal').then((m) => ({
+    default: m.DebugInspectorModal,
+  }))
+);
 const AppShowcase = React.lazy(() =>
   import('./features/auth/AppShowcase').then((m) => ({ default: m.AppShowcase }))
 );
@@ -253,6 +258,7 @@ function MainApp() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [debugInspectorOpen, setDebugInspectorOpen] = useState(false);
 
   // Full-screen flows for Chore draft & reveal
   const [draftFlowState, setDraftFlowState] = useState<'none' | 'picking' | 'waiting' | 'reveal'>('none');
@@ -1271,6 +1277,7 @@ function MainApp() {
               api.markHouseholdSetupPending();
               setNeedsHouseholdSetup(true);
             }}
+            onOpenDebugInspector={() => setDebugInspectorOpen(true)}
           />
         )}
 
@@ -1278,6 +1285,29 @@ function MainApp() {
           <FeedbackModal
             isOpen={feedbackOpen}
             onClose={() => setFeedbackOpen(false)}
+          />
+        )}
+
+        {syncPanelOpen && (
+          <SyncStatusPanel
+            isOpen={syncPanelOpen}
+            onClose={() => setSyncPanelOpen(false)}
+            status={syncStatus}
+            onSetStatus={(next) => {
+              setSyncStatus(next);
+              setIsOffline(next === 'offline');
+            }}
+            lastSyncedTime={lastSyncedTime}
+            onTriggerSync={handleManualSync}
+            householdName={activeHousehold.name}
+            onOpenDebugInspector={() => setDebugInspectorOpen(true)}
+          />
+        )}
+
+        {debugInspectorOpen && (
+          <DebugInspectorModal
+            isOpen={debugInspectorOpen}
+            onClose={() => setDebugInspectorOpen(false)}
           />
         )}
       </React.Suspense>

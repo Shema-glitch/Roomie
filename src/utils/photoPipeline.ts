@@ -7,6 +7,8 @@
  * - Completely client-side via canvas, zero external dependencies
  */
 
+import { debugLog } from './debugLog';
+
 export interface ProcessedPhoto {
   fullDataUrl: string;
   fullBlob: Blob;
@@ -18,12 +20,22 @@ export interface ProcessedPhoto {
 }
 
 export async function processPhoto(fileOrBlob: File | Blob): Promise<ProcessedPhoto> {
+  const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const inputBytes = fileOrBlob.size;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.onerror = () => {
+      const err = new Error('Failed to read image file');
+      debugLog.error('storage', 'compress_photo', err.message, { inputBytes });
+      reject(err);
+    };
     reader.onload = () => {
       const img = new Image();
-      img.onerror = () => reject(new Error('Failed to decode image data'));
+      img.onerror = () => {
+        const err = new Error('Failed to decode image data');
+        debugLog.error('storage', 'compress_photo', err.message, { inputBytes });
+        reject(err);
+      };
       img.onload = () => {
         try {
           const maxDim = 1200;
@@ -79,8 +91,25 @@ export async function processPhoto(fileOrBlob: File | Blob): Promise<ProcessedPh
               thumbCanvas.toBlob(
                 (thumbnailBlob) => {
                   if (!fullBlob || !thumbnailBlob) {
-                    return reject(new Error('Canvas blob generation failed'));
+                    const err = new Error('Canvas blob generation failed');
+                    debugLog.error('storage', 'compress_photo', err.message, { inputBytes });
+                    return reject(err);
                   }
+                  const durationMs =
+                    (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+                  debugLog.info(
+                    'storage',
+                    'compress_photo',
+                    `Compressed ${Math.round(inputBytes / 1024)} KB -> ${Math.round(fullBlob.size / 1024)} KB (${width}x${height})`,
+                    {
+                      inputBytes,
+                      outputBytes: fullBlob.size,
+                      thumbBytes: thumbnailBlob.size,
+                      width,
+                      height,
+                    },
+                    durationMs
+                  );
                   resolve({
                     fullDataUrl,
                     fullBlob,

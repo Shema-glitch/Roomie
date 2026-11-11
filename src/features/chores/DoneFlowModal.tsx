@@ -8,7 +8,7 @@ import { Chore, User } from '../../types';
 import { sound } from '../../services/sound';
 import { IconTile } from '../../components/common/IconTile';
 import { processPhoto } from '../../utils/photoPipeline';
-import { uploadPhotoToStorage } from '../../services/supabase';
+import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
 import { Camera, Check, Flame, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -47,7 +47,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
       const sizeKb = Math.round(processed.sizeBytes / 1024);
       setPhotoDetails(`${processed.width}×${processed.height} px • ${sizeKb} KB`);
 
-      const fileName = `chore_${chore.id}_${Date.now()}.jpg`;
+      const fileName = buildScopedStoragePath(chore.householdId, `chore_${chore.id}_${Date.now()}.jpg`);
       const finalUrl = await uploadPhotoToStorage('chore-proof', fileName, processed.fullBlob, processed.fullDataUrl);
       setPhotoUrl(finalUrl);
       sound.playPop();

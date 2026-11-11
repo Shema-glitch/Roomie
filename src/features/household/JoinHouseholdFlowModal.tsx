@@ -9,6 +9,7 @@ import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { extractInviteCodeFromInput } from '../../utils/inviteLink';
+import { debugLog } from '../../utils/debugLog';
 
 interface JoinHouseholdFlowModalProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanLoopRef = useRef<number | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
 
   // Stop camera tracks helper
   const stopCamera = () => {
@@ -57,6 +59,10 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
     if (scanLoopRef.current) {
       cancelAnimationFrame(scanLoopRef.current);
       scanLoopRef.current = null;
+    }
+    if (scanTimerRef.current) {
+      window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
     }
   };
 
@@ -73,14 +79,34 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
     setStep((s) => Math.max(1, s - 1));
   });
 
+  const handleDetectedQrPayload = (rawVal: string, engine: 'BarcodeDetector' | 'jsQR', startedAt: number) => {
+    const detectedCode = extractInviteCodeFromInput(rawVal) || rawVal.trim().toUpperCase();
+    const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+    stopCamera();
+    setIsScanning(false);
+    setCode(detectedCode);
+    sound.playSuccess();
+    debugLog.info(
+      'qr_scanner',
+      'scan_decode',
+      `Decoded invite ${detectedCode} via ${engine}`,
+      { engine, extractedCode: detectedCode, payloadLength: rawVal.length },
+      durationMs
+    );
+    showToast(`Scanned: ${detectedCode}`, 'reward');
+    setStep(3);
+  };
+
   const startLiveCamera = async () => {
     sound.playTap();
     setIsScanning(true);
     setHasCamera(true);
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHasCamera(false);
       setIsScanning(false);
+      debugLog.warn('qr_scanner', 'camera_init', 'navigator.mediaDevices unavailable');
       showToast('Camera unavailable — enter the invite code or paste link below.', 'info');
       setStep(2);
       return;
@@ -96,8 +122,9 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
         await videoRef.current.play();
       }
 
-      // If BarcodeDetector is available in browser, scan live
+      // Prefer native BarcodeDetector when available; fall back cleanly to lazy-loaded jsQR canvas decoder
       if ('BarcodeDetector' in window) {
+        debugLog.info('qr_scanner', 'camera_init', 'Camera active using native BarcodeDetector');
         const barcodeDetector = new (window as any).BarcodeDetector({
           formats: ['qr_code'],
         });
@@ -106,16 +133,8 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
           if (!videoRef.current || !streamRef.current) return;
           try {
             const barcodes = await barcodeDetector.detect(videoRef.current);
-            if (barcodes.length > 0) {
-              const rawVal = barcodes[0].rawValue || '';
-              const detectedCode = extractInviteCodeFromInput(rawVal) || rawVal.trim().toUpperCase();
-
-              stopCamera();
-              setIsScanning(false);
-              setCode(detectedCode);
-              sound.playSuccess();
-              showToast(`Scanned: ${detectedCode}`, 'reward');
-              setStep(3);
+            if (barcodes.length > 0 && barcodes[0].rawValue) {
+              handleDetectedQrPayload(barcodes[0].rawValue, 'BarcodeDetector', startedAt);
               return;
             }
           } catch {
@@ -126,16 +145,47 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
         scanLoopRef.current = requestAnimationFrame(scanFrame);
       } else {
-        stopCamera();
-        setIsScanning(false);
-        setHasCamera(false);
-        showToast('Live QR decoding is unavailable in this browser — enter or paste the invite link below.', 'info');
-        setStep(2);
+        debugLog.info('qr_scanner', 'camera_init', 'BarcodeDetector absent; loading jsQR fallback');
+        const { default: jsQR } = await import('jsqr');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        if (!ctx) {
+          stopCamera();
+          setIsScanning(false);
+          setHasCamera(false);
+          debugLog.error('qr_scanner', 'camera_init', '2D canvas context unavailable for jsQR fallback');
+          showToast('Live QR decoding is unavailable — enter or paste the invite link below.', 'info');
+          setStep(2);
+          return;
+        }
+
+        const scanJsQrFrame = () => {
+          const video = videoRef.current;
+          if (!video || !streamRef.current) return;
+          if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const decoded = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'dontInvert',
+            });
+            if (decoded?.data) {
+              handleDetectedQrPayload(decoded.data, 'jsQR', startedAt);
+              return;
+            }
+          }
+          scanTimerRef.current = window.setTimeout(scanJsQrFrame, 120);
+        };
+
+        scanTimerRef.current = window.setTimeout(scanJsQrFrame, 120);
       }
-    } catch {
+    } catch (err: any) {
       setHasCamera(false);
       stopCamera();
       setIsScanning(false);
+      debugLog.warn('qr_scanner', 'camera_error', err?.message || 'Camera permission denied or unavailable');
       showToast('Camera unavailable — enter the invite code or link manually.', 'info');
       setStep(2);
     }
@@ -144,10 +194,16 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   const handleCodeSubmit = () => {
     const extracted = extractInviteCodeFromInput(code);
     if (!extracted) {
+      debugLog.warn('qr_scanner', 'manual_code_invalid', 'Rejected malformed invite input', {
+        inputLength: code.length,
+      });
       showToast('Please enter a valid invite code or paste the invite link.', 'error');
       return;
     }
     setCode(extracted);
+    debugLog.info('qr_scanner', 'manual_code_parse', `Normalized invite input -> ${extracted}`, {
+      extractedCode: extracted,
+    });
     sound.playTap();
     setStep(3); // Preview apartment
   };

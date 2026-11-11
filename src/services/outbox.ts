@@ -6,20 +6,31 @@
  * - Automatic exponential backoff retry on temporary failure
  */
 
+import { debugLog } from '../utils/debugLog';
+
 export type OutboxActionType =
   | 'create_expense'
   | 'agree_expense'
   | 'dispute_expense'
+  | 'edit_expense_split'
+  | 'cancel_expense'
   | 'create_settlement'
   | 'confirm_settlement'
+  | 'open_draft_round'
   | 'submit_draft_picks'
+  | 'update_assignments'
+  | 'reveal_draft'
   | 'complete_chore'
   | 'give_kudos'
+  | 'swap_chore'
   | 'send_message'
+  | 'add_reaction'
   | 'create_topic'
   | 'vote_topic'
   | 'add_comment'
-  | 'add_agreement';
+  | 'add_agreement'
+  | 'mark_notification_read'
+  | 'mark_all_notifications_read';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'synced';
 
@@ -80,7 +91,17 @@ class OutboxService {
     };
     this.items.push(item);
     this.save();
+    debugLog.info('outbox', 'enqueue', `Queued ${type} (${item.id.slice(0, 12)})`, {
+      actionId: item.id,
+      type,
+      householdId,
+      pendingCount: this.getPendingCount(),
+    });
     return item;
+  }
+
+  public getItems(): OutboxItem[] {
+    return [...this.items];
   }
 
   public getPending(): OutboxItem[] {
@@ -101,9 +122,16 @@ class OutboxService {
   }
 
   public markSuccess(id: string) {
-    // Remove completed item from queue
+    const existing = this.items.find((i) => i.id === id);
     this.items = this.items.filter((i) => i.id !== id);
     this.save();
+    if (existing) {
+      debugLog.info('outbox', 'sync_ok', `Synced ${existing.type}`, {
+        actionId: id,
+        type: existing.type,
+        pendingCount: this.getPendingCount(),
+      });
+    }
   }
 
   public markFailed(id: string, error: string) {
@@ -113,12 +141,20 @@ class OutboxService {
       item.retryCount += 1;
       item.errorMessage = error;
       this.save();
+      debugLog.warn('outbox', 'sync_failed', `Failed ${item.type}: ${error}`, {
+        actionId: id,
+        type: item.type,
+        retryCount: item.retryCount,
+        error,
+      });
     }
   }
 
   public clear() {
+    const cleared = this.items.length;
     this.items = [];
     this.save();
+    debugLog.info('outbox', 'clear', `Cleared ${cleared} outbox item(s)`);
   }
 
   private syncHandler?: (item: OutboxItem) => Promise<boolean>;
@@ -130,6 +166,8 @@ class OutboxService {
   public async flush(): Promise<void> {
     if (!this.syncHandler) return;
     const pending = this.getPending();
+    if (pending.length === 0) return;
+    debugLog.info('outbox', 'flush_start', `Flushing ${pending.length} pending item(s)`);
     for (const item of pending) {
       this.markSyncing(item.id);
       try {

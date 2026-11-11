@@ -24,7 +24,8 @@ import {
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
-import { outbox } from './outbox';
+import { outbox, OutboxActionType } from './outbox';
+import { debugLog, DebugModule } from '../utils/debugLog';
 import { hashLocalPassword, validateEmail, validatePassword } from '../utils/authValidation';
 import { getPendingInviteCode } from '../utils/inviteLink';
 import {
@@ -756,6 +757,76 @@ function mapChore(c: any): Chore {
   };
 }
 
+function isUuid(val?: string | null): boolean {
+  return Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val));
+}
+
+function makeEntityId(prefix: string, useUuid: boolean): string {
+  if (useUuid && typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+}
+
+function mapMeetingTopic(t: any): MeetingTopic {
+  return {
+    id: t.id,
+    householdId: t.household_id,
+    proposedBy: t.proposed_by,
+    title: t.title,
+    description: t.description || '',
+    status: t.status,
+    votes: Array.isArray(t.votes) ? t.votes : [],
+    comments: Array.isArray(t.comments) ? t.comments : [],
+  };
+}
+
+function mapAgreement(a: any): HouseAgreement {
+  return {
+    id: a.id,
+    householdId: a.household_id,
+    text: a.text,
+    category: a.category,
+    agreedAt: a.agreed_at || a.created_at,
+  };
+}
+
+function mapNotification(n: any): InAppNotification {
+  return {
+    id: n.id,
+    userId: n.user_id,
+    type: n.type,
+    title: n.title,
+    body: n.body,
+    read: Boolean(n.read),
+    createdAt: n.created_at,
+    linkTarget: n.link_target || undefined,
+  };
+}
+
+function toDraftPickRow(roundId: string, pk: DraftPick) {
+  return {
+    round_id: roundId,
+    user_id: pk.userId,
+    chore_id: pk.choreId,
+    pick_type: pk.pickType,
+    target_user_id: pk.targetUserId || null,
+  };
+}
+
+function toChoreAssignmentRow(roundId: string, a: ChoreAssignment) {
+  return {
+    round_id: roundId,
+    chore_id: a.choreId,
+    user_id: a.userId,
+    scheduled_days: a.scheduledDays,
+    scheduled_time: a.scheduledTime,
+    completed_today: a.completedToday,
+    last_photo_url: a.lastPhotoUrl || null,
+    kudos: (a.kudos || []) as any,
+  };
+}
+
 function mapChatMessage(m: any): ChatMessage {
   return {
     id: m.id,
@@ -778,52 +849,365 @@ class ApiService {
     outbox.initAutoFlush();
   }
 
+  private getDebugModuleForOutboxType(type: OutboxActionType): DebugModule {
+    if (type.includes('expense')) return 'expenses';
+    if (type.includes('settlement')) return 'settlements';
+    if (type.includes('draft') || type.includes('chore') || type.includes('kudos') || type.includes('assignment')) {
+      return 'chores_draft';
+    }
+    if (type.includes('topic') || type.includes('comment') || type.includes('agreement')) return 'governance';
+    if (type.includes('message') || type.includes('reaction')) return 'chat';
+    if (type.includes('notification')) return 'notifications';
+    return 'outbox';
+  }
+
+  private dispatchRemoteMutation<T>(
+    householdId: string,
+    module: DebugModule,
+    outboxType: OutboxActionType,
+    payload: T,
+    summary: string,
+    remoteExec: () => Promise<{ error: any } | void>
+  ): void {
+    if (this.isDemoMode() || !isUuid(householdId)) return;
+    const action = outbox.enqueue(householdId, outboxType, payload);
+    if (!supabase) return;
+
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    Promise.resolve()
+      .then(() => remoteExec())
+      .then((res) => {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        const err = res && 'error' in res ? res.error : null;
+        if (!err) {
+          outbox.markSuccess(action.id);
+          debugLog.info(module, outboxType, summary, { householdId, actionId: action.id }, durationMs);
+        } else {
+          outbox.markFailed(action.id, err.message);
+          debugLog.warn(module, outboxType, `${summary} failed: ${err.message}`, {
+            householdId,
+            actionId: action.id,
+            code: err.code,
+          }, durationMs);
+        }
+      })
+      .catch((err: any) => {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        const msg = err?.message || 'Network error';
+        outbox.markFailed(action.id, msg);
+        debugLog.error(module, outboxType, `${summary} network error: ${msg}`, { householdId, actionId: action.id }, durationMs);
+      });
+  }
+
   private async processOutboxItem(item: any): Promise<boolean> {
     if (!supabase) return false;
+    const sb = supabase;
+    const mod = this.getDebugModuleForOutboxType(item.type);
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
     try {
-      if (item.type === 'create_expense') {
-        const exp = item.payload.expense;
-        const { error } = await supabase.from('expenses').insert({
-          household_id: exp.householdId,
-          paid_by: exp.paidBy,
-          title: exp.title,
-          amount: exp.amount,
-          category: exp.category,
-          receipt_url: exp.receiptUrl,
-          date: exp.date,
-          status: exp.status,
-        });
-        return !error;
+      let error: any = null;
+      const p = item.payload || {};
+
+      switch (item.type as OutboxActionType) {
+        case 'create_expense': {
+          const exp: Expense = p.expense;
+          const res1 = await sb.from('expenses').upsert(
+            {
+              ...(isUuid(exp.id) ? { id: exp.id } : {}),
+              household_id: exp.householdId,
+              paid_by: exp.paidBy,
+              title: exp.title,
+              amount: exp.amount,
+              category: exp.category,
+              receipt_url: exp.receiptUrl || null,
+              date: exp.date,
+              status: exp.status,
+            },
+            { onConflict: 'id' }
+          );
+          error = res1.error;
+          if (!error && Array.isArray(exp.shares) && exp.shares.length > 0 && isUuid(exp.id)) {
+            const shareRows = exp.shares.map((s) => ({
+              expense_id: exp.id,
+              user_id: s.userId,
+              share_amount: s.shareAmount,
+              response: s.response,
+              dispute_reason: s.disputeReason || null,
+            }));
+            const res2 = await sb.from('expense_shares').upsert(shareRows, { onConflict: 'expense_id,user_id' });
+            error = res2.error;
+          }
+          break;
+        }
+        case 'agree_expense':
+        case 'dispute_expense': {
+          const { expenseId, userId, response, disputeReason, nextStatus } = p;
+          let shareQuery = sb
+            .from('expense_shares')
+            .update({ response, dispute_reason: disputeReason || null })
+            .eq('expense_id', expenseId);
+          if (userId) shareQuery = shareQuery.eq('user_id', userId);
+          const res1 = await shareQuery;
+          error = res1.error;
+          if (!error && nextStatus) {
+            const res2 = await sb
+              .from('expenses')
+              .update({
+                status: nextStatus,
+                dispute_reason: response === 'disputed' ? disputeReason || null : null,
+              })
+              .eq('id', expenseId);
+            error = res2.error;
+          }
+          break;
+        }
+        case 'edit_expense_split': {
+          const { expenseId, shares } = p;
+          const res1 = await sb
+            .from('expense_shares')
+            .upsert(
+              (shares || []).map((s: any) => ({
+                expense_id: expenseId,
+                user_id: s.userId,
+                share_amount: s.shareAmount,
+                response: 'agreed',
+                dispute_reason: null,
+              })),
+              { onConflict: 'expense_id,user_id' }
+            );
+          error = res1.error;
+          if (!error) {
+            const res2 = await sb.from('expenses').update({ status: 'agreed', dispute_reason: null }).eq('id', expenseId);
+            error = res2.error;
+          }
+          break;
+        }
+        case 'cancel_expense': {
+          const res = await sb.from('expenses').update({ status: 'cancelled' }).eq('id', p.expenseId);
+          error = res.error;
+          break;
+        }
+        case 'create_settlement': {
+          const s: Settlement = p.settlement;
+          const res = await sb.from('settlements').upsert(
+            {
+              ...(isUuid(s.id) ? { id: s.id } : {}),
+              household_id: s.householdId,
+              from_user: s.fromUser,
+              to_user: s.toUser,
+              amount: s.amount,
+              status: s.status,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'confirm_settlement': {
+          const res = await sb
+            .from('settlements')
+            .update({ status: 'confirmed', confirmed_at: p.confirmedAt || new Date().toISOString() })
+            .eq('id', p.settlementId);
+          error = res.error;
+          break;
+        }
+        case 'open_draft_round': {
+          const res = await sb.from('draft_rounds').upsert(
+            {
+              ...(isUuid(p.roundId) ? { id: p.roundId } : {}),
+              household_id: p.householdId,
+              status: 'collecting',
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'submit_draft_picks': {
+          const { roundId, userId, picks, status, assignments } = p;
+          if (isUuid(roundId) && Array.isArray(picks) && picks.length > 0) {
+            const resDel = await sb.from('draft_picks').delete().eq('round_id', roundId).eq('user_id', userId);
+            error = resDel.error;
+            if (!error) {
+              const resIns = await sb.from('draft_picks').upsert(
+                picks.map((pk: DraftPick) => toDraftPickRow(roundId, pk)),
+                { onConflict: 'round_id,user_id,chore_id' }
+              );
+              error = resIns.error;
+            }
+          }
+          if (!error && status === 'ready_to_reveal' && Array.isArray(assignments) && assignments.length > 0 && isUuid(roundId)) {
+            const resAssign = await sb.from('chore_assignments').upsert(
+              assignments.map((a: ChoreAssignment) => toChoreAssignmentRow(roundId, a)),
+              { onConflict: 'round_id,chore_id' }
+            );
+            error = resAssign.error;
+            if (!error) {
+              const resStatus = await sb.from('draft_rounds').update({ status: 'ready_to_reveal' }).eq('id', roundId);
+              error = resStatus.error;
+            }
+          }
+          break;
+        }
+        case 'update_assignments': {
+          const { roundId, assignments } = p;
+          if (isUuid(roundId) && Array.isArray(assignments) && assignments.length > 0) {
+            const res = await sb.from('chore_assignments').upsert(
+              assignments.map((a: ChoreAssignment) => toChoreAssignmentRow(roundId, a)),
+              { onConflict: 'round_id,chore_id' }
+            );
+            error = res.error;
+          }
+          break;
+        }
+        case 'reveal_draft': {
+          const res = await sb
+            .from('draft_rounds')
+            .update({ status: 'revealed', revealed_at: p.revealedAt || new Date().toISOString() })
+            .eq('id', p.roundId);
+          error = res.error;
+          break;
+        }
+        case 'complete_chore': {
+          const { roundId, householdId, choreId, userId, photoUrl, logId } = p;
+          let q = sb
+            .from('chore_assignments')
+            .update({ completed_today: true, last_photo_url: photoUrl || null })
+            .eq('chore_id', choreId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          const res1 = await q;
+          error = res1.error;
+          if (!error && isUuid(householdId) && isUuid(choreId) && isUuid(userId)) {
+            const res2 = await sb.from('chore_logs').upsert(
+              {
+                ...(isUuid(logId) ? { id: logId } : {}),
+                household_id: householdId,
+                chore_id: choreId,
+                user_id: userId,
+                photo_url: photoUrl || null,
+              },
+              { onConflict: 'id' }
+            );
+            error = res2.error;
+          }
+          break;
+        }
+        case 'give_kudos': {
+          const { roundId, choreId, kudos } = p;
+          let q = sb.from('chore_assignments').update({ kudos: kudos || [] }).eq('chore_id', choreId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          const res = await q;
+          error = res.error;
+          break;
+        }
+        case 'swap_chore': {
+          const { roundId, choreId, toUserId } = p;
+          let q = sb.from('chore_assignments').update({ user_id: toUserId }).eq('chore_id', choreId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          const res = await q;
+          error = res.error;
+          break;
+        }
+        case 'send_message': {
+          const msg: ChatMessage = p.message;
+          const res = await sb.from('chat_messages').upsert(
+            {
+              ...(isUuid(msg.id) ? { id: msg.id } : {}),
+              household_id: msg.householdId,
+              sender_id: msg.senderId,
+              type: msg.type,
+              body: msg.body,
+              link_target: (msg.linkTarget as any) || null,
+              reactions: (msg.reactions as any) || [],
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'add_reaction': {
+          const res = await sb
+            .from('chat_messages')
+            .update({ reactions: p.reactions || [] })
+            .eq('id', p.messageId);
+          error = res.error;
+          break;
+        }
+        case 'create_topic': {
+          const t: MeetingTopic = p.topic;
+          const res = await sb.from('meeting_topics').upsert(
+            {
+              ...(isUuid(t.id) ? { id: t.id } : {}),
+              household_id: t.householdId,
+              proposed_by: t.proposedBy,
+              title: t.title,
+              description: t.description,
+              status: t.status,
+              votes: t.votes as any,
+              comments: t.comments as any,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'vote_topic': {
+          const res = await sb
+            .from('meeting_topics')
+            .update({ votes: p.votes || [], status: p.status || 'open' })
+            .eq('id', p.topicId);
+          error = res.error;
+          break;
+        }
+        case 'add_comment': {
+          const res = await sb
+            .from('meeting_topics')
+            .update({ comments: p.comments || [] })
+            .eq('id', p.topicId);
+          error = res.error;
+          break;
+        }
+        case 'add_agreement': {
+          const a: HouseAgreement = p.agreement;
+          const res = await sb.from('house_agreements').upsert(
+            {
+              ...(isUuid(a.id) ? { id: a.id } : {}),
+              household_id: a.householdId,
+              text: a.text,
+              category: a.category,
+              agreed_at: a.agreedAt,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'mark_notification_read': {
+          const res = await sb.from('notifications').update({ read: true }).eq('id', p.id);
+          error = res.error;
+          break;
+        }
+        case 'mark_all_notifications_read': {
+          if (Array.isArray(p.ids) && p.ids.length > 0) {
+            const res = await sb.from('notifications').update({ read: true }).in('id', p.ids);
+            error = res.error;
+          }
+          break;
+        }
+        default:
+          return true;
       }
-      if (item.type === 'agree_expense' || item.type === 'dispute_expense') {
-        const { expenseId, response, disputeReason } = item.payload;
-        const { error } = await supabase
-          .from('expense_shares')
-          .update({ response, dispute_reason: disputeReason || null })
-          .eq('expense_id', expenseId);
-        return !error;
+
+      const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+      if (error) {
+        debugLog.warn(mod, `outbox_replay_${item.type}`, error.message, { actionId: item.id, code: error.code }, durationMs);
+        return false;
       }
-      if (item.type === 'complete_chore') {
-        const { choreId, photoUrl } = item.payload;
-        const { error } = await supabase
-          .from('chore_assignments')
-          .update({ completed_today: true, last_photo_url: photoUrl || null })
-          .eq('chore_id', choreId);
-        return !error;
-      }
-      if (item.type === 'send_message') {
-        const msg = item.payload.message;
-        const { error } = await supabase.from('chat_messages').insert({
-          household_id: msg.householdId,
-          sender_id: msg.senderId,
-          type: msg.type,
-          body: msg.body,
-          link_target: msg.linkTarget as any,
-        });
-        return !error;
-      }
+      debugLog.info(mod, `outbox_replay_${item.type}`, `Replayed ${item.type}`, { actionId: item.id }, durationMs);
       return true;
-    } catch {
+    } catch (err: any) {
+      const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+      debugLog.error(mod, `outbox_replay_${item.type}`, err?.message || 'Outbox replay exception', { actionId: item.id }, durationMs);
       return false;
     }
   }
@@ -1994,22 +2378,74 @@ class ApiService {
       curMembership.role = 'member';
       targetMembership.role = 'admin';
       const targetUser = this.store.users.find(u => u.id === toUserId);
+
+      if (supabase && !this.isDemoMode() && isUuid(hid) && isUuid(toUserId) && isUuid(this.store.currentUser.id)) {
+        const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        try {
+          // Promote new admin FIRST so admin RLS stays satisfied before demoting self
+          const { error: errPromote } = await supabase
+            .from('memberships')
+            .update({ role: 'admin' })
+            .eq('household_id', hid)
+            .eq('user_id', toUserId)
+            .eq('status', 'active');
+          if (errPromote) throw errPromote;
+
+          const { error: errDemote } = await supabase
+            .from('memberships')
+            .update({ role: 'member' })
+            .eq('household_id', hid)
+            .eq('user_id', this.store.currentUser.id)
+            .eq('status', 'active');
+          if (errDemote) throw errDemote;
+
+          const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+          debugLog.info('auth', 'handover_admin', `Handed admin role to ${targetUser?.name || toUserId}`, { householdId: hid, toUserId }, durationMs);
+        } catch (err: any) {
+          const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+          debugLog.warn('auth', 'handover_admin', `Supabase handover fallback: ${err?.message || 'error'}`, { householdId: hid, toUserId }, durationMs);
+        }
+      }
+
       this.addMessage(hid, null, 'activity', `Admin role handed over to ${targetUser?.name || 'roomie'}.`);
       this.save();
     }
   }
 
   public async leaveHousehold(householdId: string): Promise<{ success: boolean; message: string }> {
-    const members = await this.getHouseholdMembers(householdId);
     const m = this.store.memberships.find(mb => mb.householdId === householdId && mb.userId === this.store.currentUser.id);
+
+    if (supabase && !this.isDemoMode() && isUuid(householdId)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data, error } = await (supabase.rpc as any)('leave_household_self', { p_household_id: householdId });
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.error('auth', 'leave_household', `leave_household_self failed: ${error.message}`, { householdId }, durationMs);
+          return { success: false, message: error.message || 'Could not leave household.' };
+        }
+        if (data && data.success === false) {
+          debugLog.warn('auth', 'leave_household', data.message || 'Rejected leave', { householdId }, durationMs);
+          return { success: false, message: data.message || 'Membership not found.' };
+        }
+        debugLog.info('auth', 'leave_household', `Left household ${householdId}`, { householdId }, durationMs);
+      } catch (err: any) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        debugLog.error('auth', 'leave_household', err?.message || 'Exception leaving household', { householdId }, durationMs);
+        return { success: false, message: err?.message || 'Could not leave household.' };
+      }
+    }
+
     if (m) {
       m.status = 'left';
-      // if user was admin and other members exist, promote the next member
       if (m.role === 'admin') {
         const next = this.store.memberships.find(mb => mb.householdId === householdId && mb.userId !== this.store.currentUser.id && mb.status === 'active');
         if (next) next.role = 'admin';
       }
       this.save();
+      return { success: true, message: 'You have left the household.' };
+    }
+    if (!this.isDemoMode() && isUuid(householdId)) {
       return { success: true, message: 'You have left the household.' };
     }
     return { success: false, message: 'Membership not found.' };
@@ -2018,24 +2454,29 @@ class ApiService {
   // --- Expenses & Balances ---
   public async getExpenses(householdId?: string): Promise<Expense[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: expRows } = await supabase
+        const { data: expRows, error } = await supabase
           .from('expenses')
           .select('*, expense_shares(*)')
           .eq('household_id', hid)
           .order('created_at', { ascending: false });
 
-        if (Array.isArray(expRows)) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('expenses', 'fetch_expenses', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(expRows)) {
           const liveExpenses = expRows.map((e: any) => mapExpense(e, e.expense_shares || []));
           this.store.expenses = [
             ...this.store.expenses.filter((e) => e.householdId !== hid),
             ...liveExpenses,
           ];
+          debugLog.info('expenses', 'fetch_expenses', `Loaded ${liveExpenses.length} expense(s)`, { householdId: hid, count: liveExpenses.length }, durationMs);
           return liveExpenses;
         }
-      } catch (err) {
-        console.warn('Supabase getExpenses fallback:', err);
+      } catch (err: any) {
+        debugLog.error('expenses', 'fetch_expenses', err?.message || 'Supabase getExpenses fallback', { householdId: hid });
       }
     }
     return this.store.expenses
@@ -2051,9 +2492,10 @@ class ApiService {
     receiptUrl?: string
   ): Promise<Expense> {
     const hid = this.store.activeHouseholdId;
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const shareEach = Math.round((amount / participantUserIds.length) * 100) / 100;
     const newExpense: Expense = {
-      id: 'exp_' + Date.now(),
+      id: makeEntityId('exp', useUuid),
       householdId: hid,
       paidBy: this.store.currentUser.id,
       title,
@@ -2070,29 +2512,46 @@ class ApiService {
       createdAt: new Date().toISOString(),
     };
     this.store.expenses.unshift(newExpense);
-    if (!this.isDemoMode()) {
-      const action = outbox.enqueue(hid, 'create_expense', { expense: newExpense });
-      if (supabase) {
-        const sb = supabase;
-        Promise.resolve(
-          sb.from('expenses').insert({
+
+    this.dispatchRemoteMutation(
+      hid,
+      'expenses',
+      'create_expense',
+      { expense: newExpense },
+      `Created expense "${title}" (₺${amount.toFixed(2)}) with ${participantUserIds.length} share(s)`,
+      async () => {
+        const sb = supabase!;
+        const { error: expErr } = await sb.from('expenses').upsert(
+          {
+            ...(isUuid(newExpense.id) ? { id: newExpense.id } : {}),
             household_id: hid,
-            paid_by: this.store.currentUser.id,
+            paid_by: newExpense.paidBy,
             title: newExpense.title,
             amount: newExpense.amount,
             category: newExpense.category,
-            receipt_url: newExpense.receiptUrl,
+            receipt_url: newExpense.receiptUrl || null,
             date: newExpense.date,
             status: newExpense.status,
-          })
-        )
-          .then(({ error }) => {
-            if (!error) outbox.markSuccess(action.id);
-            else outbox.markFailed(action.id, error.message);
-          })
-          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+          },
+          { onConflict: 'id' }
+        );
+        if (expErr) return { error: expErr };
+
+        if (isUuid(newExpense.id) && newExpense.shares.length > 0) {
+          const shareRows = newExpense.shares.map((s) => ({
+            expense_id: newExpense.id,
+            user_id: s.userId,
+            share_amount: s.shareAmount,
+            response: s.response,
+          }));
+          const { error: shareErr } = await sb.from('expense_shares').upsert(shareRows, {
+            onConflict: 'expense_id,user_id',
+          });
+          return { error: shareErr };
+        }
+        return { error: null };
       }
-    }
+    );
 
     this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} logged an expense: ${title} (₺${amount.toFixed(2)})`, {
       screen: 'expenses',
@@ -2105,39 +2564,48 @@ class ApiService {
   public async respondToExpense(expenseId: string, response: 'agreed' | 'disputed', disputeReason?: string): Promise<Expense> {
     const exp = this.store.expenses.find(e => e.id === expenseId);
     if (!exp) throw new Error('Expense not found');
-    const share = exp.shares.find(s => s.userId === this.store.currentUser.id);
+    const currentUserId = this.store.currentUser.id;
+    const share = exp.shares.find(s => s.userId === currentUserId);
     if (share) {
       share.response = response;
       if (disputeReason) share.disputeReason = disputeReason;
     }
 
-    if (!this.isDemoMode()) {
-      const action = outbox.enqueue(
-        exp.householdId,
-        response === 'agreed' ? 'agree_expense' : 'dispute_expense',
-        { expenseId, response, disputeReason }
-      );
-      if (supabase) {
-        const sb = supabase;
-        Promise.resolve(
-          sb.from('expense_shares')
-            .update({ response, dispute_reason: disputeReason || null })
-            .eq('expense_id', expenseId)
-            .eq('user_id', this.store.currentUser.id)
-        )
-          .then(({ error }) => {
-            if (!error) outbox.markSuccess(action.id);
-            else outbox.markFailed(action.id, error.message);
-          })
-          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
-      }
-    }
-    // Update overall expense status
+    // Update overall expense status first so remote update captures resolved status
     if (exp.shares.some(s => s.response === 'disputed')) {
       exp.status = 'disputed';
     } else if (exp.shares.every(s => s.response === 'agreed')) {
       exp.status = 'agreed';
+    } else {
+      exp.status = 'pending';
     }
+
+    this.dispatchRemoteMutation(
+      exp.householdId,
+      'expenses',
+      response === 'agreed' ? 'agree_expense' : 'dispute_expense',
+      { expenseId, userId: currentUserId, response, disputeReason, nextStatus: exp.status },
+      `Responded "${response}" on "${exp.title}" -> status ${exp.status}`,
+      async () => {
+        const sb = supabase!;
+        const { error: shareErr } = await sb
+          .from('expense_shares')
+          .update({ response, dispute_reason: disputeReason || null })
+          .eq('expense_id', expenseId)
+          .eq('user_id', currentUserId);
+        if (shareErr) return { error: shareErr };
+
+        const { error: expErr } = await sb
+          .from('expenses')
+          .update({
+            status: exp.status,
+            dispute_reason: response === 'disputed' ? disputeReason || null : null,
+          })
+          .eq('id', expenseId);
+        return { error: expErr };
+      }
+    );
+
     this.save();
     return exp;
   }
@@ -2154,6 +2622,30 @@ class ApiService {
       response: 'agreed',
     }));
     exp.status = 'agreed';
+
+    this.dispatchRemoteMutation(
+      exp.householdId,
+      'expenses',
+      'edit_expense_split',
+      { expenseId, shares: adjustedShares },
+      `Adjusted split for "${exp.title}" (${adjustedShares.length} shares)`,
+      async () => {
+        const sb = supabase!;
+        const { error: shareErr } = await sb.from('expense_shares').upsert(
+          adjustedShares.map((s) => ({
+            expense_id: expenseId,
+            user_id: s.userId,
+            share_amount: s.shareAmount,
+            response: 'agreed' as const,
+            dispute_reason: null,
+          })),
+          { onConflict: 'expense_id,user_id' }
+        );
+        if (shareErr) return { error: shareErr };
+        return sb.from('expenses').update({ status: 'agreed', dispute_reason: null }).eq('id', expenseId);
+      }
+    );
+
     this.addMessage(
       exp.householdId,
       null,
@@ -2169,6 +2661,14 @@ class ApiService {
     const exp = this.store.expenses.find((e) => e.id === expenseId);
     if (exp) {
       exp.status = 'cancelled';
+      this.dispatchRemoteMutation(
+        exp.householdId,
+        'expenses',
+        'cancel_expense',
+        { expenseId },
+        `Cancelled expense "${exp.title}"`,
+        async () => supabase!.from('expenses').update({ status: 'cancelled' }).eq('id', expenseId)
+      );
       this.addMessage(
         exp.householdId,
         null,
@@ -2193,17 +2693,20 @@ class ApiService {
 
   public async getBalancesOverview(householdId?: string) {
     const hid = householdId || this.store.activeHouseholdId;
-    const expenses = await this.getExpenses(hid);
-    const settlements = this.store.settlements.filter(s => s.householdId === hid);
-    const members = await this.getHouseholdMembers(hid);
+    const [expenses, settlements, members] = await Promise.all([
+      this.getExpenses(hid),
+      this.getSettlements(hid),
+      this.getHouseholdMembers(hid),
+    ]);
     const userIds = members.map(m => m.user.id);
     return calculateBalances(expenses, settlements, userIds);
   }
 
   public async markSettlementPaid(toUserId: string, amount: number): Promise<Settlement> {
     const hid = this.store.activeHouseholdId;
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const newSettlement: Settlement = {
-      id: 'set_' + Date.now(),
+      id: makeEntityId('set', useUuid),
       householdId: hid,
       fromUser: this.store.currentUser.id,
       toUser: toUserId,
@@ -2212,6 +2715,27 @@ class ApiService {
       createdAt: new Date().toISOString(),
     };
     this.store.settlements.push(newSettlement);
+
+    this.dispatchRemoteMutation(
+      hid,
+      'settlements',
+      'create_settlement',
+      { settlement: newSettlement },
+      `Marked ₺${amount.toFixed(2)} paid to ${toUserId.slice(0, 8)}`,
+      async () =>
+        supabase!.from('settlements').upsert(
+          {
+            ...(isUuid(newSettlement.id) ? { id: newSettlement.id } : {}),
+            household_id: hid,
+            from_user: newSettlement.fromUser,
+            to_user: newSettlement.toUser,
+            amount: newSettlement.amount,
+            status: 'marked_paid',
+          },
+          { onConflict: 'id' }
+        )
+    );
+
     const toUser = this.store.users.find(u => u.id === toUserId);
     this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} marked ₺${amount.toFixed(2)} as paid to ${toUser?.name || 'roomie'}. Waiting for confirmation.`);
     this.save();
@@ -2221,8 +2745,20 @@ class ApiService {
   public async confirmSettlement(settlementId: string): Promise<Settlement> {
     const set = this.store.settlements.find(s => s.id === settlementId);
     if (!set) throw new Error('Settlement not found');
+    const confirmedAt = new Date().toISOString();
     set.status = 'confirmed';
-    set.confirmedAt = new Date().toISOString();
+    set.confirmedAt = confirmedAt;
+
+    this.dispatchRemoteMutation(
+      set.householdId,
+      'settlements',
+      'confirm_settlement',
+      { settlementId, confirmedAt },
+      `Confirmed settlement ₺${set.amount.toFixed(2)}`,
+      async () =>
+        supabase!.from('settlements').update({ status: 'confirmed', confirmed_at: confirmedAt }).eq('id', settlementId)
+    );
+
     const fromUser = this.store.users.find(u => u.id === set.fromUser);
     this.addMessage(set.householdId, null, 'activity', `Payment of ₺${set.amount.toFixed(2)} from ${fromUser?.name || 'roomie'} confirmed settled.`);
     this.save();
@@ -2231,23 +2767,28 @@ class ApiService {
 
   public async getSettlements(householdId?: string): Promise<Settlement[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: setRows } = await supabase
+        const { data: setRows, error } = await supabase
           .from('settlements')
           .select('*')
           .eq('household_id', hid);
 
-        if (Array.isArray(setRows)) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('settlements', 'fetch_settlements', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(setRows)) {
           const liveSets = setRows.map(mapSettlement);
           this.store.settlements = [
             ...this.store.settlements.filter((s) => s.householdId !== hid),
             ...liveSets,
           ];
+          debugLog.info('settlements', 'fetch_settlements', `Loaded ${liveSets.length} settlement(s)`, { householdId: hid, count: liveSets.length }, durationMs);
           return liveSets;
         }
-      } catch (err) {
-        console.warn('Supabase getSettlements fallback:', err);
+      } catch (err: any) {
+        debugLog.error('settlements', 'fetch_settlements', err?.message || 'Supabase getSettlements fallback', { householdId: hid });
       }
     }
     return this.store.settlements.filter(s => s.householdId === hid);
@@ -2256,24 +2797,29 @@ class ApiService {
   // --- Chores & The Draft ---
   public async getChores(householdId?: string): Promise<Chore[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: choreRows } = await supabase
+        const { data: choreRows, error } = await supabase
           .from('chores')
           .select('*')
           .eq('household_id', hid)
           .eq('active', true);
 
-        if (Array.isArray(choreRows)) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('chores_draft', 'fetch_chores', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(choreRows)) {
           const liveChores = choreRows.map(mapChore);
           this.store.chores = [
             ...this.store.chores.filter((c) => c.householdId !== hid),
             ...liveChores,
           ];
+          debugLog.info('chores_draft', 'fetch_chores', `Loaded ${liveChores.length} chore(s)`, { householdId: hid, count: liveChores.length }, durationMs);
           return liveChores;
         }
-      } catch (err) {
-        console.warn('Supabase getChores fallback:', err);
+      } catch (err: any) {
+        debugLog.error('chores_draft', 'fetch_chores', err?.message || 'Supabase getChores fallback', { householdId: hid });
       }
     }
     return this.store.chores.filter(c => c.householdId === hid);
@@ -2283,7 +2829,7 @@ class ApiService {
     const hid = this.store.activeHouseholdId;
     const iconName = effortLevel === 'heavy' ? 'Bath' : effortLevel === 'medium' ? 'Sparkles' : 'Trash2';
     let newChore: Chore = {
-      id: 'ch_' + Date.now(),
+      id: makeEntityId('ch', !this.isDemoMode() && isUuid(hid)),
       householdId: hid,
       name,
       frequency,
@@ -2293,11 +2839,13 @@ class ApiService {
       iconName,
     };
 
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: inserted } = await supabase
+        const { data: inserted, error } = await supabase
           .from('chores')
           .insert({
+            ...(isUuid(newChore.id) ? { id: newChore.id } : {}),
             household_id: hid,
             name,
             frequency,
@@ -2308,11 +2856,15 @@ class ApiService {
           })
           .select('*')
           .single();
-        if (inserted) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('chores_draft', 'add_chore', error.message, { householdId: hid, name }, durationMs);
+        } else if (inserted) {
           newChore = mapChore(inserted);
+          debugLog.info('chores_draft', 'add_chore', `Added chore "${name}"`, { householdId: hid, choreId: newChore.id }, durationMs);
         }
-      } catch (err) {
-        console.warn('Supabase addChore fallback:', err);
+      } catch (err: any) {
+        debugLog.error('chores_draft', 'add_chore', err?.message || 'Supabase addChore fallback', { householdId: hid });
       }
     }
 
@@ -2323,9 +2875,10 @@ class ApiService {
 
   public async getDraftRound(householdId?: string): Promise<DraftRound> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: existing } = await supabase
+        const { data: existing, error: fetchErr } = await supabase
           .from('draft_rounds')
           .select('*, draft_picks(*), chore_assignments(*)')
           .eq('household_id', hid)
@@ -2334,16 +2887,22 @@ class ApiService {
           .maybeSingle();
 
         let roundRow: any = existing;
-        if (!roundRow) {
-          const { data: created } = await supabase
+        if (!fetchErr && !roundRow) {
+          const { data: created, error: createErr } = await supabase
             .from('draft_rounds')
             .insert({ household_id: hid, status: 'collecting' })
             .select('*, draft_picks(*), chore_assignments(*)')
             .single();
+          if (createErr) {
+            debugLog.warn('chores_draft', 'create_draft_round', createErr.message, { householdId: hid });
+          }
           roundRow = created;
         }
 
-        if (roundRow) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (fetchErr) {
+          debugLog.warn('chores_draft', 'fetch_draft_round', fetchErr.message, { householdId: hid }, durationMs);
+        } else if (roundRow) {
           const liveRound: DraftRound = {
             id: roundRow.id,
             householdId: roundRow.household_id,
@@ -2353,7 +2912,7 @@ class ApiService {
             picks: (roundRow.draft_picks || []).map((p: any) => ({
               userId: p.user_id,
               choreId: p.chore_id,
-              type: p.pick_type,
+              pickType: p.pick_type,
               targetUserId: p.target_user_id || undefined,
             })),
             assignments: (roundRow.chore_assignments || []).map((a: any) => ({
@@ -2368,16 +2927,23 @@ class ApiService {
           };
           this.store.draftRounds[hid] = liveRound;
           this.save();
+          debugLog.info(
+            'chores_draft',
+            'fetch_draft_round',
+            `Round ${liveRound.id.slice(0, 8)} (${liveRound.status}): ${liveRound.picks.length} picks, ${liveRound.assignments.length} assignments`,
+            { householdId: hid, roundId: liveRound.id, status: liveRound.status },
+            durationMs
+          );
           return liveRound;
         }
-      } catch (err) {
-        console.warn('Supabase getDraftRound fallback:', err);
+      } catch (err: any) {
+        debugLog.error('chores_draft', 'fetch_draft_round', err?.message || 'Supabase getDraftRound fallback', { householdId: hid });
       }
     }
 
     if (!this.store.draftRounds[hid]) {
       this.store.draftRounds[hid] = {
-        id: 'dr_' + Date.now(),
+        id: makeEntityId('dr', !this.isDemoMode() && isUuid(hid)),
         householdId: hid,
         status: 'collecting',
         createdAt: new Date().toISOString(),
@@ -2393,13 +2959,14 @@ class ApiService {
     const event = getChoreStateEvent(state);
     this.addMessage(hid, null, 'activity', event.activityMessage, event.linkTarget);
 
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const members = this.store.memberships.filter(m => m.householdId === hid && m.status === 'active');
     for (const m of members) {
       this.store.notifications = this.store.notifications.filter(
         n => !(n.userId === m.userId && n.type === 'chore' && n.linkTarget?.screen.startsWith('chore-'))
       );
-      this.store.notifications.unshift({
-        id: 'notif_chore_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      const notif: InAppNotification = {
+        id: makeEntityId('notif_chore', useUuid),
         userId: m.userId,
         type: 'chore',
         title: event.title,
@@ -2407,14 +2974,34 @@ class ApiService {
         read: false,
         createdAt: new Date().toISOString(),
         linkTarget: event.linkTarget,
-      });
+      };
+      this.store.notifications.unshift(notif);
+
+      // Persist notification row only for the signed-in user (enforced by notifications RLS: user_id = auth.uid())
+      if (useUuid && supabase && m.userId === this.store.currentUser.id && isUuid(notif.id)) {
+        Promise.resolve(
+          supabase.from('notifications').upsert(
+            {
+              id: notif.id,
+              user_id: notif.userId,
+              type: notif.type,
+              title: notif.title,
+              body: notif.body,
+              read: false,
+              link_target: (notif.linkTarget as any) || null,
+            },
+            { onConflict: 'id' }
+          )
+        ).catch(() => {});
+      }
     }
   }
 
   public async openNewDraftRound(householdId?: string): Promise<DraftRound> {
     const hid = householdId || this.store.activeHouseholdId;
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const newRound: DraftRound = {
-      id: 'dr_' + Date.now(),
+      id: makeEntityId('dr', useUuid),
       householdId: hid,
       status: 'collecting',
       createdAt: new Date().toISOString(),
@@ -2422,6 +3009,24 @@ class ApiService {
       assignments: [],
     };
     this.store.draftRounds[hid] = newRound;
+
+    this.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'open_draft_round',
+      { roundId: newRound.id, householdId: hid },
+      `Opened new draft round ${newRound.id.slice(0, 8)}`,
+      async () =>
+        supabase!.from('draft_rounds').upsert(
+          {
+            ...(isUuid(newRound.id) ? { id: newRound.id } : {}),
+            household_id: hid,
+            status: 'collecting',
+          },
+          { onConflict: 'id' }
+        )
+    );
+
     this.emitChoreDraftTransition(hid, 'draft_open');
     this.save();
     return newRound;
@@ -2430,18 +3035,16 @@ class ApiService {
   public async submitDraftPicks(picks: DraftPick[]): Promise<DraftRound> {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
-    // remove existing picks from this user
-    round.picks = round.picks.filter(p => p.userId !== this.store.currentUser.id);
+    const currentUserId = this.store.currentUser.id;
+    round.picks = round.picks.filter(p => p.userId !== currentUserId);
     round.picks.push(...picks);
 
-    // Check if ready to reveal (simulate all roommates participating)
     const members = await this.getHouseholdMembers(hid);
     const activeMemberIds = members.map(m => m.user.id);
     const usersWithPicks = new Set(round.picks.map(p => p.userId));
-    const allPicksIn = activeMemberIds.every(id => usersWithPicks.has(id));
+    const allPicksIn = activeMemberIds.length > 0 && activeMemberIds.every(id => usersWithPicks.has(id));
 
     if (allPicksIn) {
-      // Compute assignments using fair matching algorithm
       const chores = await this.getChores(hid);
       const { assignments } = matchChores(chores, round.picks, activeMemberIds);
       round.assignments = assignments;
@@ -2451,6 +3054,44 @@ class ApiService {
       this.emitChoreDraftTransition(hid, 'waiting_others');
     }
 
+    this.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'submit_draft_picks',
+      {
+        roundId: round.id,
+        userId: currentUserId,
+        picks,
+        status: round.status,
+        assignments: round.status === 'ready_to_reveal' ? round.assignments : undefined,
+      },
+      `Submitted ${picks.length} pick(s) -> round ${round.status}`,
+      async () => {
+        const sb = supabase!;
+        const { error: delErr } = await sb.from('draft_picks').delete().eq('round_id', round.id).eq('user_id', currentUserId);
+        if (delErr) return { error: delErr };
+
+        if (picks.length > 0) {
+          const { error: pickErr } = await sb.from('draft_picks').upsert(
+            picks.map((pk) => toDraftPickRow(round.id, pk)),
+            { onConflict: 'round_id,user_id,chore_id' }
+          );
+          if (pickErr) return { error: pickErr };
+        }
+
+        if (round.status === 'ready_to_reveal' && round.assignments.length > 0) {
+          const { error: assignErr } = await sb.from('chore_assignments').upsert(
+            round.assignments.map((a) => toChoreAssignmentRow(round.id, a)),
+            { onConflict: 'round_id,chore_id' }
+          );
+          if (assignErr) return { error: assignErr };
+          return sb.from('draft_rounds').update({ status: 'ready_to_reveal' }).eq('id', round.id);
+        }
+
+        return { error: null };
+      }
+    );
+
     this.save();
     return round;
   }
@@ -2459,6 +3100,20 @@ class ApiService {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
     round.assignments = assignments;
+
+    this.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'update_assignments',
+      { roundId: round.id, assignments },
+      `Updated ${assignments.length} chore assignment schedule(s)`,
+      async () =>
+        supabase!.from('chore_assignments').upsert(
+          assignments.map((a) => toChoreAssignmentRow(round.id, a)),
+          { onConflict: 'round_id,chore_id' }
+        )
+    );
+
     this.save();
     return round;
   }
@@ -2466,8 +3121,20 @@ class ApiService {
   public async markDraftRevealed(): Promise<DraftRound> {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
+    const revealedAt = new Date().toISOString();
     round.status = 'revealed';
-    round.revealedAt = new Date().toISOString();
+    round.revealedAt = revealedAt;
+
+    this.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'reveal_draft',
+      { roundId: round.id, revealedAt },
+      `Revealed draft round ${round.id.slice(0, 8)}`,
+      async () =>
+        supabase!.from('draft_rounds').update({ status: 'revealed', revealed_at: revealedAt }).eq('id', round.id)
+    );
+
     this.emitChoreDraftTransition(hid, 'reveal_done');
     this.save();
     return round;
@@ -2480,27 +3147,43 @@ class ApiService {
     if (assign) {
       assign.completedToday = true;
       if (photoUrl) assign.lastPhotoUrl = photoUrl;
-      // Increment user streak and points
       this.store.currentUser.streakDays += 1;
       this.store.currentUser.points += 20;
       const chore = this.store.chores.find(c => c.id === choreId);
+      const useUuid = !this.isDemoMode() && isUuid(hid);
+      const logId = makeEntityId('clog', useUuid);
 
-      if (!this.isDemoMode()) {
-        const action = outbox.enqueue(hid, 'complete_chore', { choreId, photoUrl });
-        if (supabase) {
-          const sb = supabase;
-          Promise.resolve(
-            sb.from('chore_assignments')
-              .update({ completed_today: true, last_photo_url: photoUrl || null })
-              .eq('chore_id', choreId)
-          )
-            .then(({ error }) => {
-              if (!error) outbox.markSuccess(action.id);
-              else outbox.markFailed(action.id, error.message);
-            })
-            .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
+      this.dispatchRemoteMutation(
+        hid,
+        'chores_draft',
+        'complete_chore',
+        { roundId: round.id, householdId: hid, choreId, userId: this.store.currentUser.id, photoUrl, logId },
+        `Completed "${chore?.name || choreId}"${photoUrl ? ' with photo proof' : ''}`,
+        async () => {
+          const sb = supabase!;
+          let q = sb
+            .from('chore_assignments')
+            .update({ completed_today: true, last_photo_url: photoUrl || null })
+            .eq('chore_id', choreId);
+          if (isUuid(round.id)) q = q.eq('round_id', round.id);
+          const { error: assignErr } = await q;
+          if (assignErr) return { error: assignErr };
+
+          if (isUuid(choreId) && isUuid(this.store.currentUser.id)) {
+            return sb.from('chore_logs').upsert(
+              {
+                ...(isUuid(logId) ? { id: logId } : {}),
+                household_id: hid,
+                chore_id: choreId,
+                user_id: this.store.currentUser.id,
+                photo_url: photoUrl || null,
+              },
+              { onConflict: 'id' }
+            );
+          }
+          return { error: null };
         }
-      }
+      );
 
       this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`, {
         screen: 'chores',
@@ -2516,17 +3199,30 @@ class ApiService {
     const assign = round.assignments.find(a => a.choreId === choreId && a.userId === targetUserId);
     if (assign) {
       assign.kudos.push({
-        id: 'k_' + Date.now(),
+        id: makeEntityId('k', !this.isDemoMode() && isUuid(hid)),
         fromUser: this.store.currentUser.id,
         type,
         note,
         createdAt: new Date().toISOString(),
       });
-      // award target points if positive
       if (type !== 'needs_look') {
         const target = this.store.users.find(u => u.id === targetUserId);
         if (target) target.points += 10;
       }
+
+      this.dispatchRemoteMutation(
+        hid,
+        'chores_draft',
+        'give_kudos',
+        { roundId: round.id, choreId, kudos: assign.kudos },
+        `Sent "${type}" kudos for chore ${choreId.slice(0, 8)}`,
+        async () => {
+          let q = supabase!.from('chore_assignments').update({ kudos: assign.kudos as any }).eq('chore_id', choreId);
+          if (isUuid(round.id)) q = q.eq('round_id', round.id);
+          return q;
+        }
+      );
+
       this.save();
     }
   }
@@ -2539,6 +3235,20 @@ class ApiService {
       assign.userId = toUserId;
       const toUser = this.store.users.find(u => u.id === toUserId);
       const chore = this.store.chores.find(c => c.id === choreId);
+
+      this.dispatchRemoteMutation(
+        hid,
+        'chores_draft',
+        'swap_chore',
+        { roundId: round.id, choreId, toUserId },
+        `Swapped "${chore?.name || choreId}" -> ${toUser?.name || toUserId.slice(0, 8)}`,
+        async () => {
+          let q = supabase!.from('chore_assignments').update({ user_id: toUserId }).eq('chore_id', choreId);
+          if (isUuid(round.id)) q = q.eq('round_id', round.id);
+          return q;
+        }
+      );
+
       this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} swapped "${chore?.name}" with ${toUser?.name}.`);
       this.save();
     }
@@ -2547,21 +3257,26 @@ class ApiService {
   // --- Chat ---
   public async getMessages(householdId?: string): Promise<ChatMessage[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode() && hid) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
-        const { data: msgRows } = await supabase
+        const { data: msgRows, error } = await supabase
           .from('chat_messages')
           .select('*')
           .eq('household_id', hid)
           .order('created_at', { ascending: true });
 
-        if (Array.isArray(msgRows)) {
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('chat', 'fetch_messages', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(msgRows)) {
           const liveMsgs = msgRows.map(mapChatMessage);
           this.store.messages[hid] = liveMsgs;
+          debugLog.info('chat', 'fetch_messages', `Loaded ${liveMsgs.length} message(s)`, { householdId: hid, count: liveMsgs.length }, durationMs);
           return liveMsgs;
         }
-      } catch (err) {
-        console.warn('Supabase getMessages fallback:', err);
+      } catch (err: any) {
+        debugLog.error('chat', 'fetch_messages', err?.message || 'Supabase getMessages fallback', { householdId: hid });
       }
     }
     return this.store.messages[hid] || [];
@@ -2572,32 +3287,35 @@ class ApiService {
     const msg = this.addMessage(hid, this.store.currentUser.id, 'text', body);
     this.save();
 
-    if (!this.isDemoMode()) {
-      const action = outbox.enqueue(hid, 'send_message', { message: msg });
-      if (supabase) {
-        const sb = supabase;
-        Promise.resolve(
-          sb.from('chat_messages').insert({
+    this.dispatchRemoteMutation(
+      hid,
+      'chat',
+      'send_message',
+      { message: msg },
+      `Sent message (${body.length} chars)`,
+      async () =>
+        supabase!.from('chat_messages').upsert(
+          {
+            ...(isUuid(msg.id) ? { id: msg.id } : {}),
             household_id: hid,
             sender_id: msg.senderId,
             type: msg.type,
             body: msg.body,
-            link_target: msg.linkTarget as any,
-          })
+            link_target: (msg.linkTarget as any) || null,
+            reactions: [],
+          },
+          { onConflict: 'id' }
         )
-          .then(({ error }) => {
-            if (!error) outbox.markSuccess(action.id);
-            else outbox.markFailed(action.id, error.message);
-          })
-          .catch((err: any) => outbox.markFailed(action.id, err?.message || 'Network error'));
-      }
-    }
+    );
 
     return msg;
   }
 
   public subscribeToHousehold(householdId: string, onUpdate: () => void): () => void {
-    if (!supabase || this.isDemoMode() || !householdId) return () => {};
+    if (!supabase || this.isDemoMode() || !isUuid(householdId)) {
+      debugLog.info('realtime', 'subscribe_skipped', this.isDemoMode() ? 'Demo mode isolated from Realtime' : 'Realtime inactive');
+      return () => {};
+    }
     const sb = supabase;
     try {
       const channel = sb
@@ -2605,16 +3323,28 @@ class ApiService {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', filter: `household_id=eq.${householdId}` },
-          () => {
+          (payload: any) => {
+            debugLog.info('realtime', 'pg_change', `${payload?.table || 'public'} ${payload?.eventType || '*'}`, {
+              householdId,
+              table: payload?.table,
+              eventType: payload?.eventType,
+            });
             onUpdate();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          const level = status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'warn' : 'info';
+          debugLog.log('realtime', level, 'channel_status', `Household channel -> ${status}`, {
+            meta: { householdId, status },
+          });
+        });
 
       return () => {
+        debugLog.info('realtime', 'unsubscribe', `Unsubscribed household ${householdId.slice(0, 8)}`);
         sb.removeChannel(channel);
       };
-    } catch {
+    } catch (err: any) {
+      debugLog.error('realtime', 'subscribe_error', err?.message || 'Realtime subscription error', { householdId });
       return () => {};
     }
   }
@@ -2629,8 +3359,9 @@ class ApiService {
     if (!this.store.messages[householdId]) {
       this.store.messages[householdId] = [];
     }
+    const useUuid = !this.isDemoMode() && isUuid(householdId);
     const msg: ChatMessage = {
-      id: 'msg_' + Date.now() + Math.random().toString(36).substring(2, 5),
+      id: makeEntityId('msg', useUuid),
       householdId,
       senderId,
       type,
@@ -2640,6 +3371,29 @@ class ApiService {
       reactions: [],
     };
     this.store.messages[householdId].push(msg);
+
+    if (type === 'activity') {
+      this.dispatchRemoteMutation(
+        householdId,
+        'chat',
+        'send_message',
+        { message: msg },
+        `Posted activity: ${body.slice(0, 48)}`,
+        async () =>
+          supabase!.from('chat_messages').upsert(
+            {
+              ...(isUuid(msg.id) ? { id: msg.id } : {}),
+              household_id: householdId,
+              sender_id: null,
+              type: 'activity',
+              body: msg.body,
+              link_target: (msg.linkTarget as any) || null,
+              reactions: [],
+            },
+            { onConflict: 'id' }
+          )
+      );
+    }
     return msg;
   }
 
@@ -2660,6 +3414,17 @@ class ApiService {
       } else {
         msg.reactions.push({ emoji, userIds: [myId] });
       }
+
+      this.dispatchRemoteMutation(
+        hid,
+        'chat',
+        'add_reaction',
+        { messageId, reactions: msg.reactions },
+        `Toggled reaction ${emoji} on message ${messageId.slice(0, 8)}`,
+        async () =>
+          supabase!.from('chat_messages').update({ reactions: msg.reactions as any }).eq('id', messageId)
+      );
+
       this.save();
     }
   }
@@ -2667,14 +3432,37 @@ class ApiService {
   // --- House Meetings & Agreements ---
   public async getMeetingTopics(householdId?: string): Promise<MeetingTopic[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data: rows, error } = await supabase
+          .from('meeting_topics')
+          .select('*')
+          .eq('household_id', hid)
+          .order('created_at', { ascending: false });
+
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('governance', 'fetch_topics', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(rows)) {
+          const liveTopics = rows.map(mapMeetingTopic);
+          this.store.meetingTopics[hid] = liveTopics;
+          debugLog.info('governance', 'fetch_topics', `Loaded ${liveTopics.length} topic(s)`, { householdId: hid, count: liveTopics.length }, durationMs);
+          return liveTopics;
+        }
+      } catch (err: any) {
+        debugLog.error('governance', 'fetch_topics', err?.message || 'Supabase getMeetingTopics fallback', { householdId: hid });
+      }
+    }
     return this.store.meetingTopics[hid] || [];
   }
 
   public async createMeetingTopic(title: string, description: string): Promise<MeetingTopic> {
     const hid = this.store.activeHouseholdId;
     if (!this.store.meetingTopics[hid]) this.store.meetingTopics[hid] = [];
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const topic: MeetingTopic = {
-      id: 'mt_' + Date.now(),
+      id: makeEntityId('mt', useUuid),
       householdId: hid,
       proposedBy: this.store.currentUser.id,
       title,
@@ -2683,7 +3471,30 @@ class ApiService {
       votes: [{ userId: this.store.currentUser.id, vote: 'agree' }],
       comments: [],
     };
-    this.store.meetingTopics[hid].push(topic);
+    this.store.meetingTopics[hid].unshift(topic);
+
+    this.dispatchRemoteMutation(
+      hid,
+      'governance',
+      'create_topic',
+      { topic },
+      `Proposed topic "${title}"`,
+      async () =>
+        supabase!.from('meeting_topics').upsert(
+          {
+            ...(isUuid(topic.id) ? { id: topic.id } : {}),
+            household_id: hid,
+            proposed_by: topic.proposedBy,
+            title: topic.title,
+            description: topic.description,
+            status: topic.status,
+            votes: topic.votes as any,
+            comments: [],
+          },
+          { onConflict: 'id' }
+        )
+    );
+
     this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} proposed a house topic: "${title}"`, {
       screen: 'meetings',
       id: topic.id,
@@ -2702,13 +3513,27 @@ class ApiService {
       } else {
         topic.votes.push({ userId: this.store.currentUser.id, vote });
       }
-      // If all members agreed, mark as agreed and add to House Agreements
       const members = await this.getHouseholdMembers(hid);
       const agreeCount = topic.votes.filter(v => v.vote === 'agree').length;
-      if (agreeCount >= Math.ceil(members.length * 0.75)) {
+      const becameAgreed = topic.status !== 'agreed' && members.length > 0 && agreeCount >= Math.ceil(members.length * 0.75);
+      if (becameAgreed) {
         topic.status = 'agreed';
         await this.addAgreement(topic.title, 'Agreed in House Meeting');
       }
+
+      this.dispatchRemoteMutation(
+        hid,
+        'governance',
+        'vote_topic',
+        { topicId, votes: topic.votes, status: topic.status },
+        `Voted "${vote}" on "${topic.title}" -> status ${topic.status}`,
+        async () =>
+          supabase!
+            .from('meeting_topics')
+            .update({ votes: topic.votes as any, status: topic.status })
+            .eq('id', topicId)
+      );
+
       this.save();
     }
   }
@@ -2722,37 +3547,118 @@ class ApiService {
     const topic = (this.store.meetingTopics[hid] || []).find(t => t.id === topicId);
     if (topic) {
       topic.comments.push({
-        id: 'c_' + Date.now(),
+        id: makeEntityId('c', !this.isDemoMode() && isUuid(hid)),
         userId: this.store.currentUser.id,
         text,
         createdAt: new Date().toISOString(),
       });
+
+      this.dispatchRemoteMutation(
+        hid,
+        'governance',
+        'add_comment',
+        { topicId, comments: topic.comments },
+        `Added comment on "${topic.title}"`,
+        async () =>
+          supabase!.from('meeting_topics').update({ comments: topic.comments as any }).eq('id', topicId)
+      );
+
       this.save();
     }
   }
 
   public async getAgreements(householdId?: string): Promise<HouseAgreement[]> {
     const hid = householdId || this.store.activeHouseholdId;
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data: rows, error } = await supabase
+          .from('house_agreements')
+          .select('*')
+          .eq('household_id', hid)
+          .order('agreed_at', { ascending: false });
+
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('governance', 'fetch_agreements', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (Array.isArray(rows)) {
+          const liveAgreements = rows.map(mapAgreement);
+          this.store.agreements[hid] = liveAgreements;
+          debugLog.info('governance', 'fetch_agreements', `Loaded ${liveAgreements.length} agreement(s)`, { householdId: hid, count: liveAgreements.length }, durationMs);
+          return liveAgreements;
+        }
+      } catch (err: any) {
+        debugLog.error('governance', 'fetch_agreements', err?.message || 'Supabase getAgreements fallback', { householdId: hid });
+      }
+    }
     return this.store.agreements[hid] || [];
   }
 
   public async addAgreement(text: string, category: string): Promise<HouseAgreement> {
     const hid = this.store.activeHouseholdId;
     if (!this.store.agreements[hid]) this.store.agreements[hid] = [];
+    const useUuid = !this.isDemoMode() && isUuid(hid);
     const agr: HouseAgreement = {
-      id: 'agr_' + Date.now(),
+      id: makeEntityId('agr', useUuid),
       householdId: hid,
       text,
       category,
       agreedAt: new Date().toISOString(),
     };
     this.store.agreements[hid].push(agr);
+
+    this.dispatchRemoteMutation(
+      hid,
+      'governance',
+      'add_agreement',
+      { agreement: agr },
+      `Recorded agreement "${text.slice(0, 48)}"`,
+      async () =>
+        supabase!.from('house_agreements').upsert(
+          {
+            ...(isUuid(agr.id) ? { id: agr.id } : {}),
+            household_id: hid,
+            text: agr.text,
+            category: agr.category,
+            agreed_at: agr.agreedAt,
+          },
+          { onConflict: 'id' }
+        )
+    );
+
     this.save();
     return agr;
   }
 
   // --- Notifications ---
   public async getNotifications(): Promise<InAppNotification[]> {
+    const currentUserId = this.store.currentUser.id;
+    if (supabase && !this.isDemoMode() && isUuid(currentUserId)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data: rows, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .order('created_at', { ascending: false })
+          .limit(60);
+
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.warn('notifications', 'fetch_notifications', error.message, { code: error.code }, durationMs);
+        } else if (Array.isArray(rows)) {
+          const live = rows.map(mapNotification);
+          this.store.notifications = [
+            ...this.store.notifications.filter((n) => n.userId !== currentUserId),
+            ...live,
+          ];
+          debugLog.info('notifications', 'fetch_notifications', `Loaded ${live.length} notification(s)`, { count: live.length }, durationMs);
+        }
+      } catch (err: any) {
+        debugLog.error('notifications', 'fetch_notifications', err?.message || 'Supabase getNotifications fallback');
+      }
+    }
+
     const pendingRequests = this.store.joinRequests.filter(r => r.status === 'pending');
     // Unresolved join requests must remain unread per spec
     if (pendingRequests.length > 0) {
@@ -2764,20 +3670,29 @@ class ApiService {
     }
 
     return [...this.store.notifications]
-      .filter((n) => n.userId === this.store.currentUser.id)
+      .filter((n) => n.userId === currentUserId)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   public async markNotificationRead(id: string): Promise<void> {
     const n = this.store.notifications.find(item => item.id === id);
     if (n) {
-      // If this is an unresolved join request notification, keep it unread
       const isUnresolvedJoin =
         n.type === 'household' &&
         n.title.toLowerCase().includes('join request') &&
         this.store.joinRequests.some(r => r.status === 'pending');
       if (!isUnresolvedJoin) {
         n.read = true;
+        if (isUuid(id)) {
+          this.dispatchRemoteMutation(
+            this.store.activeHouseholdId,
+            'notifications',
+            'mark_notification_read',
+            { id },
+            `Marked notification ${id.slice(0, 8)} read`,
+            async () => supabase!.from('notifications').update({ read: true }).eq('id', id)
+          );
+        }
         this.save();
       }
     }
@@ -2785,16 +3700,96 @@ class ApiService {
 
   public async markAllNotificationsRead(): Promise<void> {
     const hasPendingJoin = this.store.joinRequests.some(r => r.status === 'pending');
+    const markedUuidIds: string[] = [];
     this.store.notifications.forEach(n => {
       if (n.userId === this.store.currentUser.id) {
         if (n.type === 'household' && n.title.toLowerCase().includes('join request') && hasPendingJoin) {
           n.read = false;
         } else {
           n.read = true;
+          if (isUuid(n.id)) markedUuidIds.push(n.id);
         }
       }
     });
+    if (markedUuidIds.length > 0) {
+      this.dispatchRemoteMutation(
+        this.store.activeHouseholdId,
+        'notifications',
+        'mark_all_notifications_read',
+        { ids: markedUuidIds },
+        `Marked ${markedUuidIds.length} notification(s) read`,
+        async () => supabase!.from('notifications').update({ read: true }).in('id', markedUuidIds)
+      );
+    }
     this.save();
+  }
+
+  public getActiveHouseholdId(): string {
+    return this.store.activeHouseholdId;
+  }
+
+  // --- Diagnostics & Debug Layer Probe ---
+  public async pingSupabaseHealth(): Promise<{
+    configured: boolean;
+    demoMode: boolean;
+    authenticated: boolean;
+    activeHouseholdId: string;
+    latencyMs: number;
+    checks: { name: string; ok: boolean; detail: string; ms: number }[];
+  }> {
+    const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const hid = this.store.activeHouseholdId;
+    const demoMode = this.isDemoMode();
+    if (!supabase || !isSupabaseConfigured) {
+      debugLog.warn('auth', 'health_probe', 'Supabase client not configured');
+      return {
+        configured: false,
+        demoMode,
+        authenticated: false,
+        activeHouseholdId: hid,
+        latencyMs: 0,
+        checks: [{ name: 'supabase_env', ok: false, detail: 'Missing VITE_SUPABASE_URL/ANON_KEY', ms: 0 }],
+      };
+    }
+
+    const checks: { name: string; ok: boolean; detail: string; ms: number }[] = [];
+    const { data: sessData } = await supabase.auth.getSession();
+    const authenticated = Boolean(sessData?.session?.user);
+    checks.push({
+      name: 'auth_session',
+      ok: authenticated,
+      detail: authenticated ? `uid:${sessData.session!.user.id.slice(0, 8)}` : 'Signed out',
+      ms: Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0),
+    });
+
+    const tables = ['households', 'expenses', 'settlements', 'chores', 'draft_rounds', 'meeting_topics', 'chat_messages', 'notifications'] as const;
+    for (const table of tables) {
+      const s = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      const { error } = await (supabase.from(table) as any).select('id', { count: 'exact', head: true }).limit(1);
+      const ms = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - s);
+      checks.push({
+        name: `rls_${table}`,
+        ok: !error,
+        detail: error ? error.message : 'RLS reachable',
+        ms,
+      });
+    }
+
+    const totalMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0);
+    const failed = checks.filter((c) => !c.ok).length;
+    debugLog.log('auth', failed > 0 ? 'warn' : 'info', 'health_probe', `Probe complete: ${checks.length - failed}/${checks.length} checks ok`, {
+      durationMs: totalMs,
+      meta: { demoMode, authenticated, householdId: hid, failed },
+    });
+
+    return {
+      configured: true,
+      demoMode,
+      authenticated,
+      activeHouseholdId: hid,
+      latencyMs: totalMs,
+      checks,
+    };
   }
 
   // --- Profile ---

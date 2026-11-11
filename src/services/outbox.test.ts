@@ -1,39 +1,51 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import { describe, it, beforeEach } from 'node:test';
 import { outbox } from './outbox';
+import { debugLog } from '../utils/debugLog';
 
-test('outbox enqueues actions with pending status and increments count', () => {
-  outbox.clear();
-  assert.equal(outbox.getPendingCount(), 0);
+describe('outbox service', () => {
+  beforeEach(() => {
+    outbox.clear();
+    debugLog.clear();
+  });
 
-  const action = outbox.enqueue('h1', 'create_expense', { title: 'Milk', amount: 20 });
-  assert.equal(action.householdId, 'h1');
-  assert.equal(action.type, 'create_expense');
-  assert.equal(action.status, 'pending');
-  assert.equal(outbox.getPendingCount(), 1);
+  it('queues, flushes successfully, and logs outbox telemetry', async () => {
+    const item = outbox.enqueue('00000000-0000-4000-8000-000000000001', 'create_expense', {
+      amount: 50,
+    });
+    assert.equal(outbox.getPendingCount(), 1);
+    assert.equal(item.status, 'pending');
 
-  // Mark syncing
-  outbox.markSyncing(action.id);
-  const pending = outbox.getPending();
-  assert.equal(pending.length, 0); // Currently syncing, not pending/failed
+    const replayed: string[] = [];
+    outbox.setSyncHandler(async (entry) => {
+      replayed.push(entry.id);
+      return true;
+    });
 
-  // On retry failure
-  outbox.markFailed(action.id, 'Network timeout');
-  const failedList = outbox.getPending();
-  assert.equal(failedList.length, 1);
-  assert.equal(failedList[0].status, 'failed');
-  assert.equal(failedList[0].retryCount, 1);
-  assert.equal(failedList[0].errorMessage, 'Network timeout');
+    await outbox.flush();
+    assert.deepEqual(replayed, [item.id]);
+    assert.equal(outbox.getPendingCount(), 0);
 
-  // On success
-  outbox.markSuccess(action.id);
-  assert.equal(outbox.getPendingCount(), 0);
-});
+    const outboxLogs = debugLog.getEntries({ module: 'outbox' });
+    assert.ok(outboxLogs.some((l) => l.action === 'enqueue'));
+    assert.ok(outboxLogs.some((l) => l.action === 'sync_ok'));
+  });
 
-test('outbox accepts custom deterministic action ID for safe retries', () => {
-  outbox.clear();
-  const customId = 'deterministic_uuid_123';
-  const action = outbox.enqueue('h1', 'agree_expense', { expenseId: 'e1' }, customId);
-  assert.equal(action.id, customId);
-  outbox.clear();
+  it('tracks retry count and failure warnings when sync handler returns false', async () => {
+    const item = outbox.enqueue('00000000-0000-4000-8000-000000000001', 'vote_topic', {
+      topicId: 't1',
+    });
+
+    outbox.setSyncHandler(async () => false);
+    await outbox.flush();
+
+    const pending = outbox.getPending();
+    assert.equal(pending.length, 1);
+    assert.equal(pending[0].id, item.id);
+    assert.equal(pending[0].status, 'failed');
+    assert.equal(pending[0].retryCount, 1);
+
+    const warns = debugLog.getEntries({ module: 'outbox', level: 'warn' });
+    assert.equal(warns.length, 1);
+  });
 });

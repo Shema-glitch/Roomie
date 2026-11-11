@@ -636,3 +636,114 @@ VALUES
   ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
+-- Storage RLS policies for private household media & public avatars
+DROP POLICY IF EXISTS "Roomie storage members read private" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie storage members upload private" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie storage owner update private" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie storage owner delete private" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie avatars public read" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie avatars auth upload" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie avatars owner manage" ON storage.objects;
+DROP POLICY IF EXISTS "Roomie avatars owner delete" ON storage.objects;
+
+CREATE POLICY "Roomie storage members read private" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id IN ('receipts', 'chore-proof', 'snapshots')
+    AND (
+      owner = auth.uid()
+      OR (
+        array_length(storage.foldername(name), 1) >= 1
+        AND (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        AND public.is_household_member(((storage.foldername(name))[1])::uuid)
+      )
+    )
+  );
+
+CREATE POLICY "Roomie storage members upload private" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id IN ('receipts', 'chore-proof', 'snapshots')
+    AND (
+      array_length(storage.foldername(name), 1) IS NULL
+      OR (
+        (storage.foldername(name))[1] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        AND public.is_household_member(((storage.foldername(name))[1])::uuid)
+      )
+    )
+  );
+
+CREATE POLICY "Roomie storage owner update private" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id IN ('receipts', 'chore-proof', 'snapshots') AND owner = auth.uid())
+  WITH CHECK (bucket_id IN ('receipts', 'chore-proof', 'snapshots') AND owner = auth.uid());
+
+CREATE POLICY "Roomie storage owner delete private" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id IN ('receipts', 'chore-proof', 'snapshots') AND owner = auth.uid());
+
+CREATE POLICY "Roomie avatars public read" ON storage.objects
+  FOR SELECT TO public
+  USING (bucket_id = 'avatars');
+
+CREATE POLICY "Roomie avatars auth upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "Roomie avatars owner manage" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'avatars' AND owner = auth.uid())
+  WITH CHECK (bucket_id = 'avatars' AND owner = auth.uid());
+
+CREATE POLICY "Roomie avatars owner delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'avatars' AND owner = auth.uid());
+
+-- Atomic self-leave RPC (handles non-admin self-leave & promotes oldest active member if admin leaves)
+CREATE OR REPLACE FUNCTION public.leave_household_self(p_household_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_role user_role;
+  v_next_id uuid;
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Not authenticated');
+  END IF;
+
+  SELECT role INTO v_role
+  FROM public.memberships
+  WHERE household_id = p_household_id AND user_id = v_uid AND status = 'active'
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Active membership not found');
+  END IF;
+
+  UPDATE public.memberships
+  SET status = 'left', role = 'member'
+  WHERE household_id = p_household_id AND user_id = v_uid AND status = 'active';
+
+  IF v_role = 'admin' THEN
+    SELECT id INTO v_next_id
+    FROM public.memberships
+    WHERE household_id = p_household_id AND user_id <> v_uid AND status = 'active'
+    ORDER BY joined_at ASC
+    LIMIT 1;
+
+    IF v_next_id IS NOT NULL THEN
+      UPDATE public.memberships SET role = 'admin' WHERE id = v_next_id;
+    END IF;
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'message', 'You have left the household.');
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.leave_household_self(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.leave_household_self(uuid) TO authenticated;
+

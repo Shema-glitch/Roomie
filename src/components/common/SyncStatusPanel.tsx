@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { Button } from './Button';
 import { Card } from './Card';
 import { IconTile } from './IconTile';
-import { CloudCheck, CloudOff, RefreshCw, AlertCircle, Check, Wifi, WifiOff } from 'lucide-react';
+import { CloudCheck, CloudOff, RefreshCw, AlertCircle, Check, Wifi, WifiOff, Bug } from 'lucide-react';
 
 export type SyncStatusType = 'synced' | 'syncing' | 'offline' | 'needs_attention';
 
@@ -15,6 +15,7 @@ interface SyncStatusPanelProps {
   lastSyncedTime: string;
   onTriggerSync: () => void;
   householdName?: string;
+  onOpenDebugInspector?: () => void;
 }
 
 export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
@@ -25,6 +26,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
   lastSyncedTime,
   onTriggerSync,
   householdName = 'Your Apartment',
+  onOpenDebugInspector,
 }) => {
   const getStatusConfig = () => {
     switch (status) {
@@ -104,7 +106,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         </Card>
 
         {/* Primary Sync Action */}
-        <div className="pt-1">
+        <div className="pt-1 space-y-2">
           <Button
             variant="primary"
             size="md"
@@ -117,6 +119,20 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
           >
             {status === 'syncing' ? 'Syncing...' : status === 'offline' ? 'Reconnect & Sync' : 'Sync now'}
           </Button>
+          {onOpenDebugInspector && (
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth
+              onClick={() => {
+                onClose();
+                onOpenDebugInspector();
+              }}
+              icon={<Bug className="w-4 h-4 text-[#5B5BD6]" />}
+            >
+              Open Phase 1 Debug Layer
+            </Button>
+          )}
         </div>
 
         {/* Mode Switchers for Testing / Offline Usage */}

@@ -149,42 +149,33 @@
 
 ## 4. Test Suite Summary
 
-- Total unit tests: **15 / 15 passing** (`npm test`).
-  - 2 outbox queue idempotency and retry tests (`outbox.test.ts`).
-  - 4 balance and debt simplification tests (`balances.test.ts`, `logic.test.ts`).
-  - 5 chore draft state transition tests (`choreDraft.test.ts`).
-  - 4 chore draft matching and `suggest_for` constraint tests (`logic.test.ts`).
+- Total unit tests: **28 / 28 passing** (`npm test`).
+  - 2 outbox queue idempotency, telemetry, and retry tests (`src/services/outbox.test.ts`).
+  - 3 per-module debug logger, redaction, and latency instrumentation tests (`src/utils/debugLog.test.ts`).
+  - 4 auth validation & hashing tests (`src/utils/authValidation.test.ts`).
+  - 1 saved quick-login token storage test (`src/utils/savedAccounts.test.ts`).
+  - 4 invite link / deep-link tests (`src/utils/inviteLink.test.ts`).
+  - 1 navigation stack LIFO test (`src/utils/navigationStack.test.ts`).
+  - 4 balance and debt simplification tests (`src/utils/balances.test.ts`, `src/logic.test.ts`).
+  - 5 chore draft state transition tests (`src/utils/choreDraft.test.ts`).
+  - 4 chore draft matching and `suggest_for` constraint tests (`src/logic.test.ts`).
 
 ---
 
-## 5. Live Supabase Backend & Realtime Integration (Phase 1)
+## 5. Live Supabase Backend & Realtime Integration (Phase 1 — Complete)
 
-- **Supabase Connected via MCP**: URL `https://ebiyvhodxrliiwdzonzu.supabase.co` with publishable keys configured in `.env`.
-- **Database Schema**: All 21 tables deployed to remote PostgreSQL:
-  - `profiles`, `households`, `memberships`, `join_requests`
-  - `expenses`, `expense_shares`, `settlements`
-  - `chores`, `draft_rounds`, `draft_picks`, `chore_assignments`, `chore_logs`
-  - `chat_messages`, `meeting_topics`, `house_agreements`, `notifications`
-  - `recurring_bills`, `shopping_items`, `move_in_snapshots`, `maintenance_issues`
-  - `vibe_pulses` (anonymous), `favor_tokens`
-- **Security & RLS**: All tables have RLS enabled with `is_household_member` function (`SECURITY DEFINER`, search_path set).
-- **Multi-Device Live Joining**:
-  - `join_household_by_code(p_code text)` RPC securely checks invite code and adds new member to `memberships`.
-  - `lookup_household_by_invite(p_code text)` allows non-members to look up flat metadata with invite code.
-  - `approve_join_request(p_request_id uuid)` allows flat admin to approve pending requests and activate membership in Supabase.
-  - Pending join requests rendered dynamically in `ApartmentScreen.tsx` with modal review.
-- **Storage Buckets Provisioned**: `receipts`, `chore-proof`, `snapshots`, `avatars`.
-- **Realtime Publication**: `supabase_realtime` publication configured for chat, chores, expenses, draft rounds, and notifications.
-- **Typed SDK**: `src/types/database.types.ts` generated directly from remote schema and wired into `src/services/supabase.ts`.
-- **Live Supabase Auth & Session Persistence**: `signUpWithSupabase`, `signInWithSupabase`, `signOut`, and `getSession` wired in `api.ts`, `WelcomeScreen.tsx`, and `App.tsx` with email/password and magic link options.
-- **Bi-Directional Supabase Data Layer**: Read methods in `api.ts` (`getCurrentUser`, `getHouseholds`, `getHouseholdMembers`, `getExpenses`, `getChores`, `getMessages`, `getSettlements`, `joinHousehold`, `createHousehold`) pull live records from PostgreSQL with automatic local store fallback.
-- **Photo Compression Pipeline**: Client-side canvas compression (`src/utils/photoPipeline.ts`) wired directly into `AddExpenseFlowModal.tsx` (receipts) and `DoneFlowModal.tsx` (chore proof) with signed URL upload to Supabase Storage.
-- **Live Camera QR Scan**: Live video stream with `BarcodeDetector` API and fallback in `JoinHouseholdFlowModal.tsx`.
-- **Outbox Queue & Auto-Replay**: Mutations optimistic update locally, enqueue in `outbox`, dispatch to Supabase, and automatically re-flush via `window.addEventListener('online')` and periodic background timer.
-- **Realtime Sync Subscription**: `subscribeToHousehold` in `api.ts` wired to `App.tsx` reloading data on websocket events.
-- **PWA & Offline Installation**: `manifest.json`, `sw.js` push listener and caching, `beforeinstallprompt` capture, and "Install app" button in `ProfileSettingsModal.tsx`.
-- **Bundle Budget**: Total first screen JavaScript: **~149 kB gzip** (safely under 200 kB budget).
-
+- **Supabase Connected**: Live project `Roomie` (`ebiyvhodxrliiwdzonzu`, `https://ebiyvhodxrliiwdzonzu.supabase.co`) configured in `.env.local` (gitignored).
+- **Database Schema & RPCs**: All core & Phase 1–3 tables deployed to remote PostgreSQL with RLS enabled (`is_household_member` helper + atomic `join_household_by_code`, `lookup_household_by_invite`, `approve_join_request`, `leave_household_self` RPCs with `REVOKE ... FROM PUBLIC, anon`).
+- **Storage Buckets & Policies**: `receipts`, `chore-proof`, `snapshots` (private, household-folder/owner RLS) and `avatars` (public read, owner manage) deployed with 8 verified `storage.objects` policies.
+- **Realtime Publication**: `supabase_realtime` publication active across live household tables with channel health telemetry.
+- **Full Bi-Directional Phase 1 Sync + Offline Outbox**:
+  - **Expenses & Settlements**: `expenses` + `expense_shares` (`addExpense`, `respondToExpense`, `editExpenseSplit`, `cancelExpense`) and `settlements` (`markSettlementPaid`, `confirmSettlement`) sync via deterministic UUIDs and idempotent `outbox.ts` replay.
+  - **Secret Chore Draft & Rituals**: `draft_rounds`, `draft_picks`, `chore_assignments`, and `chore_logs` (`openNewDraftRound`, `submitDraftPicks`, `updateAssignments`, `markDraftRevealed`, `completeChore`, `giveKudos`, `swapChore`) sync end-to-end across devices.
+  - **Governance, Chat, Notifications & Membership**: `meeting_topics`, `house_agreements`, `chat_messages` (including emoji `reactions` and live activity entries), `notifications` (RLS owner-scoped reads/read-marks), `handoverAdmin`, and `leaveHousehold` (`leave_household_self` RPC) all persist to Supabase.
+- **Saved Quick Logins & Auth UX**: Instagram/Facebook-style multi-account quick sign-in cards (`src/utils/savedAccounts.ts`) using custom storage key `roomie_sb_auth_token` + clear inline diagnostics for invalid credentials, unconfirmed email, and auth email rate limits.
+- **QR Invite System + Cross-Browser Scanner Fallback**: Real `qrcode` web/deep-link invites (`src/utils/inviteLink.ts`) + native `BarcodeDetector` with lazy-loaded `jsqr` (`47.51 kB` gzip async chunk) camera fallback in `JoinHouseholdFlowModal.tsx`.
+- **Per-Module Debug Layer & Inspector UI**: Structured secret-redacting telemetry (`src/utils/debugLog.ts`) across all 11 modules (`auth`, `expenses`, `settlements`, `chores_draft`, `governance`, `chat`, `notifications`, `qr_scanner`, `storage`, `outbox`, `realtime`), exposed via lazy-loaded `DebugInspectorModal.tsx` (`2.68 kB` gzip) from `SyncStatusPanel` & `ProfileSettingsModal`.
+- **Bundle Budget**: Initial first-screen JavaScript: **167.67 kB gzip** (safely under `< 200 kB` budget).
 ---
 
 ## 6. Duolingo-Inspired Tactile UI & Copy Polish (`feature/duolingo-design-system`)

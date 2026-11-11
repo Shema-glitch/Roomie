@@ -10,7 +10,8 @@ import { Expense, ExpenseCategory, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { processPhoto } from '../../utils/photoPipeline';
-import { uploadPhotoToStorage } from '../../services/supabase';
+import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
+import { api } from '../../services/api';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   ShoppingCart,
@@ -118,7 +119,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     sound.playTap();
     try {
       const processed = await processPhoto(file);
-      const fileName = `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.jpg`;
+      const fileName = buildScopedStoragePath(
+        api.getActiveHouseholdId(),
+        `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.jpg`
+      );
       const finalUrl = await uploadPhotoToStorage('receipts', fileName, processed.fullBlob, processed.fullDataUrl);
       setReceiptUrl(finalUrl);
       showToast('Receipt attached & compressed!', 'success');
