@@ -3,6 +3,7 @@ import { ChevronLeft } from 'lucide-react';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
+import { validateEmail, validatePassword } from '../../utils/authValidation';
 import { WelcomeLanding } from './WelcomeLanding';
 import { SignUpFlow, SignUpStep } from './SignUpFlow';
 import { SignInForm } from './SignInForm';
@@ -75,28 +76,28 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     setStage('welcome');
   };
 
-  // Predictive / hardware back handling once splash is gone
   useBackHandler(isRevealed && stage === 'showcase', 50, () => exitShowcaseTo('welcome'));
   useBackHandler(isRevealed && stage !== 'welcome' && stage !== 'showcase', 50, handleBack);
 
   const handleSignInSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!email.trim()) {
-      showToast('Please enter your email address', 'error');
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      showToast(emailCheck.error || 'Please enter a valid email address.', 'error');
       return;
     }
     if (!useMagicLink && !password) {
-      showToast('Please enter your password (or switch to magic link)', 'error');
+      showToast('Please enter your password (or switch to magic link).', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await onSignIn(email.trim(), useMagicLink ? undefined : password);
+      const res = await onSignIn(email.trim().toLowerCase(), useMagicLink ? undefined : password);
       if (res && !res.success) {
         showToast(res.message || 'Could not log in. Check your details.', 'error');
       } else if (useMagicLink) {
-        showToast('Magic link sent! Check your email inbox.', 'success');
+        showToast('Magic link check sent for your account.', 'success');
       }
     } finally {
       setLoading(false);
@@ -105,24 +106,26 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   const handleSignUpSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!name.trim()) {
-      showToast('Please enter your full name', 'error');
+    if (name.trim().length < 2) {
+      showToast('Please enter your full name.', 'error');
       return;
     }
-    if (!email.trim() || !email.includes('@')) {
-      showToast('Please enter a valid email address', 'error');
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      showToast(emailCheck.error || 'Please enter a valid email address.', 'error');
       return;
     }
-    if (password && password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error');
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      showToast(passwordCheck.error || 'Please meet all password rules.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await onSignUp(name.trim(), email.trim(), password || undefined);
+      const res = await onSignUp(name.trim(), email.trim().toLowerCase(), password);
       if (res && !res.success) {
-        showToast(res.message || 'Could not create account', 'error');
+        showToast(res.message || 'Could not create account.', 'error');
       }
     } finally {
       setLoading(false);
@@ -130,7 +133,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   };
 
   if (stage === 'showcase') {
-    // Wait until SplashScreen finishes shrinking before mounting/starting the showcase timer
     if (!isRevealed) {
       return <div className="min-h-[100dvh] bg-white" />;
     }

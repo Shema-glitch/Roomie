@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
+import { validateEmail } from '../../utils/authValidation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface SignInFormProps {
@@ -28,6 +29,8 @@ export const SignInForm: React.FC<SignInFormProps> = ({
   onSwitchToSignUp,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const emailCheck = validateEmail(email);
 
   return (
     <div key="signin" className="flex-1 flex flex-col justify-between py-2">
@@ -38,13 +41,19 @@ export const SignInForm: React.FC<SignInFormProps> = ({
             Log in to your flat
           </h2>
           <p className="type-secondary text-xs sm:text-sm text-[#6B7280]">
-            Enter your credentials to enter your apartment
+            Enter your account email and password
           </p>
         </div>
 
         <div className="animate-fade-up delay-150">
           <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form
+              onSubmit={(e) => {
+                setEmailTouched(true);
+                onSubmit(e);
+              }}
+              className="space-y-4"
+            >
               <div>
                 <label className="type-label block mb-1.5 text-xs">Email address</label>
                 <div className="relative flex items-center">
@@ -52,13 +61,25 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => onEmailChange(e.target.value)}
-                    placeholder="name@university.edu"
+                    onChange={(e) => {
+                      onEmailChange(e.target.value);
+                      if (!emailTouched) setEmailTouched(true);
+                    }}
+                    placeholder="alex@university.edu"
                     autoFocus
                     required
-                    className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                    className={`w-full pl-11 pr-4 py-3 rounded-2xl border-2 bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:ring-3 transition-all min-h-[48px] ${
+                      emailTouched && email.trim() && !emailCheck.valid
+                        ? 'border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15'
+                        : 'border-[#E6E8EE] focus:border-[#FF6B4A] focus:ring-[#FF6B4A]/15'
+                    }`}
                   />
                 </div>
+                {emailTouched && email.trim() && !emailCheck.valid && (
+                  <p className="text-[12px] font-medium text-[#E5484D] mt-1.5">
+                    {emailCheck.error}
+                  </p>
+                )}
               </div>
 
               {!useMagicLink && (
@@ -109,7 +130,13 @@ export const SignInForm: React.FC<SignInFormProps> = ({
               )}
 
               <div className="pt-2">
-                <Button variant="primary" size="lg" fullWidth disabled={loading} type="submit">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={loading || !emailCheck.valid || (!useMagicLink && !password)}
+                  type="submit"
+                >
                   {loading
                     ? 'Logging in...'
                     : useMagicLink

@@ -3,7 +3,8 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { validateEmail, validatePassword } from '../../utils/authValidation';
+import { Mail, Lock, User, Eye, EyeOff, Check } from 'lucide-react';
 
 export type SignUpStep = 'name' | 'email' | 'password';
 
@@ -35,6 +36,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
   onSwitchToSignIn,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
 
   if (step === 'name') {
     return (
@@ -78,7 +80,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 </div>
 
                 <div className="pt-2">
-                  <Button variant="primary" size="lg" fullWidth disabled={!name.trim()} type="submit">
+                  <Button variant="primary" size="lg" fullWidth disabled={name.trim().length < 2} type="submit">
                     Continue
                   </Button>
                 </div>
@@ -108,6 +110,8 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
 
   if (step === 'email') {
     const firstName = name.trim().split(' ')[0] || 'Flatmate';
+    const emailCheck = validateEmail(email);
+
     return (
       <div key="signup_email" className="flex-1 flex flex-col justify-between py-2">
         <div className="space-y-4">
@@ -126,7 +130,8 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!email.trim() || !email.includes('@')) return;
+                  setEmailTouched(true);
+                  if (!emailCheck.valid) return;
                   sound.playSuccess();
                   onStepChange('password');
                 }}
@@ -139,13 +144,25 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     <input
                       type="email"
                       value={email}
-                      onChange={(e) => onEmailChange(e.target.value)}
-                      placeholder="name@university.edu"
+                      onChange={(e) => {
+                        onEmailChange(e.target.value);
+                        if (!emailTouched) setEmailTouched(true);
+                      }}
+                      placeholder="alex@university.edu"
                       autoFocus
                       required
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                      className={`w-full pl-11 pr-4 py-3 rounded-2xl border-2 bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:ring-3 transition-all min-h-[48px] ${
+                        emailTouched && !emailCheck.valid && email.trim()
+                          ? 'border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15'
+                          : 'border-[#E6E8EE] focus:border-[#FF6B4A] focus:ring-[#FF6B4A]/15'
+                      }`}
                     />
                   </div>
+                  {emailTouched && email.trim() && !emailCheck.valid && (
+                    <p className="text-[12px] font-medium text-[#E5484D] mt-1.5">
+                      {emailCheck.error}
+                    </p>
+                  )}
                 </div>
 
                 <div className="pt-2">
@@ -153,7 +170,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     variant="primary"
                     size="lg"
                     fullWidth
-                    disabled={!email.trim() || !email.includes('@')}
+                    disabled={!emailCheck.valid}
                     type="submit"
                   >
                     Continue
@@ -183,6 +200,8 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
     );
   }
 
+  const passwordCheck = validatePassword(password);
+
   return (
     <div key="signup_password" className="flex-1 flex flex-col justify-between py-2">
       <div className="space-y-4">
@@ -192,7 +211,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
             Protect your account
           </h2>
           <p className="type-secondary text-xs sm:text-sm text-[#6B7280]">
-            Create a password so you can securely sign into your flat anytime.
+            Create a strong password so you stay signed in securely on your phone.
           </p>
         </div>
 
@@ -222,7 +241,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => onPasswordChange(e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder="Create a strong password"
                     autoFocus
                     required
                     className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
@@ -236,9 +255,29 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <span className="text-[12px] text-[#6B7280] mt-1 block">
-                  Use at least 6 characters.
-                </span>
+
+                {/* Live Password Rule Checklist */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3">
+                  {passwordCheck.rules.map((rule) => (
+                    <div
+                      key={rule.id}
+                      className={`flex items-center gap-1.5 text-[12px] font-medium transition-colors ${
+                        rule.met ? 'text-[#138E82]' : 'text-[#6B7280]'
+                      }`}
+                    >
+                      <span
+                        className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          rule.met
+                            ? 'bg-[#19B5A5] text-white'
+                            : 'bg-[#EEF0F6] text-[#94A3B8]'
+                        }`}
+                      >
+                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      </span>
+                      <span>{rule.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="pt-2">
@@ -246,10 +285,10 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                   variant="primary"
                   size="lg"
                   fullWidth
-                  disabled={loading || password.length < 6}
+                  disabled={loading || !passwordCheck.valid}
                   type="submit"
                 >
-                  {loading ? 'Creating account...' : 'Create Account & Enter'}
+                  {loading ? 'Creating account...' : 'Create Account & Continue'}
                 </Button>
               </div>
             </form>

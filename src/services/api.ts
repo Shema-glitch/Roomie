@@ -25,6 +25,7 @@ import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
 import { outbox } from './outbox';
+import { hashLocalPassword, validateEmail, validatePassword } from '../utils/authValidation';
 import { supabase, isSupabaseConfigured } from './supabase';
 
 const STORAGE_KEY = 'roomie_prototype_v3_store';
@@ -48,6 +49,22 @@ interface AppStore {
   settings: UserSettings;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
+  localAccounts?: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      email: string;
+      passwordHash: string;
+      setupMode: 'pending' | 'configured' | 'demo';
+      createdAt: string;
+    }
+  >;
+  localSession?: {
+    userId: string;
+    email: string;
+    expiresAt: number;
+  } | null;
 }
 
 // Initial realistic seed data
@@ -837,44 +854,105 @@ class ApiService {
   // --- Household Setup & Session Helpers ---
   public hasLocalSession(): boolean {
     if (supabase) return false;
-    return Boolean(this.store.localSessionActive);
-  }
-
-  public needsHouseholdSetup(): boolean {
-    const mode = this.store.householdSetupMode;
-    if (mode === 'pending') return true;
-    if (mode === 'configured' || mode === 'demo') return false;
-
-    // Auto-detect accounts created before flat setup existed (custom profile with zero user-owned flats)
-    const hasCustomProfile = this.store.currentUser.email !== 'kai.tanaka@student.emu.edu.tr';
-    const hasCreatedHousehold = this.store.households.some(
-      (h) => h.createdBy === this.store.currentUser.id
-    );
-    if (hasCustomProfile && !hasCreatedHousehold) {
-      this.store.householdSetupMode = 'pending';
+    const sess = this.store.localSession;
+    if (sess && sess.expiresAt > Date.now()) {
+      return true;
+    }
+    // Smooth migration if localSessionActive was set prior to structured sessions
+    if (this.store.localSessionActive) {
+      this.store.localSession = {
+        userId: this.store.currentUser.id,
+        email: this.store.currentUser.email,
+        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      };
       this.save();
       return true;
     }
     return false;
   }
 
-  public markDemoMode(): void {
+  public isDemoMode(): boolean {
+    return (
+      this.store.householdSetupMode === 'demo' ||
+      this.store.currentUser.id === 'u_curr'
+    );
+  }
+
+  private getScopedLocalHouseholds(): Household[] {
+    if (this.store.householdSetupMode === 'demo' || this.store.currentUser.id === 'u_curr') {
+      return [...this.store.households];
+    }
+    const memberIds = new Set(
+      this.store.memberships
+        .filter((m) => m.userId === this.store.currentUser.id && m.status === 'active')
+        .map((m) => m.householdId)
+    );
+    return this.store.households.filter((h) => memberIds.has(h.id));
+  }
+
+  private syncAccountSetupMode(mode: 'pending' | 'configured' | 'demo'): void {
+    const cleanEmail = this.store.currentUser.email.trim().toLowerCase();
+    if (this.store.localAccounts && this.store.localAccounts[cleanEmail]) {
+      this.store.localAccounts[cleanEmail].setupMode = mode;
+    }
+  }
+
+  public needsHouseholdSetup(): boolean {
+    const mode = this.store.householdSetupMode;
+    if (mode === 'demo') return false;
+
+    const myFlats = this.getScopedLocalHouseholds();
+    if (mode === 'pending') return true;
+    if (mode === 'configured' && myFlats.length > 0) return false;
+
+    // Auto-detect accounts created before flat setup existed or with zero flats
+    const hasCustomProfile = this.store.currentUser.email !== 'kai.tanaka@student.emu.edu.tr';
+    if (hasCustomProfile && myFlats.length === 0) {
+      this.store.householdSetupMode = 'pending';
+      this.syncAccountSetupMode('pending');
+      this.save();
+      return true;
+    }
+    if (hasCustomProfile && !this.store.households.some((h) => h.createdBy === this.store.currentUser.id)) {
+      this.store.householdSetupMode = 'pending';
+      this.syncAccountSetupMode('pending');
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public markDemoMode(useSampleProfile = false): void {
+    if (useSampleProfile) {
+      const kai = this.store.users.find((u) => u.id === 'u_curr');
+      if (kai) {
+        this.store.currentUser = { ...kai };
+      }
+      this.store.activeHouseholdId = 'h_main';
+    }
     this.store.householdSetupMode = 'demo';
     this.store.localSessionActive = true;
+    this.store.localSession = {
+      userId: this.store.currentUser.id,
+      email: this.store.currentUser.email,
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    };
     this.save();
   }
 
   public markHouseholdSetupPending(): void {
     this.store.householdSetupMode = 'pending';
+    this.syncAccountSetupMode('pending');
     this.save();
   }
 
   public markHouseholdConfigured(): void {
     this.store.householdSetupMode = 'configured';
+    this.syncAccountSetupMode('configured');
     this.save();
   }
 
-  // --- Supabase Authentication ---
+  // --- Authentication ---
   public async getSession() {
     if (!supabase) return null;
     const { data } = await supabase.auth.getSession();
@@ -882,18 +960,64 @@ class ApiService {
   }
 
   public async signUpWithSupabase(email: string, password?: string, name?: string): Promise<{ success: boolean; message: string }> {
-    this.store.householdSetupMode = 'pending';
-    this.store.localSessionActive = true;
-    if (!supabase) {
-      await this.updateCurrentUser({ name: name || email.split('@')[0], email });
-      return { success: true, message: 'Signed up in local demo mode.' };
+    const cleanEmail = email.trim().toLowerCase();
+    const emailCheck = validateEmail(cleanEmail);
+    if (!emailCheck.valid) {
+      return { success: false, message: emailCheck.error || 'Please enter a valid email address.' };
     }
-    const pass = password || 'RoomieApp2026!';
+    const passCheck = validatePassword(password || '');
+    if (!passCheck.valid) {
+      return { success: false, message: passCheck.error || 'Password does not meet security rules.' };
+    }
+    const cleanName = (name || cleanEmail.split('@')[0]).trim();
+
+    if (!supabase) {
+      if (!this.store.localAccounts) this.store.localAccounts = {};
+      if (this.store.localAccounts[cleanEmail]) {
+        return { success: false, message: 'An account with this email already exists. Please log in instead.' };
+      }
+
+      const newUserId = 'u_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 5);
+      const newUser: User = {
+        id: newUserId,
+        name: cleanName,
+        email: cleanEmail,
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+        country: 'Cyprus',
+        countryCode: 'CY',
+        flag: '🏠',
+        isHome: true,
+        streakDays: 0,
+        points: 0,
+        awayUntil: null,
+      };
+
+      this.store.users.push(newUser);
+      this.store.currentUser = newUser;
+      this.store.localAccounts[cleanEmail] = {
+        id: newUserId,
+        name: cleanName,
+        email: cleanEmail,
+        passwordHash: hashLocalPassword(cleanEmail, password!),
+        setupMode: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      this.store.householdSetupMode = 'pending';
+      this.store.localSessionActive = true;
+      this.store.localSession = {
+        userId: newUserId,
+        email: cleanEmail,
+        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      };
+      this.save();
+      return { success: true, message: 'Account created! Let’s set up your flat.' };
+    }
+
     const { data, error } = await supabase.auth.signUp({
-      email,
-      password: pass,
+      email: cleanEmail,
+      password: password!,
       options: {
-        data: { name: name || email.split('@')[0] },
+        data: { name: cleanName },
       },
     });
     if (error) {
@@ -902,18 +1026,73 @@ class ApiService {
     if (data.user) {
       await this.getCurrentUser();
     }
+    this.store.householdSetupMode = 'pending';
     this.save();
     return { success: true, message: 'Account created! Welcome to Roomie.' };
   }
 
   public async signInWithSupabase(email: string, password?: string): Promise<{ success: boolean; message: string }> {
-    if (!supabase) {
-      this.store.localSessionActive = true;
-      await this.updateCurrentUser({ email });
-      return { success: true, message: 'Signed in in local demo mode.' };
+    const cleanEmail = email.trim().toLowerCase();
+    const emailCheck = validateEmail(cleanEmail);
+    if (!emailCheck.valid) {
+      return { success: false, message: emailCheck.error || 'Please enter a valid email address.' };
     }
+
+    if (!supabase) {
+      if (!this.store.localAccounts) this.store.localAccounts = {};
+      let account = this.store.localAccounts[cleanEmail];
+
+      // Upgrade any existing customized pre-localAccounts test user on sign-in
+      if (
+        !account &&
+        password &&
+        this.store.currentUser.email.toLowerCase() === cleanEmail &&
+        cleanEmail !== 'kai.tanaka@student.emu.edu.tr'
+      ) {
+        const passCheck = validatePassword(password);
+        if (!passCheck.valid) {
+          return { success: false, message: passCheck.error || 'Please use a valid password.' };
+        }
+        account = {
+          id: this.store.currentUser.id === 'u_curr' ? 'u_' + Date.now().toString(36) : this.store.currentUser.id,
+          name: this.store.currentUser.name,
+          email: cleanEmail,
+          passwordHash: hashLocalPassword(cleanEmail, password),
+          setupMode: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        if (this.store.currentUser.id === 'u_curr') {
+          this.store.currentUser = { ...this.store.currentUser, id: account.id };
+          this.store.users.push(this.store.currentUser);
+        }
+        this.store.localAccounts[cleanEmail] = account;
+      }
+
+      if (!account) {
+        return { success: false, message: 'No account found for this email. Check spelling or tap Get Started.' };
+      }
+
+      if (password && hashLocalPassword(cleanEmail, password) !== account.passwordHash) {
+        return { success: false, message: 'Incorrect password. Please try again.' };
+      }
+
+      const existingProfile = this.store.users.find((u) => u.id === account.id);
+      if (existingProfile) {
+        this.store.currentUser = { ...existingProfile };
+      }
+      this.store.householdSetupMode = account.setupMode;
+      this.store.localSessionActive = true;
+      this.store.localSession = {
+        userId: account.id,
+        email: cleanEmail,
+        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+      };
+      this.save();
+      return { success: true, message: 'Welcome back!' };
+    }
+
     if (password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       if (error) {
         return { success: false, message: error.message };
       }
@@ -922,7 +1101,7 @@ class ApiService {
       return { success: true, message: 'Welcome back!' };
     }
     // Passwordless OTP magic link
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail });
     if (error) {
       return { success: false, message: error.message };
     }
@@ -931,6 +1110,7 @@ class ApiService {
 
   public async signOut(): Promise<void> {
     this.store.localSessionActive = false;
+    this.store.localSession = null;
     this.save();
     if (supabase) {
       await supabase.auth.signOut();
@@ -1034,15 +1214,16 @@ class ApiService {
         // fallback
       }
     }
-    return [...this.store.households];
+    return this.getScopedLocalHouseholds();
   }
 
-  public async getActiveHousehold(): Promise<Household> {
-    const found = this.store.households.find(h => h.id === this.store.activeHouseholdId);
-    return found || this.store.households[0];
+  public async getActiveHousehold(): Promise<Household | null> {
+    const scoped = this.getScopedLocalHouseholds();
+    const found = scoped.find((h) => h.id === this.store.activeHouseholdId);
+    return found || scoped[0] || null;
   }
 
-  public async setActiveHousehold(householdId: string): Promise<Household> {
+  public async setActiveHousehold(householdId: string): Promise<Household | null> {
     this.store.activeHouseholdId = householdId;
     this.save();
     return this.getActiveHousehold();
@@ -1167,6 +1348,7 @@ class ApiService {
     });
     this.store.chores.push(...buildStarterChores(newHousehold.id));
     this.store.householdSetupMode = 'configured';
+    this.syncAccountSetupMode('configured');
     this.save();
     return newHousehold;
   }

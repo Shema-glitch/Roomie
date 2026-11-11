@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { ToastProvider, useToast } from './components/common/Toast';
 import { OfflineBanner } from './components/common/OfflineBanner';
+import { DemoModeBanner } from './components/common/DemoModeBanner';
 import { SyncStatusPanel, SyncStatusType } from './components/common/SyncStatusPanel';
 import { Avatar } from './components/common/Avatar';
 import { MascotView } from './components/common/MascotView';
@@ -146,8 +147,11 @@ function MainApp() {
   const { showToast } = useToast();
 
   // App lifecycle & auth states
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [needsHouseholdSetup, setNeedsHouseholdSetup] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => api.hasLocalSession());
+  const [needsHouseholdSetup, setNeedsHouseholdSetup] = useState<boolean>(() =>
+    api.hasLocalSession() ? api.needsHouseholdSetup() : false
+  );
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => api.isDemoMode());
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [navState, setNavState] = useState<{ current: Tab; history: Tab[] }>({
     current: 'feed',
@@ -278,6 +282,33 @@ function MainApp() {
       const u = await api.getCurrentUser();
       const hList = await api.getHouseholds();
       const activeH = await api.getActiveHousehold();
+      const notifList = await api.getNotifications();
+      const setts = await api.getSettings();
+      const demoActive = api.isDemoMode();
+
+      setCurrentUser(u);
+      setHouseholds(hList);
+      setActiveHousehold(activeH);
+      setNotifications(notifList);
+      setSettings(setts);
+      setIsDemoMode(demoActive);
+      sound.setEnabled(setts.soundEnabled);
+
+      if (!activeH) {
+        setMembers([]);
+        setChores([]);
+        setDraftRound(null);
+        setExpenses([]);
+        setSettlements([]);
+        setMessages([]);
+        setTopics([]);
+        setAgreements([]);
+        setJoinRequests([]);
+        setBalances({ userSummaries: {}, simplifiedDebts: [] });
+        setNeedsHouseholdSetup(true);
+        return;
+      }
+
       const memList = await api.getHouseholdMembers(activeH.id);
       const chList = await api.getChores(activeH.id);
       const dRound = await api.getDraftRound(activeH.id);
@@ -286,14 +317,9 @@ function MainApp() {
       const msgList = await api.getMessages(activeH.id);
       const topList = await api.getMeetingTopics(activeH.id);
       const agrList = await api.getAgreements(activeH.id);
-      const notifList = await api.getNotifications();
       const jrList = await api.getJoinRequests(activeH.id);
-      const setts = await api.getSettings();
       const balOverview = await api.getBalancesOverview(activeH.id);
 
-      setCurrentUser(u);
-      setHouseholds(hList);
-      setActiveHousehold(activeH);
       setMembers(memList);
       setChores(chList);
       setDraftRound(dRound);
@@ -302,13 +328,8 @@ function MainApp() {
       setMessages(msgList);
       setTopics(topList);
       setAgreements(agrList);
-      setNotifications(notifList);
       setJoinRequests(jrList);
-      setSettings(setts);
       setBalances(balOverview);
-
-      // sync sound setting
-      sound.setEnabled(setts.soundEnabled);
     } catch (err: any) {
       setLoadError(err?.message || 'Could not load apartment data.');
     }
@@ -428,7 +449,8 @@ function MainApp() {
             return res;
           }}
           onQuickStart={() => {
-            api.markDemoMode();
+            api.markDemoMode(true);
+            setIsDemoMode(true);
             setNeedsHouseholdSetup(false);
             setIsAuthenticated(true);
             loadData();
@@ -455,12 +477,14 @@ function MainApp() {
           }}
           onSetupComplete={() => {
             api.markHouseholdConfigured();
+            setIsDemoMode(false);
             setNeedsHouseholdSetup(false);
             setNavState({ current: 'feed', history: ['feed'] });
             loadData();
           }}
           onExploreDemo={() => {
-            api.markDemoMode();
+            api.markDemoMode(false);
+            setIsDemoMode(true);
             setNeedsHouseholdSetup(false);
             setNavState({ current: 'feed', history: ['feed'] });
             loadData();
@@ -555,14 +579,27 @@ function MainApp() {
     >
 
 
-      {/* Offline banner simulation */}
-      <OfflineBanner
-        isOffline={isOffline || syncStatus === 'offline'}
-        onToggle={handleManualSync}
-      />
+      {/* Offline or Demo mode top banner */}
+      {isOffline || syncStatus === 'offline' ? (
+        <OfflineBanner
+          isOffline={true}
+          onToggle={handleManualSync}
+        />
+      ) : isDemoMode ? (
+        <DemoModeBanner
+          householdName={activeHousehold.name}
+          onSetupRealFlat={() => {
+            api.markHouseholdSetupPending();
+            setIsDemoMode(false);
+            setNeedsHouseholdSetup(true);
+          }}
+        />
+      ) : null}
 
       {/* TOP APP BAR - Responsive Header with Desktop Tabs */}
-      <header className="sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full pt-safe">
+      <header className={`sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full ${
+        isOffline || syncStatus === 'offline' || isDemoMode ? '' : 'pt-safe'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
           {/* Left: Apartment Switcher dropdown & Invite code chip */}
           <div className="flex items-center gap-2 shrink-0">
