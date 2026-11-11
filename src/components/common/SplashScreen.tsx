@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MascotView } from './MascotView';
 
 interface SplashScreenProps {
@@ -10,9 +10,18 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealSt
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
 
+  const onFinishRef = useRef(onFinish);
+  const onRevealStartRef = useRef(onRevealStart);
+
+  useEffect(() => {
+    onFinishRef.current = onFinish;
+    onRevealStartRef.current = onRevealStart;
+  }, [onFinish, onRevealStart]);
+
   useEffect(() => {
     const startTime = Date.now();
-    const DURATION = 5000; // 5 seconds loading bar
+    const DURATION = 3200; // Snappy 3.2s splash loading bar
+    let finishTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -21,19 +30,21 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealSt
 
       if (pct >= 100) {
         clearInterval(interval);
-        // Start the slow circular transition shrinking upward to reveal content
         setExiting(true);
-        onRevealStart?.();
+        onRevealStartRef.current?.();
 
-        // Allow 1.2s for the slow circle transition before unmounting
-        setTimeout(() => {
-          onFinish();
-        }, 1250);
+        // Allow 1.1s for the circular wipe-out before unmounting
+        finishTimeout = setTimeout(() => {
+          onFinishRef.current();
+        }, 1100);
       }
     }, 40);
 
-    return () => clearInterval(interval);
-  }, [onFinish, onRevealStart]);
+    return () => {
+      clearInterval(interval);
+      if (finishTimeout) clearTimeout(finishTimeout);
+    };
+  }, []);
 
   const getLoadingMessage = (p: number) => {
     if (p < 25) return 'Waking up Roomie...';
@@ -44,12 +55,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealSt
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-[#FF7A5C] via-[#FF6B4A] to-[#E85635] text-white select-none ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-[#FF7A5C] via-[#FF6B4A] to-[#E85635] text-white select-none pt-safe pb-safe ${
         exiting ? 'pointer-events-none' : ''
       }`}
       style={{
         clipPath: exiting ? 'circle(0% at 50% -10%)' : 'circle(150% at 50% 50%)',
-        transition: 'clip-path 1.2s cubic-bezier(0.65, 0, 0.35, 1)',
+        transition: 'clip-path 1.1s cubic-bezier(0.65, 0, 0.35, 1)',
       }}
     >
       <div
@@ -72,7 +83,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealSt
           </p>
         </div>
 
-        {/* 5-Second Simulated Loading Bar */}
+        {/* Simulated Loading Bar */}
         <div className="w-full space-y-2 pt-2">
           <div className="w-full h-3.5 bg-black/20 rounded-full p-0.5 overflow-hidden backdrop-blur-xs border border-white/20 shadow-inner">
             <div

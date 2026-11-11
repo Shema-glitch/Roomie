@@ -367,6 +367,7 @@ function MainApp() {
     }
   }, [settings.reducedMotion]);
 
+  const renderScreen = () => {
   if (loadError && (!currentUser || !activeHousehold || !draftRound)) {
     return (
       <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center space-y-4">
@@ -389,19 +390,8 @@ function MainApp() {
   if (!isAuthenticated) {
     return (
       <>
-        {showSplash && (
-          <SplashScreen
-            onFinish={() => {
-              setShowSplash(false);
-              setSplashRevealed(true);
-              if (typeof window !== 'undefined') {
-                sessionStorage.setItem('roomie_splash_seen', '1');
-              }
-            }}
-          />
-        )}
         <WelcomeScreen
-          isRevealed={splashRevealed}
+          isRevealed={!showSplash}
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
             if (res.success) {
@@ -506,17 +496,7 @@ function MainApp() {
         activeTab === 'chat' ? 'h-[100dvh] overflow-hidden' : ''
       } ${settings.reducedMotion ? 'motion-reduce' : ''}`}
     >
-      {showSplash && (
-        <SplashScreen
-          onFinish={() => {
-            setShowSplash(false);
-            setSplashRevealed(true);
-            if (typeof window !== 'undefined') {
-              sessionStorage.setItem('roomie_splash_seen', '1');
-            }
-          }}
-        />
-      )}
+
 
       {/* Offline banner simulation */}
       <OfflineBanner
@@ -1109,6 +1089,24 @@ function MainApp() {
         )}
       </React.Suspense>
     </div>
+  );
+  };
+
+  return (
+    <>
+      {showSplash && (
+        <SplashScreen
+          onFinish={() => {
+            setShowSplash(false);
+            setSplashRevealed(true);
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('roomie_splash_seen', '1');
+            }
+          }}
+        />
+      )}
+      {renderScreen()}
+    </>
   );
 }
 
