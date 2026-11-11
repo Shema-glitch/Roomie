@@ -11,14 +11,30 @@ export const isSupabaseConfigured: boolean = Boolean(
   !supabaseAnonKey.includes('your-anon-key')
 );
 
+export const SUPABASE_AUTH_STORAGE_KEY = 'roomie_sb_auth_token';
+
 export const supabase: SupabaseClient<Database> | null = isSupabaseConfigured
   ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
+        storageKey: SUPABASE_AUTH_STORAGE_KEY,
         persistSession: true,
         autoRefreshToken: true,
       },
     })
   : null;
+
+/**
+ * Clears only the active local Supabase session key without calling POST /logout,
+ * preserving saved refresh tokens for Instagram/Facebook-style 1-tap device quick login.
+ */
+export function clearLocalSupabaseSessionStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(SUPABASE_AUTH_STORAGE_KEY);
+  } catch {
+    // ignore storage restriction
+  }
+}
 
 /**
  * Upload a photo blob to Supabase Storage with graceful fallback to data URL.

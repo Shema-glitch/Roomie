@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { validateEmail } from '../../utils/authValidation';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { SavedLoginAccount } from '../../utils/savedAccounts';
+import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
 
 interface SignInFormProps {
   email: string;
   password: string;
   useMagicLink: boolean;
+  rememberMe: boolean;
+  savedAccounts?: SavedLoginAccount[];
   loading: boolean;
   onEmailChange: (val: string) => void;
   onPasswordChange: (val: string) => void;
   onToggleMagicLink: (val: boolean) => void;
+  onToggleRememberMe: (val: boolean) => void;
+  onQuickSignIn?: (email: string) => Promise<void>;
   onSubmit: (e?: React.FormEvent) => void;
   onSwitchToSignUp: () => void;
 }
@@ -21,10 +27,14 @@ export const SignInForm: React.FC<SignInFormProps> = ({
   email,
   password,
   useMagicLink,
+  rememberMe,
+  savedAccounts = [],
   loading,
   onEmailChange,
   onPasswordChange,
   onToggleMagicLink,
+  onToggleRememberMe,
+  onQuickSignIn,
   onSubmit,
   onSwitchToSignUp,
 }) => {
@@ -44,6 +54,23 @@ export const SignInForm: React.FC<SignInFormProps> = ({
             Enter your account email and password
           </p>
         </div>
+
+        {savedAccounts.length > 0 && onQuickSignIn && (
+          <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up delay-100">
+            {savedAccounts.slice(0, 3).map((acct) => (
+              <button
+                key={acct.email}
+                type="button"
+                disabled={loading}
+                onClick={() => onQuickSignIn(acct.email)}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border-2 border-[#E6E8EE] hover:border-[#FF6B4A] text-xs font-bold text-[#1F2430] shadow-xs cursor-pointer transition-all"
+              >
+                <Avatar src={acct.avatar} name={acct.name} size="sm" />
+                <span className="truncate max-w-[120px]">{acct.name.split(' ')[0]}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="animate-fade-up delay-150">
           <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
@@ -129,7 +156,29 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                 </div>
               )}
 
-              <div className="pt-2">
+              {!useMagicLink && (
+                <button
+                  type="button"
+                  onClick={() => onToggleRememberMe(!rememberMe)}
+                  className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-left cursor-pointer hover:border-[#CBD5E1] transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold text-[#1F2430]">Save login info</p>
+                    <p className="text-[11px] text-[#6B7280]">Sign back in with 1 tap on this device</p>
+                  </div>
+                  <span
+                    className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      rememberMe
+                        ? 'bg-[#19B5A5] text-white'
+                        : 'bg-white border-2 border-[#CBD5E1] text-transparent'
+                    }`}
+                  >
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </span>
+                </button>
+              )}
+
+              <div className="pt-1">
                 <Button
                   variant="primary"
                   size="lg"

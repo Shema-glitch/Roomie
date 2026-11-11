@@ -13,10 +13,12 @@ interface SignUpFlowProps {
   name: string;
   email: string;
   password: string;
+  rememberMe: boolean;
   loading: boolean;
   onNameChange: (val: string) => void;
   onEmailChange: (val: string) => void;
   onPasswordChange: (val: string) => void;
+  onToggleRememberMe: (val: boolean) => void;
   onStepChange: (step: SignUpStep) => void;
   onSubmit: (e?: React.FormEvent) => void;
   onSwitchToSignIn: () => void;
@@ -27,10 +29,12 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
   name,
   email,
   password,
+  rememberMe,
   loading,
   onNameChange,
   onEmailChange,
   onPasswordChange,
+  onToggleRememberMe,
   onStepChange,
   onSubmit,
   onSwitchToSignIn,
@@ -280,7 +284,27 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 </div>
               </div>
 
-              <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => onToggleRememberMe(!rememberMe)}
+                className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-left cursor-pointer hover:border-[#CBD5E1] transition-colors"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold text-[#1F2430]">Save login info</p>
+                  <p className="text-[11px] text-[#6B7280]">Sign back in with 1 tap next time</p>
+                </div>
+                <span
+                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                    rememberMe
+                      ? 'bg-[#19B5A5] text-white'
+                      : 'bg-white border-2 border-[#CBD5E1] text-transparent'
+                  }`}
+                >
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </span>
+              </button>
+
+              <div className="pt-1">
                 <Button
                   variant="primary"
                   size="lg"

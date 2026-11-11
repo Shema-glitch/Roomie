@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../../components/common/Button';
+import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { ArrowRight, QrCode, Sparkles, X } from 'lucide-react';
+import { SavedLoginAccount } from '../../utils/savedAccounts';
+import { ArrowRight, QrCode, Sparkles, X, Zap } from 'lucide-react';
 
 interface WelcomeLandingProps {
   isRevealed: boolean;
   pendingInviteCode?: string | null;
+  savedAccounts?: SavedLoginAccount[];
   onDismissInvite?: () => void;
+  onQuickSignIn?: (email: string) => Promise<void>;
+  onRemoveSavedAccount?: (email: string) => void;
   onGetStarted: () => void;
   onSignIn: () => void;
   onReplayShowcase: () => void;
@@ -17,41 +22,137 @@ interface WelcomeLandingProps {
 export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
   isRevealed,
   pendingInviteCode,
+  savedAccounts = [],
   onDismissInvite,
+  onQuickSignIn,
+  onRemoveSavedAccount,
   onGetStarted,
   onSignIn,
   onReplayShowcase,
   onDemoFlat,
 }) => {
+  const [signingInEmail, setSigningInEmail] = useState<string | null>(null);
+
+  const handleQuickTap = async (acct: SavedLoginAccount) => {
+    if (!onQuickSignIn || signingInEmail) return;
+    sound.playTap();
+    setSigningInEmail(acct.email);
+    try {
+      await onQuickSignIn(acct.email);
+    } finally {
+      setSigningInEmail(null);
+    }
+  };
+
   return (
     <div key="welcome" className="flex-1 flex flex-col justify-between pt-8 sm:pt-10 pb-2">
-      <div className="my-auto space-y-6">
+      <div className="my-auto space-y-5">
         <div className="flex flex-col items-center text-center">
           <div className={isRevealed ? 'animate-pop-in' : 'opacity-0'}>
             <MascotView
               state="celebrating"
-              size="xl"
-              bubbleText={pendingInviteCode ? 'You got a flat invite!' : 'Welcome to Roomie!'}
+              size={savedAccounts.length > 0 ? 'lg' : 'xl'}
+              bubbleText={
+                pendingInviteCode
+                  ? 'You got a flat invite!'
+                  : savedAccounts.length > 0
+                  ? 'Welcome back!'
+                  : 'Welcome to Roomie!'
+              }
             />
           </div>
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-1.5">
             <h1
-              className={`font-heading font-black text-[26px] sm:text-[32px] leading-tight text-[#1F2430] tracking-tight ${
+              className={`font-heading font-black text-[25px] sm:text-[31px] leading-tight text-[#1F2430] tracking-tight ${
                 isRevealed ? 'animate-fade-up delay-150' : 'opacity-0'
               }`}
             >
               The joyful way to share a home.
             </h1>
-            <p
-              className={`type-body text-[#6B7280] max-w-xs mx-auto text-sm sm:text-base leading-relaxed ${
-                isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
-              }`}
-            >
-              Fair chores, quiet splits, and happy flatmates living in harmony.
-            </p>
+            {savedAccounts.length === 0 && (
+              <p
+                className={`type-body text-[#6B7280] max-w-xs mx-auto text-sm sm:text-base leading-relaxed ${
+                  isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
+                }`}
+              >
+                Fair chores, quiet splits, and happy flatmates living in harmony.
+              </p>
+            )}
           </div>
         </div>
+
+        {savedAccounts.length > 0 && (
+          <div
+            className={`space-y-2 ${isRevealed ? 'animate-fade-up delay-200' : 'opacity-0'}`}
+          >
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#64748B]">
+                Quick sign-in
+              </span>
+              <span className="text-[11px] font-bold text-[#19B5A5] inline-flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                1-tap saved logins
+              </span>
+            </div>
+            <div className="space-y-2">
+              {savedAccounts.slice(0, 3).map((acct) => {
+                const isBusy = signingInEmail === acct.email;
+                const oneTapReady = Boolean(acct.sessionTokens?.refreshToken || acct.mode === 'local');
+                return (
+                  <div
+                    key={acct.email}
+                    className="group relative w-full p-2.5 pr-3 rounded-2xl bg-white border-2 border-[#E6E8EE] hover:border-[#FF6B4A] shadow-xs flex items-center justify-between gap-2.5 transition-all"
+                  >
+                    <button
+                      type="button"
+                      disabled={Boolean(signingInEmail)}
+                      onClick={() => handleQuickTap(acct)}
+                      className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer disabled:opacity-60 focus:outline-none"
+                    >
+                      <Avatar src={acct.avatar} name={acct.name} size="md" className="shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-heading font-black text-sm text-[#1F2430] truncate">
+                            {acct.name}
+                          </span>
+                          {acct.flag && <span className="text-xs shrink-0">{acct.flag}</span>}
+                        </div>
+                        <p className="text-[11px] text-[#64748B] truncate">{acct.email}</p>
+                        <span
+                          className={`inline-block text-[10px] font-bold mt-0.5 ${
+                            oneTapReady ? 'text-[#0F8B7D]' : 'text-[#FF6B4A]'
+                          }`}
+                        >
+                          {isBusy
+                            ? 'Signing in...'
+                            : oneTapReady
+                            ? 'Tap to continue'
+                            : 'Tap to enter password'}
+                        </span>
+                      </div>
+                    </button>
+
+                    {onRemoveSavedAccount && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          sound.playTap();
+                          onRemoveSavedAccount(acct.email);
+                        }}
+                        className="p-1.5 rounded-full text-[#94A3B8] hover:text-[#E5484D] hover:bg-[#FFF0ED] cursor-pointer shrink-0 transition-colors"
+                        aria-label={`Remove saved login for ${acct.name}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {pendingInviteCode && (
           <div

@@ -22,6 +22,7 @@ import {
   X,
   AlertCircle,
   Smartphone,
+  Zap,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -34,7 +35,9 @@ interface ProfileSettingsModalProps {
   onUpdateProfile?: (updates: Partial<User>) => Promise<User>;
   onExportData: () => void;
   onDeleteAccount: () => void;
-  onSignOut?: () => void;
+  onSignOut?: (options?: { keepSavedLogin?: boolean }) => void;
+  isLoginSaved?: boolean;
+  onToggleSaveLogin?: (save: boolean) => Promise<boolean>;
   onOpenFeedback: () => void;
   onOpenHowItWorks?: () => void;
   onOpenShowcase?: () => void;
@@ -59,6 +62,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onExportData,
   onDeleteAccount,
   onSignOut,
+  isLoginSaved = false,
+  onToggleSaveLogin,
   onOpenFeedback,
   onOpenHowItWorks,
   onOpenShowcase,
@@ -67,6 +72,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const { showToast } = useToast();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+  const [signOutPromptOpen, setSignOutPromptOpen] = useState(false);
+  const [loginSaved, setLoginSaved] = useState(Boolean(isLoginSaved));
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   // Edit profile form state
@@ -482,6 +489,42 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </Button>
             </div>
 
+            {onToggleSaveLogin && (
+              <Card
+                padding="sm"
+                className="flex items-center justify-between gap-3 bg-[#F7F8FB] border border-[#E6E8EE] rounded-2xl"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold text-[#1F2430] truncate">Save login info</p>
+                    <p className="text-[11px] text-[#64748B] truncate">1-tap quick sign-in on this device</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    sound.playTap();
+                    const next = await onToggleSaveLogin(!loginSaved);
+                    setLoginSaved(next);
+                    showToast(
+                      next ? 'Saved login for 1-tap sign-in' : 'Removed saved login from this device',
+                      'info'
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-black transition-colors cursor-pointer shrink-0 ${
+                    loginSaved
+                      ? 'bg-[#19B5A5] text-white'
+                      : 'bg-white border border-[#CBD5E1] text-[#475569]'
+                  }`}
+                >
+                  {loginSaved ? 'Saved' : 'Off'}
+                </button>
+              </Card>
+            )}
+
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
@@ -496,8 +539,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={() => {
-                  onClose();
-                  if (onSignOut) onSignOut();
+                  if (!onSignOut) return;
+                  if (loginSaved || !onToggleSaveLogin) {
+                    onClose();
+                    onSignOut({ keepSavedLogin: loginSaved });
+                  } else {
+                    setSignOutPromptOpen(true);
+                  }
                 }}
                 icon={<LogOut className="w-3.5 h-3.5 text-[#64748B]" />}
               >
@@ -525,6 +573,50 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               icon={<Trash2 className="w-3.5 h-3.5" />}
             >
               Delete account
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Instagram/Facebook-style Save Login prompt before signing out */}
+      <Modal
+        isOpen={signOutPromptOpen}
+        onClose={() => setSignOutPromptOpen(false)}
+        title="Save your login info?"
+        subtitle="You can sign right back in with 1 tap next time"
+      >
+        <div className="space-y-4 text-center">
+          <div className="flex flex-col items-center gap-2 py-2">
+            <Avatar src={currentUser.avatar} name={currentUser.name} size="lg" />
+            <div>
+              <p className="font-heading font-black text-base text-[#1F2430]">{currentUser.name}</p>
+              <p className="type-secondary text-xs text-[#64748B]">{currentUser.email}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={() => {
+                setSignOutPromptOpen(false);
+                onClose();
+                onSignOut?.({ keepSavedLogin: true });
+              }}
+            >
+              Save Info & Sign Out
+            </Button>
+            <Button
+              variant="outline"
+              size="md"
+              fullWidth
+              onClick={() => {
+                setSignOutPromptOpen(false);
+                onClose();
+                onSignOut?.({ keepSavedLogin: false });
+              }}
+            >
+              Not Now (Sign Out)
             </Button>
           </div>
         </div>

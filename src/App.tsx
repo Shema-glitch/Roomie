@@ -157,6 +157,8 @@ function MainApp() {
     api.hasLocalSession() ? api.needsHouseholdSetup() : false
   );
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => api.isDemoMode());
+  const [savedAccounts, setSavedAccounts] = useState(() => api.getSavedLoginAccounts());
+  const refreshSavedAccounts = () => setSavedAccounts(api.getSavedLoginAccounts());
   const [pendingInviteCode, setPendingInviteCodeState] = useState<string | null>(() =>
     captureInviteCodeFromLocation()
   );
@@ -480,9 +482,11 @@ function MainApp() {
         <WelcomeScreen
           isRevealed={!showSplash}
           pendingInviteCode={pendingInviteCode}
+          savedAccounts={savedAccounts}
           onDismissInvite={() => updatePendingInviteCode(null)}
-          onSignIn={async (email, password) => {
-            const res = await api.signInWithSupabase(email, password);
+          onSignIn={async (email, password, rememberMe) => {
+            const res = await api.signInWithSupabase(email, password, { rememberMe });
+            refreshSavedAccounts();
             if (res.success) {
               const shouldSetup = api.needsHouseholdSetup();
               setIsDemoMode(false);
@@ -492,8 +496,9 @@ function MainApp() {
             }
             return res;
           }}
-          onSignUp={async (name, email, password) => {
-            const res = await api.signUpWithSupabase(email, password, name);
+          onSignUp={async (name, email, password, rememberMe) => {
+            const res = await api.signUpWithSupabase(email, password, name, { rememberMe });
+            refreshSavedAccounts();
             if (res.success && !res.requiresEmailVerification) {
               setIsDemoMode(false);
               setNeedsHouseholdSetup(true);
@@ -502,6 +507,23 @@ function MainApp() {
               await loadData();
             }
             return res;
+          }}
+          onQuickSignIn={async (email) => {
+            const res = await api.quickSignInSavedAccount(email);
+            refreshSavedAccounts();
+            if (res.success) {
+              const shouldSetup = api.needsHouseholdSetup();
+              setIsDemoMode(false);
+              setNeedsHouseholdSetup(shouldSetup);
+              setIsAuthenticated(true);
+              await loadData();
+              showToast(res.message || 'Welcome back!', 'success');
+            }
+            return res;
+          }}
+          onRemoveSavedAccount={(email) => {
+            setSavedAccounts(api.removeSavedLoginAccount(email));
+            showToast('Removed saved login from this device', 'info');
           }}
           onQuickStart={() => {
             api.markDemoMode(true);
@@ -548,6 +570,7 @@ function MainApp() {
           }}
           onBackToWelcome={async () => {
             await api.signOut();
+            refreshSavedAccounts();
             setNeedsHouseholdSetup(false);
             setIsAuthenticated(false);
           }}
@@ -1224,8 +1247,19 @@ function MainApp() {
               loadData();
               showToast('Account data reset to fresh demo state.', 'info');
             }}
-            onSignOut={async () => {
-              await api.signOut();
+            isLoginSaved={api.isCurrentUserLoginSaved()}
+            onToggleSaveLogin={
+              isDemoMode
+                ? undefined
+                : async (save) => {
+                    const saved = await api.setCurrentUserLoginSaved(save);
+                    refreshSavedAccounts();
+                    return saved;
+                  }
+            }
+            onSignOut={async (options) => {
+              await api.signOut(options);
+              refreshSavedAccounts();
               setNeedsHouseholdSetup(false);
               setIsAuthenticated(false);
               showToast('Signed out of Roomie', 'info');

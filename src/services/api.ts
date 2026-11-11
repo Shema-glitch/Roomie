@@ -27,7 +27,15 @@ import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../ut
 import { outbox } from './outbox';
 import { hashLocalPassword, validateEmail, validatePassword } from '../utils/authValidation';
 import { getPendingInviteCode } from '../utils/inviteLink';
-import { supabase, isSupabaseConfigured } from './supabase';
+import {
+  getSavedAccounts,
+  isAccountSaved,
+  removeSavedAccount,
+  SavedLoginAccount,
+  updateSavedAccountTokens,
+  upsertSavedAccount,
+} from '../utils/savedAccounts';
+import { clearLocalSupabaseSessionStorage, supabase, isSupabaseConfigured } from './supabase';
 
 const STORAGE_KEY = 'roomie_prototype_v3_store';
 
@@ -977,11 +985,182 @@ class ApiService {
   public onAuthStateChange(callback: (event: string, hasSession: boolean) => void): () => void {
     if (!supabase) return () => {};
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN')) {
+        const uidOrEmail = session.user?.id || session.user?.email;
+        if (uidOrEmail && isAccountSaved(uidOrEmail)) {
+          updateSavedAccountTokens(uidOrEmail, {
+            accessToken: session.access_token,
+            refreshToken: session.refresh_token,
+          });
+        }
+      }
       callback(event, Boolean(session));
     });
     return () => {
       data.subscription.unsubscribe();
     };
+  }
+
+  private formatSupabaseAuthError(rawMessage: string): string {
+    const msg = rawMessage.toLowerCase();
+    if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
+      return 'Invalid login credentials. Double-check your password, or if this account was created before live Supabase was connected, tap Get Started to register it.';
+    }
+    if (msg.includes('email not confirmed')) {
+      return 'Email not confirmed yet. Check your inbox (and spam folder) for the verification link before signing in.';
+    }
+    if (msg.includes('rate limit') || msg.includes('too many requests') || msg.includes('429')) {
+      return 'Supabase built-in email limit reached (2 emails/hour). Wait an hour, or turn off "Confirm email" / add custom SMTP in Supabase Dashboard → Authentication.';
+    }
+    if (msg.includes('already registered') || msg.includes('already exists')) {
+      return 'An account with this email already exists on Roomie. Tap Log in instead.';
+    }
+    return rawMessage;
+  }
+
+  public getSavedLoginAccounts(): SavedLoginAccount[] {
+    const targetMode = supabase ? 'supabase' : 'local';
+    return getSavedAccounts().filter((a) => a.mode === targetMode);
+  }
+
+  public isCurrentUserLoginSaved(): boolean {
+    if (this.isDemoMode()) return false;
+    return isAccountSaved(this.store.currentUser?.id) || isAccountSaved(this.store.currentUser?.email);
+  }
+
+  public async setCurrentUserLoginSaved(save: boolean): Promise<boolean> {
+    if (this.isDemoMode()) return false;
+    const u = this.store.currentUser;
+    if (!save) {
+      removeSavedAccount(u.id || u.email);
+      if (u.email) removeSavedAccount(u.email);
+      return false;
+    }
+
+    let sessionTokens: { accessToken: string; refreshToken: string } | undefined;
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        sessionTokens = {
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+        };
+      }
+    }
+
+    upsertSavedAccount({
+      userId: u.id,
+      email: u.email,
+      name: u.name,
+      avatar: u.avatar,
+      flag: u.flag,
+      mode: supabase ? 'supabase' : 'local',
+      sessionTokens,
+    });
+    return true;
+  }
+
+  public removeSavedLoginAccount(userIdOrEmail: string): SavedLoginAccount[] {
+    removeSavedAccount(userIdOrEmail);
+    return this.getSavedLoginAccounts();
+  }
+
+  public async quickSignInSavedAccount(
+    userIdOrEmail: string
+  ): Promise<{ success: boolean; message: string; requiresPassword?: boolean; email?: string }> {
+    const saved = this.getSavedLoginAccounts().find(
+      (a) =>
+        a.userId === userIdOrEmail ||
+        a.email.toLowerCase() === userIdOrEmail.trim().toLowerCase()
+    );
+    if (!saved) {
+      return { success: false, message: 'Saved login was not found on this device.' };
+    }
+
+    if (supabase) {
+      if (!saved.sessionTokens?.refreshToken) {
+        return {
+          success: false,
+          requiresPassword: true,
+          email: saved.email,
+          message: 'Enter your password once to activate 1-tap quick login for this account.',
+        };
+      }
+
+      const { data, error } = await supabase.auth.setSession({
+        access_token: saved.sessionTokens.accessToken,
+        refresh_token: saved.sessionTokens.refreshToken,
+      });
+
+      if (error || !data.session) {
+        // Keep the saved profile tile, clear only the expired token
+        updateSavedAccountTokens(saved.email, undefined);
+        return {
+          success: false,
+          requiresPassword: true,
+          email: saved.email,
+          message: 'Saved login session expired. Enter your password to sign back in.',
+        };
+      }
+
+      await supabase.auth.startAutoRefresh();
+      if (this.store.householdSetupMode === 'demo') {
+        this.store.householdSetupMode = undefined;
+      }
+      this.store.localSessionActive = false;
+      this.store.localSession = null;
+
+      const user = await this.getCurrentUser();
+      await this.getHouseholds();
+      upsertSavedAccount({
+        userId: user.id,
+        email: user.email || saved.email,
+        name: user.name || saved.name,
+        avatar: user.avatar || saved.avatar,
+        flag: user.flag || saved.flag,
+        mode: 'supabase',
+        sessionTokens: {
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+        },
+      });
+      this.save();
+      return { success: true, message: `Signed back in as ${user.name || saved.name}!` };
+    }
+
+    // Local/offline account 1-tap restore
+    const cleanEmail = saved.email.trim().toLowerCase();
+    const account = this.store.localAccounts?.[cleanEmail];
+    if (!account) {
+      return {
+        success: false,
+        requiresPassword: true,
+        email: saved.email,
+        message: 'Could not restore local account automatically. Please sign in.',
+      };
+    }
+
+    const existingProfile = this.store.users.find((u) => u.id === account.id);
+    if (existingProfile) {
+      this.store.currentUser = { ...existingProfile };
+    }
+    this.store.householdSetupMode = account.setupMode;
+    this.store.localSessionActive = true;
+    this.store.localSession = {
+      userId: account.id,
+      email: cleanEmail,
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    };
+    upsertSavedAccount({
+      userId: account.id,
+      email: cleanEmail,
+      name: this.store.currentUser.name || account.name,
+      avatar: this.store.currentUser.avatar,
+      flag: this.store.currentUser.flag,
+      mode: 'local',
+    });
+    this.save();
+    return { success: true, message: `Signed back in as ${this.store.currentUser.name}!` };
   }
 
   private getAuthRedirectUrl(): string | undefined {
@@ -997,7 +1176,8 @@ class ApiService {
   public async signUpWithSupabase(
     email: string,
     password?: string,
-    name?: string
+    name?: string,
+    options?: { rememberMe?: boolean }
   ): Promise<{ success: boolean; message: string; requiresEmailVerification?: boolean }> {
     const cleanEmail = email.trim().toLowerCase();
     const emailCheck = validateEmail(cleanEmail);
@@ -1009,6 +1189,7 @@ class ApiService {
       return { success: false, message: passCheck.error || 'Password does not meet security rules.' };
     }
     const cleanName = (name || cleanEmail.split('@')[0]).trim();
+    const shouldSave = options?.rememberMe !== false;
 
     if (!supabase) {
       if (!this.store.localAccounts) this.store.localAccounts = {};
@@ -1048,6 +1229,16 @@ class ApiService {
         email: cleanEmail,
         expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
       };
+      if (shouldSave) {
+        upsertSavedAccount({
+          userId: newUserId,
+          email: cleanEmail,
+          name: cleanName,
+          avatar: newUser.avatar,
+          flag: newUser.flag,
+          mode: 'local',
+        });
+      }
       this.save();
       return { success: true, message: 'Account created! Let’s set up your flat.' };
     }
@@ -1062,7 +1253,7 @@ class ApiService {
       },
     });
     if (error) {
-      return { success: false, message: error.message };
+      return { success: false, message: this.formatSupabaseAuthError(error.message) };
     }
     this.store.localSessionActive = false;
     this.store.localSession = null;
@@ -1078,18 +1269,37 @@ class ApiService {
     }
 
     if (data.user) {
-      await this.getCurrentUser();
+      const profile = await this.getCurrentUser();
+      if (shouldSave) {
+        upsertSavedAccount({
+          userId: profile.id || data.user.id,
+          email: profile.email || cleanEmail,
+          name: profile.name || cleanName,
+          avatar: profile.avatar,
+          flag: profile.flag,
+          mode: 'supabase',
+          sessionTokens: {
+            accessToken: data.session.access_token,
+            refreshToken: data.session.refresh_token,
+          },
+        });
+      }
     }
     this.save();
     return { success: true, requiresEmailVerification: false, message: 'Account created! Welcome to Roomie.' };
   }
 
-  public async signInWithSupabase(email: string, password?: string): Promise<{ success: boolean; message: string }> {
+  public async signInWithSupabase(
+    email: string,
+    password?: string,
+    options?: { rememberMe?: boolean }
+  ): Promise<{ success: boolean; message: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const emailCheck = validateEmail(cleanEmail);
     if (!emailCheck.valid) {
       return { success: false, message: emailCheck.error || 'Please enter a valid email address.' };
     }
+    const shouldSave = options?.rememberMe !== false;
 
     if (!supabase) {
       if (!this.store.localAccounts) this.store.localAccounts = {};
@@ -1140,43 +1350,92 @@ class ApiService {
         email: cleanEmail,
         expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
       };
+      if (shouldSave) {
+        upsertSavedAccount({
+          userId: account.id,
+          email: cleanEmail,
+          name: this.store.currentUser.name || account.name,
+          avatar: this.store.currentUser.avatar,
+          flag: this.store.currentUser.flag,
+          mode: 'local',
+        });
+      }
       this.save();
       return { success: true, message: 'Welcome back!' };
     }
 
     if (password) {
-      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
       if (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: this.formatSupabaseAuthError(error.message) };
       }
       if (this.store.householdSetupMode === 'demo') {
         this.store.householdSetupMode = undefined;
       }
       this.store.localSessionActive = false;
       this.store.localSession = null;
-      await this.getCurrentUser();
+      await supabase.auth.startAutoRefresh();
+      const user = await this.getCurrentUser();
       await this.getHouseholds();
+      if (shouldSave && data.session) {
+        upsertSavedAccount({
+          userId: user.id || data.user?.id || cleanEmail,
+          email: user.email || cleanEmail,
+          name: user.name,
+          avatar: user.avatar,
+          flag: user.flag,
+          mode: 'supabase',
+          sessionTokens: {
+            accessToken: data.session.access_token,
+            refreshToken: data.session.refresh_token,
+          },
+        });
+      }
       this.save();
       return { success: true, message: 'Welcome back!' };
     }
     // Passwordless OTP magic link
-    const { error } = await supabase.auth.signInWithOtp({ email: cleanEmail });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: cleanEmail,
+      options: { emailRedirectTo: this.getAuthRedirectUrl() },
+    });
     if (error) {
-      return { success: false, message: error.message };
+      return { success: false, message: this.formatSupabaseAuthError(error.message) };
     }
     return { success: true, message: 'Magic link sent to your email!' };
   }
 
-  public async signOut(): Promise<void> {
+  public async signOut(options?: { keepSavedLogin?: boolean }): Promise<void> {
+    const keepSaved =
+      !this.isDemoMode() &&
+      (options?.keepSavedLogin ?? this.isCurrentUserLoginSaved());
+
+    if (supabase && !this.isDemoMode()) {
+      if (keepSaved) {
+        await this.setCurrentUserLoginSaved(true);
+        await supabase.auth.stopAutoRefresh();
+        clearLocalSupabaseSessionStorage();
+      } else {
+        if (options?.keepSavedLogin === false) {
+          removeSavedAccount(this.store.currentUser?.id || this.store.currentUser?.email || '');
+          if (this.store.currentUser?.email) {
+            removeSavedAccount(this.store.currentUser.email);
+          }
+        }
+        await supabase.auth.signOut({ scope: 'local' });
+      }
+    } else if (!this.isDemoMode() && options?.keepSavedLogin === false) {
+      removeSavedAccount(this.store.currentUser?.email || '');
+    } else if (!this.isDemoMode() && keepSaved) {
+      await this.setCurrentUserLoginSaved(true);
+    }
+
     this.store.localSessionActive = false;
     this.store.localSession = null;
     if (this.store.householdSetupMode === 'demo') {
       this.store.householdSetupMode = undefined;
     }
     this.save();
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
   }
 
   // --- Users & Auth ---

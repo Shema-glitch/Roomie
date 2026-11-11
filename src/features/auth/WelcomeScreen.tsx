@@ -4,6 +4,7 @@ import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { validateEmail, validatePassword } from '../../utils/authValidation';
+import { SavedLoginAccount } from '../../utils/savedAccounts';
 import { WelcomeLanding } from './WelcomeLanding';
 import { SignUpFlow, SignUpStep } from './SignUpFlow';
 import { SignInForm } from './SignInForm';
@@ -13,12 +14,22 @@ const AppShowcase = React.lazy(() =>
 );
 
 interface WelcomeScreenProps {
-  onSignIn: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
+  onSignIn: (
+    email: string,
+    password?: string,
+    rememberMe?: boolean
+  ) => Promise<{ success: boolean; message?: string }>;
   onSignUp: (
     name: string,
     email: string,
-    password?: string
+    password?: string,
+    rememberMe?: boolean
   ) => Promise<{ success: boolean; message?: string; requiresEmailVerification?: boolean }>;
+  onQuickSignIn?: (
+    email: string
+  ) => Promise<{ success: boolean; message?: string; requiresPassword?: boolean; email?: string }>;
+  onRemoveSavedAccount?: (email: string) => void;
+  savedAccounts?: SavedLoginAccount[];
   onQuickStart: () => void;
   pendingInviteCode?: string | null;
   onDismissInvite?: () => void;
@@ -42,6 +53,9 @@ function markWalkthroughSeen() {
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onSignIn,
   onSignUp,
+  onQuickSignIn,
+  onRemoveSavedAccount,
+  savedAccounts = [],
   onQuickStart,
   pendingInviteCode,
   onDismissInvite,
@@ -50,7 +64,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const { showToast } = useToast();
 
   const [stage, setStage] = useState<ScreenStage>(() => {
-    if (pendingInviteCode) {
+    if (pendingInviteCode || savedAccounts.length > 0) {
       return 'welcome';
     }
     if (typeof window !== 'undefined' && !localStorage.getItem('roomie_walkthrough_seen')) {
@@ -64,6 +78,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [useMagicLink, setUseMagicLink] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [verificationSentTo, setVerificationSentTo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -105,11 +120,37 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
     setLoading(true);
     try {
-      const res = await onSignIn(email.trim().toLowerCase(), useMagicLink ? undefined : password);
+      const res = await onSignIn(
+        email.trim().toLowerCase(),
+        useMagicLink ? undefined : password,
+        rememberMe
+      );
       if (res && !res.success) {
         showToast(res.message || 'Could not log in. Check your details.', 'error');
       } else if (useMagicLink) {
         showToast('Magic link check sent for your account.', 'success');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickSignIn = async (acctEmail: string) => {
+    if (!onQuickSignIn) return;
+    setLoading(true);
+    try {
+      const res = await onQuickSignIn(acctEmail);
+      if (res && !res.success) {
+        if (res.requiresPassword) {
+          setEmail(res.email || acctEmail);
+          setPassword('');
+          setUseMagicLink(false);
+          setRememberMe(true);
+          setStage('signin');
+          showToast(res.message || 'Enter your password to refresh quick login.', 'info');
+        } else {
+          showToast(res.message || 'Could not sign in cleanly.', 'error');
+        }
       }
     } finally {
       setLoading(false);
@@ -136,7 +177,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
     setLoading(true);
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const res = await onSignUp(name.trim(), cleanEmail, password);
+      const res = await onSignUp(name.trim(), cleanEmail, password, rememberMe);
       if (res && !res.success) {
         showToast(res.message || 'Could not create account.', 'error');
       } else if (res?.requiresEmailVerification) {
@@ -194,7 +235,10 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <WelcomeLanding
           isRevealed={isRevealed}
           pendingInviteCode={pendingInviteCode}
+          savedAccounts={savedAccounts}
           onDismissInvite={onDismissInvite}
+          onQuickSignIn={handleQuickSignIn}
+          onRemoveSavedAccount={onRemoveSavedAccount}
           onGetStarted={() => {
             setVerificationSentTo(null);
             setSignUpStep('name');
@@ -212,10 +256,12 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           name={name}
           email={email}
           password={password}
+          rememberMe={rememberMe}
           loading={loading}
           onNameChange={setName}
           onEmailChange={setEmail}
           onPasswordChange={setPassword}
+          onToggleRememberMe={setRememberMe}
           onStepChange={setSignUpStep}
           onSubmit={handleSignUpSubmit}
           onSwitchToSignIn={() => setStage('signin')}
@@ -239,10 +285,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             email={email}
             password={password}
             useMagicLink={useMagicLink}
+            rememberMe={rememberMe}
+            savedAccounts={savedAccounts}
             loading={loading}
             onEmailChange={setEmail}
             onPasswordChange={setPassword}
             onToggleMagicLink={setUseMagicLink}
+            onToggleRememberMe={setRememberMe}
+            onQuickSignIn={handleQuickSignIn}
             onSubmit={handleSignInSubmit}
             onSwitchToSignUp={() => {
               setVerificationSentTo(null);
