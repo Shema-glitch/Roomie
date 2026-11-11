@@ -46,6 +46,8 @@ interface AppStore {
   agreements: Record<string, HouseAgreement[]>;
   notifications: InAppNotification[];
   settings: UserSettings;
+  householdSetupMode?: 'pending' | 'configured' | 'demo';
+  localSessionActive?: boolean;
 }
 
 // Initial realistic seed data
@@ -832,6 +834,46 @@ class ApiService {
     return this.store;
   }
 
+  // --- Household Setup & Session Helpers ---
+  public hasLocalSession(): boolean {
+    if (supabase) return false;
+    return Boolean(this.store.localSessionActive);
+  }
+
+  public needsHouseholdSetup(): boolean {
+    const mode = this.store.householdSetupMode;
+    if (mode === 'pending') return true;
+    if (mode === 'configured' || mode === 'demo') return false;
+
+    // Auto-detect accounts created before flat setup existed (custom profile with zero user-owned flats)
+    const hasCustomProfile = this.store.currentUser.email !== 'kai.tanaka@student.emu.edu.tr';
+    const hasCreatedHousehold = this.store.households.some(
+      (h) => h.createdBy === this.store.currentUser.id
+    );
+    if (hasCustomProfile && !hasCreatedHousehold) {
+      this.store.householdSetupMode = 'pending';
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  public markDemoMode(): void {
+    this.store.householdSetupMode = 'demo';
+    this.store.localSessionActive = true;
+    this.save();
+  }
+
+  public markHouseholdSetupPending(): void {
+    this.store.householdSetupMode = 'pending';
+    this.save();
+  }
+
+  public markHouseholdConfigured(): void {
+    this.store.householdSetupMode = 'configured';
+    this.save();
+  }
+
   // --- Supabase Authentication ---
   public async getSession() {
     if (!supabase) return null;
@@ -840,8 +882,10 @@ class ApiService {
   }
 
   public async signUpWithSupabase(email: string, password?: string, name?: string): Promise<{ success: boolean; message: string }> {
+    this.store.householdSetupMode = 'pending';
+    this.store.localSessionActive = true;
     if (!supabase) {
-      this.updateCurrentUser({ name: name || email.split('@')[0], email });
+      await this.updateCurrentUser({ name: name || email.split('@')[0], email });
       return { success: true, message: 'Signed up in local demo mode.' };
     }
     const pass = password || 'RoomieApp2026!';
@@ -858,12 +902,14 @@ class ApiService {
     if (data.user) {
       await this.getCurrentUser();
     }
+    this.save();
     return { success: true, message: 'Account created! Welcome to Roomie.' };
   }
 
   public async signInWithSupabase(email: string, password?: string): Promise<{ success: boolean; message: string }> {
     if (!supabase) {
-      this.updateCurrentUser({ email });
+      this.store.localSessionActive = true;
+      await this.updateCurrentUser({ email });
       return { success: true, message: 'Signed in in local demo mode.' };
     }
     if (password) {
@@ -872,6 +918,7 @@ class ApiService {
         return { success: false, message: error.message };
       }
       await this.getCurrentUser();
+      this.save();
       return { success: true, message: 'Welcome back!' };
     }
     // Passwordless OTP magic link
@@ -883,6 +930,8 @@ class ApiService {
   }
 
   public async signOut(): Promise<void> {
+    this.store.localSessionActive = false;
+    this.save();
     if (supabase) {
       await supabase.auth.signOut();
     }
@@ -1117,6 +1166,7 @@ class ApiService {
       joinedAt: new Date().toISOString(),
     });
     this.store.chores.push(...buildStarterChores(newHousehold.id));
+    this.store.householdSetupMode = 'configured';
     this.save();
     return newHousehold;
   }
@@ -1170,8 +1220,9 @@ class ApiService {
           await this.getHouseholds();
           if (directJoin.household_id) {
             this.store.activeHouseholdId = directJoin.household_id;
-            this.save();
           }
+          this.store.householdSetupMode = 'configured';
+          this.save();
           return {
             success: true,
             message: directJoin.message || `Welcome to ${directJoin.name}!`,

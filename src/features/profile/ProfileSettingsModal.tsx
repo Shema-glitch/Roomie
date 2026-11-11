@@ -38,6 +38,7 @@ interface ProfileSettingsModalProps {
   onOpenFeedback: () => void;
   onOpenHowItWorks?: () => void;
   onOpenShowcase?: () => void;
+  onOpenHouseholdSetup?: () => void;
 }
 
 const PRESET_AVATARS = [
@@ -59,6 +60,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onDeleteAccount,
   onSignOut,
   onOpenFeedback,
+  onOpenHowItWorks,
+  onOpenShowcase,
+  onOpenHouseholdSetup,
 }) => {
   const { showToast } = useToast();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -402,6 +406,53 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Walkthrough & Flat Setup */}
+          {(onOpenShowcase || onOpenHowItWorks || onOpenHouseholdSetup) && (
+            <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">
+              <span className="type-label block">
+                Setup & Walkthrough
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {onOpenHouseholdSetup && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenHouseholdSetup();
+                    }}
+                  >
+                    Flat setup
+                  </Button>
+                )}
+                {onOpenShowcase && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenShowcase();
+                    }}
+                  >
+                    Presentation
+                  </Button>
+                )}
+                {onOpenHowItWorks && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenHowItWorks();
+                    }}
+                  >
+                    How it works
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Account & Data */}
           <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">

@@ -325,14 +325,24 @@ function MainApp() {
       }
     }
 
-    api.getSession().then((session) => {
+    api.getSession().then(async (session) => {
       if (session) {
         setIsAuthenticated(true);
+        const hList = await api.getHouseholds();
+        setNeedsHouseholdSetup(hList.length === 0 || api.needsHouseholdSetup());
+      } else if (api.hasLocalSession()) {
+        setIsAuthenticated(true);
+        setNeedsHouseholdSetup(api.needsHouseholdSetup());
       } else {
         setIsAuthenticated(false);
+        setNeedsHouseholdSetup(false);
       }
       loadData();
     }).catch(() => {
+      if (api.hasLocalSession()) {
+        setIsAuthenticated(true);
+        setNeedsHouseholdSetup(api.needsHouseholdSetup());
+      }
       loadData();
     });
   }, []);
@@ -400,7 +410,8 @@ function MainApp() {
           onSignIn={async (email, password) => {
             const res = await api.signInWithSupabase(email, password);
             if (res.success) {
-              setNeedsHouseholdSetup(false);
+              const shouldSetup = api.needsHouseholdSetup();
+              setNeedsHouseholdSetup(shouldSetup);
               setIsAuthenticated(true);
               await loadData();
             }
@@ -417,6 +428,7 @@ function MainApp() {
             return res;
           }}
           onQuickStart={() => {
+            api.markDemoMode();
             setNeedsHouseholdSetup(false);
             setIsAuthenticated(true);
             loadData();
@@ -442,11 +454,13 @@ function MainApp() {
             return res;
           }}
           onSetupComplete={() => {
+            api.markHouseholdConfigured();
             setNeedsHouseholdSetup(false);
             setNavState({ current: 'feed', history: ['feed'] });
             loadData();
           }}
           onExploreDemo={() => {
+            api.markDemoMode();
             setNeedsHouseholdSetup(false);
             setNavState({ current: 'feed', history: ['feed'] });
             loadData();
@@ -1122,6 +1136,10 @@ function MainApp() {
             onOpenFeedback={() => setFeedbackOpen(true)}
             onOpenHowItWorks={() => setShowOnboarding(true)}
             onOpenShowcase={() => setShowShowcase(true)}
+            onOpenHouseholdSetup={() => {
+              api.markHouseholdSetupPending();
+              setNeedsHouseholdSetup(true);
+            }}
           />
         )}
 
