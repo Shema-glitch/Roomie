@@ -38,6 +38,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Auto-confirm user emails during prototype/dev so users never get blocked by unconfirmed status
+CREATE OR REPLACE FUNCTION public.handle_auto_confirm_user()
+RETURNS trigger AS $$
+BEGIN
+  NEW.email_confirmed_at = COALESCE(NEW.email_confirmed_at, NOW());
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_auto_confirm_user ON auth.users;
+CREATE TRIGGER trg_auto_confirm_user
+BEFORE INSERT ON auth.users
+FOR EACH ROW EXECUTE FUNCTION public.handle_auto_confirm_user();
+
 -- ------------------------------------------------------------------------------
 -- 3. PROFILES / USERS TABLE
 -- ------------------------------------------------------------------------------
