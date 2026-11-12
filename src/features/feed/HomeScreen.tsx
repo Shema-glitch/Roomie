@@ -18,7 +18,10 @@ import {
   ChatMessage,
   JoinRequest,
   KudosType,
+  DutySchedule,
+  DayOfWeek,
 } from '../../types';
+import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import {
@@ -46,9 +49,12 @@ interface HomeScreenProps {
   activityMessages: ChatMessage[];
   pendingJoinRequests: JoinRequest[];
   netBalance: number;
+  dutySchedule?: DutySchedule | null;
   onNavigateTab: (tab: 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment') => void;
   onOpenChoreReveal: () => void;
   onOpenDraftPicks: () => void;
+  onOpenTimetable?: () => void;
+  onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
   onSelectExpense: (expenseId: string) => void;
   onSelectJoinRequest: (req: JoinRequest) => void;
   onToggleHomeStatus: () => void;
@@ -69,9 +75,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   activityMessages,
   pendingJoinRequests,
   netBalance,
+  dutySchedule,
   onNavigateTab,
   onOpenChoreReveal,
   onOpenDraftPicks,
+  onOpenTimetable,
+  onCompleteTodayDuty,
   onSelectExpense,
   onSelectJoinRequest,
   onToggleHomeStatus,
@@ -178,6 +187,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
             </div>
           </InfoCard>
+
+          {/* 1.5. DUTY DAY / FLAT CAPTAIN HERO BANNER */}
+          <DutyTodayBanner
+            dutySchedule={dutySchedule || null}
+            roommates={roommates}
+            currentUser={currentUser}
+            onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
+            onCompleteTodayDuty={onCompleteTodayDuty}
+          />
 
           {/* 2. PENDING JOIN REQUEST BANNER (IF ANY) */}
           {pendingJoinRequests.length > 0 && (

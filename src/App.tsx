@@ -96,6 +96,9 @@ const DebugInspectorModal = React.lazy(() =>
 const AppShowcase = React.lazy(() =>
   import('./features/auth/AppShowcase').then((m) => ({ default: m.AppShowcase }))
 );
+const DutyTimetableModal = React.lazy(() =>
+  import('./features/chores/DutyTimetableModal').then((m) => ({ default: m.DutyTimetableModal }))
+);
 
 // Fallback Skeletons
 const ScreenSkeleton: React.FC = () => (
@@ -135,6 +138,7 @@ import {
   InAppNotification,
   JoinRequest,
   UserSettings,
+  DutySchedule,
 } from './types';
 import { NetBalance } from './utils/balances';
 import {
@@ -259,6 +263,8 @@ function MainApp() {
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [debugInspectorOpen, setDebugInspectorOpen] = useState(false);
+  const [dutySchedule, setDutySchedule] = useState<DutySchedule | null>(null);
+  const [dutyTimetableOpen, setDutyTimetableOpen] = useState(false);
 
   // Full-screen flows for Chore draft & reveal
   const [draftFlowState, setDraftFlowState] = useState<'none' | 'picking' | 'waiting' | 'reveal'>('none');
@@ -341,6 +347,7 @@ function MainApp() {
       const agrList = await api.getAgreements(activeH.id);
       const jrList = await api.getJoinRequests(activeH.id);
       const balOverview = await api.getBalancesOverview(activeH.id);
+      const dSchedule = await api.getDutySchedule(activeH.id);
 
       setMembers(memList);
       setChores(chList);
@@ -352,6 +359,9 @@ function MainApp() {
       setAgreements(agrList);
       setJoinRequests(jrList);
       setBalances(balOverview);
+      setDutySchedule(dSchedule);
+
+      await api.checkDutyDayReminder();
     } catch (err: any) {
       setLoadError(err?.message || 'Could not load apartment data.');
     }
@@ -865,9 +875,15 @@ function MainApp() {
             activityMessages={messages}
             pendingJoinRequests={joinRequests.filter((r) => r.status === 'pending')}
             netBalance={myNetBalance}
+            dutySchedule={dutySchedule}
             onNavigateTab={(t) => setActiveTab(t as Tab)}
             onOpenChoreReveal={() => setDraftFlowState('reveal')}
             onOpenDraftPicks={() => setDraftFlowState('picking')}
+            onOpenTimetable={() => setDutyTimetableOpen(true)}
+            onCompleteTodayDuty={async (day) => {
+              await api.completeDutyDay(day);
+              await loadData();
+            }}
             onSelectExpense={(id) => {
               setSelectedExpenseId(id);
               setActiveTab('expenses');
@@ -904,8 +920,14 @@ function MainApp() {
             draftRound={draftRound}
             roommates={roommatesList}
             currentUser={currentUser}
+            dutySchedule={dutySchedule}
             onOpenDraftPicks={() => setDraftFlowState('picking')}
             onOpenReveal={() => setDraftFlowState('reveal')}
+            onOpenTimetable={() => setDutyTimetableOpen(true)}
+            onCompleteTodayDuty={async (day) => {
+              await api.completeDutyDay(day);
+              await loadData();
+            }}
             onCompleteChore={async (choreId, photoUrl) => {
               await api.completeChore(choreId, photoUrl);
               await loadData();
@@ -1313,6 +1335,34 @@ function MainApp() {
           <DebugInspectorModal
             isOpen={debugInspectorOpen}
             onClose={() => setDebugInspectorOpen(false)}
+          />
+        )}
+
+        {dutyTimetableOpen && (
+          <DutyTimetableModal
+            isOpen={dutyTimetableOpen}
+            onClose={() => setDutyTimetableOpen(false)}
+            dutySchedule={dutySchedule}
+            roommates={roommatesList}
+            chores={chores}
+            currentUser={currentUser}
+            currentMembership={members.find((m) => m.user.id === currentUser.id)?.membership || null}
+            onReassignDay={async (day, userId) => {
+              const updated = await api.reassignDutyDay(day, userId);
+              setDutySchedule(updated);
+            }}
+            onSwapDays={async (day1, day2) => {
+              const updated = await api.swapDutyDays(day1, day2);
+              setDutySchedule(updated);
+            }}
+            onCompleteTodayDuty={async (day) => {
+              await api.completeDutyDay(day);
+              if (activeHousehold) {
+                const refreshed = await api.getDutySchedule(activeHousehold.id);
+                setDutySchedule(refreshed);
+              }
+              await loadData();
+            }}
           />
         )}
       </React.Suspense>

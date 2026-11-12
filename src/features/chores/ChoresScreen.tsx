@@ -12,7 +12,8 @@ import { KudosModal } from './KudosModal';
 import { ChoreSwapModal } from './ChoreSwapModal';
 import { AwayModeModal } from './AwayModeModal';
 import { EmptyState } from '../../components/common/EmptyState';
-import { Chore, ChoreAssignment, DraftRound, User, KudosType } from '../../types';
+import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayOfWeek } from '../../types';
+import { DutyTodayBanner } from './DutyTodayBanner';
 import { getChoreDraftState, isAssignmentDueToday, CHORE_REWARD_POINTS } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
 import {
@@ -37,8 +38,11 @@ interface ChoresScreenProps {
   draftRound: DraftRound;
   roommates: User[];
   currentUser: User;
+  dutySchedule?: DutySchedule | null;
   onOpenDraftPicks: () => void;
   onOpenReveal: () => void;
+  onOpenTimetable?: () => void;
+  onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
   onCompleteChore: (choreId: string, photoUrl?: string) => Promise<void>;
   onGiveKudos: (
     choreId: string,
@@ -62,8 +66,11 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   draftRound,
   roommates,
   currentUser,
+  dutySchedule,
   onOpenDraftPicks,
   onOpenReveal,
+  onOpenTimetable,
+  onCompleteTodayDuty,
   onCompleteChore,
   onGiveKudos,
   onSwapChore,
@@ -138,6 +145,15 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
         {/* ================= LEFT COLUMN: Draft Hero & Grouped Chores ================= */}
         <div className="w-full lg:col-span-7 self-start space-y-6">
+          {/* Duty Day / Flat Captain Hero Banner */}
+          <DutyTodayBanner
+            dutySchedule={dutySchedule || null}
+            roommates={roommates}
+            currentUser={currentUser}
+            onOpenTimetable={onOpenTimetable || (() => {})}
+            onCompleteTodayDuty={onCompleteTodayDuty}
+          />
+
           {/* 1. SUNDAY CHORE DRAFT HERO BANNER (Single-source draft state) */}
           <ActionCard
             tint={

@@ -20,7 +20,17 @@ import {
   HouseAgreement,
   InAppNotification,
   UserSettings,
+  DutySchedule,
+  DutyDayEntry,
+  DayOfWeek,
 } from '../types';
+import {
+  generateDutySchedule,
+  reassignDutyDay as reassignDutyDayUtil,
+  swapDutyDays as swapDutyDaysUtil,
+  getTodayDuty,
+  getMondayOfWeek,
+} from '../utils/dutyRotation';
 import { calculateBalances } from '../utils/balances';
 import { matchChores } from '../utils/matching';
 import { getChoreDraftState, getChoreStateEvent, UnifiedDraftState } from '../utils/stateTable';
@@ -56,6 +66,7 @@ interface AppStore {
   meetingTopics: Record<string, MeetingTopic[]>;
   agreements: Record<string, HouseAgreement[]>;
   notifications: InAppNotification[];
+  dutySchedules?: Record<string, DutySchedule>;
   settings: UserSettings;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
@@ -661,6 +672,7 @@ function getInitialStore(): AppStore {
     meetingTopics,
     agreements,
     notifications,
+    dutySchedules: {},
     settings,
   };
 }
@@ -1217,7 +1229,9 @@ class ApiService {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        if (!parsed.dutySchedules) parsed.dutySchedules = {};
+        return parsed;
       }
     } catch {
       // fallback
@@ -3389,6 +3403,117 @@ class ApiService {
 
       this.addMessage(hid, null, 'activity', `${this.store.currentUser.name} swapped "${chore?.name}" with ${toUser?.name}.`);
       this.save();
+    }
+  }
+
+  // --- Duty Day & Timetable ---
+  public async getDutySchedule(householdId?: string): Promise<DutySchedule> {
+    const hid = householdId || this.store.activeHouseholdId;
+    if (!this.store.dutySchedules) {
+      this.store.dutySchedules = {};
+    }
+
+    const currentMonday = getMondayOfWeek();
+    let schedule = this.store.dutySchedules[hid];
+
+    if (!schedule || schedule.weekStartDate !== currentMonday) {
+      const activeMembers = await this.getHouseholdMembers(hid);
+      const roommates = activeMembers.map((m) => m.user);
+      const chores = await this.getChores(hid);
+      schedule = generateDutySchedule(hid, roommates, chores, currentMonday);
+      this.store.dutySchedules[hid] = schedule;
+      this.save();
+    }
+
+    return schedule;
+  }
+
+  public async reassignDutyDay(day: DayOfWeek, userId: string, householdId?: string): Promise<DutySchedule> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const schedule = await this.getDutySchedule(hid);
+    const updated = reassignDutyDayUtil(schedule, day, userId);
+    this.store.dutySchedules![hid] = updated;
+
+    const assignedUser = this.store.users.find((u) => u.id === userId);
+    this.addMessage(
+      hid,
+      null,
+      'activity',
+      `📅 Duty schedule updated: ${assignedUser?.name || 'A flatmate'} is now assigned to ${day}.`,
+      { screen: 'chores' }
+    );
+
+    this.save();
+    return updated;
+  }
+
+  public async swapDutyDays(day1: DayOfWeek, day2: DayOfWeek, householdId?: string): Promise<DutySchedule> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const schedule = await this.getDutySchedule(hid);
+    const updated = swapDutyDaysUtil(schedule, day1, day2);
+    this.store.dutySchedules![hid] = updated;
+
+    this.addMessage(
+      hid,
+      null,
+      'activity',
+      `🔄 Duty days swapped between ${day1} and ${day2}.`,
+      { screen: 'chores' }
+    );
+
+    this.save();
+    return updated;
+  }
+
+  public async completeDutyDay(day: DayOfWeek, householdId?: string): Promise<void> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const schedule = await this.getDutySchedule(hid);
+    const entry = schedule.entries.find((e) => e.day === day);
+    if (entry) {
+      entry.completed = true;
+      this.addMessage(
+        hid,
+        null,
+        'activity',
+        `✨ ${this.store.currentUser.name} completed today's apartment duty!`,
+        { screen: 'chores' }
+      );
+      this.save();
+    }
+  }
+
+  public async checkDutyDayReminder(): Promise<void> {
+    const hid = this.store.activeHouseholdId;
+    if (!hid) return;
+    try {
+      const schedule = await this.getDutySchedule(hid);
+      const activeMembers = await this.getHouseholdMembers(hid);
+      const roommates = activeMembers.map((m) => m.user);
+      const todayDuty = getTodayDuty(schedule, roommates, this.store.currentUser.id);
+
+      if (todayDuty && todayDuty.isMe && !todayDuty.entry.completed) {
+        const todayDateStr = new Date().toISOString().split('T')[0];
+        const alreadyNotified = this.store.notifications.some(
+          (n) => n.userId === this.store.currentUser.id && n.title.includes('Duty Day') && n.createdAt.startsWith(todayDateStr)
+        );
+
+        if (!alreadyNotified) {
+          const flat = this.store.households.find((h) => h.id === hid);
+          this.store.notifications.unshift({
+            id: 'notif_duty_' + Date.now(),
+            userId: this.store.currentUser.id,
+            type: 'chore',
+            title: "☀️ Today is your Flat Duty Day!",
+            body: `You are on duty today at ${flat?.name || 'the apartment'}. Tap to review and complete today's tasks.`,
+            read: false,
+            createdAt: new Date().toISOString(),
+            linkTarget: { screen: 'chores' },
+          });
+          this.save();
+        }
+      }
+    } catch {
+      // ignore
     }
   }
 

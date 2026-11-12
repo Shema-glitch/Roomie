@@ -224,3 +224,26 @@ export interface UserSettings {
   pushNotifications: boolean;
   reminderEarly30Min: boolean;
 }
+
+export type DayOfWeek =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
+
+export interface DutyDayEntry {
+  day: DayOfWeek;
+  assignedUserId: string;
+  choreIds: string[];
+  notes?: string;
+  completed?: boolean;
+}
+
+export interface DutySchedule {
+  householdId: string;
+  weekStartDate: string;
+  entries: DutyDayEntry[];
+}
