@@ -761,3 +761,103 @@ $$;
 REVOKE ALL ON FUNCTION public.leave_household_self(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.leave_household_self(uuid) TO authenticated;
 
+-- ------------------------------------------------------------------------------
+-- 22. PRIVACY ALERTS & ANTI-SURVEILLANCE MEMBERSHIP TRIGGERS
+-- Ensures every flatmate in an apartment is instantly notified whenever:
+-- 1. A new flatmate joins or is approved (no silent/secret additions).
+-- 2. A new join request is submitted (all flatmates can review and vote).
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_member_joined_privacy_alert()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_household_name TEXT;
+  v_new_member_name TEXT;
+  v_new_member_email TEXT;
+  v_existing_member RECORD;
+BEGIN
+  IF NEW.status = 'active' AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND (OLD.status IS NULL OR OLD.status <> 'active'))) THEN
+    SELECT name INTO v_household_name FROM public.households WHERE id = NEW.household_id;
+    SELECT coalesce(name, 'A new flatmate'), coalesce(email, '') INTO v_new_member_name, v_new_member_email
+    FROM public.profiles WHERE id = NEW.user_id;
+
+    -- Broadcast privacy alert notification to ALL other active members of this household
+    FOR v_existing_member IN 
+      SELECT user_id FROM public.memberships 
+      WHERE household_id = NEW.household_id 
+        AND user_id <> NEW.user_id 
+        AND status = 'active'
+    LOOP
+      INSERT INTO public.notifications (user_id, type, title, body, link_target)
+      VALUES (
+        v_existing_member.user_id,
+        'privacy_alert',
+        '🛡️ Privacy Alert: New Flatmate Joined',
+        v_new_member_name || ' has officially joined ' || coalesce(v_household_name, 'your apartment') || '. Review the active flatmate roster in Apartment settings.',
+        jsonb_build_object('screen', 'apartment')
+      );
+    END LOOP;
+
+    -- Post public activity notice in household chat
+    INSERT INTO public.chat_messages (household_id, user_id, message_type, content, metadata)
+    VALUES (
+      NEW.household_id,
+      NULL,
+      'activity',
+      '🛡️ Privacy Notice: ' || v_new_member_name || ' has joined the apartment roster.',
+      jsonb_build_object('screen', 'apartment', 'event', 'member_joined', 'new_user_id', NEW.user_id)
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_member_joined_privacy_alert ON public.memberships;
+CREATE TRIGGER trg_member_joined_privacy_alert
+AFTER INSERT OR UPDATE OF status ON public.memberships
+FOR EACH ROW EXECUTE FUNCTION public.handle_member_joined_privacy_alert();
+
+CREATE OR REPLACE FUNCTION public.handle_new_join_request_alert()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_household_name TEXT;
+  v_existing_member RECORD;
+BEGIN
+  IF NEW.status = 'pending' AND TG_OP = 'INSERT' THEN
+    SELECT name INTO v_household_name FROM public.households WHERE id = NEW.household_id;
+
+    -- Notify ALL active members so everyone can review and vote
+    FOR v_existing_member IN
+      SELECT user_id FROM public.memberships
+      WHERE household_id = NEW.household_id
+        AND status = 'active'
+    LOOP
+      INSERT INTO public.notifications (user_id, type, title, body, link_target)
+      VALUES (
+        v_existing_member.user_id,
+        'household',
+        '📋 Join Request: New Applicant',
+        NEW.user_name || ' wants to join ' || coalesce(v_household_name, 'your apartment') || '. Cast your vote in Apartment settings.',
+        jsonb_build_object('screen', 'apartment', 'requestId', NEW.id)
+      );
+    END LOOP;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_new_join_request_alert ON public.join_requests;
+CREATE TRIGGER trg_new_join_request_alert
+AFTER INSERT ON public.join_requests
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_join_request_alert();
+
+

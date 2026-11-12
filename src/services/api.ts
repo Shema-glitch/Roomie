@@ -2136,6 +2136,24 @@ class ApiService {
             this.store.activeHouseholdId = directJoin.household_id;
           }
           this.store.householdSetupMode = 'configured';
+
+          // Broadcast privacy alert to existing flatmates in store
+          const otherMembers = this.store.memberships.filter(
+            (m) => m.householdId === directJoin.household_id && m.status === 'active' && m.userId !== this.store.currentUser.id
+          );
+          otherMembers.forEach((m) => {
+            this.store.notifications.unshift({
+              id: 'notif_priv_' + Date.now() + '_' + m.userId,
+              userId: m.userId,
+              type: 'privacy_alert',
+              title: '🛡️ Privacy Alert: New Flatmate Joined',
+              body: `${this.store.currentUser.name} has joined the apartment. Review the active roster in Apartment settings.`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              linkTarget: { screen: 'apartment' },
+            });
+          });
+
           this.save();
           return {
             success: true,
@@ -2187,8 +2205,9 @@ class ApiService {
     // create join request
     const existingReq = this.store.joinRequests.find(r => r.householdId === target.id && r.userEmail === this.store.currentUser.email);
     if (!existingReq) {
+      const newReqId = 'jr_' + Date.now();
       this.store.joinRequests.push({
-        id: 'jr_' + Date.now(),
+        id: newReqId,
         householdId: target.id,
         userName: this.store.currentUser.name,
         userEmail: this.store.currentUser.email,
@@ -2199,6 +2218,24 @@ class ApiService {
         votes: [],
         status: 'pending',
       });
+
+      // Broadcast join request to ALL active members so everyone can review and vote
+      const flatMembers = this.store.memberships.filter(
+        (m) => m.householdId === target.id && m.status === 'active'
+      );
+      flatMembers.forEach((m) => {
+        this.store.notifications.unshift({
+          id: 'notif_req_' + Date.now() + '_' + m.userId,
+          userId: m.userId,
+          type: 'household',
+          title: '📋 Join Request: New Applicant',
+          body: `${this.store.currentUser.name} wants to join ${target.name}. Cast your vote in Apartment settings.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget: { screen: 'apartment', id: newReqId },
+        });
+      });
+
       this.save();
     }
     return { success: true, household: target, message: 'Request submitted! Roomies must review before you enter.' };
@@ -2350,19 +2387,25 @@ class ApiService {
             n.read = true;
           }
         });
-        // Add new member notification
-        this.store.notifications.unshift({
-          id: 'notif_' + Date.now(),
-          userId: this.store.currentUser.id,
-          type: 'household',
-          title: 'Roomie approved',
-          body: `${req.userName} has officially joined as an active member.`,
-          read: false,
-          createdAt: new Date().toISOString(),
-          linkTarget: { screen: 'apartment' },
+        // Add privacy alert notification to ALL active flatmates so everyone is aware
+        const flatMembers = this.store.memberships.filter(
+          (m) => m.householdId === req.householdId && m.status === 'active' && m.userId !== user.id
+        );
+        flatMembers.forEach((m) => {
+          this.store.notifications.unshift({
+            id: 'notif_priv_' + Date.now() + '_' + m.userId,
+            userId: m.userId,
+            type: 'privacy_alert',
+            title: '🛡️ Privacy Alert: New Flatmate Joined',
+            body: `${req.userName} has officially joined the apartment roster. Review all active members in Apartment settings.`,
+            read: false,
+            createdAt: new Date().toISOString(),
+            linkTarget: { screen: 'apartment' },
+          });
         });
-        // add welcome message to chat
-        this.addMessage(req.householdId, null, 'activity', `${req.userName} has joined the apartment! Say hello! 👋`, {
+
+        // add welcome & privacy message to chat
+        this.addMessage(req.householdId, null, 'activity', `🛡️ Privacy Notice: ${req.userName} has joined the apartment roster.`, {
           screen: 'apartment',
         });
       }

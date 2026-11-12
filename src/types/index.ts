@@ -206,7 +206,7 @@ export interface HouseAgreement {
 export interface InAppNotification {
   id: string;
   userId: string;
-  type: 'chore' | 'expense' | 'household' | 'chat';
+  type: 'chore' | 'expense' | 'household' | 'chat' | 'privacy_alert';
   title: string;
   body: string;
   read: boolean;

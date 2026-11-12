@@ -27,6 +27,7 @@ import {
   MessageSquare,
   Users,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -269,6 +270,17 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </InfoCard>
       </div>
 
+      {/* Apartment Privacy & Anti-Surveillance Shield */}
+      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2.5 text-xs text-emerald-900 mb-5 shadow-2xs">
+        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <span className="font-bold block">Apartment Privacy Shield Active</span>
+          <p className="text-emerald-800 leading-relaxed text-[11px]">
+            All flat topics, chores, chat, and ledger balances are strictly private to active members. If any new flatmate joins, an automatic in-app privacy alert is dispatched to everyone.
+          </p>
+        </div>
+      </div>
+
       {/* Pending Join Requests Banner */}
       {joinRequests && joinRequests.length > 0 && (
         <div className="mb-5 space-y-2.5">
@@ -276,6 +288,9 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             <span>Pending Join Requests</span>
             <Chip variant="primary" size="xs" label={`${joinRequests.length}`} />
           </h3>
+          <p className="type-secondary text-xs -mt-1 mb-1">
+            Flatmate consent required. Cast your vote before new applicants are admitted.
+          </p>
           {joinRequests.map((req) => (
             <div
               key={req.id}

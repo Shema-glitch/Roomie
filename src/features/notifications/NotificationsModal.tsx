@@ -7,7 +7,7 @@ import { IconTile } from '../../components/common/IconTile';
 import { InAppNotification, DraftRound, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X, Shuffle } from 'lucide-react';
+import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X, Shuffle, ShieldAlert } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -133,7 +133,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 key={n.id}
                 className={`p-3 rounded-2xl border transition-all ${
                   !n.read
-                    ? 'bg-[#FFF0ED]/40 border-[#FFD7CF]'
+                    ? n.type === 'privacy_alert'
+                      ? 'bg-amber-50/80 border-amber-300'
+                      : 'bg-[#FFF0ED]/40 border-[#FFD7CF]'
                     : 'bg-white border-[#E6E8EE]'
                 }`}
               >
@@ -141,7 +143,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   <div className="flex items-start gap-2.5 flex-1">
                     <IconTile
                       icon={
-                        n.type === 'chore' ? (
+                        n.type === 'privacy_alert' ? (
+                          <ShieldAlert className="w-4 h-4" />
+                        ) : n.type === 'chore' ? (
                           <ClipboardCheck className="w-4 h-4" />
                         ) : n.type === 'expense' ? (
                           <Receipt className="w-4 h-4" />
@@ -150,7 +154,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         )
                       }
                       color={
-                        n.type === 'chore'
+                        n.type === 'privacy_alert'
+                          ? 'amber'
+                          : n.type === 'chore'
                           ? 'teal'
                           : n.type === 'expense'
                           ? 'coral'
@@ -159,9 +165,16 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                       size="sm"
                     />
                     <div>
-                      <h4 className="type-section-heading">
-                        {n.title}
-                      </h4>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="type-section-heading">
+                          {n.title}
+                        </h4>
+                        {n.type === 'privacy_alert' && (
+                          <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 tracking-wider">
+                            Privacy Notice
+                          </span>
+                        )}
+                      </div>
                       <p className="type-secondary mt-0.5 leading-relaxed">
                         {n.body}
                       </p>
@@ -175,7 +188,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                   </div>
 
                   {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shrink-0 mt-1" />
+                    <span className={`w-2 h-2 rounded-full shrink-0 mt-1 ${n.type === 'privacy_alert' ? 'bg-amber-500' : 'bg-[#FF6B4A]'}`} />
                   )}
                 </div>
 
@@ -196,9 +209,15 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         onClose();
                         onActionClick(n.linkTarget!);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#FF6B4A] text-white text-[14px] font-bold cursor-pointer hover:bg-[#D94E30] transition-colors"
+                      className={`px-3.5 py-1.5 rounded-xl text-white text-[14px] font-bold cursor-pointer transition-colors ${
+                        n.type === 'privacy_alert'
+                          ? 'bg-amber-600 hover:bg-amber-700'
+                          : 'bg-[#FF6B4A] hover:bg-[#D94E30]'
+                      }`}
                     >
-                      {n.linkTarget.screen === 'chore-reveal' || n.title.toLowerCase().includes('reveal')
+                      {n.type === 'privacy_alert' || n.linkTarget.screen === 'apartment'
+                        ? 'View Roster'
+                        : n.linkTarget.screen === 'chore-reveal' || n.title.toLowerCase().includes('reveal')
                         ? 'Reveal'
                         : n.linkTarget.screen === 'expenses' || n.type === 'expense'
                         ? 'Review receipt'

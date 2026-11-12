@@ -1163,6 +1163,7 @@ function MainApp() {
             joinRequest={reviewJoinRequest}
             currentUser={currentUser}
             currentMembership={members.find((m) => m.user.id === currentUser.id)?.membership || null}
+            roommates={roommatesList}
             onVote={async (reqId, vote) => {
               await api.voteJoinRequest(reqId, vote);
               await loadData();
