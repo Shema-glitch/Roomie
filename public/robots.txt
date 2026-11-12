@@ -1,0 +1,13 @@
+# Roomie Robots Configuration
+User-agent: *
+Allow: /
+Allow: /join
+Allow: /manifest.json
+Allow: /assets/
+
+# Keep private in-app user and apartment state unindexed
+Disallow: /apartment/
+Disallow: /settings/
+Disallow: /debug/
+
+Sitemap: https://roomie.app/sitemap.xml
