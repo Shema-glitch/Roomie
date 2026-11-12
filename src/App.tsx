@@ -1024,6 +1024,10 @@ function MainApp() {
               await api.handoverAdmin(toUserId);
               await loadData();
             }}
+            onRemoveMember={async (userId) => {
+              await api.removeHouseholdMember(activeHousehold.id, userId);
+              await loadData();
+            }}
             onLeaveHousehold={async () => {
               await api.leaveHousehold(activeHousehold.id);
               await loadData();

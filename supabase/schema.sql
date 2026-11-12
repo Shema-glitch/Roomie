@@ -860,4 +860,131 @@ CREATE TRIGGER trg_new_join_request_alert
 AFTER INSERT ON public.join_requests
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_join_request_alert();
 
+-- ------------------------------------------------------------------------------
+-- 23. MEMBER REMOVAL & LEAVE BROADCAST SYSTEM (WhatsApp Style)
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_member_removed_alert()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_household_name TEXT;
+  v_target_name TEXT;
+  v_caller_uid UUID := auth.uid();
+  v_actor_name TEXT;
+  v_existing_member RECORD;
+  v_is_removal BOOLEAN;
+  v_chat_text TEXT;
+  v_notif_title TEXT;
+  v_notif_body TEXT;
+BEGIN
+  IF OLD.status = 'active' AND (NEW.status IN ('removed', 'left') OR NEW.deleted_at IS NOT NULL) THEN
+    SELECT name INTO v_household_name FROM public.households WHERE id = OLD.household_id;
+    SELECT coalesce(name, 'A flatmate') INTO v_target_name FROM public.profiles WHERE id = OLD.user_id;
+
+    IF v_caller_uid IS NOT NULL AND v_caller_uid <> OLD.user_id THEN
+      v_is_removal := true;
+      SELECT coalesce(name, 'The flat admin') INTO v_actor_name FROM public.profiles WHERE id = v_caller_uid;
+      v_chat_text := '🚪 ' || v_actor_name || ' removed ' || v_target_name || ' from the apartment.';
+      v_notif_title := '🛡️ Member Removed from Flat';
+      v_notif_body := v_actor_name || ' removed ' || v_target_name || ' from ' || coalesce(v_household_name, 'your apartment') || '.';
+    ELSE
+      v_is_removal := false;
+      v_chat_text := '👋 ' || v_target_name || ' left the apartment.';
+      v_notif_title := '👋 Member Left the Flat';
+      v_notif_body := v_target_name || ' has left ' || coalesce(v_household_name, 'your apartment') || '.';
+    END IF;
+
+    FOR v_existing_member IN
+      SELECT user_id FROM public.memberships
+      WHERE household_id = OLD.household_id
+        AND user_id <> OLD.user_id
+        AND user_id <> coalesce(v_caller_uid, '00000000-0000-0000-0000-000000000000'::uuid)
+        AND status = 'active'
+    LOOP
+      INSERT INTO public.notifications (user_id, type, title, body, link_target)
+      VALUES (
+        v_existing_member.user_id,
+        'privacy_alert',
+        v_notif_title,
+        v_notif_body,
+        jsonb_build_object('screen', 'apartment')
+      );
+    END LOOP;
+
+    IF v_is_removal THEN
+      INSERT INTO public.notifications (user_id, type, title, body, link_target)
+      VALUES (
+        OLD.user_id,
+        'privacy_alert',
+        '🛡️ Apartment Access Revoked',
+        'You were removed from ' || coalesce(v_household_name, 'the apartment') || ' by ' || coalesce(v_actor_name, 'an admin') || '.',
+        jsonb_build_object('screen', 'setup')
+      );
+    END IF;
+
+    INSERT INTO public.chat_messages (household_id, user_id, message_type, content, metadata)
+    VALUES (
+      OLD.household_id,
+      NULL,
+      'activity',
+      v_chat_text,
+      jsonb_build_object('screen', 'apartment', 'event', CASE WHEN v_is_removal THEN 'member_removed' ELSE 'member_left' END, 'target_user_id', OLD.user_id)
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_member_removed_alert ON public.memberships;
+CREATE TRIGGER trg_member_removed_alert
+AFTER UPDATE OF status ON public.memberships
+FOR EACH ROW EXECUTE FUNCTION public.handle_member_removed_alert();
+
+CREATE OR REPLACE FUNCTION public.remove_household_member(p_household_id uuid, p_target_user_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_is_admin boolean;
+BEGIN
+  IF v_uid IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Not authenticated');
+  END IF;
+
+  IF v_uid = p_target_user_id THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Admins cannot remove themselves with this action. Use Leave or handover admin first.');
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.memberships
+    WHERE household_id = p_household_id AND user_id = v_uid AND role = 'admin' AND status = 'active'
+  ) INTO v_is_admin;
+
+  IF NOT v_is_admin THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Only household admins can remove members.');
+  END IF;
+
+  UPDATE public.memberships
+  SET status = 'removed', updated_at = NOW()
+  WHERE household_id = p_household_id AND user_id = p_target_user_id AND status = 'active';
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Active member not found in this household.');
+  END IF;
+
+  RETURN jsonb_build_object('success', true, 'message', 'Member removed from household.');
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.remove_household_member(uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.remove_household_member(uuid, uuid) TO authenticated;
+
+
 

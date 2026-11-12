@@ -28,6 +28,8 @@ import {
   Users,
   Sparkles,
   ShieldCheck,
+  ShieldAlert,
+  UserMinus,
 } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 
@@ -43,6 +45,7 @@ interface ApartmentScreenProps {
   onReviewJoinRequest?: (req: JoinRequest) => void;
   onShowQR: () => void;
   onHandoverAdmin: (toUserId: string) => Promise<void>;
+  onRemoveMember?: (userId: string) => Promise<void>;
   onLeaveHousehold: () => Promise<void>;
   onCreateTopic: (title: string, desc: string) => Promise<MeetingTopic>;
   onVoteTopic: (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => Promise<void>;
@@ -64,6 +67,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   onReviewJoinRequest,
   onShowQR,
   onHandoverAdmin,
+  onRemoveMember,
   onLeaveHousehold,
   onCreateTopic,
   onVoteTopic,
@@ -85,6 +89,8 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   const [handoverModalOpen, setHandoverModalOpen] = useState(false);
   const [selectedSuccessorId, setSelectedSuccessorId] = useState('');
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [removeTargetUser, setRemoveTargetUser] = useState<User | null>(null);
+  const [removingMember, setRemovingMember] = useState(false);
   const [acknowledgeDebt, setAcknowledgeDebt] = useState(false);
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
   const [addAgreementModalOpen, setAddAgreementModalOpen] = useState(false);
@@ -429,6 +435,19 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                           label={user.isHome ? 'At home' : 'Away'}
                           size="sm"
                         />
+                        {isAdmin && !isMe && Boolean(onRemoveMember) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              sound.playTap();
+                              setRemoveTargetUser(user);
+                            }}
+                            className="text-xs font-bold text-[#E5484D] hover:underline flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                          >
+                            <UserMinus className="w-3.5 h-3.5" /> Remove
+                          </button>
+                        )}
                       </div>
                     </div>
                   }
@@ -892,6 +911,60 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
           </div>
         </div>
       </Modal>
+
+      {/* Remove Household Member Modal (Admin Only, WhatsApp style) */}
+      {Boolean(removeTargetUser) && (
+        <Modal
+          isOpen={Boolean(removeTargetUser)}
+          onClose={() => setRemoveTargetUser(null)}
+          title={`Remove ${removeTargetUser?.name}?`}
+          subtitle="Apartment membership removal"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-2">
+              <div className="flex items-center gap-1.5 font-bold">
+                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>WhatsApp-Style Roster Announcement</span>
+              </div>
+              <p className="leading-relaxed">
+                Removing <strong>{removeTargetUser?.name}</strong> will immediately revoke their access to apartment chores, expenses, and chats. A system notification will be broadcast to all remaining flatmates.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => setRemoveTargetUser(null)}
+                disabled={removingMember}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="md"
+                disabled={removingMember}
+                onClick={async () => {
+                  if (!removeTargetUser) return;
+                  setRemovingMember(true);
+                  try {
+                    await onRemoveMember?.(removeTargetUser.id);
+                    showToast(`${removeTargetUser.name} removed from apartment`, 'info');
+                    setRemoveTargetUser(null);
+                  } catch {
+                    showToast('Failed to remove flatmate', 'error');
+                  } finally {
+                    setRemovingMember(false);
+                  }
+                }}
+              >
+                {removingMember ? 'Removing...' : 'Confirm Remove'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

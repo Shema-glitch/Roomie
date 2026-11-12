@@ -2485,6 +2485,25 @@ class ApiService {
         const next = this.store.memberships.find(mb => mb.householdId === householdId && mb.userId !== this.store.currentUser.id && mb.status === 'active');
         if (next) next.role = 'admin';
       }
+
+      // WhatsApp style: broadcast leave message in chat and notifications to remaining flatmates
+      this.addMessage(householdId, null, 'activity', `👋 ${this.store.currentUser.name} left the apartment.`);
+      const remainingMembers = this.store.memberships.filter(
+        (mb) => mb.householdId === householdId && mb.status === 'active' && mb.userId !== this.store.currentUser.id
+      );
+      remainingMembers.forEach((mb) => {
+        this.store.notifications.unshift({
+          id: 'notif_left_' + Date.now() + '_' + mb.userId,
+          userId: mb.userId,
+          type: 'privacy_alert',
+          title: '👋 Member Left the Flat',
+          body: `${this.store.currentUser.name} has left the apartment.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget: { screen: 'apartment' },
+        });
+      });
+
       this.save();
       return { success: true, message: 'You have left the household.' };
     }
@@ -2492,6 +2511,82 @@ class ApiService {
       return { success: true, message: 'You have left the household.' };
     }
     return { success: false, message: 'Membership not found.' };
+  }
+
+  public async removeHouseholdMember(householdId: string, targetUserId: string): Promise<{ success: boolean; message: string }> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const curMembership = this.store.memberships.find(m => m.householdId === hid && m.userId === this.store.currentUser.id);
+    if (curMembership && curMembership.role !== 'admin') {
+      return { success: false, message: 'Only flat admins can remove members.' };
+    }
+    if (targetUserId === this.store.currentUser.id) {
+      return { success: false, message: 'Admins cannot remove themselves. Use Leave instead.' };
+    }
+
+    if (supabase && !this.isDemoMode() && isUuid(hid) && isUuid(targetUserId)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data, error } = await (supabase.rpc as any)('remove_household_member', {
+          p_household_id: hid,
+          p_target_user_id: targetUserId,
+        });
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          debugLog.error('auth', 'remove_member', `remove_household_member failed: ${error.message}`, { hid, targetUserId }, durationMs);
+          return { success: false, message: error.message || 'Could not remove member.' };
+        }
+        if (data && data.success === false) {
+          return { success: false, message: data.message || 'Action rejected.' };
+        }
+      } catch (err: any) {
+        debugLog.error('auth', 'remove_member', err?.message || 'Exception removing member', { hid, targetUserId });
+        return { success: false, message: err?.message || 'Could not remove member.' };
+      }
+    }
+
+    const targetUser = this.store.users.find(u => u.id === targetUserId);
+    const targetMembership = this.store.memberships.find(m => m.householdId === hid && m.userId === targetUserId);
+    if (targetMembership) {
+      targetMembership.status = 'removed';
+    }
+
+    const adminName = this.store.currentUser.name || 'Admin';
+    const targetName = targetUser?.name || 'A flatmate';
+
+    // WhatsApp style chat announcement:
+    this.addMessage(hid, null, 'activity', `🚪 ${adminName} removed ${targetName} from the apartment.`);
+
+    // Broadcast privacy alerts to remaining flatmates
+    const remainingMembers = this.store.memberships.filter(
+      (m) => m.householdId === hid && m.status === 'active' && m.userId !== this.store.currentUser.id && m.userId !== targetUserId
+    );
+    remainingMembers.forEach((m) => {
+      this.store.notifications.unshift({
+        id: 'notif_rem_' + Date.now() + '_' + m.userId,
+        userId: m.userId,
+        type: 'privacy_alert',
+        title: '🛡️ Member Removed from Flat',
+        body: `${adminName} removed ${targetName} from the apartment.`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        linkTarget: { screen: 'apartment' },
+      });
+    });
+
+    // Alert the removed user
+    this.store.notifications.unshift({
+      id: 'notif_revoked_' + Date.now() + '_' + targetUserId,
+      userId: targetUserId,
+      type: 'privacy_alert',
+      title: '🛡️ Apartment Access Revoked',
+      body: `You were removed from the apartment by ${adminName}.`,
+      read: false,
+      createdAt: new Date().toISOString(),
+      linkTarget: { screen: 'setup' },
+    });
+
+    this.save();
+    return { success: true, message: `${targetName} has been removed from the apartment.` };
   }
 
   // --- Expenses & Balances ---

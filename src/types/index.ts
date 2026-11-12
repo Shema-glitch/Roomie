@@ -4,7 +4,7 @@
  */
 
 export type UserRole = 'admin' | 'member';
-export type MembershipStatus = 'pending' | 'active' | 'left';
+export type MembershipStatus = 'pending' | 'active' | 'left' | 'removed';
 export type CurrencyCode = 'TRY' | 'USD' | 'EUR';
 export type EffortLevel = 'light' | 'medium' | 'heavy';
 export type ChoreFrequency = 'daily' | 'weekly';
