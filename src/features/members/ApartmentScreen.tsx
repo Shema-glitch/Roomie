@@ -1,37 +1,18 @@
 import React, { useState } from 'react';
-import { ActionCard } from '../../components/common/ActionCard';
-import { InfoCard } from '../../components/common/InfoCard';
-import { IconTile } from '../../components/common/IconTile';
-import { Button } from '../../components/common/Button';
-import { SectionTitle } from '../../components/common/SectionTitle';
-import { Avatar } from '../../components/common/Avatar';
-import { Chip } from '../../components/common/Chip';
-import { Modal } from '../../components/common/Modal';
 import { User, Household, Membership, MeetingTopic, HouseAgreement, JoinRequest } from '../../types';
 import { sound } from '../../services/sound';
 import { getCurrencySymbol } from '../../utils/stateTable';
+import { MessageSquare, Users } from 'lucide-react';
+import { ApartmentHeaderCard } from './components/ApartmentHeaderCard';
+import { RoomiesRoster } from './components/RoomiesRoster';
+import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules';
 import {
-  Shield,
-  QrCode,
-  LogOut,
-  Building2,
-  Flame,
-  Check,
-  AlertTriangle,
-  Copy,
-  Plus,
-  ThumbsUp,
-  ThumbsDown,
-  FileCheck,
-  Send,
-  MessageSquare,
-  Users,
-  Sparkles,
-  ShieldCheck,
-  ShieldAlert,
-  UserMinus,
-} from 'lucide-react';
-import { useToast } from '../../components/common/Toast';
+  ProposeTopicModal,
+  AddAgreementModal,
+  HandoverAdminModal,
+  LeaveApartmentModal,
+  RemoveMemberModal,
+} from './components/ApartmentModals';
 
 interface ApartmentScreenProps {
   household: Household;
@@ -76,256 +57,32 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   onOpenHouseholdSwitcher,
   onOpenHowItWorks,
 }) => {
-  const { showToast } = useToast();
   const sym = getCurrencySymbol(household?.currency);
 
-  // Mobile / Tablet Tab Switcher (Visible on < lg screens)
   const [mobileTab, setMobileTab] = useState<'roomies' | 'meetings'>('roomies');
-
-  // Meetings sub-tab (Topics vs Rules)
-  const [meetingsSubTab, setMeetingsSubTab] = useState<'topics' | 'agreements'>('topics');
-
-  // Modals state
   const [handoverModalOpen, setHandoverModalOpen] = useState(false);
-  const [selectedSuccessorId, setSelectedSuccessorId] = useState('');
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [removeTargetUser, setRemoveTargetUser] = useState<User | null>(null);
-  const [removingMember, setRemovingMember] = useState(false);
-  const [acknowledgeDebt, setAcknowledgeDebt] = useState(false);
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
   const [addAgreementModalOpen, setAddAgreementModalOpen] = useState(false);
-  const [newTopicTitle, setNewTopicTitle] = useState('');
-  const [newTopicDesc, setNewTopicDesc] = useState('');
-  const [newRuleCategory, setNewRuleCategory] = useState('quiet_hours');
-  const [newRuleText, setNewRuleText] = useState('');
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
 
   const currentMembership = members.find((m) => m.user.id === currentUser.id)?.membership;
   const isAdmin = currentMembership?.role === 'admin';
 
-  const copyCode = () => {
-    sound.playTap();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(household.inviteCode);
-      showToast(`Copied code ${household.inviteCode} to clipboard!`, 'success');
-    } else {
-      showToast(`Apartment code: ${household.inviteCode}`, 'info');
-    }
-  };
-
-  const handleHandover = async () => {
-    if (!selectedSuccessorId) return;
-    setLoading(true);
-    try {
-      sound.playSuccess();
-      await onHandoverAdmin(selectedSuccessorId);
-      showToast('Admin role handed over successfully!', 'success');
-      setHandoverModalOpen(false);
-    } catch {
-      showToast('Admin handover failed', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLeave = async () => {
-    if (Math.abs(netBalance) > 1 && !acknowledgeDebt) {
-      showToast('Please acknowledge your unsettled balance first', 'error');
-      return;
-    }
-    setLoading(true);
-    try {
-      sound.playCalmNotice();
-      await onLeaveHousehold();
-      showToast('You have left the apartment.', 'info');
-      setLeaveModalOpen(false);
-    } catch {
-      showToast('Could not leave apartment', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePropose = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTopicTitle.trim()) return;
-    setLoading(true);
-    try {
-      sound.playSuccess();
-      await onCreateTopic(newTopicTitle.trim(), newTopicDesc.trim());
-      showToast('Meeting topic proposed! Roomies can now vote.', 'success');
-      setNewTopicTitle('');
-      setNewTopicDesc('');
-      setProposeModalOpen(false);
-    } catch {
-      showToast('Could not propose topic', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddAgreementSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newRuleText.trim()) return;
-    setLoading(true);
-    try {
-      sound.playSuccess();
-      await onAddAgreement(newRuleText.trim(), newRuleCategory);
-      showToast('Apartment agreement saved to house rules!', 'success');
-      setNewRuleText('');
-      setAddAgreementModalOpen(false);
-    } catch {
-      showToast('Could not save rule', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVote = async (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => {
-    sound.playTap();
-    try {
-      await onVoteTopic(topicId, vote);
-      showToast('Vote registered!', 'info');
-    } catch {
-      showToast('Vote failed', 'error');
-    }
-  };
-
-  const handleComment = async (topicId: string) => {
-    const text = commentInputs[topicId]?.trim();
-    if (!text) return;
-    sound.playPop();
-    try {
-      await onAddComment(topicId, text);
-      setCommentInputs((prev) => ({ ...prev, [topicId]: '' }));
-    } catch {
-      showToast('Comment failed', 'error');
-    }
-  };
-
   return (
     <div className="w-full select-none pb-28 md:pb-8">
-      {/* 1. APARTMENT CARD WITH INVITE CODE, QR & FRIENDLY GOVERNANCE */}
-      <div className="mb-6">
-        <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">
-          <div className="flex items-start gap-3.5">
-            <IconTile icon={<Building2 className="w-6 h-6" />} color="coral" size="md" />
-            <div className="flex-1 min-w-0">
-              <h3 className="font-heading font-black text-xl text-[#1F2430] truncate">
-                {household.name}
-              </h3>
-              <p className="type-secondary text-[14px] mt-0.5 font-bold text-[#475569]">
-                {household.inviteCode} • Currency: {household.currency}
-              </p>
-            </div>
-          </div>
+      <ApartmentHeaderCard
+        household={household}
+        isAdmin={isAdmin}
+        memberCount={members.length}
+        joinRequests={joinRequests}
+        onShowQR={onShowQR}
+        onOpenHouseholdSwitcher={onOpenHouseholdSwitcher}
+        onOpenHowItWorks={onOpenHowItWorks}
+        onOpenHandoverModal={() => setHandoverModalOpen(true)}
+        onReviewJoinRequest={onReviewJoinRequest}
+      />
 
-          <p className="text-[14px] font-medium text-[#475569] bg-[#F7F8FB] p-2.5 rounded-xl border border-[#E6E8EE]">
-            The admin only approves new roomies. Everything else is decided together.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onShowQR}
-              icon={<QrCode className="w-4 h-4 text-[#475569]" />}
-            >
-              Show QR
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={copyCode}
-              icon={<Copy className="w-4 h-4 text-[#475569]" />}
-            >
-              Copy code
-            </Button>
-            {onOpenHouseholdSwitcher && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onOpenHouseholdSwitcher}
-                icon={<Building2 className="w-4 h-4 text-[#475569]" />}
-              >
-                Switch flat
-              </Button>
-            )}
-            {onOpenHowItWorks && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={onOpenHowItWorks}
-                icon={<Sparkles className="w-4 h-4 text-[#FF6B4A]" />}
-              >
-                Flat guide
-              </Button>
-            )}
-            {isAdmin && members.length > 1 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setHandoverModalOpen(true)}
-                icon={<Shield className="w-4 h-4 text-[#475569]" />}
-              >
-                Handover admin
-              </Button>
-            )}
-          </div>
-        </InfoCard>
-      </div>
-
-      {/* Apartment Privacy & Anti-Surveillance Shield */}
-      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-2.5 text-xs text-emerald-900 mb-5 shadow-2xs">
-        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-        <div className="space-y-0.5">
-          <span className="font-bold block">Apartment Privacy Shield Active</span>
-          <p className="text-emerald-800 leading-relaxed text-[11px]">
-            All flat topics, chores, chat, and ledger balances are strictly private to active members. If any new flatmate joins, an automatic in-app privacy alert is dispatched to everyone.
-          </p>
-        </div>
-      </div>
-
-      {/* Pending Join Requests Banner */}
-      {joinRequests && joinRequests.length > 0 && (
-        <div className="mb-5 space-y-2.5">
-          <h3 className="type-section-heading flex items-center gap-2 flex-wrap">
-            <span>Pending Join Requests</span>
-            <Chip variant="primary" size="xs" label={`${joinRequests.length}`} />
-          </h3>
-          <p className="type-secondary text-xs -mt-1 mb-1">
-            Flatmate consent required. Cast your vote before new applicants are admitted.
-          </p>
-          {joinRequests.map((req) => (
-            <div
-              key={req.id}
-              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-wrap items-center justify-between gap-3 shadow-xs"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar src={req.userAvatar} name={req.userName} flag={req.userFlag} size="md" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-[#1F2430] text-sm truncate">
-                    {req.userName}
-                  </h4>
-                  <p className="text-xs text-[#475569] truncate">
-                    {req.userEmail} • {req.votes.length} vote{req.votes.length !== 1 ? 's' : ''} cast
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onReviewJoinRequest?.(req)}
-              >
-                Review
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Mobile / Tablet Segmented Section Switcher */}
       <div className="lg:hidden mb-5">
         <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
           <button
@@ -361,610 +118,73 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </div>
       </div>
 
-      {/* RESPONSIVE 2-COLUMN DESKTOP GRID */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-        {/* ================= LEFT COLUMN: Roomies Directory & Community ================= */}
         <div
-          className={`w-full lg:col-span-7 self-start space-y-6 ${
+          className={`w-full lg:col-span-7 self-start ${
             mobileTab === 'roomies' ? 'block' : 'hidden lg:block'
           }`}
         >
-          {/* Section Header */}
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <SectionTitle
-              title={`Apartment Roomies (${members.length})`}
-              subtitle="Apartment roomies, live status, and streaks"
-            />
-            <Chip
-              status="active"
-              label={`${members.filter((m) => m.user.isHome).length} of ${members.length} Home`}
-              size="xs"
-            />
-          </div>
-
-          {/* Roomies 2-Column Responsive Card Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch">
-            {members.map(({ user, membership }) => {
-              const isMe = user.id === currentUser.id;
-              return (
-                <ActionCard
-                  key={user.id}
-                  tint={isMe ? 'teal' : 'neutral'}
-                  className="h-full flex flex-col justify-between"
-                  iconTile={
-                    <Avatar
-                      src={user.avatar}
-                      name={user.name}
-                      flag={user.flag}
-                      isHome={user.isHome}
-                      statusRing={true}
-                      size="md"
-                    />
-                  }
-                  title={
-                    <div className="flex items-center justify-between gap-1.5 min-w-0">
-                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        <span className="type-card-title truncate">{user.name}</span>
-                        {isMe && (
-                          <span className="text-[14px] font-bold text-[#FF6B4A] shrink-0 normal-case">
-                            (You)
-                          </span>
-                        )}
-                      </div>
-                      {membership.role === 'admin' && (
-                        <Chip status="admin" size="sm" className="shrink-0" />
-                      )}
-                    </div>
-                  }
-                  subtitle={
-                    <span className="type-secondary text-[14px]">
-                      From {user.country} {user.flag || ''}
-                    </span>
-                  }
-                  detail={
-                    <div className="space-y-2 pt-1">
-                      <div className="flex items-center justify-between text-[14px]">
-                        <span className="flex items-center gap-1 text-[#FF6B4A] font-bold">
-                          <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" /> {user.streakDays} day streak
-                        </span>
-                        <span className="font-bold text-[#475569]">{user.points} points</span>
-                      </div>
-                      <div className="flex items-center justify-between pt-1">
-                        <Chip
-                          status={user.isHome ? 'active' : 'away'}
-                          label={user.isHome ? 'At home' : 'Away'}
-                          size="sm"
-                        />
-                        {isAdmin && !isMe && Boolean(onRemoveMember) && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              sound.playTap();
-                              setRemoveTargetUser(user);
-                            }}
-                            className="text-xs font-bold text-[#E5484D] hover:underline flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                          >
-                            <UserMinus className="w-3.5 h-3.5" /> Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  }
-                />
-              );
-            })}
-          </div>
-
-          {/* Leave Apartment Action */}
-          <div className="pt-2 flex justify-start">
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setLeaveModalOpen(true)}
-              icon={<LogOut className="w-4 h-4 text-[#E5484D]" />}
-            >
-              Leave this apartment
-            </Button>
-          </div>
+          <RoomiesRoster
+            members={members}
+            currentUser={currentUser}
+            isAdmin={isAdmin}
+            canRemoveMembers={Boolean(onRemoveMember)}
+            onSelectRemoveUser={setRemoveTargetUser}
+            onOpenLeaveModal={() => setLeaveModalOpen(true)}
+          />
         </div>
 
-        {/* ================= RIGHT COLUMN: Apartment Hub & Meetings/Rules ================= */}
         <div
           className={`w-full lg:col-span-5 self-start h-fit space-y-6 lg:sticky lg:top-0 mt-6 lg:mt-0 ${
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
-          {/* 2. HOUSE MEETINGS & APARTMENT RULES CONTAINER */}
-          <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h3 className="type-section-heading">House discussions and rules</h3>
-                <p className="type-secondary text-[14px]">Agreed standards and votes</p>
-              </div>
-              {meetingsSubTab === 'topics' ? (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setProposeModalOpen(true)}
-                  icon={<Plus className="w-3.5 h-3.5" />}
-                >
-                  Propose
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => setAddAgreementModalOpen(true)}
-                  icon={<Plus className="w-3.5 h-3.5" />}
-                >
-                  Add rule
-                </Button>
-              )}
-            </div>
-
-            {/* Sub-tab Switcher (Discussions vs Rules) */}
-            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#E6E8EE]/70">
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  setMeetingsSubTab('topics');
-                }}
-                className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
-                  meetingsSubTab === 'topics'
-                    ? 'bg-white text-[#1F2430] shadow-xs'
-                    : 'text-[#475569] hover:text-[#1F2430]'
-                }`}
-              >
-                Discussions ({topics.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  setMeetingsSubTab('agreements');
-                }}
-                className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
-                  meetingsSubTab === 'agreements'
-                    ? 'bg-white text-[#1F2430] shadow-xs'
-                    : 'text-[#475569] hover:text-[#1F2430]'
-                }`}
-              >
-                Rules ({agreements.length})
-              </button>
-            </div>
-
-            {/* SUB-VIEW 1: TOPICS */}
-            {meetingsSubTab === 'topics' && (
-              <div className="space-y-3">
-                {topics.length === 0 ? (
-                  <p className="type-secondary text-center py-4 text-[14px]">
-                    No active discussion topics right now.
-                  </p>
-                ) : (
-                  topics.map((topic) => {
-                    const proposer = roommates.find((r) => r.id === topic.proposedBy);
-                    const myVote = topic.votes.find((v) => v.userId === currentUser.id)?.vote;
-                    const agreeVotes = topic.votes.filter((v) => v.vote === 'agree').length;
-                    const disagreeVotes = topic.votes.filter((v) => v.vote === 'disagree').length;
-
-                    return (
-                      <ActionCard
-                        key={topic.id}
-                        tint={topic.status === 'agreed' ? 'green' : 'neutral'}
-                        iconTile={
-                          <IconTile
-                            icon={<MessageSquare className="w-5 h-5" />}
-                            color={topic.status === 'agreed' ? 'green' : 'indigo'}
-                            size="sm"
-                          />
-                        }
-                        title={topic.title}
-                        subtitle={`Proposed by ${proposer?.name.split(' ')[0] || 'Roomie'}`}
-                        detail={<p className="type-secondary text-[14px] leading-relaxed">{topic.description}</p>}
-                        badge={
-                          <Chip
-                            status={topic.status === 'agreed' ? 'agreed' : 'pending'}
-                            label={topic.status === 'agreed' ? 'Passed' : 'Voting Open'}
-                            size="sm"
-                          />
-                        }
-                        actions={
-                          <div className="w-full space-y-2.5">
-                            {/* Voting Buttons */}
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="type-label text-[14px] shrink-0">Your vote:</span>
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleVote(topic.id, 'agree')}
-                                  className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
-                                    myVote === 'agree'
-                                      ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
-                                      : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
-                                  }`}
-                                >
-                                  <ThumbsUp className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Agree{myVote ? ` (${agreeVotes})` : ''}</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleVote(topic.id, 'disagree')}
-                                  className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
-                                    myVote === 'disagree'
-                                      ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
-                                      : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
-                                  }`}
-                                >
-                                  <ThumbsDown className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Disagree{myVote ? ` (${disagreeVotes})` : ''}</span>
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Comment Input */}
-                            <div className="flex gap-1.5 pt-1 min-w-0">
-                              <input
-                                type="text"
-                                placeholder="Add quiet comment..."
-                                value={commentInputs[topic.id] || ''}
-                                onChange={(e) =>
-                                  setCommentInputs((prev) => ({
-                                    ...prev,
-                                    [topic.id]: e.target.value,
-                                  }))
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleComment(topic.id);
-                                }}
-                                className="flex-1 min-w-0 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
-                              />
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleComment(topic.id)}
-                                icon={<Send className="w-3.5 h-3.5" />}
-                              >
-                                Post
-                              </Button>
-                            </div>
-                          </div>
-                        }
-                      />
-                    );
-                  })
-                )}
-              </div>
-            )}
-
-            {/* SUB-VIEW 2: AGREEMENTS & RULES */}
-            {meetingsSubTab === 'agreements' && (
-              <div className="space-y-3">
-                {agreements.length === 0 ? (
-                  <p className="type-secondary text-center py-4 text-[14px]">
-                    No apartment rules defined yet.
-                  </p>
-                ) : (
-                  agreements.map((agr) => (
-                    <ActionCard
-                      key={agr.id}
-                      tint="coral"
-                      iconTile={<IconTile icon={<FileCheck className="w-5 h-5" />} color="coral" size="sm" />}
-                      title={agr.category.toUpperCase().replace('_', ' ')}
-                      subtitle="Consensus agreement"
-                      detail={
-                        <p className="type-body text-[14px] font-medium mt-1 leading-relaxed text-[#1F2430]">
-                          "{agr.text}"
-                        </p>
-                      }
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </InfoCard>
+          <HouseDiscussionsAndRules
+            topics={topics}
+            agreements={agreements}
+            roommates={roommates}
+            currentUser={currentUser}
+            onOpenProposeModal={() => setProposeModalOpen(true)}
+            onOpenAddAgreementModal={() => setAddAgreementModalOpen(true)}
+            onVoteTopic={onVoteTopic}
+            onAddComment={onAddComment}
+          />
         </div>
       </div>
 
-      {/* Propose Topic Modal */}
-      <Modal
+      <ProposeTopicModal
         isOpen={proposeModalOpen}
         onClose={() => setProposeModalOpen(false)}
-        title="Propose Meeting Topic"
-        subtitle="Bring up an apartment matter peacefully"
-        size="md"
-      >
-        <form onSubmit={handlePropose} className="space-y-4">
-          <div>
-            <label className="type-label block mb-1.5">Topic Title</label>
-            <input
-              type="text"
-              value={newTopicTitle}
-              onChange={(e) => setNewTopicTitle(e.target.value)}
-              placeholder="e.g. Quiet hours during finals, Guest stay notice"
-              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[15px] font-semibold text-[#1F2430]"
-              required
-            />
-          </div>
+        onCreateTopic={onCreateTopic}
+      />
 
-          <div>
-            <label className="type-label block mb-1.5">Description & Suggestion</label>
-            <textarea
-              value={newTopicDesc}
-              onChange={(e) => setNewTopicDesc(e.target.value)}
-              placeholder="Explain the background and what you're proposing..."
-              rows={3}
-              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
-              required
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => setProposeModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              fullWidth
-              disabled={!newTopicTitle.trim() || loading}
-            >
-              {loading ? 'Submitting...' : 'Propose Topic'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Add Flat Rule / Agreement Modal */}
-      <Modal
+      <AddAgreementModal
         isOpen={addAgreementModalOpen}
         onClose={() => setAddAgreementModalOpen(false)}
-        title="Add Apartment Agreement"
-        subtitle="Record a consensus rule for your flat"
-        size="md"
-      >
-        <form onSubmit={handleAddAgreementSubmit} className="space-y-4">
-          <div>
-            <label className="type-label block mb-1.5">Category</label>
-            <select
-              value={newRuleCategory}
-              onChange={(e) => setNewRuleCategory(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[15px] font-semibold text-[#1F2430]"
-            >
-              <option value="quiet_hours">Quiet Hours & Rest</option>
-              <option value="cleaning">Kitchen & Cleaning Standards</option>
-              <option value="guests">Guests & Visitors</option>
-              <option value="groceries">Shared Pantry & Fridge</option>
-              <option value="bills">Utilities & AC Usage</option>
-              <option value="general">General Respect</option>
-            </select>
-          </div>
+        onAddAgreement={onAddAgreement}
+      />
 
-          <div>
-            <label className="type-label block mb-1.5">Agreement Rule Text</label>
-            <textarea
-              value={newRuleText}
-              onChange={(e) => setNewRuleText(e.target.value)}
-              placeholder="e.g. Headphones in common areas after 23:00 on weekdays."
-              rows={3}
-              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] focus:border-[#FF6B4A] focus:outline-none text-[14px] font-semibold text-[#1F2430]"
-              required
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => setAddAgreementModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              fullWidth
-              disabled={!newRuleText.trim() || loading}
-            >
-              {loading ? 'Saving...' : 'Save Agreement'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Handover Admin Modal */}
-      <Modal
+      <HandoverAdminModal
         isOpen={handoverModalOpen}
         onClose={() => setHandoverModalOpen(false)}
-        title="Handover Admin Role"
-        subtitle="Pass the doorkeeper role to a roomie"
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-sm font-semibold text-[#475569]">
-            Select which roomie will take over reviewing join requests and refreshing apartment invite codes.
-          </p>
+        members={members}
+        currentUserId={currentUser.id}
+        onHandoverAdmin={onHandoverAdmin}
+      />
 
-          <div className="space-y-2.5">
-            {members
-              .filter((m) => m.user.id !== currentUser.id)
-              .map(({ user }) => (
-                <ActionCard
-                  key={user.id}
-                  tint={selectedSuccessorId === user.id ? 'coral' : 'neutral'}
-                  iconTile={
-                    <Avatar
-                      src={user.avatar}
-                      name={user.name}
-                      flag={user.flag}
-                      isHome={user.isHome}
-                      statusRing={true}
-                      size="sm"
-                    />
-                  }
-                  title={user.name}
-                  subtitle={`From ${user.country}`}
-                  actions={
-                    <Button
-                      variant={selectedSuccessorId === user.id ? 'primary' : 'secondary'}
-                      size="sm"
-                      onClick={() => {
-                        sound.playTap();
-                        setSelectedSuccessorId(user.id);
-                      }}
-                      icon={selectedSuccessorId === user.id ? <Check className="w-4 h-4" /> : undefined}
-                    >
-                      {selectedSuccessorId === user.id ? 'Selected' : 'Select'}
-                    </Button>
-                  }
-                />
-              ))}
-          </div>
-
-          <div className="flex gap-3 pt-3">
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => setHandoverModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              disabled={!selectedSuccessorId || loading}
-              onClick={handleHandover}
-            >
-              {loading ? 'Confirming...' : 'Confirm Handover'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Leave Household Modal */}
-      <Modal
+      <LeaveApartmentModal
         isOpen={leaveModalOpen}
         onClose={() => setLeaveModalOpen(false)}
-        title="Leave Apartment"
-        subtitle="Are you sure you want to disconnect from this household?"
-        size="md"
-      >
-        <div className="space-y-4">
-          {Math.abs(netBalance) > 1 ? (
-            <div className="p-4 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-2">
-              <div className="flex items-center gap-2 text-[#E5484D] font-bold">
-                <AlertTriangle className="w-5 h-5" />
-                <span>You have an unsettled balance of {sym}{Math.abs(netBalance).toFixed(2)}</span>
-              </div>
-              <p className="text-sm text-[#475569]">
-                Leaving before settling up may disrupt shared expense agreements with your roomies.
-              </p>
-              <label className="flex items-center gap-2 pt-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={acknowledgeDebt}
-                  onChange={(e) => setAcknowledgeDebt(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#FF6B4A] focus:ring-[#FF6B4A]"
-                />
-                <span className="text-sm font-bold text-[#1F2430]">
-                  I will settle my shared expenses outside the app
-                </span>
-              </label>
-            </div>
-          ) : (
-            <p className="text-sm text-[#475569]">
-              Your apartment balances are settled! You will lose access to the chore rotation, secret drafts, and group chat.
-            </p>
-          )}
+        netBalance={netBalance}
+        currencySymbol={sym}
+        onLeaveHousehold={onLeaveHousehold}
+      />
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="secondary"
-              size="md"
-              fullWidth
-              onClick={() => setLeaveModalOpen(false)}
-            >
-              Stay in Apartment
-            </Button>
-            <Button
-              variant="danger"
-              size="md"
-              fullWidth
-              disabled={Math.abs(netBalance) > 1 && !acknowledgeDebt}
-              onClick={handleLeave}
-            >
-              {loading ? 'Leaving...' : 'Yes, Leave'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Remove Household Member Modal (Admin Only, WhatsApp style) */}
-      {Boolean(removeTargetUser) && (
-        <Modal
-          isOpen={Boolean(removeTargetUser)}
-          onClose={() => setRemoveTargetUser(null)}
-          title={`Remove ${removeTargetUser?.name}?`}
-          subtitle="Apartment membership removal"
-          size="md"
-        >
-          <div className="space-y-4">
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-2">
-              <div className="flex items-center gap-1.5 font-bold">
-                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>WhatsApp-Style Roster Announcement</span>
-              </div>
-              <p className="leading-relaxed">
-                Removing <strong>{removeTargetUser?.name}</strong> will immediately revoke their access to apartment chores, expenses, and chats. A system notification will be broadcast to all remaining flatmates.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => setRemoveTargetUser(null)}
-                disabled={removingMember}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                size="md"
-                disabled={removingMember}
-                onClick={async () => {
-                  if (!removeTargetUser) return;
-                  setRemovingMember(true);
-                  try {
-                    await onRemoveMember?.(removeTargetUser.id);
-                    showToast(`${removeTargetUser.name} removed from apartment`, 'info');
-                    setRemoveTargetUser(null);
-                  } catch {
-                    showToast('Failed to remove flatmate', 'error');
-                  } finally {
-                    setRemovingMember(false);
-                  }
-                }}
-              >
-                {removingMember ? 'Removing...' : 'Confirm Remove'}
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      <RemoveMemberModal
+        targetUser={removeTargetUser}
+        onClose={() => setRemoveTargetUser(null)}
+        onRemoveMember={onRemoveMember}
+      />
     </div>
   );
 };

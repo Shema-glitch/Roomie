@@ -3,10 +3,7 @@ import { ActionCard } from '../../components/common/ActionCard';
 import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
-import { SectionTitle } from '../../components/common/SectionTitle';
-import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
-import { Chip } from '../../components/common/Chip';
 import { DoneFlowModal } from '../chores/DoneFlowModal';
 import {
   User,
@@ -26,17 +23,14 @@ import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import {
   Flame,
-  CheckCircle2,
   Sparkles,
-  Receipt,
-  MessageSquare,
   UserPlus,
-  Wallet,
-  Bell,
   Shuffle,
-  ClipboardCheck,
 } from 'lucide-react';
-import { isAssignmentDueToday, CHORE_REWARD_POINTS, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
+import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
+import { DailyFocusSection } from './components/DailyFocusSection';
+import { ActivityTimelineSection } from './components/ActivityTimelineSection';
+import { HomeSidebar } from './components/HomeSidebar';
 
 interface HomeScreenProps {
   currentUser: User;
@@ -71,7 +65,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   chores,
   assignments,
   draftRound,
-  expenses,
   activityMessages,
   pendingJoinRequests,
   netBalance,
@@ -85,20 +78,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onSelectJoinRequest,
   onToggleHomeStatus,
   onCompleteChore,
-  onGiveKudos,
   onOpenExpensesAction,
   onRemindRoomies,
 }) => {
   const { showToast } = useToast();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
-  const [feedFilter, setFeedFilter] = useState<'all' | 'chores' | 'expenses' | 'drafts'>('all');
 
   const sym = getCurrencySymbol(household?.currency);
-
-  // Single-source chore draft state across views
   const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
 
-  // My chore for today - only chores actually due today appear in Today's due tasks
   const myTodayAssignment = assignments.find(
     (a) => a.userId === currentUser.id && isAssignmentDueToday(a) && !a.completedToday
   );
@@ -106,57 +94,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     ? chores.find((c) => c.id === myTodayAssignment.choreId)
     : null;
 
-  // Filter and group recent activities
-  const allActivities = [...activityMessages]
-    .filter((m) => m.type === 'activity')
-    .slice(-10)
-    .reverse();
-
-  const filteredActivities = allActivities.filter((act) => {
-    const text = act.body.toLowerCase();
-    const isDraft = text.includes('draft') || text.includes('reveal');
-    const isChore =
-      !isDraft &&
-      (text.includes('chore') ||
-        text.includes('clean') ||
-        text.includes('dishes') ||
-        text.includes('bathroom'));
-    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('$') || text.includes('€') || text.includes('paid');
-
-    if (feedFilter === 'chores') return isChore;
-    if (feedFilter === 'expenses') return isExpense;
-    if (feedFilter === 'drafts') return isDraft;
-    return true;
-  });
-
-  // Group into today vs earlier
-  const now = new Date();
-  const todayActivities = filteredActivities.filter((act) => {
-    const actDate = new Date(act.createdAt);
-    return (
-      actDate.getDate() === now.getDate() &&
-      actDate.getMonth() === now.getMonth() &&
-      actDate.getFullYear() === now.getFullYear()
-    );
-  });
-  const earlierActivities = filteredActivities.filter((act) => {
-    const actDate = new Date(act.createdAt);
-    return !(
-      actDate.getDate() === now.getDate() &&
-      actDate.getMonth() === now.getMonth() &&
-      actDate.getFullYear() === now.getFullYear()
-    );
-  });
-
-  const homeCount = roommates.filter((r) => r.isHome).length;
-
   return (
     <div className="w-full select-none pb-28 md:pb-8">
-      {/* Responsive Desktop 12-Column Grid */}
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-        {/* ================= LEFT COLUMN: Priority Focus & Activity Feed ================= */}
         <div className="w-full lg:col-span-8 self-start space-y-6">
-          {/* 1. HERO MASCOT GREETING CARD */}
           <InfoCard
             tint="coral"
             padding="lg"
@@ -188,7 +129,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </div>
           </InfoCard>
 
-          {/* 1.5. DUTY DAY / FLAT CAPTAIN HERO BANNER */}
           <DutyTodayBanner
             dutySchedule={dutySchedule || null}
             roommates={roommates}
@@ -197,7 +137,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onCompleteTodayDuty={onCompleteTodayDuty}
           />
 
-          {/* 2. PENDING JOIN REQUEST BANNER (IF ANY) */}
           {pendingJoinRequests.length > 0 && (
             <ActionCard
               tint="indigo"
@@ -206,7 +145,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               subtitle="Doorkeeper approval needed to confirm access"
               detail={
                 <span className="text-sm text-[#5B5BD6] font-bold">
-                  Roomies are voting: {pendingJoinRequests[0].votes?.length || 0} {(pendingJoinRequests[0].votes?.length || 0) === 1 ? 'vote' : 'votes'} recorded
+                  Roomies are voting: {pendingJoinRequests[0].votes?.length || 0}{' '}
+                  {(pendingJoinRequests[0].votes?.length || 0) === 1 ? 'vote' : 'votes'} recorded
                 </span>
               }
               actions={
@@ -228,13 +168,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           )}
 
-          {/* SINGLE-SOURCE CHORE DRAFT BANNER / CARD */}
           {choreDraftState.state !== 'reveal_done' && (
             <ActionCard
               tint={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
               iconTile={
                 <IconTile
-                  icon={choreDraftState.state === 'reveal_ready' ? <Sparkles className="w-6 h-6" /> : <Shuffle className="w-6 h-6" />}
+                  icon={
+                    choreDraftState.state === 'reveal_ready' ? (
+                      <Sparkles className="w-6 h-6" />
+                    ) : (
+                      <Shuffle className="w-6 h-6" />
+                    )
+                  }
                   color={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
                   size="md"
                 />
@@ -260,7 +205,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         onOpenDraftPicks();
                       }
                     }}
-                    icon={choreDraftState.state === 'reveal_ready' ? <Sparkles className="w-4 h-4" /> : <Shuffle className="w-4 h-4" />}
+                    icon={
+                      choreDraftState.state === 'reveal_ready' ? (
+                        <Sparkles className="w-4 h-4" />
+                      ) : (
+                        <Shuffle className="w-4 h-4" />
+                      )
+                    }
                   >
                     {choreDraftState.actionLabel}
                   </Button>
@@ -269,364 +220,39 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           )}
 
-          {/* 3. TODAY'S DAILY FOCUS (DUAL COLUMN AUTO-LAYOUT ON MD+) */}
-          <div>
-            <SectionTitle
-              title="Today's priority focus"
-              subtitle="Immediate action items for your apartment"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* TODAY'S CHORE CARD */}
-              <ActionCard
-                tint="teal"
-                iconTile={<IconTile icon={<ClipboardCheck className="w-6 h-6" />} color="teal" size="md" />}
-                title={myTodayChore ? myTodayChore.name : 'All chores done'}
-                subtitle={
-                  myTodayChore
-                    ? `${myTodayChore.frequency === 'daily' ? 'Daily' : 'Weekly'} • ${myTodayAssignment?.scheduledTime}`
-                    : 'Kitchen and living area are clean'
-                }
-                detail={
-                  myTodayChore ? (
-                    <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
-                      Earn +{(myTodayChore.effortLevel === 'heavy' ? 3 : myTodayChore.effortLevel === 'medium' ? 2 : 1) * 10} streak points
-                    </span>
-                  ) : (
-                    <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
-                      Streak protected for today
-                    </span>
-                  )
-                }
-                actions={
-                  myTodayChore ? (
-                    <div className="w-full grid grid-cols-2 gap-3">
-                      <Button
-                        variant="teal"
-                        size="md"
-                        onClick={() => setDoneChoreModalTarget(myTodayChore)}
-                        icon={<CheckCircle2 className="w-4 h-4" />}
-                      >
-                        Done
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        onClick={() => onNavigateTab('chores')}
-                      >
-                        Schedule
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      fullWidth
-                      onClick={() => onNavigateTab('chores')}
-                    >
-                      Open chores hub
-                    </Button>
-                  )
-                }
-              />
+          <DailyFocusSection
+            myTodayChore={myTodayChore}
+            myTodayAssignment={myTodayAssignment}
+            netBalance={netBalance}
+            currencySymbol={sym}
+            onSelectDoneChore={setDoneChoreModalTarget}
+            onNavigateTab={onNavigateTab}
+            onRemindRoomies={onRemindRoomies}
+            onOpenExpensesAction={onOpenExpensesAction}
+          />
 
-              {/* BALANCE SNAPSHOT CARD */}
-              <ActionCard
-                tint="green"
-                iconTile={<IconTile icon={<Wallet className="w-6 h-6" />} color="green" size="md" />}
-                title={
-                  <div className="flex items-baseline gap-2">
-                    <span className="type-big-number">
-                      {netBalance > 0.05 ? (
-                        <span className="text-[#2CA358]">
-                          +{sym}{netBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      ) : netBalance < -0.05 ? (
-                        <span className="text-[#E5484D]">
-                          -{sym}{Math.abs(netBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      ) : (
-                        <span className="text-[#1F2430]">{sym}0.00</span>
-                      )}
-                    </span>
-                  </div>
-                }
-                subtitle={
-                  netBalance > 0.05
-                    ? 'You are owed by roomies'
-                    : netBalance < -0.05
-                    ? 'You owe shared balance'
-                    : 'All roomie expenses settled'
-                }
-                detail={
-                  <span className="type-secondary text-[14px]">
-                    Simplified across all shared purchases
-                  </span>
-                }
-                actions={
-                  <div className="w-full grid grid-cols-2 gap-3">
-                    {netBalance > 0.05 ? (
-                      <>
-                        <Button
-                          variant="primary"
-                          size="md"
-                          onClick={async () => {
-                            sound.playTap();
-                            if (onRemindRoomies) {
-                              await onRemindRoomies();
-                              showToast('Reminder posted to flat chat!', 'success');
-                            } else {
-                              onNavigateTab('expenses');
-                            }
-                          }}
-                          icon={<Bell className="w-4 h-4" />}
-                        >
-                          Remind
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() => {
-                            sound.playTap();
-                            if (onOpenExpensesAction) {
-                              onOpenExpensesAction('confirm');
-                            } else {
-                              onNavigateTab('expenses');
-                            }
-                          }}
-                        >
-                          Confirm payment
-                        </Button>
-                      </>
-                    ) : netBalance < -0.05 ? (
-                      <>
-                        <Button
-                          variant="primary"
-                          size="md"
-                          onClick={() => {
-                            sound.playTap();
-                            if (onOpenExpensesAction) {
-                              onOpenExpensesAction('settle');
-                            } else {
-                              onNavigateTab('expenses');
-                            }
-                          }}
-                          icon={<Receipt className="w-4 h-4" />}
-                        >
-                          Settle up
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="md"
-                          onClick={() => onNavigateTab('expenses')}
-                        >
-                          Ledger
-                        </Button>
-                      </>
-                    ) : (
-                      <Button
-                        variant="secondary"
-                        size="md"
-                        fullWidth
-                        onClick={() => onNavigateTab('expenses')}
-                      >
-                        View ledger
-                      </Button>
-                    )}
-                  </div>
-                }
-              />
-            </div>
-          </div>
-
-          {/* 4. APARTMENT FEED WITH FILTER PILLS & SEMANTIC GROUPING */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <SectionTitle
-                title="Apartment live feed"
-                subtitle="Recent actions, agreements, and roomie events"
-              />
-              <Button
-                variant="indigo"
-                size="sm"
-                onClick={() => onNavigateTab('chat')}
-                icon={<MessageSquare className="w-4 h-4" />}
-              >
-                Open chat
-              </Button>
-            </div>
-
-            {/* Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {[
-                { id: 'all', label: 'All updates' },
-                { id: 'chores', label: 'Chores' },
-                { id: 'expenses', label: 'Money' },
-                { id: 'drafts', label: 'Secret drafts' },
-              ].map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => {
-                    sound.playTap();
-                    setFeedFilter(f.id as any);
-                  }}
-                  className={`min-h-[40px] px-3.5 py-1.5 rounded-2xl text-[14px] font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                    feedFilter === f.id
-                      ? 'bg-[#1F2430] text-white shadow-xs'
-                      : 'bg-white text-[#475569] border border-[#E6E8EE] hover:bg-[#F1F3F9]'
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Group 1: Today's Updates */}
-            {todayActivities.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="type-label text-[#64748B]">Today</span>
-                  <div className="flex-1 h-px bg-[#E6E8EE]" />
-                </div>
-                {todayActivities.map((act) => renderActivityCard(act))}
-              </div>
-            )}
-
-            {/* Group 2: Earlier Updates */}
-            {earlierActivities.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 pt-2">
-                  <span className="type-label text-[#64748B]">Earlier this week</span>
-                  <div className="flex-1 h-px bg-[#E6E8EE]" />
-                </div>
-                {earlierActivities.map((act) => renderActivityCard(act))}
-              </div>
-            )}
-
-            {filteredActivities.length === 0 && (
-              <InfoCard padding="md" className="text-center type-secondary bg-white">
-                No recent apartment updates matching this filter.
-              </InfoCard>
-            )}
-          </div>
+          <ActivityTimelineSection
+            activityMessages={activityMessages}
+            onNavigateTab={onNavigateTab}
+            onOpenChoreReveal={onOpenChoreReveal}
+            onSelectExpense={onSelectExpense}
+          />
         </div>
 
-        {/* ================= RIGHT COLUMN: Roomie Hub & Quick Action Dock ================= */}
-        <div className="w-full lg:col-span-4 self-start h-fit space-y-6 mt-6 lg:mt-0 lg:sticky lg:top-0">
-          {/* 1. ROOMIES PRESENCE LIVE HUB */}
-          <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                <h3 className="type-section-heading">Roomie presence</h3>
-                <p className="type-secondary text-[14px]">Live apartment status</p>
-              </div>
-              <Chip
-                status="active"
-                label={`${homeCount} of ${roommates.length} Home`}
-                size="xs"
-              />
-            </div>
-
-            {/* Roomies List with Status Indicators */}
-            <div className="space-y-2.5">
-              {roommates.map((r) => {
-                const isMe = r.id === currentUser.id;
-                return (
-                  <div
-                    key={r.id}
-                    className={`p-2.5 rounded-2xl flex items-center justify-between gap-2.5 border transition-all ${
-                      isMe
-                        ? 'bg-[#F7F8FB] border-[#E2E5EC]'
-                        : 'bg-white border-[#F1F3F9] hover:border-[#E2E5EC]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <Avatar
-                        src={r.avatar}
-                        name={r.name}
-                        flag={r.flag}
-                        isHome={r.isHome}
-                        statusRing={true}
-                        size="sm"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[14px] font-bold text-[#1F2430] truncate">
-                          {isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}
-                        </p>
-                        <p className="type-secondary text-[13px] flex items-center gap-1 whitespace-nowrap">
-                          <Flame className="w-3.5 h-3.5 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
-                          <span>{r.streakDays}d streak • {r.points} pts</span>
-                        </p>
-                      </div>
-                    </div>
-                    <Chip
-                      status={r.isHome ? 'active' : 'away'}
-                      label={r.isHome ? 'Home' : 'Away'}
-                      size="xs"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Quick Switch Presence Button */}
-            <Button
-              variant="secondary"
-              size="sm"
-              fullWidth
-              onClick={onToggleHomeStatus}
-            >
-              Toggle my status ({currentUser.isHome ? 'Leave home' : 'Return home'})
-            </Button>
-          </InfoCard>
-
-          {/* 2. QUICK ACTION DOCK */}
-          <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
-            <h3 className="type-section-heading">Quick actions</h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  if (onOpenExpensesAction) {
-                    onOpenExpensesAction('add');
-                  } else {
-                    onNavigateTab('expenses');
-                  }
-                }}
-                className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] transition-all cursor-pointer group"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
-                  <Receipt className="w-4 h-4" />
-                </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">Log expense</p>
-                <p className="text-[14px] text-[#475569]">Split purchases</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playTap();
-                  if (choreDraftState.state === 'reveal_ready') {
-                    onOpenChoreReveal();
-                  } else {
-                    onOpenDraftPicks();
-                  }
-                }}
-                className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] transition-all cursor-pointer group"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
-                  <Shuffle className="w-4 h-4" />
-                </div>
-                <p className="text-[14px] font-bold text-[#1F2430]">{choreDraftState.actionLabel}</p>
-                <p className="text-[14px] text-[#475569]">{choreDraftState.badgeLabel}</p>
-              </button>
-            </div>
-          </InfoCard>
+        <div className="w-full lg:col-span-4 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-0">
+          <HomeSidebar
+            roommates={roommates}
+            currentUser={currentUser}
+            choreDraftState={choreDraftState}
+            onToggleHomeStatus={onToggleHomeStatus}
+            onNavigateTab={onNavigateTab}
+            onOpenExpensesAction={onOpenExpensesAction}
+            onOpenChoreReveal={onOpenChoreReveal}
+            onOpenDraftPicks={onOpenDraftPicks}
+          />
         </div>
       </div>
 
-      {/* Done Flow Modal for Quick Completion */}
       {doneChoreModalTarget && (
         <DoneFlowModal
           isOpen={Boolean(doneChoreModalTarget)}
@@ -644,101 +270,4 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       )}
     </div>
   );
-
-  // Helper renderer for compact feed list rows
-  function renderActivityCard(act: ChatMessage) {
-    const text = act.body.toLowerCase();
-    const isDraft = text.includes('draft') || text.includes('reveal');
-    const isChore =
-      !isDraft &&
-      (text.includes('chore') ||
-        text.includes('clean') ||
-        text.includes('dishes') ||
-        text.includes('bathroom'));
-    const isExpense = text.includes('expense') || text.includes('₺') || text.includes('$') || text.includes('€') || text.includes('paid');
-
-    const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
-    const icon = isDraft ? (
-      <Shuffle className="w-5 h-5" />
-    ) : isChore ? (
-      <ClipboardCheck className="w-5 h-5" />
-    ) : isExpense ? (
-      <Receipt className="w-5 h-5" />
-    ) : (
-      <MessageSquare className="w-5 h-5" />
-    );
-
-    const isRevealReady = act.linkTarget?.screen === 'chore-reveal' || text.includes('reveal ready');
-    const isJoinReq = text.includes('wants to join') || text.includes('join request') || act.linkTarget?.screen === 'members';
-    const isExpenseNeedsAction = isExpense && (text.includes('needs your agreement') || text.includes('pending your approval') || text.includes('verify'));
-
-    const timeFormatted = new Date(act.createdAt).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    const categoryLabel = isDraft ? 'Chore Draft' : isChore ? 'Chores' : isExpense ? 'Money' : 'Apartment';
-
-    return (
-      <div
-        key={act.id}
-        className="p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <IconTile icon={icon} color={tileColor} size="sm" />
-          <div className="min-w-0">
-            <p className="text-[14px] font-bold text-[#1F2430] leading-snug">{act.body}</p>
-            <p className="type-secondary text-[14px] flex items-center gap-1.5 mt-0.5">
-              <span>{timeFormatted}</span>
-              <span>•</span>
-              <span className="font-semibold text-[#475569]">{categoryLabel}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Action button ONLY on items that need a response */}
-        {isRevealReady && (
-          <div className="shrink-0">
-            <Button
-              variant="indigo"
-              size="sm"
-              onClick={onOpenChoreReveal}
-              icon={<Sparkles className="w-3.5 h-3.5" />}
-            >
-              Reveal schedule
-            </Button>
-          </div>
-        )}
-
-        {isJoinReq && (
-          <div className="shrink-0">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onNavigateTab('apartment')}
-              icon={<UserPlus className="w-3.5 h-3.5 text-[#5B5BD6]" />}
-            >
-              Review request
-            </Button>
-          </div>
-        )}
-
-        {isExpenseNeedsAction && (
-          <div className="shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                onNavigateTab('expenses');
-                if (act.linkTarget?.id) onSelectExpense(act.linkTarget.id);
-              }}
-              icon={<Receipt className="w-3.5 h-3.5" />}
-            >
-              Review receipt
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  }
 };
