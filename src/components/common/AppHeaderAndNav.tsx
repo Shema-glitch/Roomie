@@ -153,20 +153,20 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
           isOffline || syncStatus === 'offline' || isDemoMode ? '' : 'pt-safe'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 md:flex-initial">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenHouseholdSwitcher();
               }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer max-w-full min-w-0"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink"
             >
-              <span className="type-section-heading max-w-[135px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
+              <span className="type-section-heading max-w-[120px] sm:max-w-[200px] md:max-w-none truncate text-[14px] sm:text-[18px]">
                 {activeHousehold.name}
               </span>
-              <CaretDown weight="bold" className="w-4 h-4 text-[#475569] shrink-0" />
+              <CaretDown weight="bold" className="w-3.5 h-3.5 text-[#475569] shrink-0" />
             </button>
 
             <button
@@ -222,14 +222,14 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
             })}
           </nav>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenSyncPanel();
               }}
-              className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.98] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.98] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                 syncStatus === 'syncing'
                   ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
                   : syncStatus === 'offline'
@@ -258,10 +258,10 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                   syncStatus === 'synced'
                     ? 'hidden sm:inline text-[#19B5A5]'
                     : syncStatus === 'syncing'
-                    ? 'text-[#5B5BD6]'
+                    ? 'hidden xs:inline text-[#5B5BD6]'
                     : syncStatus === 'offline'
-                    ? 'text-[#E5484D]'
-                    : 'text-[#8A6200]'
+                    ? 'hidden xs:inline text-[#E5484D]'
+                    : 'hidden xs:inline text-[#8A6200]'
                 }`}
               >
                 {syncButtonLabel}
@@ -273,12 +273,12 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 sound.playTap();
                 onOpenNotifications();
               }}
-              className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
+              className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 shrink-0"
               aria-label="Open notifications"
             >
               <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-4 h-4" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-white rounded-full text-[11px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
+                <span className="absolute top-0.5 right-0.5 min-w-[18px] sm:min-w-[20px] h-4.5 sm:h-5 px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] sm:text-[11px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
                   {unreadNotifsCount}
                 </span>
               )}
@@ -289,7 +289,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 sound.playTap();
                 onOpenProfileSettings();
               }}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
+              className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer shrink-0"
               aria-label="Open profile settings"
             >
               <Avatar

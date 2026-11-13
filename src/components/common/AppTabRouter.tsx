@@ -21,21 +21,11 @@ import {
 } from '../../types';
 import { NetBalance } from '../../utils/balances';
 
-const HomeScreen = React.lazy(() =>
-  import('../../features/feed/HomeScreen').then((m) => ({ default: m.HomeScreen }))
-);
-const ChoresScreen = React.lazy(() =>
-  import('../../features/chores/ChoresScreen').then((m) => ({ default: m.ChoresScreen }))
-);
-const ExpensesScreen = React.lazy(() =>
-  import('../../features/expenses/ExpensesScreen').then((m) => ({ default: m.ExpensesScreen }))
-);
-const ChatScreen = React.lazy(() =>
-  import('../../features/chat/ChatScreen').then((m) => ({ default: m.ChatScreen }))
-);
-const ApartmentScreen = React.lazy(() =>
-  import('../../features/members/ApartmentScreen').then((m) => ({ default: m.ApartmentScreen }))
-);
+import { HomeScreen } from '../../features/feed/HomeScreen';
+import { ChoresScreen } from '../../features/chores/ChoresScreen';
+import { ExpensesScreen } from '../../features/expenses/ExpensesScreen';
+import { ChatScreen } from '../../features/chat/ChatScreen';
+import { ApartmentScreen } from '../../features/members/ApartmentScreen';
 
 interface AppTabRouterProps {
   activeTab: AppTab;

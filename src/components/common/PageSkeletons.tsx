@@ -95,7 +95,7 @@ export const ScreenSkeleton: React.FC<{ tab?: AppTab }> = ({ tab = 'feed' }) => 
 };
 
 export const AppBootstrapSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-[#F7F8FB] flex flex-col">
+  <div className="min-h-screen bg-[#F7F8FB] flex flex-col pt-safe pb-safe">
     <div className="h-16 border-b border-[#E6E8EE] bg-white/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between animate-pulse">
       <div className="h-9 w-40 bg-[#E6E8EE] rounded-2xl" />
       <div className="hidden md:flex gap-2">

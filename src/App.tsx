@@ -420,37 +420,35 @@ function MainApp() {
                 : 'animate-tab-slide-right'
             } ${activeTab === 'chat' ? 'h-full flex flex-col min-h-0' : ''}`}
           >
-            <React.Suspense fallback={<ScreenSkeleton tab={activeTab} />}>
-              <AppTabRouter
-                activeTab={activeTab}
-                currentUser={currentUser}
-                activeHousehold={activeHousehold}
-                members={members}
-                chores={chores}
-                draftRound={draftRound}
-                expenses={expenses}
-                settlements={settlements}
-                messages={messages}
-                topics={topics}
-                agreements={agreements}
-                joinRequests={joinRequests}
-                dutySchedule={dutySchedule}
-                balances={balances}
-                selectedExpenseId={selectedExpenseId}
-                selectedExpenseAction={selectedExpenseAction}
-                setActiveTab={setActiveTab}
-                setDraftFlowState={setDraftFlowState}
-                setDutyTimetableOpen={setDutyTimetableOpen}
-                setSelectedExpenseId={setSelectedExpenseId}
-                setSelectedExpenseAction={setSelectedExpenseAction}
-                setReviewJoinRequest={setReviewJoinRequest}
-                setCurrentUser={setCurrentUser}
-                setShowQROpen={setShowQROpen}
-                setHouseholdSwitcherOpen={setHouseholdSwitcherOpen}
-                setShowOnboarding={setShowOnboarding}
-                loadData={loadData}
-              />
-            </React.Suspense>
+            <AppTabRouter
+              activeTab={activeTab}
+              currentUser={currentUser}
+              activeHousehold={activeHousehold}
+              members={members}
+              chores={chores}
+              draftRound={draftRound}
+              expenses={expenses}
+              settlements={settlements}
+              messages={messages}
+              topics={topics}
+              agreements={agreements}
+              joinRequests={joinRequests}
+              dutySchedule={dutySchedule}
+              balances={balances}
+              selectedExpenseId={selectedExpenseId}
+              selectedExpenseAction={selectedExpenseAction}
+              setActiveTab={setActiveTab}
+              setDraftFlowState={setDraftFlowState}
+              setDutyTimetableOpen={setDutyTimetableOpen}
+              setSelectedExpenseId={setSelectedExpenseId}
+              setSelectedExpenseAction={setSelectedExpenseAction}
+              setReviewJoinRequest={setReviewJoinRequest}
+              setCurrentUser={setCurrentUser}
+              setShowQROpen={setShowQROpen}
+              setHouseholdSwitcherOpen={setHouseholdSwitcherOpen}
+              setShowOnboarding={setShowOnboarding}
+              loadData={loadData}
+            />
           </div>
         </main>
 
