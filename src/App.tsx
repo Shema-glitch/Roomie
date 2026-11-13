@@ -12,6 +12,7 @@ import { SplashScreen } from './components/common/SplashScreen';
 import { AppHeader, AppBottomNav, AppTab } from './components/common/AppHeaderAndNav';
 import { AppTabRouter } from './components/common/AppTabRouter';
 import { AppModals } from './components/common/AppModals';
+import { ScreenSkeleton, AppBootstrapSkeleton } from './components/common/PageSkeletons';
 import { api } from './services/api';
 import { sound } from './services/sound';
 import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandler';
@@ -30,17 +31,6 @@ const WaitingDraftScreen = React.lazy(() =>
 );
 const ChoreRevealScreen = React.lazy(() =>
   import('./features/chores/ChoreRevealScreen').then((m) => ({ default: m.ChoreRevealScreen }))
-);
-
-const ScreenSkeleton: React.FC = () => (
-  <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4 animate-pulse">
-    <div className="h-28 bg-[#E6E8EE]/70 rounded-3xl w-full" />
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="h-44 bg-[#E6E8EE]/70 rounded-3xl" />
-      <div className="h-44 bg-[#E6E8EE]/70 rounded-3xl" />
-    </div>
-    <div className="h-64 bg-[#E6E8EE]/70 rounded-3xl w-full" />
-  </div>
 );
 
 function MainApp() {
@@ -283,12 +273,7 @@ function MainApp() {
     }
 
     if (!currentUser || !activeHousehold || !draftRound) {
-      return (
-        <div className="min-h-screen bg-[#F7F8FB] flex flex-col items-center justify-center p-6 text-center">
-          <MascotView state="thinking" size="lg" bubbleText="Getting your flat ready..." />
-          <h2 className="type-title mt-4">Loading your apartment...</h2>
-        </div>
-      );
+      return <AppBootstrapSkeleton />;
     }
 
     const roommatesList = members.map((m) => m.user);
@@ -391,7 +376,7 @@ function MainApp() {
               : 'pt-5 pb-24 md:py-8 overflow-y-auto'
           }`}
         >
-          <React.Suspense fallback={<ScreenSkeleton />}>
+          <React.Suspense fallback={<ScreenSkeleton tab={activeTab} />}>
             <AppTabRouter
               activeTab={activeTab}
               currentUser={currentUser}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActionCard } from '../../../components/common/ActionCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
@@ -25,15 +25,25 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = ({
   onConfirmSettlement,
 }) => {
   const { showToast } = useToast();
+  const [confirming, setConfirming] = useState(false);
+  const [optimisticConfirmed, setOptimisticConfirmed] = useState(false);
+
   const fromUser = roommates.find((r) => r.id === s.fromUser);
   const toUser = roommates.find((r) => r.id === s.toUser);
   const isMePayer = s.fromUser === currentUser.id;
   const isMeReceiver = s.toUser === currentUser.id;
+  const isConfirmed = s.status === 'confirmed' || optimisticConfirmed;
 
   return (
     <ActionCard
-      tint="neutral"
-      iconTile={<IconTile icon={<Banknote className="w-5 h-5" />} color="teal" size="sm" />}
+      tint={isConfirmed ? 'green' : 'neutral'}
+      iconTile={
+        <IconTile
+          icon={<Banknote className="w-5 h-5" />}
+          color={isConfirmed ? 'green' : 'teal'}
+          size="sm"
+        />
+      }
       title={`${sym}${formatCurrency(s.amount)} paid directly`}
       subtitle={`${fromUser?.name.split(' ')[0] || 'Roomie'} to ${
         toUser?.name.split(' ')[0] || 'Roomie'
@@ -48,27 +58,42 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = ({
       }
       badge={
         <Chip
-          status={s.status === 'confirmed' ? 'paid' : 'pending'}
-          label={s.status === 'confirmed' ? 'Confirmed' : 'Pending Receipt'}
+          status={isConfirmed ? 'paid' : 'pending'}
+          label={isConfirmed ? 'Confirmed' : 'Pending Receipt'}
           size="sm"
         />
       }
       actions={
-        isMeReceiver && s.status === 'marked_paid' ? (
+        isMeReceiver && !isConfirmed ? (
           <div className="w-full">
             <Button
               variant="reward"
               size="sm"
               fullWidth
+              loading={confirming}
               onClick={async () => {
+                if (confirming) return;
+                setConfirming(true);
+                setOptimisticConfirmed(true);
                 sound.playSuccess();
-                await onConfirmSettlement(s.id);
-                showToast(`Confirmed receipt of ${sym}${formatCurrency(s.amount)}!`, 'success');
+                try {
+                  await onConfirmSettlement(s.id);
+                  showToast(
+                    `Confirmed receipt of ${sym}${formatCurrency(s.amount)}!`,
+                    'success'
+                  );
+                } catch {
+                  setOptimisticConfirmed(false);
+                  showToast('Could not confirm payment. Please try again.', 'error');
+                } finally {
+                  setConfirming(false);
+                }
               }}
               icon={<Check className="w-4 h-4" />}
             >
-              Confirm Payment Received ({sym}
-              {formatCurrency(s.amount)})
+              {confirming
+                ? 'Confirming...'
+                : `Confirm Payment Received (${sym}${formatCurrency(s.amount)})`}
             </Button>
           </div>
         ) : undefined

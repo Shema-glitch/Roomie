@@ -90,7 +90,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               sound.playTap();
               onOpenHouseholdSwitcher();
             }}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] transition-all cursor-pointer max-w-full min-w-0"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer max-w-full min-w-0"
           >
             <span className="type-section-heading max-w-[135px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
               {activeHousehold.name}
@@ -104,7 +104,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               sound.playTap();
               onOpenShowQR();
             }}
-            className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0"
             title="Click to view apartment invite code and QR"
           >
             <span className="font-mono tracking-wide font-black">{activeHousehold.inviteCode}</span>
@@ -125,15 +125,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   sound.playTap();
                   onSelectTab(tab.id);
                 }}
-                className={`flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 ${
                   isActive
                     ? 'bg-white text-[#1F2430] shadow-xs border border-[#E2E5EC]'
-                    : 'text-[#475569] hover:text-[#1F2430] hover:bg-white/60'
+                    : 'text-[#475569] hover:text-[#1F2430] hover:bg-white/60 border border-transparent'
                 }`}
                 title={tab.label}
                 aria-label={tab.label}
               >
-                <span className={isActive ? 'text-[#FF6B4A]' : 'text-[#94A3B8]'}>{tab.icon}</span>
+                <span
+                  className={`transition-colors duration-150 ${
+                    isActive ? 'text-[#FF6B4A]' : 'text-[#94A3B8]'
+                  }`}
+                >
+                  {tab.icon}
+                </span>
                 <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tab.label}</span>
               </button>
             );
@@ -147,7 +154,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               sound.playTap();
               onOpenSyncPanel();
             }}
-            className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all ${
+            className={`min-h-[44px] px-2.5 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none ${
               syncStatus === 'syncing'
                 ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
                 : syncStatus === 'offline'
@@ -188,7 +195,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               sound.playTap();
               onOpenNotifications();
             }}
-            className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] shadow-2xs transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
+            className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
             aria-label="Open notifications"
           >
             <Bell className="w-4 h-4" />
@@ -204,7 +211,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               sound.playTap();
               onOpenProfileSettings();
             }}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer"
             aria-label="Open profile settings"
           >
             <Avatar
@@ -248,14 +255,19 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({ activeTab, onSelectT
               sound.playTap();
               onSelectTab(tabItem.id);
             }}
-            className={`flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl min-h-[48px] min-w-[58px] transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 ${
+            aria-current={isActive ? 'page' : undefined}
+            className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl min-h-[48px] min-w-[58px] transition-all duration-150 ease-out active:scale-[0.95] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 ${
               isActive
-                ? 'text-[#FF6B4A] font-extrabold scale-105'
+                ? 'text-[#FF6B4A] font-extrabold'
                 : 'text-[#475569] hover:text-[#1F2430]'
             }`}
             aria-label={tabItem.label}
           >
-            <div className={`p-1 rounded-xl transition-colors ${isActive ? 'bg-[#FFF0ED]' : ''}`}>
+            <div
+              className={`p-1 rounded-xl transition-all duration-150 ease-out ${
+                isActive ? 'bg-[#FFF0ED] scale-105' : 'bg-transparent scale-100'
+              }`}
+            >
               {tabItem.icon}
             </div>
             <span className="text-[14px] font-bold mt-0.5 leading-none">{tabItem.label}</span>

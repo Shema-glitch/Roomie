@@ -110,9 +110,9 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                 onNavigateTab('expenses');
               }
             }}
-            className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <Receipt className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">Log expense</p>
@@ -129,9 +129,9 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                 onOpenDraftPicks();
               }
             }}
-            className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] transition-all cursor-pointer group"
+            className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <Shuffle className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">{choreDraftState.actionLabel}</p>

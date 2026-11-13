@@ -191,7 +191,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('my');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
                   scheduleFilter === 'my'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -205,7 +205,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   setScheduleFilter('all');
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
                   scheduleFilter === 'all'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -235,8 +235,12 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             roommates={roommates}
             currentUser={currentUser}
             onSelectDoneChore={setDoneModalChore}
+            onQuickCompleteChore={(choreId) => onCompleteChore(choreId)}
             onSelectSwapChore={setSwapModalChore}
             onSelectKudos={setKudosModalData}
+            onSwitchToAllFilter={
+              scheduleFilter === 'my' ? () => setScheduleFilter('all') : undefined
+            }
           />
         </div>
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { InfoCard } from '../../components/common/InfoCard';
 import { Button } from '../../components/common/Button';
 import { Chip } from '../../components/common/Chip';
 import { AddExpenseFlowModal } from './AddExpenseFlowModal';
@@ -12,7 +11,7 @@ import { Expense, Settlement, User, ExpenseCategory } from '../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../utils/balances';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
-import { Plus, Bell } from 'lucide-react';
+import { Plus, Bell, Receipt } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { ExpenseCard, ExpenseCardMode } from './components/ExpenseCard';
 import { SettlementItemCard } from './components/SettlementItemCard';
@@ -222,9 +221,27 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             </div>
 
             {agreedExpenses.length === 0 ? (
-              <InfoCard padding="md" className="text-center type-secondary bg-white">
-                No agreed expenses yet. When all roomies agree, purchases appear here.
-              </InfoCard>
+              <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-center text-[#FF6B4A]">
+                  <Receipt className="w-6 h-6" />
+                </div>
+                <div className="space-y-1 max-w-xs">
+                  <h4 className="type-card-title text-[#1F2430]">No confirmed expenses yet</h4>
+                  <p className="type-secondary text-[14px]">
+                    Once all flatmates agree to a shared purchase, it appears here and counts toward your net balance.
+                  </p>
+                </div>
+                <div className="pt-1">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setAddModalOpen(true)}
+                    icon={<Plus className="w-4 h-4 text-[#FF6B4A]" />}
+                  >
+                    Log an expense
+                  </Button>
+                </div>
+              </div>
             ) : (
               agreedExpenses.map((exp) => renderCard(exp, 'agreed'))
             )}

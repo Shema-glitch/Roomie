@@ -1,4 +1,5 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 
@@ -21,6 +22,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
+  loading?: boolean;
   icon?: React.ReactNode;
   children?: React.ReactNode;
 }
@@ -29,6 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
+  loading = false,
   icon,
   children,
   onClick,
@@ -37,20 +40,21 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...props
 }) => {
+  const isDisabled = Boolean(disabled || loading);
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled) return;
+    if (isDisabled) return;
     sound.playTap();
     if (onClick) onClick(e);
   };
 
-  // Tactile bottom-edge styling based on variant
   const getVariantStyles = (): {
     backgroundColor: string;
     color: string;
     boxShadow: string;
     border: string;
   } => {
-    if (disabled) {
+    if (isDisabled) {
       return {
         backgroundColor: '#F1F3F9',
         color: '#9CA3AF',
@@ -62,44 +66,44 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: THEME.colors.primary, // #FF6B4A
+          backgroundColor: THEME.colors.primary,
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.primaryDark}`, // #D94E30
+          boxShadow: `0 4px 0 ${THEME.colors.primaryDark}`,
           border: 'none',
         };
       case 'teal':
         return {
-          backgroundColor: THEME.colors.secondary, // #19B5A5
+          backgroundColor: THEME.colors.secondary,
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.secondaryDark}`, // #138E82
+          boxShadow: `0 4px 0 ${THEME.colors.secondaryDark}`,
           border: 'none',
         };
       case 'green':
         return {
-          backgroundColor: THEME.colors.success, // #3DBE6D
+          backgroundColor: THEME.colors.success,
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.successDark}`, // #2CA358
+          boxShadow: `0 4px 0 ${THEME.colors.successDark}`,
           border: 'none',
         };
       case 'indigo':
         return {
-          backgroundColor: THEME.colors.info, // #5B5BD6
+          backgroundColor: THEME.colors.info,
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.infoDark}`, // #4747B8
+          boxShadow: `0 4px 0 ${THEME.colors.infoDark}`,
           border: 'none',
         };
       case 'reward':
         return {
-          backgroundColor: THEME.colors.reward, // #FFC93C
+          backgroundColor: THEME.colors.reward,
           color: THEME.colors.ink,
-          boxShadow: `0 4px 0 ${THEME.colors.rewardDark}`, // #DDA821
+          boxShadow: `0 4px 0 ${THEME.colors.rewardDark}`,
           border: 'none',
         };
       case 'danger':
         return {
-          backgroundColor: THEME.colors.error, // #E5484D
+          backgroundColor: THEME.colors.error,
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.errorDark}`, // #BF3337
+          boxShadow: `0 4px 0 ${THEME.colors.errorDark}`,
           border: 'none',
         };
       case 'danger-outline':
@@ -126,7 +130,6 @@ export const Button: React.FC<ButtonProps> = ({
       case 'secondary':
       case 'outline':
       default:
-        // Tactile white card with bottom edge for secondary actions
         return {
           backgroundColor: '#FFFFFF',
           color: '#1F2430',
@@ -153,17 +156,22 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       onClick={handleClick}
       style={{
         ...variantStyles,
         ...style,
       }}
-      className={`btn-tactile inline-flex items-center justify-center gap-2 rounded-2xl cursor-pointer font-heading tracking-wide transition-all select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:transform-none ${
+      className={`btn-tactile inline-flex items-center justify-center gap-2 rounded-2xl cursor-pointer font-heading tracking-wide transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:transform-none ${
         fullWidth ? 'w-full' : ''
       } ${getSizeClasses()} ${className}`}
     >
-      {icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>}
+      {loading ? (
+        <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+      ) : (
+        icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>
+      )}
       {children && <span>{children}</span>}
     </button>
   );

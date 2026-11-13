@@ -40,6 +40,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
   const { showToast } = useToast();
   const [subTab, setSubTab] = useState<'topics' | 'agreements'>('topics');
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+  const [postingTopicId, setPostingTopicId] = useState<string | null>(null);
 
   const handleVote = async (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => {
     sound.playTap();
@@ -53,13 +54,17 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
 
   const handleComment = async (topicId: string) => {
     const text = commentInputs[topicId]?.trim();
-    if (!text) return;
+    if (!text || postingTopicId === topicId) return;
+    setPostingTopicId(topicId);
     sound.playPop();
     try {
       await onAddComment(topicId, text);
       setCommentInputs((prev) => ({ ...prev, [topicId]: '' }));
+      showToast('Comment posted to discussion!', 'success');
     } catch {
       showToast('Comment failed', 'error');
+    } finally {
+      setPostingTopicId(null);
     }
   };
 
@@ -98,7 +103,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             sound.playTap();
             setSubTab('topics');
           }}
-          className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
+          className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
             subTab === 'topics'
               ? 'bg-white text-[#1F2430] shadow-xs'
               : 'text-[#475569] hover:text-[#1F2430]'
@@ -112,7 +117,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             sound.playTap();
             setSubTab('agreements');
           }}
-          className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all cursor-pointer ${
+          className={`py-2 px-2 rounded-lg text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
             subTab === 'agreements'
               ? 'bg-white text-[#1F2430] shadow-xs'
               : 'text-[#475569] hover:text-[#1F2430]'
@@ -125,15 +130,32 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
       {subTab === 'topics' && (
         <div className="space-y-3">
           {topics.length === 0 ? (
-            <p className="type-secondary text-center py-4 text-[14px]">
-              No active discussion topics right now.
-            </p>
+            <div className="p-6 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center flex flex-col items-center justify-center space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#EEF0FD] border border-[#D3D5F9] flex items-center justify-center text-[#5B5BD6]">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 max-w-xs">
+                <h4 className="type-card-title text-[#1F2430]">No active discussions</h4>
+                <p className="type-secondary text-[14px]">
+                  Everything is peaceful! Bring up quiet hours, guests, or shared purchases whenever needed.
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenProposeModal}
+                icon={<Plus className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+              >
+                Propose first topic
+              </Button>
+            </div>
           ) : (
             topics.map((topic) => {
               const proposer = roommates.find((r) => r.id === topic.proposedBy);
               const myVote = topic.votes.find((v) => v.userId === currentUser.id)?.vote;
               const agreeVotes = topic.votes.filter((v) => v.vote === 'agree').length;
               const disagreeVotes = topic.votes.filter((v) => v.vote === 'disagree').length;
+              const isPosting = postingTopicId === topic.id;
 
               return (
                 <ActionCard
@@ -164,7 +186,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                           <button
                             type="button"
                             onClick={() => handleVote(topic.id, 'agree')}
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer flex items-center gap-1.5 border-2 ${
                               myVote === 'agree'
                                 ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
                                 : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
@@ -176,7 +198,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                           <button
                             type="button"
                             onClick={() => handleVote(topic.id, 'disagree')}
-                            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border-2 ${
+                            className={`min-h-[38px] px-3 py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer flex items-center gap-1.5 border-2 ${
                               myVote === 'disagree'
                                 ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-xs'
                                 : 'bg-white text-[#475569] border-[#E6E8EE] hover:bg-[#F7F8FB] hover:border-[#CBD5E1]'
@@ -202,15 +224,17 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleComment(topic.id);
                           }}
-                          className="flex-1 min-w-0 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A]"
+                          className="flex-1 min-w-0 px-3 py-1.5 rounded-xl border border-[#E6E8EE] bg-[#F7F8FB] text-[14px] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A] transition-colors duration-150"
                         />
                         <Button
                           variant="secondary"
                           size="sm"
+                          loading={isPosting}
+                          disabled={!commentInputs[topic.id]?.trim() || isPosting}
                           onClick={() => handleComment(topic.id)}
                           icon={<Send className="w-3.5 h-3.5" />}
                         >
-                          Post
+                          {isPosting ? '...' : 'Post'}
                         </Button>
                       </div>
                     </div>
@@ -225,9 +249,25 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
       {subTab === 'agreements' && (
         <div className="space-y-3">
           {agreements.length === 0 ? (
-            <p className="type-secondary text-center py-4 text-[14px]">
-              No apartment rules defined yet.
-            </p>
+            <div className="p-6 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center flex flex-col items-center justify-center space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-center text-[#FF6B4A]">
+                <FileCheck className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 max-w-xs">
+                <h4 className="type-card-title text-[#1F2430]">No house rules saved yet</h4>
+                <p className="type-secondary text-[14px]">
+                  Document shared agreements on quiet hours, cleaning, and guests so everyone stays on the same page.
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenAddAgreementModal}
+                icon={<Plus className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+              >
+                Add first house rule
+              </Button>
+            </div>
           ) : (
             agreements.map((agr) => (
               <ActionCard

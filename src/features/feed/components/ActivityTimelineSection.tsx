@@ -115,7 +115,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     return (
       <div
         key={act.id}
-        className="p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+        className="p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] hover:-translate-y-0.5 transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
       >
         <div className="flex items-center gap-3 min-w-0">
           <IconTile icon={icon} color={tileColor} size="sm" />

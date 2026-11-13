@@ -84,6 +84,7 @@ export const ProposeTopicModal: React.FC<ProposeTopicModalProps> = ({
             variant="primary"
             size="md"
             fullWidth
+            loading={loading}
             disabled={!title.trim() || loading}
           >
             {loading ? 'Submitting...' : 'Propose Topic'}
@@ -173,6 +174,7 @@ export const AddAgreementModal: React.FC<AddAgreementModalProps> = ({
             variant="primary"
             size="md"
             fullWidth
+            loading={loading}
             disabled={!text.trim() || loading}
           >
             {loading ? 'Saving...' : 'Save Agreement'}
@@ -274,6 +276,7 @@ export const HandoverAdminModal: React.FC<HandoverAdminModalProps> = ({
             variant="primary"
             size="md"
             fullWidth
+            loading={loading}
             disabled={!selectedSuccessorId || loading}
             onClick={handleHandover}
           >
@@ -370,7 +373,8 @@ export const LeaveApartmentModal: React.FC<LeaveApartmentModalProps> = ({
             variant="danger"
             size="md"
             fullWidth
-            disabled={hasUnsettledDebt && !acknowledgeDebt}
+            loading={loading}
+            disabled={(hasUnsettledDebt && !acknowledgeDebt) || loading}
             onClick={handleLeave}
           >
             {loading ? 'Leaving...' : 'Yes, Leave'}
@@ -433,7 +437,13 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
           <Button variant="secondary" size="md" onClick={onClose} disabled={removing}>
             Cancel
           </Button>
-          <Button variant="danger" size="md" disabled={removing} onClick={handleConfirm}>
+          <Button
+            variant="danger"
+            size="md"
+            loading={removing}
+            disabled={removing}
+            onClick={handleConfirm}
+          >
             {removing ? 'Removing...' : 'Confirm Remove'}
           </Button>
         </div>

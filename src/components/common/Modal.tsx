@@ -25,7 +25,6 @@ export const Modal: React.FC<ModalProps> = ({
   size,
   showClose = true,
 }) => {
-  // Automatically register open modals into the mobile predictive back stack
   useBackHandler(isOpen, 100, onClose);
 
   useEffect(() => {
@@ -58,26 +57,19 @@ export const Modal: React.FC<ModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-[#1F2430]/60 backdrop-blur-sm transition-opacity"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-[#1F2430]/60 backdrop-blur-sm animate-fade-in duration-150 ease-out motion-reduce:animate-none"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 transform transition-all animate-in slide-in-from-bottom duration-200`}
+        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 transform transition-all duration-150 ease-out animate-fade-up motion-reduce:animate-none`}
         style={{ backgroundColor: THEME.colors.surface }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         {(title || showClose) && (
           <div className="flex items-center justify-between px-6 pt-5 pb-4 sm:px-8 sm:pt-6 sm:pb-4 border-b border-[#E6E8EE] bg-white sticky top-0 z-10">
             <div>
-              {title && (
-                <h3 className="type-title">
-                  {title}
-                </h3>
-              )}
-              {subtitle && (
-                <p className="type-secondary mt-0.5">{subtitle}</p>
-              )}
+              {title && <h3 className="type-title">{title}</h3>}
+              {subtitle && <p className="type-secondary mt-0.5">{subtitle}</p>}
             </div>
             {showClose && (
               <button
@@ -86,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
                   sound.playTap();
                   onClose();
                 }}
-                className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-all cursor-pointer"
+                className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:scale-[0.95] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -95,7 +87,6 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        {/* Content */}
         <div className="p-6 sm:p-8 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IconTile, IconTileColor } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Chip } from '../../../components/common/Chip';
@@ -87,20 +87,42 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
   onCancelExpense,
 }) => {
   const { showToast } = useToast();
+  const [agreeing, setAgreeing] = useState(false);
+  const [optimisticAgreed, setOptimisticAgreed] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
   const payer = roommates.find((r) => r.id === exp.paidBy);
   const { icon, color } = getCategoryDetails(exp.category);
   const myShare = exp.shares.find((s) => s.userId === currentUser.id);
   const isPayerMe = exp.paidBy === currentUser.id;
   const isDisputed = exp.status === 'disputed' || mode === 'disputed';
-  const isNeedsMyAnswer = mode === 'needs-my-answer' && myShare?.response === 'pending';
-  const isWaitingRoomies = mode === 'waiting-roomies';
+  const isNeedsMyAnswer =
+    mode === 'needs-my-answer' && myShare?.response === 'pending' && !optimisticAgreed;
+  const isWaitingRoomies = mode === 'waiting-roomies' || optimisticAgreed;
 
   const pendingRoomies = exp.shares
-    .filter((s) => s.response === 'pending')
+    .filter((s) => s.response === 'pending' && !(optimisticAgreed && s.userId === currentUser.id))
     .map((s) => {
       const u = roommates.find((r) => r.id === s.userId);
       return u?.id === currentUser.id ? 'You' : u?.name.split(' ')[0] || 'Roomie';
     });
+
+  const handleAgree = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (agreeing) return;
+    setAgreeing(true);
+    setOptimisticAgreed(true);
+    sound.playSuccess();
+    try {
+      await onRespondExpense(exp.id, 'agreed');
+      showToast('Agreed to shared expense!', 'success');
+    } catch {
+      setOptimisticAgreed(false);
+      showToast('Could not agree to expense. Please try again.', 'error');
+    } finally {
+      setAgreeing(false);
+    }
+  };
 
   return (
     <div
@@ -108,7 +130,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
         sound.playTap();
         onSelect(exp);
       }}
-      className={`group p-4 sm:p-5 rounded-[24px] border-2 transition-all cursor-pointer select-none ${
+      className={`group p-4 sm:p-5 rounded-[24px] border-2 transition-all duration-150 ease-out hover:-translate-y-0.5 active:scale-[0.99] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none ${
         isDisputed
           ? 'bg-[#FFF5F2] border-[#FFD3C9] hover:border-[#FFB7A7] shadow-[0_4px_16px_rgba(255,107,74,0.08)]'
           : isNeedsMyAnswer
@@ -120,7 +142,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
         <div className="flex items-start gap-3 sm:gap-3.5 flex-1 min-w-0">
           <IconTile icon={icon} color={color} size="md" className="shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <h4 className="type-card-title truncate group-hover:text-[#FF6B4A] transition-colors">
+            <h4 className="type-card-title truncate group-hover:text-[#FF6B4A] transition-colors duration-150">
               {exp.title}
             </h4>
             <p className="type-secondary mt-0.5 text-[14px]">
@@ -137,14 +159,14 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
           </span>
           <Chip
             status={
-              exp.status === 'agreed'
+              exp.status === 'agreed' || (optimisticAgreed && pendingRoomies.length === 0)
                 ? 'agreed'
                 : exp.status === 'disputed'
                 ? 'disputed'
                 : 'pending'
             }
             label={
-              exp.status === 'agreed'
+              exp.status === 'agreed' || (optimisticAgreed && pendingRoomies.length === 0)
                 ? 'Agreed'
                 : exp.status === 'disputed'
                 ? 'Disputed'
@@ -192,19 +214,16 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  sound.playSuccess();
-                  await onRespondExpense(exp.id, 'agreed');
-                  showToast('Agreed to shared expense!', 'success');
-                }}
+                loading={agreeing}
+                onClick={handleAgree}
                 icon={<CheckCircle2 className="w-3.5 h-3.5" />}
               >
-                Agree
+                {agreeing ? 'Agreeing...' : 'Agree'}
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
+                disabled={agreeing}
                 onClick={(e) => {
                   e.stopPropagation();
                   sound.playTap();
@@ -243,17 +262,24 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
               </Button>
               <button
                 type="button"
+                disabled={cancelling}
                 onClick={async (e) => {
                   e.stopPropagation();
+                  if (cancelling || !onCancelExpense) return;
                   sound.playTap();
-                  if (onCancelExpense) {
+                  setCancelling(true);
+                  try {
                     await onCancelExpense(exp.id);
                     showToast('Expense cancelled by mutual agreement', 'info');
+                  } catch {
+                    showToast('Could not cancel expense', 'error');
+                  } finally {
+                    setCancelling(false);
                   }
                 }}
-                className="px-2.5 py-1.5 rounded-xl border border-[#FFD7CF] bg-[#FFF0ED] text-[#E5484D] text-[14px] font-bold hover:bg-[#FFE5E0] transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl border border-[#FFD7CF] bg-[#FFF0ED] text-[#E5484D] text-[14px] font-bold hover:bg-[#FFE5E0] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
               >
-                Cancel
+                {cancelling ? 'Cancelling...' : 'Cancel'}
               </button>
             </div>
           ) : (
@@ -263,10 +289,10 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
                 sound.playTap();
                 onSelect(exp);
               }}
-              className="inline-flex items-center gap-1 text-[14px] font-bold text-[#475569] hover:text-[#1F2430] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-[14px] font-bold text-[#475569] hover:text-[#1F2430] transition-colors duration-150 cursor-pointer"
             >
               <span>Receipt and details</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform duration-150" />
             </button>
           )}
         </div>
