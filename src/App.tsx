@@ -84,20 +84,35 @@ function MainApp() {
   } = useRoomieAppState(handleOpenJoinHousehold);
 
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
-  const [navState, setNavState] = useState<{ current: AppTab; history: AppTab[] }>({
+  const [navState, setNavState] = useState<{
+    current: AppTab;
+    history: AppTab[];
+    direction: 'left' | 'right';
+  }>({
     current: 'feed',
     history: ['feed'],
+    direction: 'left',
   });
   const activeTab = navState.current;
   const tabHistory = navState.history;
+  const tabDirection = navState.direction;
+
+  const tabOrder: Record<AppTab, number> = {
+    feed: 0,
+    chores: 1,
+    expenses: 2,
+    chat: 3,
+    apartment: 4,
+  };
 
   const setActiveTab = useCallback((nextTab: AppTab) => {
     startTransition(() => {
       setNavState((prev) => {
         if (prev.current === nextTab) return prev;
+        const dir = (tabOrder[nextTab] ?? 0) >= (tabOrder[prev.current] ?? 0) ? 'left' : 'right';
         const nextHist: AppTab[] =
           nextTab === 'feed' ? ['feed'] : [...prev.history.slice(-9), nextTab];
-        return { current: nextTab, history: nextHist };
+        return { current: nextTab, history: nextHist, direction: dir };
       });
     });
   }, []);
@@ -166,12 +181,15 @@ function MainApp() {
       setNavState((prev) => {
         if (prev.history.length > 1) {
           const nextHist = prev.history.slice(0, -1);
+          const nextTab = nextHist[nextHist.length - 1] || 'feed';
+          const dir = (tabOrder[nextTab] ?? 0) >= (tabOrder[prev.current] ?? 0) ? 'left' : 'right';
           return {
-            current: nextHist[nextHist.length - 1] || 'feed',
+            current: nextTab,
             history: nextHist,
+            direction: dir,
           };
         }
-        return { current: 'feed', history: ['feed'] };
+        return { current: 'feed', history: ['feed'], direction: 'right' };
       });
     }
   );
@@ -275,14 +293,14 @@ function MainApp() {
               api.markHouseholdConfigured();
               setIsDemoMode(false);
               setNeedsHouseholdSetup(false);
-              setNavState({ current: 'feed', history: ['feed'] });
+              setNavState({ current: 'feed', history: ['feed'], direction: 'left' });
               loadData();
             }}
             onExploreDemo={() => {
               api.markDemoMode(false);
               setIsDemoMode(true);
               setNeedsHouseholdSetup(false);
-              setNavState({ current: 'feed', history: ['feed'] });
+              setNavState({ current: 'feed', history: ['feed'], direction: 'left' });
               loadData();
             }}
             onBackToWelcome={async () => {
@@ -392,37 +410,48 @@ function MainApp() {
               : 'pt-5 pb-24 md:py-8 overflow-y-auto'
           }`}
         >
-          <React.Suspense fallback={<ScreenSkeleton tab={activeTab} />}>
-            <AppTabRouter
-              activeTab={activeTab}
-              currentUser={currentUser}
-              activeHousehold={activeHousehold}
-              members={members}
-              chores={chores}
-              draftRound={draftRound}
-              expenses={expenses}
-              settlements={settlements}
-              messages={messages}
-              topics={topics}
-              agreements={agreements}
-              joinRequests={joinRequests}
-              dutySchedule={dutySchedule}
-              balances={balances}
-              selectedExpenseId={selectedExpenseId}
-              selectedExpenseAction={selectedExpenseAction}
-              setActiveTab={setActiveTab}
-              setDraftFlowState={setDraftFlowState}
-              setDutyTimetableOpen={setDutyTimetableOpen}
-              setSelectedExpenseId={setSelectedExpenseId}
-              setSelectedExpenseAction={setSelectedExpenseAction}
-              setReviewJoinRequest={setReviewJoinRequest}
-              setCurrentUser={setCurrentUser}
-              setShowQROpen={setShowQROpen}
-              setHouseholdSwitcherOpen={setHouseholdSwitcherOpen}
-              setShowOnboarding={setShowOnboarding}
-              loadData={loadData}
-            />
-          </React.Suspense>
+          <div
+            key={activeTab}
+            className={`w-full ${
+              settings.reducedMotion
+                ? ''
+                : tabDirection === 'left'
+                ? 'animate-tab-slide-left'
+                : 'animate-tab-slide-right'
+            } ${activeTab === 'chat' ? 'h-full flex flex-col min-h-0' : ''}`}
+          >
+            <React.Suspense fallback={<ScreenSkeleton tab={activeTab} />}>
+              <AppTabRouter
+                activeTab={activeTab}
+                currentUser={currentUser}
+                activeHousehold={activeHousehold}
+                members={members}
+                chores={chores}
+                draftRound={draftRound}
+                expenses={expenses}
+                settlements={settlements}
+                messages={messages}
+                topics={topics}
+                agreements={agreements}
+                joinRequests={joinRequests}
+                dutySchedule={dutySchedule}
+                balances={balances}
+                selectedExpenseId={selectedExpenseId}
+                selectedExpenseAction={selectedExpenseAction}
+                setActiveTab={setActiveTab}
+                setDraftFlowState={setDraftFlowState}
+                setDutyTimetableOpen={setDutyTimetableOpen}
+                setSelectedExpenseId={setSelectedExpenseId}
+                setSelectedExpenseAction={setSelectedExpenseAction}
+                setReviewJoinRequest={setReviewJoinRequest}
+                setCurrentUser={setCurrentUser}
+                setShowQROpen={setShowQROpen}
+                setHouseholdSwitcherOpen={setHouseholdSwitcherOpen}
+                setShowOnboarding={setShowOnboarding}
+                loadData={loadData}
+              />
+            </React.Suspense>
+          </div>
         </main>
 
         <AppBottomNav activeTab={activeTab} onSelectTab={setActiveTab} />

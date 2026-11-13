@@ -248,6 +248,38 @@
   animation: duolingo-slide-in-right 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes tab-slide-left {
+  0% {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes tab-slide-right {
+  0% {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-tab-slide-left {
+  animation: tab-slide-left 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-tab-slide-right {
+  animation: tab-slide-right 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
 /* Stagger animation delays */
 .delay-75 { animation-delay: 75ms; }
 .delay-100 { animation-delay: 100ms; }
