@@ -57,11 +57,11 @@ export const Modal: React.FC<ModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-[#1F2430]/60 backdrop-blur-sm animate-fade-in duration-150 ease-out motion-reduce:animate-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-[#1F2430]/60 backdrop-blur-sm animate-fade-in motion-reduce:animate-none"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 transform transition-all duration-150 ease-out animate-fade-up motion-reduce:animate-none`}
+        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] animate-fade-up motion-reduce:animate-none`}
         style={{ backgroundColor: THEME.colors.surface }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -78,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
                   sound.playTap();
                   onClose();
                 }}
-                className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:scale-[0.95] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer"
+                className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:scale-[0.95] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-[transform,background-color,border-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
                 aria-label="Close dialog"
               >
                 <X weight="bold" className="w-5 h-5" />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../../components/common/Button';
 import { AddExpenseFlowModal } from './AddExpenseFlowModal';
 import { ExpenseDetailModal } from './ExpenseDetailModal';
@@ -92,25 +92,50 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
   const myNet = balances.userSummaries[currentUser.id] || 0;
 
-  const myDebtsToPay = balances.simplifiedDebts
-    .filter((d) => d.fromUserId === currentUser.id)
-    .map((d) => ({ toUserId: d.toUserId, amount: d.amount }));
+  const myDebtsToPay = useMemo(
+    () =>
+      balances.simplifiedDebts
+        .filter((d) => d.fromUserId === currentUser.id)
+        .map((d) => ({ toUserId: d.toUserId, amount: d.amount })),
+    [balances.simplifiedDebts, currentUser.id]
+  );
 
-  const needsMyAgreementExpenses = expenses.filter((e) => {
-    if (e.status === 'cancelled' || e.status === 'disputed' || e.status === 'agreed') return false;
-    const myShare = e.shares.find((s) => s.userId === currentUser.id);
-    return e.paidBy !== currentUser.id && myShare?.response === 'pending';
-  });
+  const {
+    needsMyAgreementExpenses,
+    waitingForRoomiesExpenses,
+    agreedExpenses,
+    disputedExpenses,
+  } = useMemo(() => {
+    const needs: Expense[] = [];
+    const waiting: Expense[] = [];
+    const agreed: Expense[] = [];
+    const disputed: Expense[] = [];
 
-  const waitingForRoomiesExpenses = expenses.filter((e) => {
-    if (e.status === 'cancelled' || e.status === 'disputed' || e.status === 'agreed') return false;
-    const myShare = e.shares.find((s) => s.userId === currentUser.id);
-    if (e.paidBy === currentUser.id) return true;
-    return myShare?.response === 'agreed';
-  });
+    for (const e of expenses) {
+      if (e.status === 'cancelled') continue;
+      if (e.status === 'agreed') {
+        agreed.push(e);
+        continue;
+      }
+      if (e.status === 'disputed') {
+        disputed.push(e);
+        continue;
+      }
+      const myShare = e.shares.find((s) => s.userId === currentUser.id);
+      if (e.paidBy !== currentUser.id && myShare?.response === 'pending') {
+        needs.push(e);
+      } else if (e.paidBy === currentUser.id || myShare?.response === 'agreed') {
+        waiting.push(e);
+      }
+    }
 
-  const agreedExpenses = expenses.filter((e) => e.status === 'agreed');
-  const disputedExpenses = expenses.filter((e) => e.status === 'disputed');
+    return {
+      needsMyAgreementExpenses: needs,
+      waitingForRoomiesExpenses: waiting,
+      agreedExpenses: agreed,
+      disputedExpenses: disputed,
+    };
+  }, [expenses, currentUser.id]);
 
   const renderCard = (exp: Expense, mode: ExpenseCardMode) => (
     <ExpenseCard

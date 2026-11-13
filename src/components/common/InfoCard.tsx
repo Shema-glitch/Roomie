@@ -39,8 +39,8 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`rounded-[24px] transition-all ${tintStyles[tint]} ${padStyles} ${
-        onClick ? 'cursor-pointer hover:border-[#CBD5E1] active:border-b-2 active:translate-y-[2px]' : ''
+      className={`rounded-[24px] transition-[transform,opacity,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${tintStyles[tint]} ${padStyles} ${
+        onClick ? 'cursor-pointer hover:border-[#CBD5E1] active:translate-y-[2px]' : ''
       } ${className}`}
     >
       {(title || iconTile || action) && (

@@ -73,7 +73,7 @@ interface ExpenseCardProps {
   onCancelExpense?: (expenseId: string) => Promise<void>;
 }
 
-export const ExpenseCard: React.FC<ExpenseCardProps> = ({
+export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
   expense: exp,
   mode,
   roommates,
@@ -130,7 +130,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
         sound.playTap();
         onSelect(exp);
       }}
-      className={`group p-4 sm:p-5 rounded-[24px] border-2 border-b-4 transition-all duration-150 ease-out hover:-translate-y-0.5 active:border-b-2 active:translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none ${
+      className={`group p-4 sm:p-5 rounded-[24px] border-2 border-b-4 transition-[transform,opacity,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none ${
         isDisputed
           ? 'bg-[#FFF5F2] border-[#FFD3C9] hover:border-[#FFB7A7] shadow-[0_4px_16px_rgba(255,107,74,0.06)]'
           : isNeedsMyAnswer
@@ -298,4 +298,5 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
       </div>
     </div>
   );
-};
+});
+ExpenseCard.displayName = 'ExpenseCard';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, startTransition } from 'react';
 import { ActionCard } from '../../components/common/ActionCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
@@ -71,17 +71,25 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const [awayModalOpen, setAwayModalOpen] = useState(false);
   const [newChoreModalOpen, setNewChoreModalOpen] = useState(false);
 
-  const myAssignments = assignments.filter((a) => a.userId === currentUser.id);
+  const myAssignments = useMemo(
+    () => assignments.filter((a) => a.userId === currentUser.id),
+    [assignments, currentUser.id]
+  );
   const filteredAssignments = scheduleFilter === 'my' ? myAssignments : assignments;
 
-  const todayDueAssignments = filteredAssignments.filter(
-    (a) => isAssignmentDueToday(a) && !a.completedToday
+  const todayDueAssignments = useMemo(
+    () => filteredAssignments.filter((a) => isAssignmentDueToday(a) && !a.completedToday),
+    [filteredAssignments]
   );
-  const todayCompletedAssignments = filteredAssignments.filter(
-    (a) => isAssignmentDueToday(a) && a.completedToday
+  const todayCompletedAssignments = useMemo(
+    () => filteredAssignments.filter((a) => isAssignmentDueToday(a) && a.completedToday),
+    [filteredAssignments]
   );
 
-  const draftState = getChoreDraftState(draftRound, currentUser.id);
+  const draftState = useMemo(
+    () => getChoreDraftState(draftRound, currentUser.id),
+    [draftRound, currentUser.id]
+  );
 
   return (
     <div className="w-full select-none pb-28 md:pb-8">
@@ -189,9 +197,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 type="button"
                 onClick={() => {
                   sound.playTap();
-                  setScheduleFilter('my');
+                  startTransition(() => setScheduleFilter('my'));
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-[transform,background-color,color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
                   scheduleFilter === 'my'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -203,9 +211,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 type="button"
                 onClick={() => {
                   sound.playTap();
-                  setScheduleFilter('all');
+                  startTransition(() => setScheduleFilter('all'));
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-[transform,background-color,color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
                   scheduleFilter === 'all'
                     ? 'bg-white text-[#1F2430] shadow-sm'
                     : 'text-[#475569] hover:text-[#1F2430]'

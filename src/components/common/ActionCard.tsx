@@ -45,11 +45,11 @@ export const ActionCard: React.FC<ActionCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`p-4 sm:p-5 rounded-[24px] transition-all duration-150 ease-out hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+      className={`p-4 sm:p-5 rounded-[24px] transition-[transform,opacity,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
         tintStyles[tint]
       } ${
         onClick
-          ? 'cursor-pointer active:border-b-2 active:translate-y-[2px] motion-reduce:active:translate-y-0'
+          ? 'cursor-pointer active:translate-y-[2px] motion-reduce:active:translate-y-0'
           : ''
       } ${className}`}
     >

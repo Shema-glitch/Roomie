@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api } from '../services/api';
 import { sound } from '../services/sound';
 import { useToast } from '../components/common/Toast';
@@ -28,6 +28,8 @@ import { NetBalance } from '../utils/balances';
 
 export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   const { showToast } = useToast();
+  const onOpenJoinHouseholdRef = useRef(onOpenJoinHousehold);
+  onOpenJoinHouseholdRef.current = onOpenJoinHousehold;
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => api.hasLocalSession());
   const [needsHouseholdSetup, setNeedsHouseholdSetup] = useState<boolean>(() =>
@@ -35,7 +37,9 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   );
   const [isDemoMode, setIsDemoMode] = useState<boolean>(() => api.isDemoMode());
   const [savedAccounts, setSavedAccounts] = useState(() => api.getSavedLoginAccounts());
-  const refreshSavedAccounts = () => setSavedAccounts(api.getSavedLoginAccounts());
+  const refreshSavedAccounts = useCallback(() => {
+    setSavedAccounts(api.getSavedLoginAccounts());
+  }, []);
 
   const [pendingInviteCode, setPendingInviteCodeState] = useState<string | null>(() =>
     captureInviteCodeFromLocation()
@@ -43,10 +47,10 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   const authGateRef = useRef({ isAuthenticated: false, needsHouseholdSetup: false });
   authGateRef.current = { isAuthenticated, needsHouseholdSetup };
 
-  const updatePendingInviteCode = (code: string | null) => {
+  const updatePendingInviteCode = useCallback((code: string | null) => {
     setPendingInviteCode(code);
     setPendingInviteCodeState(code);
-  };
+  }, []);
 
   const [isOffline, setIsOffline] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatusType>('synced');
@@ -79,14 +83,16 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     simplifiedDebts: NetBalance[];
   }>({ userSummaries: {}, simplifiedDebts: [] });
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoadError(null);
     try {
-      const u = await api.getCurrentUser();
-      const hList = await api.getHouseholds();
-      const activeH = await api.getActiveHousehold();
-      const notifList = await api.getNotifications();
-      const setts = await api.getSettings();
+      const [u, hList, activeH, notifList, setts] = await Promise.all([
+        api.getCurrentUser(),
+        api.getHouseholds(),
+        api.getActiveHousehold(),
+        api.getNotifications(),
+        api.getSettings(),
+      ]);
       const demoActive = api.isDemoMode();
 
       setCurrentUser(u);
@@ -112,17 +118,31 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
         return;
       }
 
-      const memList = await api.getHouseholdMembers(activeH.id);
-      const chList = await api.getChores(activeH.id);
-      const dRound = await api.getDraftRound(activeH.id);
-      const expList = await api.getExpenses(activeH.id);
-      const setList = await api.getSettlements(activeH.id);
-      const msgList = await api.getMessages(activeH.id);
-      const topList = await api.getMeetingTopics(activeH.id);
-      const agrList = await api.getAgreements(activeH.id);
-      const jrList = await api.getJoinRequests(activeH.id);
-      const balOverview = await api.getBalancesOverview(activeH.id);
-      const dSchedule = await api.getDutySchedule(activeH.id);
+      const [
+        memList,
+        chList,
+        dRound,
+        expList,
+        setList,
+        msgList,
+        topList,
+        agrList,
+        jrList,
+        balOverview,
+        dSchedule,
+      ] = await Promise.all([
+        api.getHouseholdMembers(activeH.id),
+        api.getChores(activeH.id),
+        api.getDraftRound(activeH.id),
+        api.getExpenses(activeH.id),
+        api.getSettlements(activeH.id),
+        api.getMessages(activeH.id),
+        api.getMeetingTopics(activeH.id),
+        api.getAgreements(activeH.id),
+        api.getJoinRequests(activeH.id),
+        api.getBalancesOverview(activeH.id),
+        api.getDutySchedule(activeH.id),
+      ]);
 
       setMembers(memList);
       setChores(chList);
@@ -140,9 +160,9 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     } catch (err: any) {
       setLoadError(err?.message || 'Could not load apartment data.');
     }
-  };
+  }, []);
 
-  const handleManualSync = () => {
+  const handleManualSync = useCallback(() => {
     sound.playTap();
     setSyncStatus('syncing');
     setTimeout(() => {
@@ -154,7 +174,13 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       showToast('Synced with apartment database', 'info');
       loadData();
     }, 1000);
-  };
+  }, [loadData, showToast]);
+
+  const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
+  const unreadNotifsCount = useMemo(
+    () => notifications.reduce((count, n) => (n.read ? count : count + 1), 0),
+    [notifications]
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -295,6 +321,8 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     settings,
     setSettings,
     balances,
+    roommatesList,
+    unreadNotifsCount,
     loadData,
     handleManualSync,
   };

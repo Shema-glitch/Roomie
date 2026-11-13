@@ -163,7 +163,7 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
                 strokeDashoffset={slice.strokeDashoffset}
                 strokeLinecap="round"
                 opacity={isDimmed ? 0.45 : 1}
-                className="cursor-pointer transition-all duration-200"
+                className="cursor-pointer transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
                 onMouseEnter={() => setActiveIndex(slice.index)}
                 onMouseLeave={() => setActiveIndex(null)}
                 onClick={() => setActiveIndex(activeIndex === slice.index ? null : slice.index)}
@@ -199,7 +199,7 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
               onMouseEnter={() => setActiveIndex(idx)}
               onMouseLeave={() => setActiveIndex(null)}
               onClick={() => setActiveIndex(activeIndex === idx ? null : idx)}
-              className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+              className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer transition-[transform,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 isSelected
                   ? 'border-[#1F2430] bg-[#F7F8FB] shadow-2xs'
                   : 'border-[#E6E8EE] bg-white hover:bg-[#F7F8FB]'

@@ -3,7 +3,6 @@ import { ActionCard } from '../../../components/common/ActionCard';
 import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
-import { SpendingBreakdownChart } from '../SpendingBreakdownChart';
 import { Expense, User } from '../../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../../utils/balances';
 import { sound } from '../../../services/sound';
@@ -19,6 +18,21 @@ import {
   ChartPieSlice,
 } from '@phosphor-icons/react';
 import { formatCurrency } from './ExpenseCard';
+
+const SpendingBreakdownChart = React.lazy(() =>
+  import('../SpendingBreakdownChart').then((m) => ({ default: m.SpendingBreakdownChart }))
+);
+
+const ChartSkeleton: React.FC = () => (
+  <div className="h-56 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] animate-pulse p-4 flex flex-col justify-between">
+    <div className="h-5 w-1/3 bg-[#E6E8EE] rounded-lg" />
+    <div className="w-32 h-32 rounded-full border-8 border-[#E6E8EE] self-center" />
+    <div className="grid grid-cols-2 gap-2">
+      <div className="h-8 bg-[#E6E8EE]/70 rounded-xl" />
+      <div className="h-8 bg-[#E6E8EE]/70 rounded-xl" />
+    </div>
+  </div>
+);
 
 interface BalanceOverviewSectionProps {
   myNet: number;
@@ -281,10 +295,12 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
         </div>
 
         {breakdownExpanded && (
-          <SpendingBreakdownChart
-            expenses={agreedExpenses.length > 0 ? agreedExpenses : expenses}
-            currencySymbol={sym}
-          />
+          <React.Suspense fallback={<ChartSkeleton />}>
+            <SpendingBreakdownChart
+              expenses={agreedExpenses.length > 0 ? agreedExpenses : expenses}
+              currencySymbol={sym}
+            />
+          </React.Suspense>
         )}
       </InfoCard>
     </div>

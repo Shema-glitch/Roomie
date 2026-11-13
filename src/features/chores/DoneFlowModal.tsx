@@ -209,7 +209,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               <div className="space-y-3">
                 <div
                   onClick={() => !compressing && fileInputRef.current?.click()}
-                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
+                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-[border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] bg-[#F7F8FB] min-h-[44px]"
                 >
                   <IconTile icon={compressing ? <UploadSimple className="w-6 h-6 animate-bounce" /> : <Camera className="w-6 h-6" />} color="teal" size="md" />
                   <h4 className="type-section-heading">

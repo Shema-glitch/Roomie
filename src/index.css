@@ -137,12 +137,13 @@
 
 /* Tactile 3D Button style as specified in Section 6 */
 .btn-tactile {
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
   position: relative;
 }
 
 .btn-tactile:active:not(:disabled) {
-  transform: translateY(3px);
+  transform: translateY(2px) scale(0.985);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2) !important;
 }
 
@@ -224,7 +225,7 @@
 }
 
 .animate-circle-opening {
-  animation: circle-expand-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: circle-expand-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-bounce-soft {
@@ -232,19 +233,19 @@
 }
 
 .animate-pop-in {
-  animation: duolingo-pop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: duolingo-pop-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-up {
-  animation: duolingo-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: duolingo-fade-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-in {
-  animation: duolingo-fade-in 0.4s ease-out both;
+  animation: duolingo-fade-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-slide-in {
-  animation: duolingo-slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: duolingo-slide-in-right 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Stagger animation delays */

@@ -17,7 +17,7 @@ interface SettlementItemCardProps {
   onConfirmSettlement: (settlementId: string) => Promise<Settlement>;
 }
 
-export const SettlementItemCard: React.FC<SettlementItemCardProps> = ({
+export const SettlementItemCard: React.FC<SettlementItemCardProps> = React.memo(({
   settlement: s,
   roommates,
   currentUser,
@@ -100,4 +100,5 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = ({
       }
     />
   );
-};
+});
+SettlementItemCard.displayName = 'SettlementItemCard';

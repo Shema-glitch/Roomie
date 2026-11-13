@@ -170,7 +170,7 @@ export const Button: React.FC<ButtonProps> = ({
         ...variantStyles,
         ...style,
       }}
-      className={`btn-tactile inline-flex items-center justify-center gap-2 rounded-2xl cursor-pointer font-heading tracking-wide transition-all duration-150 ease-out active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:transform-none ${
+      className={`btn-tactile inline-flex items-center justify-center gap-2 rounded-2xl cursor-pointer font-heading tracking-wide transition-[transform,opacity,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:transform-none ${
         fullWidth ? 'w-full' : ''
       } ${getSizeClasses()} ${className}`}
     >

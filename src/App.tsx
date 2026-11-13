@@ -3,7 +3,7 @@
  * @license Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, startTransition } from 'react';
 import { IconContext } from '@phosphor-icons/react';
 import './utils/registerIcons';
 import { ToastProvider, useToast } from './components/common/Toast';
@@ -38,6 +38,7 @@ const ChoreRevealScreen = React.lazy(() =>
 function MainApp() {
   const { showToast } = useToast();
   const [joinHouseholdOpen, setJoinHouseholdOpen] = useState(false);
+  const handleOpenJoinHousehold = useCallback(() => setJoinHouseholdOpen(true), []);
 
   const {
     isAuthenticated,
@@ -76,9 +77,11 @@ function MainApp() {
     settings,
     setSettings,
     balances,
+    roommatesList,
+    unreadNotifsCount,
     loadData,
     handleManualSync,
-  } = useRoomieAppState(() => setJoinHouseholdOpen(true));
+  } = useRoomieAppState(handleOpenJoinHousehold);
 
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [navState, setNavState] = useState<{ current: AppTab; history: AppTab[] }>({
@@ -88,14 +91,16 @@ function MainApp() {
   const activeTab = navState.current;
   const tabHistory = navState.history;
 
-  const setActiveTab = (nextTab: AppTab) => {
-    setNavState((prev) => {
-      if (prev.current === nextTab) return prev;
-      const nextHist: AppTab[] =
-        nextTab === 'feed' ? ['feed'] : [...prev.history.slice(-9), nextTab];
-      return { current: nextTab, history: nextHist };
+  const setActiveTab = useCallback((nextTab: AppTab) => {
+    startTransition(() => {
+      setNavState((prev) => {
+        if (prev.current === nextTab) return prev;
+        const nextHist: AppTab[] =
+          nextTab === 'feed' ? ['feed'] : [...prev.history.slice(-9), nextTab];
+        return { current: nextTab, history: nextHist };
+      });
     });
-  };
+  }, []);
 
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null);
   const [selectedExpenseAction, setSelectedExpenseAction] = useState<
@@ -122,6 +127,23 @@ function MainApp() {
   const [draftFlowState, setDraftFlowState] = useState<'none' | 'picking' | 'waiting' | 'reveal'>(
     'none'
   );
+
+  const handleOpenHouseholdSwitcher = useCallback(() => setHouseholdSwitcherOpen(true), []);
+  const handleOpenShowQR = useCallback(() => setShowQROpen(true), []);
+  const handleOpenSyncPanel = useCallback(() => setSyncPanelOpen(true), []);
+  const handleOpenNotifications = useCallback(() => setNotificationsOpen(true), []);
+  const handleOpenProfileSettings = useCallback(() => setProfileSettingsOpen(true), []);
+  const handleSetupRealFlat = useCallback(() => {
+    api.markHouseholdSetupPending();
+    setIsDemoMode(false);
+    setNeedsHouseholdSetup(true);
+  }, [setIsDemoMode, setNeedsHouseholdSetup]);
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('roomie_splash_seen', '1');
+    }
+  }, []);
 
   useEffect(() => {
     return initCapacitorNativeBridge();
@@ -278,8 +300,6 @@ function MainApp() {
       return <AppBootstrapSkeleton />;
     }
 
-    const roommatesList = members.map((m) => m.user);
-
     if (draftFlowState === 'reveal') {
       return (
         <React.Suspense fallback={<ScreenSkeleton />}>
@@ -334,8 +354,6 @@ function MainApp() {
       );
     }
 
-    const unreadNotifsCount = notifications.filter((n) => !n.read).length;
-
     return (
       <div
         className={`min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between w-full relative ${
@@ -347,11 +365,7 @@ function MainApp() {
         ) : isDemoMode ? (
           <DemoModeBanner
             householdName={activeHousehold.name}
-            onSetupRealFlat={() => {
-              api.markHouseholdSetupPending();
-              setIsDemoMode(false);
-              setNeedsHouseholdSetup(true);
-            }}
+            onSetupRealFlat={handleSetupRealFlat}
           />
         ) : null}
 
@@ -364,11 +378,11 @@ function MainApp() {
           isDemoMode={isDemoMode}
           unreadNotifsCount={unreadNotifsCount}
           onSelectTab={setActiveTab}
-          onOpenHouseholdSwitcher={() => setHouseholdSwitcherOpen(true)}
-          onOpenShowQR={() => setShowQROpen(true)}
-          onOpenSyncPanel={() => setSyncPanelOpen(true)}
-          onOpenNotifications={() => setNotificationsOpen(true)}
-          onOpenProfileSettings={() => setProfileSettingsOpen(true)}
+          onOpenHouseholdSwitcher={handleOpenHouseholdSwitcher}
+          onOpenShowQR={handleOpenShowQR}
+          onOpenSyncPanel={handleOpenSyncPanel}
+          onOpenNotifications={handleOpenNotifications}
+          onOpenProfileSettings={handleOpenProfileSettings}
         />
 
         <main
@@ -474,16 +488,7 @@ function MainApp() {
 
   return (
     <>
-      {showSplash && (
-        <SplashScreen
-          onFinish={() => {
-            setShowSplash(false);
-            if (typeof window !== 'undefined') {
-              sessionStorage.setItem('roomie_splash_seen', '1');
-            }
-          }}
-        />
-      )}
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       {renderScreen()}
     </>
   );

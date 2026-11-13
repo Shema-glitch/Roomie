@@ -239,7 +239,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               {activeMembers.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`h-2 rounded-full flex-1 transition-all ${
+                  className={`h-2 rounded-full flex-1 transition-[background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                     idx === currentMemberIndex
                       ? 'bg-[#FF6B4A]'
                       : idx < currentMemberIndex
@@ -255,8 +255,8 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
           <div className="my-auto space-y-4">
             <Card
               padding="lg"
-              className={`space-y-4 border-2 border-[#E6E8EE] bg-white transition-all ${
-                reducedMotion ? '' : 'animate-in fade-in slide-in-from-right-6 duration-300'
+              className={`space-y-4 border-2 border-[#E6E8EE] bg-white ${
+                reducedMotion ? '' : 'animate-slide-in'
               }`}
             >
               {/* Member profile header */}
@@ -316,7 +316,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                     return (
                       <div
                         key={chore.id}
-                        className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] space-y-2 transition-all"
+                        className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] space-y-2 transition-[border-color,background-color] duration-150"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -372,7 +372,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                                       type="button"
                                       key={dp.label}
                                       onClick={() => handleUpdateDays(chore.id, dp.days)}
-                                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-[background-color,color,transform] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] cursor-pointer ${
                                         isSelected
                                           ? 'bg-[#FF6B4A] text-white'
                                           : 'bg-[#F1F3F9] text-[#475569] hover:bg-[#E2E8F0]'
@@ -395,7 +395,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                                     type="button"
                                     key={t}
                                     onClick={() => handleUpdateTime(chore.id, t)}
-                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-[background-color,color,transform] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] cursor-pointer ${
                                       sch.time === t
                                         ? 'bg-[#19B5A5] text-white'
                                         : 'bg-[#F1F3F9] text-[#475569] hover:bg-[#E2E8F0]'

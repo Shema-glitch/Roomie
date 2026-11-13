@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SyncStatusPanel, SyncStatusType } from './SyncStatusPanel';
 import { api } from '../../services/api';
 import { useToast } from './Toast';
@@ -134,7 +134,7 @@ interface AppModalsProps {
   loadData: () => Promise<void>;
 }
 
-export const AppModals: React.FC<AppModalsProps> = ({
+export const AppModals: React.FC<AppModalsProps> = React.memo(({
   activeHousehold,
   households,
   currentUser,
@@ -190,9 +190,11 @@ export const AppModals: React.FC<AppModalsProps> = ({
   loadData,
 }) => {
   const { showToast } = useToast();
-  const roommatesList = members.map((m) => m.user);
-  const currentMembership =
-    members.find((m) => m.user.id === currentUser.id)?.membership || null;
+  const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
+  const currentMembership = useMemo(
+    () => members.find((m) => m.user.id === currentUser.id)?.membership || null,
+    [members, currentUser.id]
+  );
 
   return (
     <React.Suspense fallback={<ModalSkeleton />}>
@@ -443,4 +445,5 @@ export const AppModals: React.FC<AppModalsProps> = ({
       )}
     </React.Suspense>
   );
-};
+});
+AppModals.displayName = 'AppModals';
