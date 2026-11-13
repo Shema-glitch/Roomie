@@ -15,7 +15,6 @@ import {
   Copy,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
   Shield,
   Clock,
   Link2,

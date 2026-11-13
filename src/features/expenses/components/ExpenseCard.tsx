@@ -145,15 +145,15 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
             <h4 className="type-card-title truncate group-hover:text-[#FF6B4A] transition-colors duration-150">
               {exp.title}
             </h4>
-            <p className="type-secondary mt-0.5 text-[14px]">
-              Paid by {isPayerMe ? 'You' : payer?.name.split(' ')[0] || 'Roomie'} •{' '}
-              {formatExpenseDate(exp.date)}
+            <p className="text-[13px] text-[#64748B] mt-0.5">
+              Paid by {isPayerMe ? 'You' : payer?.name.split(' ')[0] || 'Roomie'} ·{' '}
+              {formatExpenseDate(exp.date)} · <span className="capitalize">{exp.category}</span>
             </p>
           </div>
         </div>
 
         <div className="text-right shrink-0 flex flex-col items-end gap-1">
-          <span className="font-heading font-black text-lg sm:text-xl text-[#1F2430] whitespace-nowrap">
+          <span className="font-heading font-semibold text-lg sm:text-xl text-[#1F2430] whitespace-nowrap">
             {sym}
             {formatCurrency(exp.amount)}
           </span>
@@ -187,24 +187,23 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
       )}
 
       <div className="mt-3.5 pt-3 border-t border-black/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-        <div className="flex items-center gap-2 flex-wrap text-[14px] font-semibold">
-          <span className="text-[#475569]">{exp.shares.length} roomies sharing equally</span>
-          <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+        <div className="flex items-center gap-1.5 flex-wrap text-[13px] text-[#64748B]">
+          <span>{exp.shares.length} roomies</span>
+          <span aria-hidden="true">·</span>
           {isPayerMe ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#EBF9F0] text-[#2CA358] font-bold text-[13px] whitespace-nowrap">
-              You paid full
-            </span>
+            <span className="font-medium text-[#2CA358]">You paid full</span>
           ) : myShare ? (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#F0F4FF] text-[#4353C4] font-bold text-[13px] whitespace-nowrap">
+            <span className="font-medium text-[#1F2430]">
               Your share: {sym}
               {formatCurrency(myShare.shareAmount)}
             </span>
           ) : null}
 
           {isWaitingRoomies && pendingRoomies.length > 0 && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-[#FFFBEB] text-[#B45309] font-bold text-[13px] max-w-full">
-              Waiting for: {pendingRoomies.join(', ')}
-            </span>
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Waiting for {pendingRoomies.join(', ')}</span>
+            </>
           )}
         </div>
 

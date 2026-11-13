@@ -4,7 +4,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
-import { Send, Receipt, ClipboardCheck, Shuffle, MessageSquare, Sparkles } from 'lucide-react';
+import { Send, Receipt, ClipboardCheck, Repeat, MessageSquare } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -117,9 +117,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               {draftState.state === 'reveal_ready' ? (
-                <Sparkles className="w-4 h-4 text-[#FFC93C] shrink-0" />
+                <ClipboardCheck className="w-4 h-4 text-[#5B5BD6] shrink-0" />
               ) : (
-                <Shuffle className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                <Repeat className="w-4 h-4 text-[#5B5BD6] shrink-0" />
               )}
               <div className="truncate">
                 <p className="text-[13px] font-bold text-[#1F2430] truncate">{draftState.bannerTitle}</p>
@@ -180,7 +180,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                   ) : isExpense ? (
                     <Receipt className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
                   ) : isDraft ? (
-                    <Shuffle className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                    <Repeat className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   ) : (
                     <MessageSquare className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   )}

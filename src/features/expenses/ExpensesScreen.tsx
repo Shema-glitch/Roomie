@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/common/Button';
-import { Chip } from '../../components/common/Chip';
 import { AddExpenseFlowModal } from './AddExpenseFlowModal';
 import { ExpenseDetailModal } from './ExpenseDetailModal';
 import { SettleUpFlowModal } from './SettleUpFlowModal';
@@ -160,14 +159,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {needsMyAgreementExpenses.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="type-section-heading text-[#FF6B4A]">Needs your agreement</span>
-                  <Chip
-                    status="pending"
-                    label={`${needsMyAgreementExpenses.length} Action Required`}
-                    size="xs"
-                  />
-                </div>
+                <span className="type-section-heading text-[#FF6B4A]">
+                  Needs your agreement ({needsMyAgreementExpenses.length})
+                </span>
                 <span className="type-secondary text-[13px] sm:text-[14px]">
                   Tap to review or dispute
                 </span>
@@ -180,21 +174,16 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {waitingForRoomiesExpenses.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="type-section-heading">Waiting for roomies</span>
-                  <Chip
-                    status="pending"
-                    label={`${waitingForRoomiesExpenses.length} Pending`}
-                    size="xs"
-                  />
-                </div>
+                <span className="type-section-heading">
+                  Waiting for roomies ({waitingForRoomiesExpenses.length})
+                </span>
                 {waitingForRoomiesExpenses.some((e) => e.paidBy === currentUser.id) && (
                   <button
                     type="button"
                     onClick={async () => {
                       sound.playTap();
                       if (onRemindRoomies) {
-                        await onRemindRoomies('Please review and agree to shared purchases 🙏');
+                        await onRemindRoomies('Please review and agree to shared purchases');
                         showToast('Sent gentle reminder to roomies!', 'info');
                       }
                     }}
@@ -211,10 +200,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="type-section-heading">Agreed purchases</span>
-                <Chip status="agreed" label={`${agreedExpenses.length} Confirmed`} size="xs" />
-              </div>
+              <span className="type-section-heading">
+                Agreed purchases ({agreedExpenses.length})
+              </span>
               <span className="type-secondary text-[13px] sm:text-[14px]">
                 Counted in final balance
               </span>
@@ -250,10 +238,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {settlements.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="type-section-heading">Direct settlements</span>
-                  <Chip status="agreed" label={`${settlements.length} Transfers`} size="xs" />
-                </div>
+                <span className="type-section-heading">
+                  Direct settlements ({settlements.length})
+                </span>
                 <span className="type-secondary text-[13px] sm:text-[14px]">
                   Cash or bank transfers
                 </span>
@@ -275,10 +262,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           {disputedExpenses.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="type-section-heading text-[#BF3337]">Disputed purchases</span>
-                  <Chip status="disputed" label={`${disputedExpenses.length} In Review`} size="xs" />
-                </div>
+                <span className="type-section-heading text-[#BF3337]">
+                  Disputed purchases ({disputedExpenses.length})
+                </span>
                 <span className="type-secondary text-[13px] sm:text-[14px]">
                   Discuss in house meeting
                 </span>

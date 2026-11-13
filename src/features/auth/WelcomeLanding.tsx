@@ -4,7 +4,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
-import { ArrowRight, QrCode, Sparkles, X, Zap } from 'lucide-react';
+import { ArrowRight, QrCode, X, Zap } from 'lucide-react';
 
 interface WelcomeLandingProps {
   isRevealed: boolean;
@@ -228,7 +228,6 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
               }}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
               <span>Replay presentation</span>
             </button>
             <span className="text-[#CBD5E1]">•</span>

@@ -3,7 +3,6 @@ import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
-import { Chip } from '../../../components/common/Chip';
 import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
@@ -11,7 +10,7 @@ import {
   Building2,
   QrCode,
   Copy,
-  Sparkles,
+  Home,
   Shield,
   ShieldCheck,
 } from 'lucide-react';
@@ -103,7 +102,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={onOpenHowItWorks}
-                icon={<Sparkles className="w-4 h-4 text-[#FF6B4A]" />}
+                icon={<Home className="w-4 h-4 text-[#FF6B4A]" />}
               >
                 Flat guide
               </Button>
@@ -134,9 +133,8 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
 
       {joinRequests && joinRequests.length > 0 && (
         <div className="mb-5 space-y-2.5">
-          <h3 className="type-section-heading flex items-center gap-2 flex-wrap">
-            <span>Pending Join Requests</span>
-            <Chip variant="primary" size="xs" label={`${joinRequests.length}`} />
+          <h3 className="type-section-heading">
+            Pending Join Requests ({joinRequests.length})
           </h3>
           <p className="type-secondary text-xs -mt-1 mb-1">
             Flatmate consent required. Cast your vote before new applicants are admitted.

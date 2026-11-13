@@ -5,7 +5,7 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { DutySchedule, User, Chore, DayOfWeek, Membership } from '../../types';
 import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate } from '../../utils/dutyRotation';
-import { Calendar, CheckCircle2, ArrowLeftRight, UserCheck, Sparkles, Clock } from 'lucide-react';
+import { Calendar, CheckCircle2, ArrowLeftRight, UserCheck } from 'lucide-react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 
@@ -147,17 +147,14 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   {/* Day Label & Badges */}
                   <div className="flex items-center gap-2">
-                    <span className="font-heading font-black text-sm text-[#1F2430] w-20">
+                    <span className="font-heading font-semibold text-sm text-[#1F2430]">
                       {DAY_DISPLAY_NAMES[entry.day].full}
                     </span>
-                    {isToday && (
-                      <Chip variant="primary" size="xs" label="TODAY" />
-                    )}
-                    {entry.completed && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-                        <CheckCircle2 className="w-3 h-3" /> Done
-                      </span>
-                    )}
+                    {entry.completed ? (
+                      <Chip status="done" size="xs" label="Done" />
+                    ) : isToday ? (
+                      <Chip status="due" size="xs" label="Due Today" />
+                    ) : null}
                   </div>
 
                   {/* Assigned Flatmate & Actions */}
@@ -207,8 +204,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
 
                 {/* Duty checklist preview */}
                 <div className="mt-2 pt-2 border-t border-[#F1F3F8] flex items-center justify-between text-xs text-[#64748B]">
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+                  <span>
                     {entry.notes || 'Mopping, kitchen tidy, trash & recycling'}
                   </span>
 
@@ -218,11 +214,11 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                       onClick={() => {
                         sound.playSuccess();
                         onCompleteTodayDuty(entry.day);
-                        showToast('Duty day marked complete! Great work keeping the flat tidy 🎉', 'success');
+                        showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
                       }}
                       className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
                     >
-                      Mark Finished ✨
+                      Mark Finished
                     </button>
                   )}
                 </div>

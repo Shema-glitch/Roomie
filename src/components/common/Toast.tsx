@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { CheckCircle2, AlertCircle, Info, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 import { sound } from '../../services/sound';
 
 export type ToastType = 'success' | 'info' | 'reward' | 'error';
@@ -49,7 +49,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       case 'success':
         return <CheckCircle2 className="w-5 h-5 text-[#2CA358] shrink-0" />;
       case 'reward':
-        return <Sparkles className="w-5 h-5 text-[#8A6200] shrink-0" />;
+        return <CheckCircle2 className="w-5 h-5 text-[#8A6200] shrink-0" />;
       case 'error':
         return <AlertCircle className="w-5 h-5 text-[#E5484D] shrink-0" />;
       case 'info':

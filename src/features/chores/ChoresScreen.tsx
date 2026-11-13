@@ -13,7 +13,7 @@ import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayO
 import { DutyTodayBanner } from './DutyTodayBanner';
 import { getChoreDraftState, isAssignmentDueToday } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
-import { Sparkles, Plus, Shuffle } from 'lucide-react';
+import { Repeat, Plus, ClipboardCheck } from 'lucide-react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
 import { ChoresSidebar } from './components/ChoresSidebar';
 import { NewChoreModal } from './components/NewChoreModal';
@@ -107,9 +107,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               <IconTile
                 icon={
                   draftState.state === 'reveal_ready' || draftState.state === 'reveal_done' ? (
-                    <Sparkles className="w-6 h-6" />
+                    <ClipboardCheck className="w-6 h-6" />
                   ) : (
-                    <Shuffle className="w-6 h-6" />
+                    <Repeat className="w-6 h-6" />
                   )
                 }
                 color={
@@ -139,7 +139,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenReveal}
-                    icon={<Sparkles className="w-4 h-4" />}
+                    icon={<ClipboardCheck className="w-4 h-4" />}
                   >
                     {draftState.actionLabel}
                   </Button>
@@ -149,7 +149,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenReveal}
-                    icon={<Sparkles className="w-4 h-4 text-[#19B5A5]" />}
+                    icon={<ClipboardCheck className="w-4 h-4 text-[#19B5A5]" />}
                   >
                     {draftState.actionLabel}
                   </Button>
@@ -159,7 +159,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenDraftPicks}
-                    icon={<Shuffle className="w-4 h-4" />}
+                    icon={<Repeat className="w-4 h-4" />}
                   >
                     {draftState.actionLabel}
                   </Button>

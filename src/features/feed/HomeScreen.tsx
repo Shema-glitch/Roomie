@@ -23,9 +23,9 @@ import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import {
   Flame,
-  Sparkles,
+  ClipboardCheck,
   UserPlus,
-  Shuffle,
+  Repeat,
 } from 'lucide-react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
 import { DailyFocusSection } from './components/DailyFocusSection';
@@ -112,12 +112,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   Keeping your apartment running peacefully today.
                 </p>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] text-[#8A6200] border-2 border-[#FFE8A3] text-sm font-black shadow-xs whitespace-nowrap">
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
                     <Flame className="w-4 h-4 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
-                    {currentUser.streakDays} Day Streak!
-                  </div>
-                  <span className="text-sm font-extrabold text-[#475569] whitespace-nowrap">
+                    {currentUser.streakDays} day streak
+                  </span>
+                  <span aria-hidden="true">·</span>
+                  <span className="font-medium whitespace-nowrap">
                     {currentUser.points} pts
                   </span>
                 </div>
@@ -175,9 +176,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <IconTile
                   icon={
                     choreDraftState.state === 'reveal_ready' ? (
-                      <Sparkles className="w-6 h-6" />
+                      <ClipboardCheck className="w-6 h-6" />
                     ) : (
-                      <Shuffle className="w-6 h-6" />
+                      <Repeat className="w-6 h-6" />
                     )
                   }
                   color={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
@@ -207,9 +208,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     }}
                     icon={
                       choreDraftState.state === 'reveal_ready' ? (
-                        <Sparkles className="w-4 h-4" />
+                        <ClipboardCheck className="w-4 h-4" />
                       ) : (
-                        <Shuffle className="w-4 h-4" />
+                        <Repeat className="w-4 h-4" />
                       )
                     }
                   >

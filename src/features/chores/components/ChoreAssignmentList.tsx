@@ -12,7 +12,6 @@ import {
   ArrowLeftRight,
   Heart,
   ClipboardCheck,
-  Sparkles,
   Camera,
 } from 'lucide-react';
 
@@ -28,6 +27,12 @@ interface ChoreAssignmentListProps {
   onSelectKudos: (data: { chore: Chore; target: User }) => void;
   onSwitchToAllFilter?: () => void;
 }
+
+const formatEffortLabel = (level: 'light' | 'medium' | 'heavy'): string => {
+  if (level === 'heavy') return 'Heavy';
+  if (level === 'medium') return 'Medium';
+  return 'Light';
+};
 
 export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
   todayDueAssignments,
@@ -73,21 +78,18 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
     }
   };
 
+  const remainingDueCount = Math.max(
+    0,
+    todayDueAssignments.filter((a) => !optimisticCompletedIds.has(a.choreId)).length
+  );
+
   return (
     <>
       <div className="space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="type-section-heading">Today's due tasks</span>
-            <Chip
-              variant="primary"
-              size="xs"
-              label={`${Math.max(
-                0,
-                todayDueAssignments.filter((a) => !optimisticCompletedIds.has(a.choreId)).length
-              )} left`}
-            />
-          </div>
+          <span className="type-section-heading">
+            Today's due tasks ({remainingDueCount})
+          </span>
           <span className="type-secondary text-[13px] sm:text-[14px]">
             Complete on time to protect streak
           </span>
@@ -121,10 +123,12 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
             const isOptimisticDone = optimisticCompletedIds.has(chore.id);
             const isSaving = pendingIds.has(chore.id);
 
-            const scheduleLabel =
+            const freqLabel =
               chore.frequency === 'daily'
-                ? `Daily at ${a.scheduledTime}`
-                : `Weekly • ${a.scheduledDays.join(', ')} at ${a.scheduledTime}`;
+                ? 'Daily'
+                : `Weekly (${a.scheduledDays.join(', ')})`;
+            const effortLabel = formatEffortLabel(chore.effortLevel);
+            const assigneeLabel = isMe ? 'You' : assignedUser?.name.split(' ')[0] || 'Roomie';
 
             return (
               <ActionCard
@@ -148,45 +152,33 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                 }
                 title={
                   <span
-                    className={`type-card-title transition-all duration-150 ${
+                    className={`type-card-title font-semibold transition-all duration-150 ${
                       isOptimisticDone ? 'line-through text-[#475569]' : 'text-[#1F2430]'
                     }`}
                   >
                     {chore.name}
                   </span>
                 }
-                subtitle={isOptimisticDone ? 'Just completed by You' : scheduleLabel}
+                subtitle={
+                  isOptimisticDone
+                    ? `Completed by You · +${getEffortPoints(chore.effortLevel)} pts`
+                    : `${freqLabel} · ${effortLabel} · ${a.scheduledTime} · Assigned to ${assigneeLabel}`
+                }
                 badge={
-                  isOptimisticDone ? (
-                    <Chip status="agreed" label="Done" size="xs" />
-                  ) : undefined
+                  <Chip
+                    status={isOptimisticDone ? 'agreed' : 'pending'}
+                    label={isOptimisticDone ? 'Done' : 'Due Today'}
+                    size="xs"
+                  />
                 }
                 detail={
-                  <div className="space-y-1.5">
-                    <p
-                      className={`text-[14px] transition-opacity duration-150 ${
-                        isOptimisticDone ? 'line-through opacity-70 text-[#64748B]' : 'text-[#475569]'
-                      }`}
-                    >
-                      {chore.description}
-                    </p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Chip effort={chore.effortLevel} size="sm" />
-                      {isOptimisticDone ? (
-                        <span className="text-[14px] font-bold text-[#2CA358] flex items-center gap-1">
-                          <Sparkles className="w-3.5 h-3.5" /> +
-                          {getEffortPoints(chore.effortLevel)} pts awarded
-                        </span>
-                      ) : (
-                        <span className="type-secondary text-[14px]">
-                          Assigned to:{' '}
-                          <strong className="text-[#1F2430]">
-                            {isMe ? 'You' : assignedUser?.name}
-                          </strong>
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <p
+                    className={`text-[14px] transition-opacity duration-150 ${
+                      isOptimisticDone ? 'line-through opacity-70 text-[#64748B]' : 'text-[#475569]'
+                    }`}
+                  >
+                    {chore.description}
+                  </p>
                 }
                 actions={
                   isMe ? (
@@ -232,7 +224,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                     </div>
                   ) : (
                     <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
-                      <span className="type-secondary text-[14px] font-bold">
+                      <span className="type-secondary text-[14px] font-medium">
                         Pending {assignedUser?.name.split(' ')[0]}'s completion
                       </span>
                       <Button
@@ -254,10 +246,9 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
       {todayCompletedAssignments.length > 0 && (
         <div className="space-y-3.5 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="type-section-heading text-[#2CA358]">Completed today</span>
-              <Chip status="agreed" label={`${todayCompletedAssignments.length} Done`} size="xs" />
-            </div>
+            <span className="type-section-heading text-[#2CA358]">
+              Completed today ({todayCompletedAssignments.length})
+            </span>
             <span className="type-secondary text-[13px] sm:text-[14px]">Streaks updated</span>
           </div>
 
@@ -266,6 +257,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
             const assignedUser = roommates.find((r) => r.id === a.userId);
             if (!chore) return null;
             const isMe = a.userId === currentUser.id;
+            const effortLabel = formatEffortLabel(chore.effortLevel);
 
             return (
               <ActionCard
@@ -279,21 +271,13 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                   />
                 }
                 title={
-                  <span className="type-card-title line-through text-[#475569]">
+                  <span className="type-card-title font-semibold line-through text-[#475569]">
                     {chore.name}
                   </span>
                 }
-                subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name}`}
+                subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name} · ${effortLabel} · +${getEffortPoints(chore.effortLevel)} pts`}
                 detail={
-                  <div className="space-y-1.5">
-                    <p className="text-[14px] text-[#475569] opacity-80">{chore.description}</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Chip effort={chore.effortLevel} size="sm" />
-                      <span className="text-[14px] font-bold text-[#2CA358]">
-                        +{getEffortPoints(chore.effortLevel)} streak points awarded
-                      </span>
-                    </div>
-                  </div>
+                  <p className="text-[14px] text-[#475569] opacity-80">{chore.description}</p>
                 }
                 badge={<Chip status="agreed" label="Done" size="xs" />}
                 actions={
@@ -315,7 +299,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                     </div>
                   ) : (
                     <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
-                      <span className="text-[14px] font-bold text-[#2CA358]">
+                      <span className="text-[14px] font-semibold text-[#2CA358]">
                         Streak protected for today
                       </span>
                       <Button
@@ -330,21 +314,18 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                 }
               >
                 {a.kudos.length > 0 && (
-                  <div className="pt-2.5 border-t border-black/5 flex flex-wrap gap-2 items-center">
-                    <span className="text-[14px] font-bold text-[#8A6200]">Roomie Kudos:</span>
-                    {a.kudos.map((k) => {
-                      const sender = roommates.find((r) => r.id === k.fromUser);
-                      return (
-                        <span
-                          key={k.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3] text-[14px] font-bold"
-                        >
-                          <Heart className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A]" />
-                          <span>{sender?.name.split(' ')[0] || 'Roomie'}</span>
-                          {k.note && <span className="font-semibold italic">"{k.note}"</span>}
-                        </span>
-                      );
-                    })}
+                  <div className="pt-2.5 border-t border-black/5 flex flex-wrap gap-2 items-center text-[13px] text-[#475569]">
+                    <span className="font-semibold text-[#1F2430]">Roomie kudos:</span>
+                    <span>
+                      {a.kudos
+                        .map((k) => {
+                          const sender =
+                            roommates.find((r) => r.id === k.fromUser)?.name.split(' ')[0] ||
+                            'Roomie';
+                          return k.note ? `${sender} ("${k.note}")` : sender;
+                        })
+                        .join(' · ')}
+                    </span>
                   </div>
                 )}
               </ActionCard>

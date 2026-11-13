@@ -6,7 +6,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { THEME } from '../../theme/tokens';
 import { useBackHandler } from '../../utils/useBackHandler';
 import {
-  Sparkles,
+
   Smartphone,
   BellRing,
   Share,
@@ -88,7 +88,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
               <span>Equal streak recognition</span>
             </div>
             <p className="type-secondary">
-              Consistent participation earns Streak Stars for the apartment. No shaming, no nagging, just clean living.
+              Consistent participation earns streak points for the apartment. No shaming, no nagging, just clean living.
             </p>
           </div>
         </div>

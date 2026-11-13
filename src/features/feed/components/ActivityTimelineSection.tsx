@@ -7,10 +7,9 @@ import { ChatMessage } from '../../../types';
 import { sound } from '../../../services/sound';
 import {
   MessageSquare,
-  Shuffle,
+  Repeat,
   ClipboardCheck,
   Receipt,
-  Sparkles,
   UserPlus,
 } from 'lucide-react';
 
@@ -79,7 +78,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     const { text, isDraft, isChore, isExpense } = classifyActivity(act.body);
     const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
     const icon = isDraft ? (
-      <Shuffle className="w-5 h-5" />
+      <Repeat className="w-5 h-5" />
     ) : isChore ? (
       <ClipboardCheck className="w-5 h-5" />
     ) : isExpense ? (
@@ -135,7 +134,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
               variant="indigo"
               size="sm"
               onClick={onOpenChoreReveal}
-              icon={<Sparkles className="w-3.5 h-3.5" />}
+              icon={<ClipboardCheck className="w-3.5 h-3.5" />}
             >
               Reveal schedule
             </Button>

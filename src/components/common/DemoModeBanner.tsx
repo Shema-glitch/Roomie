@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 interface DemoModeBannerProps {
   householdName?: string;
@@ -17,7 +17,6 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 text-[12px] sm:text-[13px] font-medium flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
           <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-[#FFE8A3] text-[#7A5200] shrink-0">
             Demo
           </span>

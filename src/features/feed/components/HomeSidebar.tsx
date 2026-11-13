@@ -37,16 +37,11 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
   return (
     <div className="space-y-6">
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="type-section-heading">Roomie presence</h3>
-            <p className="type-secondary text-[14px]">Live apartment status</p>
-          </div>
-          <Chip
-            status="active"
-            label={`${homeCount} of ${roommates.length} Home`}
-            size="xs"
-          />
+        <div className="min-w-0">
+          <h3 className="type-section-heading">Roomie presence</h3>
+          <p className="type-secondary text-[13px] text-[#64748B]">
+            Live apartment status · {homeCount} of {roommates.length} at home
+          </p>
         </div>
 
         <div className="space-y-2.5">

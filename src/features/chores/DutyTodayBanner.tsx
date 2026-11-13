@@ -2,7 +2,8 @@ import React from 'react';
 import { DutySchedule, User, DayOfWeek } from '../../types';
 import { getTodayDuty, DAY_DISPLAY_NAMES } from '../../utils/dutyRotation';
 import { Avatar } from '../../components/common/Avatar';
-import { Sparkles, Calendar, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
+import { Chip } from '../../components/common/Chip';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 
@@ -50,21 +51,22 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
       >
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FF6B4A] flex items-center justify-center text-white shrink-0 shadow-sm mt-0.5">
-            <Sparkles className="w-5 h-5 fill-white" />
+            <ClipboardCheck className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-heading font-black text-sm text-[#1F2430]">
-                You are Today&apos;s Duty Captain! ⭐
-              </h4>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B4A] bg-[#FF6B4A]/10 px-2 py-0.5 rounded-full">
-                {dayName}
-              </span>
-              {entry.completed && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Done
-                </span>
-              )}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h4 className="font-heading font-semibold text-sm text-[#1F2430]">
+                  You are Today&apos;s Duty Captain
+                </h4>
+                <span className="text-xs text-[#64748B]" aria-hidden="true">·</span>
+                <span className="text-xs font-medium text-[#64748B]">{dayName}</span>
+              </div>
+              <Chip
+                status={entry.completed ? 'done' : 'due'}
+                size="xs"
+                label={entry.completed ? 'Done' : 'Due Today'}
+              />
             </div>
             <p className="text-xs text-[#64748B] mt-1 leading-relaxed">
               {entry.notes || 'Handle common area mopping, kitchen tidy, and trash.'}
@@ -80,7 +82,7 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Mark Finished ✨</span>
+              <span>Mark Finished</span>
             </button>
           )}
           <button
@@ -111,24 +113,23 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
           size="md"
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-[#64748B]">Today&apos;s Flat Captain:</span>
-            <span className="font-heading font-black text-sm text-[#1F2430]">
-              {user?.name || 'Roomie'}
-            </span>
-            <span className="text-[10px] font-bold uppercase text-[#64748B] bg-[#F1F3F8] px-1.5 py-0.5 rounded">
-              {dayName}
-            </span>
-            {entry.completed && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
-                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" /> Done
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-[#64748B]">Today&apos;s Flat Captain:</span>
+              <span className="font-heading font-semibold text-sm text-[#1F2430]">
+                {user?.name || 'Roomie'}
               </span>
+              <span className="text-xs text-[#64748B]" aria-hidden="true">·</span>
+              <span className="text-xs text-[#64748B]">{dayName}</span>
+            </div>
+            {entry.completed && (
+              <Chip status="done" size="xs" label="Done" />
             )}
           </div>
           <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
             {entry.completed
-              ? `${user?.name || 'Roomie'} finished today's flat duties! 🎉`
-              : `${user?.name || 'Roomie'} is on duty today. Be kind and keep shared spaces tidy!`}
+              ? `${user?.name || 'Roomie'} finished today's flat duties.`
+              : `${user?.name || 'Roomie'} is on duty today. Be kind and keep shared spaces tidy.`}
           </p>
         </div>
       </div>

@@ -3,9 +3,8 @@ import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
-import { Chip } from '../../../components/common/Chip';
 import { Chore, User } from '../../../types';
-import { Flame, Sparkles, Heart, Plane } from 'lucide-react';
+import { Flame, Heart, Plane } from 'lucide-react';
 
 interface ChoresSidebarProps {
   roommates: User[];
@@ -27,22 +26,11 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
   return (
     <div className="space-y-6">
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-2.5">
-          <div className="min-w-0 flex-1">
-            <h3 className="type-section-heading flex items-center gap-2">
-              <Flame className="w-5 h-5 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
-              <span className="truncate">Roomie streaks and kudos</span>
-            </h3>
-            <p className="type-secondary text-[14px]">
-              Apartment chore streaks and consistency
-            </p>
-          </div>
-          <Chip
-            variant="reward"
-            size="xs"
-            icon={<Sparkles className="w-3 h-3 text-[#8A6200]" />}
-            label={`Top: ${maxStreak}d`}
-          />
+        <div className="min-w-0">
+          <h3 className="type-section-heading">Roomie streaks and kudos</h3>
+          <p className="type-secondary text-[13px] text-[#64748B] mt-0.5">
+            Apartment chore consistency · Top streak: {maxStreak}d
+          </p>
         </div>
 
         <div className="space-y-2.5">
@@ -71,37 +59,40 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1 min-w-0">
-                      <p className="text-[14px] font-bold text-[#1F2430] truncate">{r.name}</p>
+                      <p className="text-[14px] font-semibold text-[#1F2430] truncate">{r.name}</p>
                       {isMe && (
-                        <span className="text-[13px] font-bold text-[#FF6B4A] shrink-0">(You)</span>
+                        <span className="text-[13px] font-semibold text-[#FF6B4A] shrink-0">(You)</span>
                       )}
                     </div>
-                    <p className="type-secondary text-[13px] whitespace-nowrap">
-                      {r.points} reward points
+                    <p className="text-[12px] text-[#64748B] flex items-center gap-1.5 whitespace-nowrap mt-0.5">
+                      <span className="inline-flex items-center gap-1 font-medium text-[#1F2430]">
+                        <Flame className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A] shrink-0" />
+                        {r.streakDays}d
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <span>{r.points} pts</span>
+                      {isTopStreak && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span className="text-[#8A6200] font-medium">Top streak</span>
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                  <Chip
-                    variant={isTopStreak ? 'reward' : 'primary'}
-                    size="xs"
-                    icon={<Flame className="w-3 h-3 fill-[#FF6B4A] text-[#FF6B4A]" />}
-                    label={isTopStreak ? `Best • ${r.streakDays}d` : `${r.streakDays}d`}
-                  />
-                  {!isMe && (
-                    <button
-                      type="button"
-                      onClick={() => onSelectKudos({ chore: chores[0], target: r })}
-                      className="min-h-[34px] px-2.5 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-[13px] font-bold cursor-pointer transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]"
-                      title={`Send kudos to ${r.name}`}
-                      aria-label={`Send kudos to ${r.name}`}
-                    >
-                      <Heart className="w-3.5 h-3.5 fill-[#FFC93C] text-[#8A6200] shrink-0" />
-                      <span className="hidden sm:inline">Kudos</span>
-                    </button>
-                  )}
-                </div>
+                {!isMe && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectKudos({ chore: chores[0], target: r })}
+                    className="min-h-[34px] px-2.5 py-1 rounded-xl bg-[#FFF8E6] hover:bg-[#FFE8A3] text-[#8A6200] border border-[#FFE8A3] text-[13px] font-bold cursor-pointer transition-colors inline-flex items-center gap-1 shrink-0 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]"
+                    title={`Send kudos to ${r.name}`}
+                    aria-label={`Send kudos to ${r.name}`}
+                  >
+                    <Heart className="w-3.5 h-3.5 fill-[#FFC93C] text-[#8A6200] shrink-0" />
+                    <span className="hidden sm:inline">Kudos</span>
+                  </button>
+                )}
               </div>
             );
           })}

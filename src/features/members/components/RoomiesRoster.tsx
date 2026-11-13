@@ -32,12 +32,7 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SectionTitle
           title={`Apartment Roomies (${members.length})`}
-          subtitle="Apartment roomies, live status, and streaks"
-        />
-        <Chip
-          status="active"
-          label={`${homeCount} of ${members.length} Home`}
-          size="xs"
+          subtitle={`${homeCount} of ${members.length} currently at home`}
         />
       </div>
 
@@ -69,44 +64,43 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = ({
                       </span>
                     )}
                   </div>
-                  {membership.role === 'admin' && (
-                    <Chip status="admin" size="sm" className="shrink-0" />
-                  )}
+                  <Chip
+                    status={user.isHome ? 'active' : 'away'}
+                    label={user.isHome ? 'At home' : 'Away'}
+                    size="xs"
+                    className="shrink-0"
+                  />
                 </div>
               }
               subtitle={
-                <span className="type-secondary text-[14px]">
-                  From {user.country} {user.flag || ''}
+                <span className="text-[13px] text-[#64748B]">
+                  {membership.role === 'admin' ? 'Admin' : 'Member'} · From {user.country}{' '}
+                  {user.flag || ''}
                 </span>
               }
               detail={
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between text-[14px]">
-                    <span className="flex items-center gap-1 text-[#FF6B4A] font-bold">
-                      <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" /> {user.streakDays} day streak
+                <div className="flex items-center justify-between text-[13px] text-[#64748B] pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 text-[#1F2430] font-medium">
+                      <Flame className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A] shrink-0" />
+                      {user.streakDays}d streak
                     </span>
-                    <span className="font-bold text-[#475569]">{user.points} points</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{user.points} pts</span>
                   </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <Chip
-                      status={user.isHome ? 'active' : 'away'}
-                      label={user.isHome ? 'At home' : 'Away'}
-                      size="sm"
-                    />
-                    {isAdmin && !isMe && canRemoveMembers && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          sound.playTap();
-                          onSelectRemoveUser(user);
-                        }}
-                        className="text-xs font-bold text-[#E5484D] hover:underline flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        <UserMinus className="w-3.5 h-3.5" /> Remove
-                      </button>
-                    )}
-                  </div>
+                  {isAdmin && !isMe && canRemoveMembers && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        sound.playTap();
+                        onSelectRemoveUser(user);
+                      }}
+                      className="text-xs font-bold text-[#E5484D] hover:underline flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      <UserMinus className="w-3.5 h-3.5" /> Remove
+                    </button>
+                  )}
                 </div>
               }
             />

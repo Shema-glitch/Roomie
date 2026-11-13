@@ -21,7 +21,9 @@ export type StatusBadgeType =
   | 'paid'
   | 'active'
   | 'away'
-  | 'admin';
+  | 'admin'
+  | 'done'
+  | 'due';
 
 interface ChipProps {
   label?: string;
@@ -89,6 +91,16 @@ export const Chip: React.FC<ChipProps> = ({
       case 'admin':
         effectiveVariant = 'primary';
         effectiveLabel = label || 'Admin';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shadow-xs shrink-0" />;
+        break;
+      case 'done':
+        effectiveVariant = 'success';
+        effectiveLabel = label || 'Done';
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        break;
+      case 'due':
+        effectiveVariant = 'primary';
+        effectiveLabel = label || 'Due Today';
         effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shadow-xs shrink-0" />;
         break;
     }

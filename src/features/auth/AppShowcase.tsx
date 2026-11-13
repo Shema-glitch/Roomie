@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MascotView } from '../../components/common/MascotView';
 import { Button } from '../../components/common/Button';
 import { sound } from '../../services/sound';
-import { ArrowRight, Sparkles, Pause, Play } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Pause, Play } from 'lucide-react';
 import { MascotState } from '../../types';
 
 interface AppShowcaseProps {
@@ -326,7 +326,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
             size="lg"
             fullWidth
             onClick={handleNext}
-            icon={isLast ? <Sparkles className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
+            icon={isLast ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
           >
             {isLast ? "Let's Get Started" : 'Continue'}
           </Button>

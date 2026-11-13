@@ -14,7 +14,6 @@ import {
   Clock,
   Home,
   QrCode,
-  Sparkles,
   UserPlus,
 } from 'lucide-react';
 
@@ -218,7 +217,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             sound.playTap();
             onExploreDemo();
           }}
-          icon={<Sparkles className="w-4 h-4 text-[#FF6B4A]" />}
+          icon={<Home className="w-4 h-4 text-[#FF6B4A]" />}
         >
           Explore the Demo Flat instead
         </Button>

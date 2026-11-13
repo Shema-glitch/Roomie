@@ -50,9 +50,10 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
           title={myTodayChore ? myTodayChore.name : 'All chores done'}
           subtitle={
             myTodayChore
-              ? `${myTodayChore.frequency === 'daily' ? 'Daily' : 'Weekly'} • ${
-                  myTodayAssignment?.scheduledTime
-                }`
+              ? `${myTodayChore.frequency === 'daily' ? 'Daily' : 'Weekly'} · ${
+                  myTodayChore.effortLevel.charAt(0).toUpperCase() +
+                  myTodayChore.effortLevel.slice(1)
+                } · ${myTodayAssignment?.scheduledTime}`
               : 'Kitchen and living area are clean'
           }
           detail={
