@@ -130,11 +130,11 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
         sound.playTap();
         onSelect(exp);
       }}
-      className={`group p-4 sm:p-5 rounded-[24px] border-2 transition-all duration-150 ease-out hover:-translate-y-0.5 active:scale-[0.99] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none ${
+      className={`group p-4 sm:p-5 rounded-[24px] border-2 border-b-4 transition-all duration-150 ease-out hover:-translate-y-0.5 active:border-b-2 active:translate-y-[2px] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none ${
         isDisputed
-          ? 'bg-[#FFF5F2] border-[#FFD3C9] hover:border-[#FFB7A7] shadow-[0_4px_16px_rgba(255,107,74,0.08)]'
+          ? 'bg-[#FFF5F2] border-[#FFD3C9] hover:border-[#FFB7A7] shadow-[0_4px_16px_rgba(255,107,74,0.06)]'
           : isNeedsMyAnswer
-          ? 'bg-[#FFFBEB] border-[#FDE68A] hover:border-[#FCD34D] shadow-[0_4px_16px_rgba(255,201,60,0.12)] ring-1 ring-[#F59E0B]/30'
+          ? 'bg-[#FFFBEB] border-[#FDE68A] hover:border-[#FCD34D] shadow-[0_4px_16px_rgba(255,201,60,0.10)] ring-1 ring-[#F59E0B]/30'
           : 'bg-white border-[#E6E8EE] hover:border-[#CBD5E1] hover:shadow-xs'
       }`}
     >

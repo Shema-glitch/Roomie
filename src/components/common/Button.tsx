@@ -1,5 +1,5 @@
 import React from 'react';
-import { CircleNotch } from '@phosphor-icons/react';
+import { CircleNotch, IconContext } from '@phosphor-icons/react';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 
@@ -152,6 +152,13 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = getVariantStyles();
+  const isSolidFillVariant =
+    variant === 'primary' ||
+    variant === 'teal' ||
+    variant === 'green' ||
+    variant === 'indigo' ||
+    variant === 'reward' ||
+    variant === 'danger';
 
   return (
     <button
@@ -170,7 +177,11 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <CircleNotch weight="bold" className="w-4 h-4 shrink-0 animate-spin" />
       ) : (
-        icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>
+        icon && (
+          <IconContext.Provider value={{ weight: isSolidFillVariant ? 'bold' : 'duotone' }}>
+            <span className="shrink-0 flex items-center justify-center">{icon}</span>
+          </IconContext.Provider>
+        )
       )}
       {children && <span>{children}</span>}
     </button>

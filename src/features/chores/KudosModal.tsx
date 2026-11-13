@@ -106,7 +106,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="coral" size="sm" />
+            <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="coral" size="sm" />
             <div>
               <p className="type-body font-bold">Thanks!</p>
               <p className="type-secondary">Warm appreciation (+10 pts)</p>
@@ -125,7 +125,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="amber" size="sm" />
+            <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="amber" size="sm" />
             <div>
               <p className="type-body font-bold">Great job!</p>
               <p className="type-secondary">Super clean result (+10 pts)</p>

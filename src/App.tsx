@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { IconContext } from '@phosphor-icons/react';
+import './utils/registerIcons';
 import { ToastProvider, useToast } from './components/common/Toast';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { DemoModeBanner } from './components/common/DemoModeBanner';

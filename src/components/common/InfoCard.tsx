@@ -26,12 +26,12 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   onClick,
 }) => {
   const tintStyles = {
-    neutral: 'bg-white border-2 border-[#E6E8EE] shadow-[0_4px_16px_rgba(31,36,48,0.05)]',
-    teal: 'bg-[#EBFBF9] border-2 border-[#B6EFEA] shadow-[0_4px_16px_rgba(25,181,165,0.08)]',
-    coral: 'bg-[#FFF5F2] border-2 border-[#FFD3C9] shadow-[0_4px_16px_rgba(255,107,74,0.08)]',
-    indigo: 'bg-[#F5F6FE] border-2 border-[#D6D8FB] shadow-[0_4px_16px_rgba(91,91,214,0.08)]',
-    green: 'bg-[#F0FDF4] border-2 border-[#BBF7D0] shadow-[0_4px_16px_rgba(61,190,109,0.08)]',
-    amber: 'bg-[#FFFBEB] border-2 border-[#FDE68A] shadow-[0_4px_16px_rgba(255,201,60,0.10)]',
+    neutral: 'bg-white border-2 border-b-4 border-[#E6E8EE] shadow-[0_4px_16px_rgba(31,36,48,0.04)]',
+    teal: 'bg-[#EBFBF9] border-2 border-b-4 border-[#B6EFEA] shadow-[0_4px_16px_rgba(25,181,165,0.06)]',
+    coral: 'bg-[#FFF5F2] border-2 border-b-4 border-[#FFD3C9] shadow-[0_4px_16px_rgba(255,107,74,0.06)]',
+    indigo: 'bg-[#F5F6FE] border-2 border-b-4 border-[#D6D8FB] shadow-[0_4px_16px_rgba(91,91,214,0.06)]',
+    green: 'bg-[#F0FDF4] border-2 border-b-4 border-[#BBF7D0] shadow-[0_4px_16px_rgba(61,190,109,0.06)]',
+    amber: 'bg-[#FFFBEB] border-2 border-b-4 border-[#FDE68A] shadow-[0_4px_16px_rgba(255,201,60,0.08)]',
   };
 
   const padStyles = padding === 'lg' ? 'p-5 sm:p-6' : 'p-4 sm:p-5';
@@ -40,7 +40,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
     <div
       onClick={onClick}
       className={`rounded-[24px] transition-all ${tintStyles[tint]} ${padStyles} ${
-        onClick ? 'cursor-pointer hover:border-[#CBD5E1]' : ''
+        onClick ? 'cursor-pointer hover:border-[#CBD5E1] active:border-b-2 active:translate-y-[2px]' : ''
       } ${className}`}
     >
       {(title || iconTile || action) && (

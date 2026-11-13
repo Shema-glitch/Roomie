@@ -48,10 +48,10 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
   if (isMe) {
     return (
       <div
-        className={`p-4 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF0ED] to-[#FFF9E6] border-2 border-[#FFD7CF] shadow-xs flex flex-col gap-3 ${className}`}
+        className={`p-4 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF0ED] to-[#FFF9E6] border-2 border-b-4 border-[#FFD7CF] shadow-xs flex flex-col gap-3 ${className}`}
       >
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FF6B4A] flex items-center justify-center text-white shrink-0 shadow-sm mt-0.5">
+          <div className="w-10 h-10 rounded-2xl bg-white border-2 border-b-[3px] border-[#FFD7CF] flex items-center justify-center shrink-0 mt-0.5">
             <Icon icon="fluent-emoji-flat:broom" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">

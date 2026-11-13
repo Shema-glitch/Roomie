@@ -64,8 +64,10 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       {...props}
-      className={`rounded-[24px] border-2 transition-all ${getPaddingClass()} ${
-        interactive ? 'cursor-pointer hover:shadow-md active:scale-[0.99]' : ''
+      className={`rounded-[24px] border-2 border-b-4 transition-all ${getPaddingClass()} ${
+        interactive
+          ? 'cursor-pointer hover:shadow-md active:border-b-2 active:translate-y-[2px]'
+          : ''
       } ${className}`}
       style={{
         ...getVariantStyles(),

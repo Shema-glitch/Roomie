@@ -28,14 +28,14 @@ export const IconTile: React.FC<IconTileProps> = ({
   onClick,
 }) => {
   const colorStyles: Record<IconTileColor, string> = {
-    coral: 'bg-[#FF6B4A] text-white shadow-sm shadow-[#FF6B4A]/30',
-    teal: 'bg-[#19B5A5] text-white shadow-sm shadow-[#19B5A5]/30',
-    indigo: 'bg-[#5B5BD6] text-white shadow-sm shadow-[#5B5BD6]/30',
-    green: 'bg-[#3DBE6D] text-white shadow-sm shadow-[#3DBE6D]/30',
-    amber: 'bg-[#FFC93C] text-white shadow-sm shadow-[#FFC93C]/30',
-    purple: 'bg-[#8B5CF6] text-white shadow-sm shadow-[#8B5CF6]/30',
-    slate: 'bg-[#475569] text-white shadow-sm',
-    neutral: 'bg-[#475569] text-white shadow-sm',
+    coral: 'bg-[#FFF0ED] text-[#FF6B4A] border-2 border-b-[3px] border-[#FFD3C9]',
+    teal: 'bg-[#E6FAF8] text-[#138E82] border-2 border-b-[3px] border-[#B6EFEA]',
+    indigo: 'bg-[#EEF0FD] text-[#5B5BD6] border-2 border-b-[3px] border-[#C7D2FE]',
+    green: 'bg-[#EBF9F0] text-[#2CA358] border-2 border-b-[3px] border-[#BBF7D0]',
+    amber: 'bg-[#FFF8E6] text-[#B45309] border-2 border-b-[3px] border-[#FDE68A]',
+    purple: 'bg-[#F3E8FF] text-[#7C3AED] border-2 border-b-[3px] border-[#DDD6FE]',
+    slate: 'bg-[#F1F5F9] text-[#475569] border-2 border-b-[3px] border-[#CBD5E1]',
+    neutral: 'bg-[#F1F5F9] text-[#475569] border-2 border-b-[3px] border-[#CBD5E1]',
   };
 
   const sizeStyles: Record<IconTileSize, string> = {
