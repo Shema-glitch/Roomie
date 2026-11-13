@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home } from 'lucide-react';
+import { House } from '@phosphor-icons/react';
 
 interface DemoModeBannerProps {
   householdName?: string;
@@ -29,7 +29,7 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
           onClick={onSetupRealFlat}
           className="text-[12px] font-bold bg-[#FF6B4A] hover:bg-[#E85635] text-white px-2.5 py-1 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
         >
-          <Home className="w-3 h-3" />
+          <House weight="fill" className="w-3 h-3" />
           <span>My real flat</span>
         </button>
       </div>

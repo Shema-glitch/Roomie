@@ -10,14 +10,14 @@ import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
   Wallet,
-  CheckCircle2,
-  HelpCircle,
-  ChevronUp,
-  ChevronDown,
+  CheckCircle,
+  Question,
+  CaretUp,
+  CaretDown,
   Bell,
-  Banknote,
-  PieChart,
-} from 'lucide-react';
+  Money,
+  ChartPieSlice,
+} from '@phosphor-icons/react';
 import { formatCurrency } from './ExpenseCard';
 
 interface BalanceOverviewSectionProps {
@@ -125,7 +125,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
               </div>
             ) : (
               <p className="type-secondary flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#2CA358]" /> All apartment expenses are fully
+                <CheckCircle className="w-4 h-4 text-[#2CA358]" weight="fill" /> All apartment expenses are fully
                 settled!
               </p>
             )}
@@ -140,13 +140,13 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                 className="flex items-center justify-between w-full p-2.5 rounded-xl bg-black/5 hover:bg-black/10 text-[14px] font-bold text-[#475569] transition-all cursor-pointer"
               >
                 <span className="flex items-center gap-1.5">
-                  <HelpCircle className="w-3.5 h-3.5 text-[#5B5BD6]" />
+                  <Question className="w-3.5 h-3.5 text-[#5B5BD6]" />
                   How is this total calculated?
                 </span>
                 {showCalculationInfo ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
+                  <CaretUp className="w-3.5 h-3.5" />
                 ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
+                  <CaretDown className="w-3.5 h-3.5" />
                 )}
               </button>
 
@@ -244,7 +244,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                   sound.playTap();
                   onOpenSettleModal();
                 }}
-                icon={<Banknote className="w-4 h-4" />}
+                icon={<Money className="w-4 h-4" weight="fill" />}
               >
                 Settle up now
               </Button>
@@ -268,7 +268,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
       <InfoCard padding="md" className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <IconTile icon={<PieChart className="w-5 h-5" />} color="amber" size="sm" />
+            <IconTile icon={<ChartPieSlice className="w-5 h-5" />} color="amber" size="sm" />
             <span className="type-section-heading">Spending by category</span>
           </div>
           <button

@@ -9,7 +9,8 @@ import { IconTile } from '../../components/common/IconTile';
 import { Chore, DraftPick, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Heart, Ban, Users, ArrowLeft, ArrowRight, Check, Shuffle, ClipboardCheck } from 'lucide-react';
+import { Heart, Prohibit, UsersThree, ArrowLeft, ArrowRight, Check, Shuffle } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
 
@@ -156,7 +157,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
 
           <div className="py-4">
             <IconTile
-              icon={<ClipboardCheck className="w-8 h-8" />}
+              icon={<Icon icon="fluent-emoji-flat:broom" className="w-8 h-8" />}
               color="teal"
               size="lg"
               className="mx-auto mb-3"
@@ -207,7 +208,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
                   : 'border-[#E6E8EE] bg-white hover:border-[#E5484D] text-[#1F2430]'
               }`}
             >
-              <Ban className="w-5 h-5 text-[#E5484D]" />
+              <Prohibit className="w-5 h-5 text-[#E5484D]" />
               <span>Rather avoid this</span>
             </button>
 
@@ -220,7 +221,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
                   : 'border-[#E6E8EE] bg-white hover:border-[#5B5BD6] text-[#1F2430]'
               }`}
             >
-              <Users className="w-5 h-5 text-[#5B5BD6]" />
+              <UsersThree className="w-5 h-5 text-[#5B5BD6]" />
               <span>Suggest for roomie</span>
             </button>
           </div>

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { CheckCircle, WarningCircle, Info, X } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { sound } from '../../services/sound';
 
 export type ToastType = 'success' | 'info' | 'reward' | 'error';
@@ -47,14 +48,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getIcon = (type?: ToastType) => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-[#2CA358] shrink-0" />;
+        return <CheckCircle weight="fill" className="w-5 h-5 text-[#2CA358] shrink-0" />;
       case 'reward':
-        return <CheckCircle2 className="w-5 h-5 text-[#8A6200] shrink-0" />;
+        return <Icon icon="fluent-emoji-flat:trophy" className="w-5 h-5 shrink-0" />;
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-[#E5484D] shrink-0" />;
+        return <WarningCircle weight="fill" className="w-5 h-5 text-[#E5484D] shrink-0" />;
       case 'info':
       default:
-        return <Info className="w-5 h-5 text-[#5B5BD6] shrink-0" />;
+        return <Info weight="fill" className="w-5 h-5 text-[#5B5BD6] shrink-0" />;
     }
   };
 
@@ -92,7 +93,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               className="text-[#6B7280] hover:text-[#1F2430] active:scale-[0.95] p-1 rounded-full transition-all duration-150 cursor-pointer"
               aria-label="Dismiss toast"
             >
-              <X className="w-4 h-4" />
+              <X weight="bold" className="w-4 h-4" />
             </button>
           </div>
         ))}

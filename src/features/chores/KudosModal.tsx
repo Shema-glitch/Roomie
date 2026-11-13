@@ -7,7 +7,8 @@ import { MascotView } from '../../components/common/MascotView';
 import { IconTile } from '../../components/common/IconTile';
 import { User, Chore, KudosType } from '../../types';
 import { sound } from '../../services/sound';
-import { Heart, AlertCircle, Send, Flame } from 'lucide-react';
+import { Heart, WarningCircle, PaperPlaneRight } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 
 interface KudosModalProps {
@@ -78,7 +79,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             </h4>
             <p className="type-secondary flex items-center gap-1.5 mt-0.5">
               <span className="inline-flex items-center gap-1 font-bold text-[#FF6B4A]">
-                <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
+                <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                 {targetUser.streakDays} days
               </span>
               <span>•</span>
@@ -143,7 +144,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 : 'border-[#E6E8EE] bg-white text-[#64748B]'
             }`}
           >
-            <IconTile icon={<AlertCircle className="w-5 h-5" />} color="indigo" size="sm" />
+            <IconTile icon={<WarningCircle className="w-5 h-5" />} color="indigo" size="sm" />
             <div>
               <p className="type-body font-bold">Needs another look</p>
               <p className="type-secondary">
@@ -178,7 +179,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             fullWidth
             disabled={loading}
             onClick={handleSubmit}
-            icon={<Send className="w-4 h-4" />}
+            icon={<PaperPlaneRight className="w-4 h-4" weight="fill" />}
           >
             {loading ? 'Sending...' : 'Send kudos'}
           </Button>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Expense, ExpenseCategory } from '../../types';
 import { Card } from '../../components/common/Card';
-import { ShoppingCart, Zap, Home, Building2, MoreHorizontal, PieChart as PieChartIcon } from 'lucide-react';
+import { ShoppingCart, Lightning, House, Buildings, DotsThree, ChartPieSlice } from '@phosphor-icons/react';
 
 interface SpendingBreakdownChartProps {
   expenses: Expense[];
@@ -24,7 +24,7 @@ const CATEGORY_CONFIG: Record<
   rent: {
     name: 'Rent',
     color: '#FF6B4A', // Coral
-    icon: <Building2 className="w-4 h-4" />,
+    icon: <Buildings className="w-4 h-4" />,
   },
   groceries: {
     name: 'Groceries',
@@ -34,17 +34,17 @@ const CATEGORY_CONFIG: Record<
   utilities: {
     name: 'Utilities',
     color: '#14B8A6', // Teal
-    icon: <Zap className="w-4 h-4" />,
+    icon: <Lightning className="w-4 h-4" />,
   },
   household: {
     name: 'Household',
     color: '#3B82F6', // Blue
-    icon: <Home className="w-4 h-4" />,
+    icon: <House className="w-4 h-4" />,
   },
   other: {
     name: 'Other',
     color: '#64748B', // Slate
-    icon: <MoreHorizontal className="w-4 h-4" />,
+    icon: <DotsThree className="w-4 h-4" />,
   },
 };
 
@@ -123,7 +123,7 @@ export const SpendingBreakdownChart: React.FC<SpendingBreakdownChartProps> = ({
       <div className="flex items-center justify-between pb-1 border-b border-[#E6E8EE]">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-xl bg-[#FFF0ED] text-[#FF6B4A] flex items-center justify-center">
-            <PieChartIcon className="w-4 h-4" />
+            <ChartPieSlice className="w-4 h-4" />
           </div>
           <div>
             <h4 className="type-section-heading">Spending breakdown</h4>

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { IconContext } from '@phosphor-icons/react';
 import { ToastProvider, useToast } from './components/common/Toast';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { DemoModeBanner } from './components/common/DemoModeBanner';
@@ -489,8 +490,10 @@ function MainApp() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <MainApp />
-    </ToastProvider>
+    <IconContext.Provider value={{ weight: 'duotone' }}>
+      <ToastProvider>
+        <MainApp />
+      </ToastProvider>
+    </IconContext.Provider>
   );
 }

@@ -5,7 +5,7 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { DutySchedule, User, Chore, DayOfWeek, Membership } from '../../types';
 import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate } from '../../utils/dutyRotation';
-import { Calendar, CheckCircle2, ArrowLeftRight, UserCheck } from 'lucide-react';
+import { Calendar, ArrowsLeftRight, UserCheck } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 
@@ -111,7 +111,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
         {swapDaySource && (
           <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 flex items-center justify-between gap-2 text-xs text-amber-900 animate-pulse">
             <div className="flex items-center gap-2">
-              <ArrowLeftRight className="w-4 h-4 text-amber-600 shrink-0" />
+              <ArrowsLeftRight className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
                 Swapping <strong>{DAY_DISPLAY_NAMES[swapDaySource].full}</strong>. Tap another day to complete swap.
               </span>
@@ -184,7 +184,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                         }`}
                         title="Swap day with another flatmate"
                       >
-                        <ArrowLeftRight className="w-3.5 h-3.5" />
+                        <ArrowsLeftRight className="w-3.5 h-3.5" />
                       </button>
 
                       {isAdmin && (

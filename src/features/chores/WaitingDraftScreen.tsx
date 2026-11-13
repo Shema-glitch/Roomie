@@ -5,7 +5,7 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { User, DraftRound } from '../../types';
-import { Repeat, Check, Clock, ArrowLeft } from 'lucide-react';
+import { ArrowsClockwise, Check, Clock, ArrowLeft } from '@phosphor-icons/react';
 import { useBackHandler } from '../../utils/useBackHandler';
 
 interface WaitingDraftScreenProps {
@@ -116,7 +116,7 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
           size="lg"
           fullWidth
           onClick={onStartReveal}
-          icon={<Repeat className="w-5 h-5" />}
+          icon={<ArrowsClockwise className="w-5 h-5" weight="bold" />}
         >
           {isReady ? 'Start reveal' : 'Reveal now'}
         </Button>

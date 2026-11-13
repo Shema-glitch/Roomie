@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MascotView } from '../../components/common/MascotView';
 import { Button } from '../../components/common/Button';
 import { sound } from '../../services/sound';
-import { ArrowRight, CheckCircle2, Pause, Play } from 'lucide-react';
+import { ArrowRight, CheckCircle, Pause, Play } from '@phosphor-icons/react';
 import { MascotState } from '../../types';
 
 interface AppShowcaseProps {
@@ -262,7 +262,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
                 title={isPaused ? 'Resume' : 'Pause'}
               >
                 {isPaused ? (
-                  <Play className="w-3.5 h-3.5 fill-current text-[#FF6B4A]" />
+                  <Play weight="fill" className="w-3.5 h-3.5 text-[#FF6B4A]" />
                 ) : (
                   <Pause className="w-3.5 h-3.5" />
                 )}
@@ -326,7 +326,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
             size="lg"
             fullWidth
             onClick={handleNext}
-            icon={isLast ? <CheckCircle2 className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
+            icon={isLast ? <CheckCircle weight="fill" className="w-5 h-5" /> : <ArrowRight weight="bold" className="w-5 h-5" />}
           >
             {isLast ? "Let's Get Started" : 'Continue'}
           </Button>

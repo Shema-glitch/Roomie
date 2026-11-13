@@ -11,12 +11,10 @@ import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   HandCoins,
   Check,
-  Banknote,
+  Money,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-} from 'lucide-react';
+  WarningCircle,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
 
@@ -136,7 +134,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
         {confirmationsForMe.length > 0 && (
           <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border border-[#FFE8A3] space-y-2">
             <div className="flex items-center gap-2 type-label text-[#8A6200]">
-              <AlertCircle className="w-4 h-4 text-[#FFC93C]" />
+              <WarningCircle className="w-4 h-4 text-[#FFC93C]" />
               <span>Roomies sent you payments</span>
             </div>
             {confirmationsForMe.map((s) => {
@@ -293,7 +291,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                       : 'border-[#E6E8EE] bg-white'
                   }`}
                 >
-                  <Banknote className="w-5 h-5 text-[#19B5A5]" />
+                  <Money className="w-5 h-5 text-[#19B5A5]" />
                   <span className="type-body font-bold text-sm">Bank Transfer / IBAN</span>
                 </div>
 

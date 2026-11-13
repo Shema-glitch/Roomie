@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Household, Membership, MeetingTopic, HouseAgreement, JoinRequest } from '../../types';
 import { sound } from '../../services/sound';
 import { getCurrencySymbol } from '../../utils/stateTable';
-import { MessageSquare, Users } from 'lucide-react';
+import { ChatCircleDots, UsersThree } from '@phosphor-icons/react';
 import { ApartmentHeaderCard } from './components/ApartmentHeaderCard';
 import { RoomiesRoster } from './components/RoomiesRoster';
 import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules';
@@ -97,7 +97,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                 : 'text-[#475569] hover:text-[#1F2430]'
             }`}
           >
-            <Users className="w-4 h-4" />
+            <UsersThree className="w-4 h-4" weight={mobileTab === 'roomies' ? 'fill' : 'duotone'} />
             <span>Roomies ({members.length})</span>
           </button>
           <button
@@ -112,7 +112,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
                 : 'text-[#475569] hover:text-[#1F2430]'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
+            <ChatCircleDots className="w-4 h-4" weight={mobileTab === 'meetings' ? 'fill' : 'duotone'} />
             <span>Rules & Meetings ({topics.length + agreements.length})</span>
           </button>
         </div>

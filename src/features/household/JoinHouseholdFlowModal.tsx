@@ -3,7 +3,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
-import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus, X, RefreshCw } from 'lucide-react';
+import { QrCode, ArrowRight, Buildings, UserPlus, X } from '@phosphor-icons/react';
 import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
@@ -403,7 +403,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center gap-3">
-                <IconTile icon={<Building2 className="w-5 h-5" />} color="coral" size="sm" />
+                <IconTile icon={<Buildings className="w-5 h-5" />} color="coral" size="sm" />
                 <div>
                   <h4 className="type-section-heading">
                     Apartment Invite Code

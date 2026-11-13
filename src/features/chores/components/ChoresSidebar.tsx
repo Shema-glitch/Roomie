@@ -4,7 +4,8 @@ import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
 import { Chore, User } from '../../../types';
-import { Flame, Heart, Plane } from 'lucide-react';
+import { Heart, AirplaneTilt } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface ChoresSidebarProps {
   roommates: User[];
@@ -66,7 +67,7 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
                     </div>
                     <p className="text-[12px] text-[#64748B] flex items-center gap-1.5 whitespace-nowrap mt-0.5">
                       <span className="inline-flex items-center gap-1 font-medium text-[#1F2430]">
-                        <Flame className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A] shrink-0" />
+                        <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                         {r.streakDays}d
                       </span>
                       <span aria-hidden="true">·</span>
@@ -101,7 +102,7 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
 
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
         <div className="flex items-start gap-3">
-          <IconTile icon={<Plane className="w-5 h-5" />} color="slate" size="sm" />
+          <IconTile icon={<AirplaneTilt className="w-5 h-5" />} color="slate" size="sm" />
           <div className="flex-1 min-w-0 space-y-1">
             <h4 className="type-card-title text-[#1F2430]">
               {currentUser.awayUntil ? 'Away mode active' : 'Going on vacation?'}
@@ -123,7 +124,7 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
           size="sm"
           fullWidth
           onClick={onOpenAwayModal}
-          icon={<Plane className="w-4 h-4 text-[#475569]" />}
+          icon={<AirplaneTilt className="w-4 h-4 text-[#475569]" />}
         >
           {currentUser.awayUntil ? 'Manage away mode' : 'Set away mode'}
         </Button>

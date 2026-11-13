@@ -9,7 +9,8 @@ import { sound } from '../../services/sound';
 import { IconTile } from '../../components/common/IconTile';
 import { processPhoto } from '../../utils/photoPipeline';
 import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
-import { Camera, Check, Flame, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
+import { Camera, Check, ArrowRight, UploadSimple } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 
 interface DoneFlowModalProps {
@@ -126,7 +127,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
 
             <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] text-left flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-[#FF6B4A]" />
+                <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
                 <div>
                   <span className="type-label block mb-0.5">
                     Daily Streak Bonus
@@ -210,7 +211,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                   onClick={() => !compressing && fileInputRef.current?.click()}
                   className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
                 >
-                  <IconTile icon={compressing ? <Upload className="w-6 h-6 animate-bounce" /> : <Camera className="w-6 h-6" />} color="teal" size="md" />
+                  <IconTile icon={compressing ? <UploadSimple className="w-6 h-6 animate-bounce" /> : <Camera className="w-6 h-6" />} color="teal" size="md" />
                   <h4 className="type-section-heading">
                     {compressing ? 'Compressing proof photo...' : 'Snap or Upload Proof'}
                   </h4>
@@ -271,7 +272,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
 
             <Card padding="md" className="w-full bg-[#FFF8E6] border border-[#FFE8A3] space-y-1.5">
               <div className="flex items-center justify-center gap-2 type-section-heading text-[#8A6200]">
-                <Flame className="w-5 h-5 text-[#FF6B4A]" />
+                <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
                 <span>Streak: {currentUser.streakDays + 1} Days Active</span>
               </div>
               <p className="type-secondary">

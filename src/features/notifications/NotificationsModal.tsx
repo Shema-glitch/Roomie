@@ -7,7 +7,7 @@ import { IconTile } from '../../components/common/IconTile';
 import { InAppNotification, DraftRound, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Bell, ClipboardCheck, Receipt, Building, Check, Clock, X, Shuffle, ShieldAlert } from 'lucide-react';
+import { Bell, CheckCircle, Receipt, Buildings, Clock, Shuffle, ShieldWarning } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -144,13 +144,13 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                     <IconTile
                       icon={
                         n.type === 'privacy_alert' ? (
-                          <ShieldAlert className="w-4 h-4" />
+                          <ShieldWarning className="w-4 h-4" />
                         ) : n.type === 'chore' ? (
-                          <ClipboardCheck className="w-4 h-4" />
+                          <CheckCircle className="w-4 h-4" />
                         ) : n.type === 'expense' ? (
                           <Receipt className="w-4 h-4" />
                         ) : (
-                          <Building className="w-4 h-4" />
+                          <Buildings className="w-4 h-4" />
                         )
                       }
                       color={

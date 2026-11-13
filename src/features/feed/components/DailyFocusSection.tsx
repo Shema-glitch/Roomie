@@ -6,13 +6,13 @@ import { SectionTitle } from '../../../components/common/SectionTitle';
 import { Chore, ChoreAssignment } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
+import { Icon } from '@iconify/react';
 import {
-  ClipboardCheck,
-  CheckCircle2,
+  CheckCircle,
   Wallet,
   Bell,
   Receipt,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 interface DailyFocusSectionProps {
   myTodayChore: Chore | null | undefined;
@@ -46,7 +46,19 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ActionCard
           tint="teal"
-          iconTile={<IconTile icon={<ClipboardCheck className="w-6 h-6" />} color="teal" size="md" />}
+          iconTile={
+            <IconTile
+              icon={
+                myTodayChore ? (
+                  <Icon icon="fluent-emoji-flat:broom" className="w-6 h-6" />
+                ) : (
+                  <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
+                )
+              }
+              color="teal"
+              size="md"
+            />
+          }
           title={myTodayChore ? myTodayChore.name : 'All chores done'}
           subtitle={
             myTodayChore
@@ -80,7 +92,7 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
                   variant="teal"
                   size="md"
                   onClick={() => onSelectDoneChore(myTodayChore)}
-                  icon={<CheckCircle2 className="w-4 h-4" />}
+                  icon={<CheckCircle weight="fill" className="w-4 h-4" />}
                 >
                   Done
                 </Button>
@@ -157,7 +169,7 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
                         onNavigateTab('expenses');
                       }
                     }}
-                    icon={<Bell className="w-4 h-4" />}
+                    icon={<Bell weight="fill" className="w-4 h-4" />}
                   >
                     Remind
                   </Button>
@@ -189,7 +201,7 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
                         onNavigateTab('expenses');
                       }
                     }}
-                    icon={<Receipt className="w-4 h-4" />}
+                    icon={<Receipt weight="fill" className="w-4 h-4" />}
                   >
                     Settle up
                   </Button>

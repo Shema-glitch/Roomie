@@ -8,12 +8,12 @@ import { CHORE_REWARD_POINTS } from '../../../utils/stateTable';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
-  CheckCircle2,
-  ArrowLeftRight,
+  CheckCircle,
+  ArrowsLeftRight,
   Heart,
-  ClipboardCheck,
   Camera,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface ChoreAssignmentListProps {
   todayDueAssignments: ChoreAssignment[];
@@ -98,7 +98,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
         {todayDueAssignments.length === 0 ? (
           <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-[#EBF9F0] border border-[#BBF7D0] flex items-center justify-center text-[#2CA358]">
-              <CheckCircle2 className="w-6 h-6" />
+              <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
             </div>
             <div className="space-y-1 max-w-xs">
               <h4 className="type-card-title text-[#1F2430]">All caught up for today!</h4>
@@ -141,9 +141,9 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                   <IconTile
                     icon={
                       isOptimisticDone ? (
-                        <CheckCircle2 className="w-6 h-6" />
+                        <CheckCircle className="w-6 h-6" weight="fill" />
                       ) : (
-                        <ClipboardCheck className="w-6 h-6" />
+                        <Icon icon="fluent-emoji-flat:broom" className="w-6 h-6" />
                       )
                     }
                     color={isOptimisticDone ? 'green' : 'teal'}
@@ -189,7 +189,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                           size="md"
                           loading={isSaving}
                           onClick={() => handleQuickComplete(chore)}
-                          icon={<CheckCircle2 className="w-4 h-4" />}
+                          icon={<CheckCircle className="w-4 h-4" weight="fill" />}
                           className="flex-1"
                         >
                           {isSaving ? 'Completing...' : 'Mark done'}
@@ -204,7 +204,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                             onQuickCompleteChore ? (
                               <Camera className="w-4 h-4 text-[#475569]" />
                             ) : (
-                              <CheckCircle2 className="w-4 h-4" />
+                              <CheckCircle className="w-4 h-4" weight="fill" />
                             )
                           }
                           className={onQuickCompleteChore ? '' : 'flex-1'}
@@ -217,7 +217,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                         size="md"
                         disabled={isSaving}
                         onClick={() => onSelectSwapChore(chore)}
-                        icon={<ArrowLeftRight className="w-4 h-4 text-[#475569]" />}
+                        icon={<ArrowsLeftRight className="w-4 h-4 text-[#475569]" />}
                       >
                         Swap
                       </Button>
@@ -265,7 +265,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = ({
                 tint="green"
                 iconTile={
                   <IconTile
-                    icon={<CheckCircle2 className="w-6 h-6" />}
+                    icon={<CheckCircle className="w-6 h-6" weight="fill" />}
                     color="green"
                     size="md"
                   />

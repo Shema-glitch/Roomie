@@ -8,17 +8,14 @@ import { sound } from '../../services/sound';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { User, Chore, ChoreAssignment } from '../../types';
 import {
-  ClipboardCheck,
-  Calendar,
+  CheckCircle,
   Clock,
-  ArrowRight,
-  CheckCircle2,
-  ChevronRight,
-  Award,
+  CaretRight,
   Check,
-  Edit2,
+  PencilSimple,
   X,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface ChoreRevealScreenProps {
   assignments: ChoreAssignment[];
@@ -289,7 +286,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                   <Chip
                     variant="reward"
                     size="sm"
-                    icon={<Award className="w-3.5 h-3.5 text-[#FFC93C]" />}
+                    icon={<Icon icon="fluent-emoji-flat:trophy" className="w-3.5 h-3.5" />}
                     label={`${totalEffort} pts`}
                   />
                 </div>
@@ -354,7 +351,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
                               title="Self-schedule preferred time"
                               aria-label="Self-schedule time"
                             >
-                              {isEditing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                              {isEditing ? <X className="w-4 h-4" /> : <PencilSimple className="w-4 h-4" />}
                             </button>
                           </div>
                         </div>
@@ -459,9 +456,9 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               onClick={handleNextMember}
               icon={
                 currentMemberIndex < activeMembers.length - 1 ? (
-                  <ChevronRight className="w-5 h-5" />
+                  <CaretRight className="w-5 h-5" weight="bold" />
                 ) : (
-                  <ClipboardCheck className="w-5 h-5" />
+                  <CheckCircle className="w-5 h-5" weight="fill" />
                 )
               }
             >
@@ -544,7 +541,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
               size="lg"
               fullWidth
               onClick={handleSaveAll}
-              icon={<CheckCircle2 className="w-5 h-5" />}
+              icon={<CheckCircle className="w-5 h-5" weight="fill" />}
             >
               Save schedule
             </Button>

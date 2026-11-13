@@ -4,7 +4,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
-import { Send, Receipt, ClipboardCheck, Repeat, MessageSquare } from 'lucide-react';
+import { PaperPlaneRight, Receipt, CheckCircle, ArrowsClockwise, ChatCircleDots } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -117,9 +117,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               {draftState.state === 'reveal_ready' ? (
-                <ClipboardCheck className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                <CheckCircle weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
               ) : (
-                <Repeat className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                <ArrowsClockwise weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
               )}
               <div className="truncate">
                 <p className="text-[13px] font-bold text-[#1F2430] truncate">{draftState.bannerTitle}</p>
@@ -176,13 +176,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               <div key={msg.id} className="py-1 flex justify-center w-full">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F1F3F9] text-[#475569] text-[14px] font-semibold border border-[#E2E5EC] max-w-full shadow-2xs">
                   {isChore ? (
-                    <ClipboardCheck className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
+                    <CheckCircle weight="duotone" className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
                   ) : isExpense ? (
-                    <Receipt className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
+                    <Receipt weight="duotone" className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
                   ) : isDraft ? (
-                    <Repeat className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                    <ArrowsClockwise weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   ) : (
-                    <MessageSquare className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                    <ChatCircleDots weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   )}
                   <span className="truncate">{msg.body}</span>
                   <span className="text-[#475569] shrink-0">• {timeStr}</span>
@@ -326,7 +326,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           disabled={!inputText.trim() || sending}
           className="shrink-0 min-h-[48px] min-w-[48px] px-4"
           aria-label="Send message"
-          icon={<Send className="w-5 h-5" />}
+          icon={<PaperPlaneRight weight="fill" className="w-5 h-5" />}
         >
           Send
         </Button>

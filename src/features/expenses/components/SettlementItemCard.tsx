@@ -6,7 +6,7 @@ import { Chip } from '../../../components/common/Chip';
 import { Settlement, User } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
-import { Banknote, Check } from 'lucide-react';
+import { Money, Check } from '@phosphor-icons/react';
 import { formatExpenseDate, formatCurrency } from './ExpenseCard';
 
 interface SettlementItemCardProps {
@@ -39,7 +39,7 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = ({
       tint={isConfirmed ? 'green' : 'neutral'}
       iconTile={
         <IconTile
-          icon={<Banknote className="w-5 h-5" />}
+          icon={<Money className="w-5 h-5" />}
           color={isConfirmed ? 'green' : 'teal'}
           size="sm"
         />

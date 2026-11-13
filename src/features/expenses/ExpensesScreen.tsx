@@ -10,7 +10,7 @@ import { Expense, Settlement, User, ExpenseCategory } from '../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../utils/balances';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
-import { Plus, Bell, Receipt } from 'lucide-react';
+import { PlusCircle, Bell, Receipt } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { ExpenseCard, ExpenseCardMode } from './components/ExpenseCard';
 import { SettlementItemCard } from './components/SettlementItemCard';
@@ -147,7 +147,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
               sound.playTap();
               setAddModalOpen(true);
             }}
-            icon={<Plus className="w-5 h-5" />}
+            icon={<PlusCircle className="w-5 h-5" weight="fill" />}
           >
             Log expense
           </Button>
@@ -224,7 +224,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                     variant="secondary"
                     size="sm"
                     onClick={() => setAddModalOpen(true)}
-                    icon={<Plus className="w-4 h-4 text-[#FF6B4A]" />}
+                    icon={<PlusCircle className="w-4 h-4 text-[#FF6B4A]" weight="fill" />}
                   >
                     Log an expense
                   </Button>

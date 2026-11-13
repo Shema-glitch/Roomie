@@ -7,24 +7,24 @@ import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
 import { sound } from '../../services/sound';
 import {
-  Volume2,
-  VolumeX,
+  SpeakerHigh,
+  SpeakerSlash,
   Eye,
   Bell,
   Globe,
-  Download,
-  Trash2,
-  MessageSquareHeart,
-  Pencil,
-  LogOut,
-  AlertTriangle,
+  DownloadSimple,
+  Trash,
+  ChatCircleText,
+  PencilSimple,
+  SignOut,
+  Warning,
   Check,
   X,
-  AlertCircle,
-  Smartphone,
-  Zap,
+  WarningCircle,
+  DeviceMobile,
+  Lightning,
   Bug,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface ProfileSettingsModalProps {
@@ -209,7 +209,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   setEditAvatar(currentUser.avatar);
                   setIsEditingProfile(true);
                 }}
-                icon={<Pencil className="w-3.5 h-3.5" />}
+                icon={<PencilSimple className="w-3.5 h-3.5" />}
               >
                 Edit
               </Button>
@@ -332,7 +332,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <IconTile
-                  icon={settings.soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  icon={settings.soundEnabled ? <SpeakerHigh className="w-4 h-4" /> : <SpeakerSlash className="w-4 h-4" />}
                   color="coral"
                   size="sm"
                 />
@@ -487,7 +487,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleInstallApp}
-                icon={<Smartphone className="w-3.5 h-3.5 text-[#19B5A5]" />}
+                icon={<DeviceMobile className="w-3.5 h-3.5 text-[#19B5A5]" />}
               >
                 Install app
               </Button>
@@ -499,7 +499,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   onClose();
                   onOpenFeedback();
                 }}
-                icon={<MessageSquareHeart className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                icon={<ChatCircleText className="w-3.5 h-3.5 text-[#FF6B4A]" />}
               >
                 Feedback
               </Button>
@@ -512,7 +512,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
-                    <Zap className="w-4 h-4" />
+                    <Lightning className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-extrabold text-[#1F2430] truncate">Save login info</p>
@@ -546,7 +546,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onExportData}
-                icon={<Download className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                icon={<DownloadSimple className="w-3.5 h-3.5 text-[#5B5BD6]" />}
               >
                 Export data
               </Button>
@@ -563,7 +563,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     setSignOutPromptOpen(true);
                   }
                 }}
-                icon={<LogOut className="w-3.5 h-3.5 text-[#64748B]" />}
+                icon={<SignOut className="w-3.5 h-3.5 text-[#64748B]" />}
               >
                 Sign out
               </Button>
@@ -573,7 +573,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           {/* Danger Zone: Separate distinct area with confirmation step */}
           <div className="mt-4 pt-3 border-2 border-[#FFD7CF] rounded-2xl p-4 bg-[#FFF0ED]/40 space-y-2.5">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#E5484D]" />
+              <Warning className="w-4 h-4 text-[#E5484D]" />
               <span className="type-label text-[#E5484D] font-bold">Danger zone</span>
             </div>
             <p className="type-secondary text-[#7F1D1D] text-[14px] leading-relaxed">
@@ -586,7 +586,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 setDeleteConfirmInput('');
                 setDeleteConfirmOpen(true);
               }}
-              icon={<Trash2 className="w-3.5 h-3.5" />}
+              icon={<Trash className="w-3.5 h-3.5" />}
             >
               Delete account
             </Button>
@@ -647,7 +647,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       >
         <div className="space-y-4">
           <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-[#E5484D] mx-auto mb-2" />
+            <WarningCircle className="w-12 h-12 text-[#E5484D] mx-auto mb-2" />
             <p className="type-secondary leading-relaxed">
               Deleting your account will erase your roomie profile, streak data, and preferences. Shared ledger records will remain to keep apartment math consistent for your roomies.
             </p>

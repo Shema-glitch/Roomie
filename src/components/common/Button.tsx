@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { CircleNotch } from '@phosphor-icons/react';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 
@@ -168,7 +168,7 @@ export const Button: React.FC<ButtonProps> = ({
       } ${getSizeClasses()} ${className}`}
     >
       {loading ? (
-        <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
+        <CircleNotch weight="bold" className="w-4 h-4 shrink-0 animate-spin" />
       ) : (
         icon && <span className="shrink-0 flex items-center justify-center">{icon}</span>
       )}

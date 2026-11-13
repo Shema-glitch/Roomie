@@ -7,13 +7,13 @@ import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
-  Building2,
+  Buildings,
   QrCode,
   Copy,
-  Home,
+  House,
   Shield,
   ShieldCheck,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 interface ApartmentHeaderCardProps {
   household: Household;
@@ -55,7 +55,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
       <div className="mb-6">
         <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">
           <div className="flex items-start gap-3.5">
-            <IconTile icon={<Building2 className="w-6 h-6" />} color="coral" size="md" />
+            <IconTile icon={<Buildings className="w-6 h-6" />} color="coral" size="md" />
             <div className="flex-1 min-w-0">
               <h3 className="font-heading font-black text-xl text-[#1F2430] truncate">
                 {household.name}
@@ -92,7 +92,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={onOpenHouseholdSwitcher}
-                icon={<Building2 className="w-4 h-4 text-[#475569]" />}
+                icon={<Buildings className="w-4 h-4 text-[#475569]" />}
               >
                 Switch flat
               </Button>
@@ -102,7 +102,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={onOpenHowItWorks}
-                icon={<Home className="w-4 h-4 text-[#FF6B4A]" />}
+                icon={<House className="w-4 h-4 text-[#FF6B4A]" />}
               >
                 Flat guide
               </Button>

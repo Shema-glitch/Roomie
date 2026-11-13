@@ -21,12 +21,12 @@ import {
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
+import { Icon } from '@iconify/react';
 import {
-  Flame,
-  ClipboardCheck,
+  CheckCircle,
   UserPlus,
-  Repeat,
-} from 'lucide-react';
+  ArrowsClockwise,
+} from '@phosphor-icons/react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
 import { DailyFocusSection } from './components/DailyFocusSection';
 import { ActivityTimelineSection } from './components/ActivityTimelineSection';
@@ -114,7 +114,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
                   <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
-                    <Flame className="w-4 h-4 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
+                    <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
                     {currentUser.streakDays} day streak
                   </span>
                   <span aria-hidden="true">·</span>
@@ -176,9 +176,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <IconTile
                   icon={
                     choreDraftState.state === 'reveal_ready' ? (
-                      <ClipboardCheck className="w-6 h-6" />
+                      <CheckCircle weight="duotone" className="w-6 h-6" />
                     ) : (
-                      <Repeat className="w-6 h-6" />
+                      <ArrowsClockwise weight="duotone" className="w-6 h-6" />
                     )
                   }
                   color={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
@@ -208,9 +208,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     }}
                     icon={
                       choreDraftState.state === 'reveal_ready' ? (
-                        <ClipboardCheck className="w-4 h-4" />
+                        <CheckCircle weight="fill" className="w-4 h-4" />
                       ) : (
-                        <Repeat className="w-4 h-4" />
+                        <ArrowsClockwise weight="bold" className="w-4 h-4" />
                       )
                     }
                   >

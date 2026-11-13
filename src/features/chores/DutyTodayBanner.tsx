@@ -2,7 +2,8 @@ import React from 'react';
 import { DutySchedule, User, DayOfWeek } from '../../types';
 import { getTodayDuty, DAY_DISPLAY_NAMES } from '../../utils/dutyRotation';
 import { Avatar } from '../../components/common/Avatar';
-import { ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
+import { Calendar, CheckCircle } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { Chip } from '../../components/common/Chip';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
@@ -51,7 +52,7 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
       >
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FF6B4A] flex items-center justify-center text-white shrink-0 shadow-sm mt-0.5">
-            <ClipboardCheck className="w-5 h-5" />
+            <Icon icon="fluent-emoji-flat:broom" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -81,7 +82,7 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               onClick={handleFinish}
               className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" weight="fill" />
               <span>Mark Finished</span>
             </button>
           )}

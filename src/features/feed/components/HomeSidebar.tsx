@@ -5,7 +5,8 @@ import { Avatar } from '../../../components/common/Avatar';
 import { Chip } from '../../../components/common/Chip';
 import { User } from '../../../types';
 import { sound } from '../../../services/sound';
-import { Flame, Receipt, Shuffle } from 'lucide-react';
+import { Icon } from '@iconify/react';
+import { Receipt, ArrowsClockwise } from '@phosphor-icons/react';
 
 interface HomeSidebarProps {
   roommates: User[];
@@ -70,7 +71,7 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                       {isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}
                     </p>
                     <p className="type-secondary text-[13px] flex items-center gap-1 whitespace-nowrap">
-                      <Flame className="w-3.5 h-3.5 text-[#FF6B4A] fill-[#FF6B4A] shrink-0" />
+                      <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                       <span>
                         {r.streakDays}d streak • {r.points} pts
                       </span>
@@ -108,7 +109,7 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
-              <Receipt className="w-4 h-4" />
+              <Receipt weight="fill" className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">Log expense</p>
             <p className="text-[14px] text-[#475569]">Split purchases</p>
@@ -127,7 +128,7 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
-              <Shuffle className="w-4 h-4" />
+              <ArrowsClockwise weight="bold" className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">{choreDraftState.actionLabel}</p>
             <p className="text-[14px] text-[#475569]">{choreDraftState.badgeLabel}</p>

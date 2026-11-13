@@ -6,7 +6,8 @@ import { Avatar } from '../../../components/common/Avatar';
 import { Chip } from '../../../components/common/Chip';
 import { User, Membership } from '../../../types';
 import { sound } from '../../../services/sound';
-import { Flame, UserMinus, LogOut } from 'lucide-react';
+import { UserMinus, SignOut } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface RoomiesRosterProps {
   members: { user: User; membership: Membership }[];
@@ -82,7 +83,7 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = ({
                 <div className="flex items-center justify-between text-[13px] text-[#64748B] pt-1">
                   <div className="flex items-center gap-1.5">
                     <span className="inline-flex items-center gap-1 text-[#1F2430] font-medium">
-                      <Flame className="w-3.5 h-3.5 fill-[#FF6B4A] text-[#FF6B4A] shrink-0" />
+                      <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                       {user.streakDays}d streak
                     </span>
                     <span aria-hidden="true">·</span>
@@ -113,7 +114,7 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = ({
           variant="secondary"
           size="md"
           onClick={onOpenLeaveModal}
-          icon={<LogOut className="w-4 h-4 text-[#E5484D]" />}
+          icon={<SignOut className="w-4 h-4 text-[#E5484D]" />}
         >
           Leave this apartment
         </Button>

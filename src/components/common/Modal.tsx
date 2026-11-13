@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X } from '@phosphor-icons/react';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { useBackHandler } from '../../utils/useBackHandler';
@@ -81,7 +81,7 @@ export const Modal: React.FC<ModalProps> = ({
                 className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:scale-[0.95] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer"
                 aria-label="Close dialog"
               >
-                <X className="w-5 h-5" />
+                <X weight="bold" className="w-5 h-5" />
               </button>
             )}
           </div>

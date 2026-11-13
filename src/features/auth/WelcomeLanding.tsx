@@ -4,7 +4,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
-import { ArrowRight, QrCode, X, Zap } from 'lucide-react';
+import { ArrowRight, QrCode, X, Lightning } from '@phosphor-icons/react';
 
 interface WelcomeLandingProps {
   isRevealed: boolean;
@@ -91,7 +91,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 Quick sign-in
               </span>
               <span className="text-[11px] font-bold text-[#19B5A5] inline-flex items-center gap-1">
-                <Zap className="w-3 h-3" />
+                <Lightning weight="fill" className="w-3 h-3" />
                 1-tap saved logins
               </span>
             </div>
@@ -195,7 +195,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 sound.playTap();
                 onGetStarted();
               }}
-              icon={<ArrowRight className="w-5 h-5" />}
+              icon={<ArrowRight weight="bold" className="w-5 h-5" />}
             >
               {pendingInviteCode ? 'Create Account & Join Flat' : 'Get Started'}
             </Button>

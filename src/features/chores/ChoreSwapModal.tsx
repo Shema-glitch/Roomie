@@ -3,7 +3,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { Chore, User } from '../../types';
-import { ArrowLeftRight, Check } from 'lucide-react';
+import { ArrowsLeftRight, Check } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface ChoreSwapModalProps {
@@ -95,7 +95,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
             size="md"
             disabled={!selectedRoommateId || loading}
             onClick={handleConfirm}
-            icon={<ArrowLeftRight className="w-4 h-4" />}
+            icon={<ArrowsLeftRight className="w-4 h-4" />}
           >
             {loading ? 'Sending...' : 'Offer swap'}
           </Button>

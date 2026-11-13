@@ -4,7 +4,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Household } from '../../types';
-import { Copy, Check, RefreshCw, MessageSquare, Power, PowerOff, Link2 } from 'lucide-react';
+import { Copy, Check, ArrowsClockwise, ChatCircleDots, Power, Link } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 import { buildInviteUrl } from '../../utils/inviteLink';
@@ -140,7 +140,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
         {/* Status indicator if invites paused */}
         {!invitesActive && (
           <div className="w-full px-3 py-2 rounded-xl bg-[#FFF8E6] border border-[#FFE8A3] text-[#8A6200] text-[14px] font-bold flex items-center justify-center gap-2">
-            <PowerOff className="w-4 h-4 text-[#8A6200]" />
+            <Power className="w-4 h-4 text-[#8A6200]" />
             <span>Invites are currently turned off</span>
           </div>
         )}
@@ -173,7 +173,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
               onClick={handleCopyLink}
               className="inline-flex items-center gap-1 text-xs font-bold text-[#19B5A5] hover:text-[#0F8B7D] cursor-pointer"
             >
-              {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+              {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Link className="w-3.5 h-3.5" />}
               <span>{copiedLink ? 'Link copied' : 'Copy invite link'}</span>
             </button>
           </div>
@@ -193,7 +193,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
             size="md"
             fullWidth
             onClick={handleShareWhatsApp}
-            icon={<MessageSquare className="w-4 h-4 text-[#3DBE6D]" />}
+            icon={<ChatCircleDots className="w-4 h-4 text-[#3DBE6D]" />}
           >
             Share on WhatsApp
           </Button>
@@ -216,7 +216,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
               size="sm"
               disabled={refreshing}
               onClick={handleRefresh}
-              icon={<RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />}
+              icon={<ArrowsClockwise className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />}
             >
               {refreshing ? 'Refreshing...' : 'Refresh code'}
             </Button>
@@ -226,7 +226,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
               size="sm"
               disabled={toggling}
               onClick={handleToggle}
-              icon={invitesActive ? <PowerOff className="w-3.5 h-3.5 text-[#E5484D]" /> : <Power className="w-3.5 h-3.5 text-[#3DBE6D]" />}
+              icon={invitesActive ? <Power className="w-3.5 h-3.5 text-[#E5484D]" /> : <Power className="w-3.5 h-3.5 text-[#3DBE6D]" />}
             >
               {invitesActive ? 'Turn off code' : 'Turn on code'}
             </Button>

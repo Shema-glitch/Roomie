@@ -7,17 +7,17 @@ import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
   ShoppingCart,
-  Building2,
-  Zap,
-  Home,
+  Buildings,
+  Lightning,
+  House,
   Receipt,
-  ShieldAlert,
-  CheckCircle2,
+  ShieldWarning,
+  CheckCircle,
   XCircle,
-  Split,
-  MessageSquare,
-  ChevronRight,
-} from 'lucide-react';
+  GitFork,
+  ChatCircleDots,
+  CaretRight,
+} from '@phosphor-icons/react';
 
 export const formatExpenseDate = (dateStr: string): string => {
   if (!dateStr) return '';
@@ -42,11 +42,11 @@ const getCategoryDetails = (
     case 'groceries':
       return { icon: <ShoppingCart className="w-6 h-6" />, color: 'amber' };
     case 'rent':
-      return { icon: <Building2 className="w-6 h-6" />, color: 'coral' };
+      return { icon: <Buildings className="w-6 h-6" />, color: 'coral' };
     case 'utilities':
-      return { icon: <Zap className="w-6 h-6" />, color: 'teal' };
+      return { icon: <Lightning className="w-6 h-6" />, color: 'teal' };
     case 'household':
-      return { icon: <Home className="w-6 h-6" />, color: 'indigo' };
+      return { icon: <House className="w-6 h-6" />, color: 'indigo' };
     case 'other':
     default:
       return { icon: <Receipt className="w-6 h-6" />, color: 'slate' };
@@ -179,7 +179,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
 
       {isDisputed && exp.disputeReason && (
         <div className="mt-3 p-2.5 rounded-xl bg-[#FFF0ED] border border-[#FFD7CF] text-[14px] text-[#BF3337] flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-[#E5484D]" />
+          <ShieldWarning className="w-4 h-4 shrink-0 text-[#E5484D]" />
           <span>
             <strong>Dispute Note:</strong> {exp.disputeReason}
           </span>
@@ -215,7 +215,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
                 size="sm"
                 loading={agreeing}
                 onClick={handleAgree}
-                icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+                icon={<CheckCircle className="w-3.5 h-3.5" weight="fill" />}
               >
                 {agreeing ? 'Agreeing...' : 'Agree'}
               </Button>
@@ -243,7 +243,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
                   sound.playTap();
                   onSelectEditSplitTarget(exp);
                 }}
-                icon={<Split className="w-3.5 h-3.5" />}
+                icon={<GitFork className="w-3.5 h-3.5" />}
               >
                 Edit split
               </Button>
@@ -255,7 +255,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
                   sound.playTap();
                   onOpenChat();
                 }}
-                icon={<MessageSquare className="w-3.5 h-3.5" />}
+                icon={<ChatCircleDots className="w-3.5 h-3.5" />}
               >
                 Discuss in chat
               </Button>
@@ -291,7 +291,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({
               className="inline-flex items-center gap-1 text-[14px] font-bold text-[#475569] hover:text-[#1F2430] transition-colors duration-150 cursor-pointer"
             >
               <span>Receipt and details</span>
-              <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform duration-150" />
+              <CaretRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform duration-150" />
             </button>
           )}
         </div>

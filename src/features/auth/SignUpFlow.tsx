@@ -4,7 +4,7 @@ import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
 import { validateEmail, validatePassword } from '../../utils/authValidation';
-import { Mail, Lock, User, Eye, EyeOff, Check } from 'lucide-react';
+import { EnvelopeSimple, LockKey, User, Eye, EyeSlash, Check } from '@phosphor-icons/react';
 
 export type SignUpStep = 'name' | 'email' | 'password';
 
@@ -70,7 +70,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 <div>
                   <label className="type-label block mb-1.5 text-xs">Full Name</label>
                   <div className="relative flex items-center">
-                    <User className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <User weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type="text"
                       value={name}
@@ -144,7 +144,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 <div>
                   <label className="type-label block mb-1.5 text-xs">Email Address</label>
                   <div className="relative flex items-center">
-                    <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <EnvelopeSimple weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
@@ -240,7 +240,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
               <div>
                 <label className="type-label block mb-1.5 text-xs">Create Password</label>
                 <div className="relative flex items-center">
-                  <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                  <LockKey weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -256,7 +256,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
                     aria-label="Toggle password visibility"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeSlash weight="duotone" className="w-4 h-4" /> : <Eye weight="duotone" className="w-4 h-4" />}
                   </button>
                 </div>
 
@@ -276,7 +276,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                             : 'bg-[#EEF0F6] text-[#94A3B8]'
                         }`}
                       >
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                        <Check weight="bold" className="w-2.5 h-2.5" />
                       </span>
                       <span>{rule.label}</span>
                     </div>
@@ -300,7 +300,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                       : 'bg-white border-2 border-[#CBD5E1] text-transparent'
                   }`}
                 >
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  <Check weight="bold" className="w-3.5 h-3.5" />
                 </span>
               </button>
 

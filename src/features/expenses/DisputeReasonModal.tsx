@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
-import { AlertCircle } from 'lucide-react';
+import { WarningCircle } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface DisputeReasonModalProps {
@@ -104,7 +104,7 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
             size="md"
             disabled={loading}
             onClick={handleSubmit}
-            icon={<AlertCircle className="w-4 h-4" />}
+            icon={<WarningCircle className="w-4 h-4" />}
           >
             {loading ? 'Submitting...' : 'Dispute'}
           </Button>

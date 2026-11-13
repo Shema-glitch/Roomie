@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { Button } from './Button';
 import { Card } from './Card';
 import { IconTile } from './IconTile';
-import { CloudCheck, CloudOff, RefreshCw, AlertCircle, Check, Wifi, WifiOff, Bug } from 'lucide-react';
+import { CloudCheck, CloudSlash, ArrowsClockwise, WarningCircle, WifiHigh, WifiSlash, Bug } from '@phosphor-icons/react';
 
 export type SyncStatusType = 'synced' | 'syncing' | 'offline' | 'needs_attention';
 
@@ -34,7 +34,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         return {
           label: 'Syncing',
           color: 'indigo' as const,
-          icon: <RefreshCw className="w-5 h-5 animate-spin" />,
+          icon: <ArrowsClockwise weight="duotone" className="w-5 h-5 animate-spin" />,
           pillClass: 'bg-[#EEF0FD] text-[#5B5BD6] border-[#D3D5F9]',
           description: 'Reconciling ledger, chore assignments, and live roomie presence with the apartment database.',
         };
@@ -42,7 +42,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         return {
           label: 'Offline',
           color: 'slate' as const,
-          icon: <CloudOff className="w-5 h-5" />,
+          icon: <CloudSlash weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#FFF0ED] text-[#E5484D] border-[#FFD7CF]',
           description: 'Working in offline mode. All chores and logged expenses are safely cached locally and will sync when you reconnect.',
         };
@@ -50,7 +50,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         return {
           label: 'Needs attention',
           color: 'amber' as const,
-          icon: <AlertCircle className="w-5 h-5" />,
+          icon: <WarningCircle weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#FFF8E6] text-[#8A6200] border-[#FFE8A3]',
           description: 'A shared ledger update requires resolution. Tap "Sync now" to fetch the latest state from your roomies.',
         };
@@ -59,7 +59,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         return {
           label: 'Synced',
           color: 'green' as const,
-          icon: <CloudCheck className="w-5 h-5" />,
+          icon: <CloudCheck weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#E6FAF8] text-[#19B5A5] border-[#97E5DE]',
           description: 'All apartment changes, expenses, and chore rotations are backed up and live across roomies.',
         };
@@ -115,7 +115,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
               onTriggerSync();
             }}
             disabled={status === 'syncing'}
-            icon={status === 'syncing' ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CloudCheck className="w-4 h-4" />}
+            icon={status === 'syncing' ? <ArrowsClockwise weight="fill" className="w-4 h-4 animate-spin" /> : <CloudCheck weight="fill" className="w-4 h-4" />}
           >
             {status === 'syncing' ? 'Syncing...' : status === 'offline' ? 'Reconnect & Sync' : 'Sync now'}
           </Button>
@@ -128,7 +128,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
                 onClose();
                 onOpenDebugInspector();
               }}
-              icon={<Bug className="w-4 h-4 text-[#5B5BD6]" />}
+              icon={<Bug weight="duotone" className="w-4 h-4 text-[#5B5BD6]" />}
             >
               Open Phase 1 Debug Layer
             </Button>
@@ -143,7 +143,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
               variant="secondary"
               size="sm"
               onClick={() => onSetStatus(status === 'offline' ? 'synced' : 'offline')}
-              icon={status === 'offline' ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+              icon={status === 'offline' ? <WifiHigh weight="duotone" className="w-3.5 h-3.5" /> : <WifiSlash weight="duotone" className="w-3.5 h-3.5" />}
             >
               {status === 'offline' ? 'Go online' : 'Go offline'}
             </Button>
@@ -151,7 +151,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
               variant="secondary"
               size="sm"
               onClick={() => onSetStatus(status === 'needs_attention' ? 'synced' : 'needs_attention')}
-              icon={<AlertCircle className="w-3.5 h-3.5" />}
+              icon={<WarningCircle weight="duotone" className="w-3.5 h-3.5" />}
             >
               {status === 'needs_attention' ? 'Clear alert' : 'Trigger alert'}
             </Button>

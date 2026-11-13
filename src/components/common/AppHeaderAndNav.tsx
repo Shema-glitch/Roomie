@@ -4,18 +4,18 @@ import { SyncStatusType } from './SyncStatusPanel';
 import { User, Household } from '../../types';
 import { sound } from '../../services/sound';
 import {
-  Home,
+  House,
   Receipt,
-  MessageSquare,
+  ChatCircleDots,
   Bell,
-  ChevronDown,
+  CaretDown,
   CloudCheck,
-  CloudOff,
-  RefreshCw,
-  ClipboardCheck,
-  Building,
-  AlertCircle,
-} from 'lucide-react';
+  CloudSlash,
+  ArrowsClockwise,
+  CheckCircle,
+  Buildings,
+  WarningCircle,
+} from '@phosphor-icons/react';
 
 export type AppTab = 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment';
 
@@ -50,12 +50,46 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenNotifications,
   onOpenProfileSettings,
 }) => {
-  const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'feed', label: 'Home', icon: <Home className="w-4 h-4 shrink-0" /> },
-    { id: 'chores', label: 'Chores', icon: <ClipboardCheck className="w-4 h-4 shrink-0" /> },
-    { id: 'expenses', label: 'Money', icon: <Receipt className="w-4 h-4 shrink-0" /> },
-    { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
-    { id: 'apartment', label: 'Apartment', icon: <Building className="w-4 h-4 shrink-0" /> },
+  const navItems: {
+    id: AppTab;
+    label: string;
+    renderIcon: (active: boolean) => React.ReactNode;
+  }[] = [
+    {
+      id: 'feed',
+      label: 'Home',
+      renderIcon: (active) => (
+        <House weight={active ? 'fill' : 'duotone'} className="w-4 h-4 shrink-0" />
+      ),
+    },
+    {
+      id: 'chores',
+      label: 'Chores',
+      renderIcon: (active) => (
+        <CheckCircle weight={active ? 'fill' : 'duotone'} className="w-4 h-4 shrink-0" />
+      ),
+    },
+    {
+      id: 'expenses',
+      label: 'Money',
+      renderIcon: (active) => (
+        <Receipt weight={active ? 'fill' : 'duotone'} className="w-4 h-4 shrink-0" />
+      ),
+    },
+    {
+      id: 'chat',
+      label: 'Chat',
+      renderIcon: (active) => (
+        <ChatCircleDots weight={active ? 'fill' : 'duotone'} className="w-4 h-4 shrink-0" />
+      ),
+    },
+    {
+      id: 'apartment',
+      label: 'Apartment',
+      renderIcon: (active) => (
+        <Buildings weight={active ? 'fill' : 'duotone'} className="w-4 h-4 shrink-0" />
+      ),
+    },
   ];
 
   const syncTitleLabel =
@@ -95,7 +129,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <span className="type-section-heading max-w-[135px] sm:max-w-[200px] md:max-w-none truncate text-[15px] sm:text-[18px]">
               {activeHousehold.name}
             </span>
-            <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
+            <CaretDown weight="bold" className="w-4 h-4 text-[#475569] shrink-0" />
           </button>
 
           <button
@@ -139,7 +173,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     isActive ? 'text-[#FF6B4A]' : 'text-[#94A3B8]'
                   }`}
                 >
-                  {tab.icon}
+                  {tab.renderIcon(isActive)}
                 </span>
                 <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tab.label}</span>
               </button>
@@ -167,13 +201,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             aria-label="Apartment sync status"
           >
             {syncStatus === 'syncing' ? (
-              <RefreshCw className="w-4 h-4 shrink-0 animate-spin text-[#5B5BD6]" />
+              <ArrowsClockwise weight="duotone" className="w-4 h-4 shrink-0 animate-spin text-[#5B5BD6]" />
             ) : syncStatus === 'offline' ? (
-              <CloudOff className="w-4 h-4 shrink-0 text-[#E5484D]" />
+              <CloudSlash weight="duotone" className="w-4 h-4 shrink-0 text-[#E5484D]" />
             ) : syncStatus === 'needs_attention' ? (
-              <AlertCircle className="w-4 h-4 shrink-0 text-[#8A6200]" />
+              <WarningCircle weight="duotone" className="w-4 h-4 shrink-0 text-[#8A6200]" />
             ) : (
-              <CloudCheck className="w-4 h-4 shrink-0 text-[#19B5A5]" />
+              <CloudCheck weight="duotone" className="w-4 h-4 shrink-0 text-[#19B5A5]" />
             )}
             <span
               className={`type-secondary font-bold text-[12px] sm:text-[14px] whitespace-nowrap ${
@@ -198,7 +232,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             className="min-h-[44px] min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-all duration-150 ease-out motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
             aria-label="Open notifications"
           >
-            <Bell className="w-4 h-4" />
+            <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-4 h-4" />
             {unreadNotifsCount > 0 && (
               <span className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-white rounded-full text-[11px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
                 {unreadNotifsCount}
@@ -233,12 +267,42 @@ interface AppBottomNavProps {
 }
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({ activeTab, onSelectTab }) => {
-  const navItems: { id: AppTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'feed', label: 'Home', icon: <Home className="w-5 h-5" /> },
-    { id: 'chores', label: 'Chores', icon: <ClipboardCheck className="w-5 h-5" /> },
-    { id: 'expenses', label: 'Money', icon: <Receipt className="w-5 h-5" /> },
-    { id: 'chat', label: 'Chat', icon: <MessageSquare className="w-5 h-5" /> },
-    { id: 'apartment', label: 'Apartment', icon: <Building className="w-5 h-5" /> },
+  const navItems: {
+    id: AppTab;
+    label: string;
+    renderIcon: (active: boolean) => React.ReactNode;
+  }[] = [
+    {
+      id: 'feed',
+      label: 'Home',
+      renderIcon: (active) => <House weight={active ? 'fill' : 'duotone'} className="w-5 h-5" />,
+    },
+    {
+      id: 'chores',
+      label: 'Chores',
+      renderIcon: (active) => (
+        <CheckCircle weight={active ? 'fill' : 'duotone'} className="w-5 h-5" />
+      ),
+    },
+    {
+      id: 'expenses',
+      label: 'Money',
+      renderIcon: (active) => <Receipt weight={active ? 'fill' : 'duotone'} className="w-5 h-5" />,
+    },
+    {
+      id: 'chat',
+      label: 'Chat',
+      renderIcon: (active) => (
+        <ChatCircleDots weight={active ? 'fill' : 'duotone'} className="w-5 h-5" />
+      ),
+    },
+    {
+      id: 'apartment',
+      label: 'Apartment',
+      renderIcon: (active) => (
+        <Buildings weight={active ? 'fill' : 'duotone'} className="w-5 h-5" />
+      ),
+    },
   ];
 
   return (
@@ -268,7 +332,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({ activeTab, onSelectT
                 isActive ? 'bg-[#FFF0ED] scale-105' : 'bg-transparent scale-100'
               }`}
             >
-              {tabItem.icon}
+              {tabItem.renderIcon(isActive)}
             </div>
             <span className="text-[14px] font-bold mt-0.5 leading-none">{tabItem.label}</span>
           </button>

@@ -9,13 +9,13 @@ import { useBackHandler } from '../../utils/useBackHandler';
 import { CreateHouseholdFlowModal } from '../household/CreateHouseholdFlowModal';
 import { JoinHouseholdFlowModal } from '../household/JoinHouseholdFlowModal';
 import {
-  ChevronLeft,
-  ChevronRight,
+  CaretLeft,
+  CaretRight,
   Clock,
-  Home,
+  House,
   QrCode,
   UserPlus,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 interface HouseholdSetupScreenProps {
   currentUser: User | null;
@@ -78,7 +78,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
           className="inline-flex items-center gap-1 p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-95 transition-transform cursor-pointer focus:outline-none text-xs font-bold whitespace-nowrap shrink-0"
           aria-label="Back to welcome"
         >
-          <ChevronLeft className="w-6 h-6 stroke-[2.5] shrink-0" />
+          <CaretLeft weight="bold" className="w-6 h-6 shrink-0" />
           <span>Sign out</span>
         </button>
 
@@ -171,7 +171,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             className="w-full p-4 rounded-3xl border-2 border-[#FF6B4A] bg-white hover:bg-[#FFF9F7] shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
           >
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
-              <IconTile icon={<Home className="w-6 h-6" />} color="coral" size="md" className="shrink-0" />
+              <IconTile icon={<House weight="duotone" className="w-6 h-6" />} color="coral" size="md" className="shrink-0" />
               <div className="min-w-0 flex-1">
                 <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430]">
                   Create a New Flat
@@ -181,7 +181,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-[#FF6B4A] shrink-0" />
+            <CaretRight weight="bold" className="w-5 h-5 text-[#FF6B4A] shrink-0" />
           </button>
 
           <button
@@ -193,7 +193,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             className="w-full p-4 rounded-3xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#19B5A5]/70"
           >
             <div className="flex items-center gap-3.5 min-w-0 flex-1">
-              <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" className="shrink-0" />
+              <IconTile icon={<UserPlus weight="duotone" className="w-6 h-6" />} color="indigo" size="md" className="shrink-0" />
               <div className="min-w-0 flex-1">
                 <h2 className="font-heading font-black text-[16px] leading-snug text-[#1F2430]">
                   Join an Existing Flat
@@ -203,7 +203,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-[#94A3B8] shrink-0" />
+            <CaretRight weight="bold" className="w-5 h-5 text-[#94A3B8] shrink-0" />
           </button>
         </div>
       </div>
@@ -217,7 +217,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             sound.playTap();
             onExploreDemo();
           }}
-          icon={<Home className="w-4 h-4 text-[#FF6B4A]" />}
+          icon={<House weight="duotone" className="w-4 h-4 text-[#FF6B4A]" />}
         >
           Explore the Demo Flat instead
         </Button>

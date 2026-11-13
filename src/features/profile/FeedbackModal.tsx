@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { Star, MessageSquare, Bug, Lightbulb, Check, Heart } from 'lucide-react';
+import { Star, Bug, Lightbulb, Heart } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface FeedbackModalProps {
@@ -111,9 +111,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     className="p-1 cursor-pointer hover:scale-110 transition-transform"
                   >
                     <Star
+                      weight={star <= rating ? 'fill' : 'duotone'}
                       className={`w-8 h-8 ${
                         star <= rating
-                          ? 'text-[#FFC93C] fill-[#FFC93C]'
+                          ? 'text-[#FFC93C]'
                           : 'text-[#E6E8EE]'
                       }`}
                     />

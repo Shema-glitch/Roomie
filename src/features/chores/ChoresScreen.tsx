@@ -13,7 +13,7 @@ import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayO
 import { DutyTodayBanner } from './DutyTodayBanner';
 import { getChoreDraftState, isAssignmentDueToday } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
-import { Repeat, Plus, ClipboardCheck } from 'lucide-react';
+import { ArrowsClockwise, PlusCircle, CheckCircle } from '@phosphor-icons/react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
 import { ChoresSidebar } from './components/ChoresSidebar';
 import { NewChoreModal } from './components/NewChoreModal';
@@ -107,9 +107,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               <IconTile
                 icon={
                   draftState.state === 'reveal_ready' || draftState.state === 'reveal_done' ? (
-                    <ClipboardCheck className="w-6 h-6" />
+                    <CheckCircle className="w-6 h-6" />
                   ) : (
-                    <Repeat className="w-6 h-6" />
+                    <ArrowsClockwise className="w-6 h-6" />
                   )
                 }
                 color={
@@ -139,7 +139,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenReveal}
-                    icon={<ClipboardCheck className="w-4 h-4" />}
+                    icon={<CheckCircle className="w-4 h-4" weight="fill" />}
                   >
                     {draftState.actionLabel}
                   </Button>
@@ -149,7 +149,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenReveal}
-                    icon={<ClipboardCheck className="w-4 h-4 text-[#19B5A5]" />}
+                    icon={<CheckCircle className="w-4 h-4 text-[#19B5A5]" />}
                   >
                     {draftState.actionLabel}
                   </Button>
@@ -159,7 +159,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenDraftPicks}
-                    icon={<Repeat className="w-4 h-4" />}
+                    icon={<ArrowsClockwise className="w-4 h-4" weight="bold" />}
                   >
                     {draftState.actionLabel}
                   </Button>
@@ -178,7 +178,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={() => setNewChoreModalOpen(true)}
-                icon={<Plus className="w-4 h-4" />}
+                icon={<PlusCircle className="w-4 h-4" weight="fill" />}
               >
                 New chore
               </Button>
@@ -223,7 +223,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               mascotState="calm"
               bubbleText="Add your first chore!"
               actionLabel="Add chore"
-              actionIcon={<Plus className="w-4 h-4" />}
+              actionIcon={<PlusCircle className="w-4 h-4" weight="fill" />}
               onAction={() => setNewChoreModalOpen(true)}
             />
           )}

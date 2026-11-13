@@ -8,13 +8,13 @@ import { User, MeetingTopic, HouseAgreement } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
-  Plus,
-  MessageSquare,
+  PlusCircle,
+  ChatCircleDots,
   ThumbsUp,
   ThumbsDown,
-  Send,
-  FileCheck,
-} from 'lucide-react';
+  PaperPlaneRight,
+  FileText,
+} from '@phosphor-icons/react';
 
 interface HouseDiscussionsAndRulesProps {
   topics: MeetingTopic[];
@@ -80,7 +80,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             variant="primary"
             size="sm"
             onClick={onOpenProposeModal}
-            icon={<Plus className="w-3.5 h-3.5" />}
+            icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
           >
             Propose
           </Button>
@@ -89,7 +89,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             variant="primary"
             size="sm"
             onClick={onOpenAddAgreementModal}
-            icon={<Plus className="w-3.5 h-3.5" />}
+            icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
           >
             Add rule
           </Button>
@@ -132,7 +132,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
           {topics.length === 0 ? (
             <div className="p-6 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center flex flex-col items-center justify-center space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#EEF0FD] border border-[#D3D5F9] flex items-center justify-center text-[#5B5BD6]">
-                <MessageSquare className="w-5 h-5" />
+                <ChatCircleDots className="w-5 h-5" />
               </div>
               <div className="space-y-1 max-w-xs">
                 <h4 className="type-card-title text-[#1F2430]">No active discussions</h4>
@@ -144,7 +144,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                 variant="secondary"
                 size="sm"
                 onClick={onOpenProposeModal}
-                icon={<Plus className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                icon={<PlusCircle className="w-3.5 h-3.5 text-[#5B5BD6]" weight="fill" />}
               >
                 Propose first topic
               </Button>
@@ -163,7 +163,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                   tint={topic.status === 'agreed' ? 'green' : 'neutral'}
                   iconTile={
                     <IconTile
-                      icon={<MessageSquare className="w-5 h-5" />}
+                      icon={<ChatCircleDots className="w-5 h-5" />}
                       color={topic.status === 'agreed' ? 'green' : 'indigo'}
                       size="sm"
                     />
@@ -232,7 +232,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                           loading={isPosting}
                           disabled={!commentInputs[topic.id]?.trim() || isPosting}
                           onClick={() => handleComment(topic.id)}
-                          icon={<Send className="w-3.5 h-3.5" />}
+                          icon={<PaperPlaneRight className="w-3.5 h-3.5" />}
                         >
                           {isPosting ? '...' : 'Post'}
                         </Button>
@@ -251,7 +251,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
           {agreements.length === 0 ? (
             <div className="p-6 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center flex flex-col items-center justify-center space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-center text-[#FF6B4A]">
-                <FileCheck className="w-5 h-5" />
+                <FileText className="w-5 h-5" />
               </div>
               <div className="space-y-1 max-w-xs">
                 <h4 className="type-card-title text-[#1F2430]">No house rules saved yet</h4>
@@ -263,7 +263,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
                 variant="secondary"
                 size="sm"
                 onClick={onOpenAddAgreementModal}
-                icon={<Plus className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                icon={<PlusCircle className="w-3.5 h-3.5 text-[#FF6B4A]" weight="fill" />}
               >
                 Add first house rule
               </Button>
@@ -273,7 +273,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
               <ActionCard
                 key={agr.id}
                 tint="coral"
-                iconTile={<IconTile icon={<FileCheck className="w-5 h-5" />} color="coral" size="sm" />}
+                iconTile={<IconTile icon={<FileText className="w-5 h-5" />} color="coral" size="sm" />}
                 title={agr.category.toUpperCase().replace('_', ' ')}
                 subtitle="Consensus agreement"
                 detail={

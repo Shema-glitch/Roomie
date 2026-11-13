@@ -5,7 +5,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { Expense, User } from '../../types';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
-import { CheckCircle2, Split, RotateCcw } from 'lucide-react';
+import { CheckCircle, GitFork, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { getCurrencySymbol } from '../../utils/stateTable';
 
 interface EditSplitModalProps {
@@ -135,7 +135,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
                 onClick={handleExcludeDisputingUser}
                 className="text-[13px] font-bold text-[#5B5BD6] hover:underline cursor-pointer flex items-center gap-1"
               >
-                <Split className="w-3.5 h-3.5" />
+                <GitFork className="w-3.5 h-3.5" />
                 Exclude {disputingUser.name.split(' ')[0]} ({sym}0)
               </button>
             )}
@@ -144,7 +144,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
               onClick={handleEqualSplit}
               className="text-[13px] font-bold text-[#19B5A5] hover:underline cursor-pointer flex items-center gap-1"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <ArrowCounterClockwise className="w-3.5 h-3.5" />
               Equal split
             </button>
           </div>
@@ -212,7 +212,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
             size="md"
             onClick={handleSave}
             disabled={!isBalanced || saving}
-            icon={<CheckCircle2 className="w-4 h-4" />}
+            icon={<CheckCircle className="w-4 h-4" weight="fill" />}
           >
             {saving ? 'Saving...' : 'Save & Resolve Dispute'}
           </Button>

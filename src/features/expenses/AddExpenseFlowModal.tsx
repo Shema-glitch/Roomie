@@ -15,21 +15,16 @@ import { api } from '../../services/api';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   ShoppingCart,
-  Zap,
-  Home,
-  Building2,
-  MoreHorizontal,
+  Lightning,
+  House,
+  Buildings,
+  DotsThree,
   Camera,
   Check,
   ArrowRight,
-  ArrowLeft,
-  Receipt,
-  Users,
   ShieldCheck,
-  DollarSign,
-  CheckCircle2,
-  Upload,
-} from 'lucide-react';
+  CheckCircle,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
 
@@ -173,10 +168,10 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
 
   const categories: { id: ExpenseCategory; label: string; icon: React.ReactNode; desc: string }[] = [
     { id: 'groceries', label: 'Groceries & Food', icon: <ShoppingCart className="w-5 h-5" />, desc: 'Supermarket, fruit & veg, bakery' },
-    { id: 'utilities', label: 'Utilities & Bills', icon: <Zap className="w-5 h-5" />, desc: 'Electricity, gas cylinders, water bottles' },
-    { id: 'household', label: 'Household Essentials', icon: <Home className="w-5 h-5" />, desc: 'Cleaning supplies, toilet paper, detergent' },
-    { id: 'rent', label: 'Rent & Landlord', icon: <Building2 className="w-5 h-5" />, desc: 'Apartment monthly rent or building fee' },
-    { id: 'other', label: 'Other Shared Items', icon: <MoreHorizontal className="w-5 h-5" />, desc: 'Taxi rides, shared dinner, router' },
+    { id: 'utilities', label: 'Utilities & Bills', icon: <Lightning className="w-5 h-5" />, desc: 'Electricity, gas cylinders, water bottles' },
+    { id: 'household', label: 'Household Essentials', icon: <House className="w-5 h-5" />, desc: 'Cleaning supplies, toilet paper, detergent' },
+    { id: 'rent', label: 'Rent & Landlord', icon: <Buildings className="w-5 h-5" />, desc: 'Apartment monthly rent or building fee' },
+    { id: 'other', label: 'Other Shared Items', icon: <DotsThree className="w-5 h-5" />, desc: 'Taxi rides, shared dinner, router' },
   ];
 
   const payer = roommates.find((r) => r.id === payerId) || currentUser;
@@ -569,7 +564,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
 
               {receiptUrl && (
                 <div className="pt-1 flex items-center gap-2 type-secondary text-[#3DBE6D] font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle className="w-4 h-4" weight="fill" />
                   <span>Receipt photo included</span>
                 </div>
               )}

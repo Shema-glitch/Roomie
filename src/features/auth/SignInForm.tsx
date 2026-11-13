@@ -5,7 +5,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { validateEmail } from '../../utils/authValidation';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
-import { Mail, Lock, Eye, EyeOff, Check } from 'lucide-react';
+import { EnvelopeSimple, LockKey, Eye, EyeSlash, Check } from '@phosphor-icons/react';
 
 interface SignInFormProps {
   email: string;
@@ -84,7 +84,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
               <div>
                 <label className="type-label block mb-1.5 text-xs">Email address</label>
                 <div className="relative flex items-center">
-                  <Mail className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                  <EnvelopeSimple weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                   <input
                     type="email"
                     value={email}
@@ -122,7 +122,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                     </button>
                   </div>
                   <div className="relative flex items-center">
-                    <Lock className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <LockKey weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
@@ -137,7 +137,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                       className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
                       aria-label="Toggle password visibility"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <EyeSlash weight="duotone" className="w-4 h-4" /> : <Eye weight="duotone" className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export const SignInForm: React.FC<SignInFormProps> = ({
                         : 'bg-white border-2 border-[#CBD5E1] text-transparent'
                     }`}
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check weight="bold" className="w-3.5 h-3.5" />
                   </span>
                 </button>
               )}

@@ -7,14 +7,14 @@ import { THEME } from '../../theme/tokens';
 import { useBackHandler } from '../../utils/useBackHandler';
 import {
 
-  Smartphone,
-  BellRing,
-  Share,
+  DeviceMobile,
+  BellRinging,
+  Export,
   PlusSquare,
-  MoreVertical,
+  DotsThreeVertical,
   Check,
   ArrowRight,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -106,21 +106,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
 
           <Card padding="sm" className="space-y-2 bg-[#F7F8FB]">
             <div className="flex items-center gap-2 type-label text-[#1F2430]">
-              <Smartphone className="w-4 h-4 text-[#FF6B4A]" />
+              <DeviceMobile weight="duotone" className="w-4 h-4 text-[#FF6B4A]" />
               <span>iPhone & iPad (Safari)</span>
             </div>
             <p className="type-secondary pl-6">
-              Tap the <Share className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>Share</strong> button, scroll down, and tap <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-[#19B5A5]" /> <strong>Add to Home Screen</strong>.
+              Tap the <Export weight="duotone" className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>Share</strong> button, scroll down, and tap <PlusSquare weight="duotone" className="w-3.5 h-3.5 inline mx-1 text-[#19B5A5]" /> <strong>Add to Home Screen</strong>.
             </p>
           </Card>
 
           <Card padding="sm" className="space-y-2 bg-[#F7F8FB]">
             <div className="flex items-center gap-2 type-label text-[#1F2430]">
-              <Smartphone className="w-4 h-4 text-[#19B5A5]" />
+              <DeviceMobile weight="duotone" className="w-4 h-4 text-[#19B5A5]" />
               <span>Android (Chrome)</span>
             </div>
             <p className="type-secondary pl-6">
-              Tap the <MoreVertical className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>three dots</strong> in Chrome, then choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.
+              Tap the <DotsThreeVertical weight="bold" className="w-3.5 h-3.5 inline mx-1 text-[#5B5BD6]" /> <strong>three dots</strong> in Chrome, then choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.
             </p>
           </Card>
         </div>
@@ -137,7 +137,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
           </p>
 
           <div className="p-4 rounded-2xl bg-[#EEF0FD] border border-[#D3D5F9] text-left flex items-start gap-3">
-            <BellRing className="w-6 h-6 text-[#5B5BD6] shrink-0 mt-0.5" />
+            <BellRinging weight="duotone" className="w-6 h-6 text-[#5B5BD6] shrink-0 mt-0.5" />
             <div>
               <p className="type-body font-bold text-[#1F2430]">
                 "Time for the bathroom. Roomie's cheering you on!"
@@ -159,7 +159,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onComp
                 size="md"
                 fullWidth
                 onClick={() => setNotificationsAllowed(true)}
-                icon={<BellRing className="w-4 h-4" />}
+                icon={<BellRinging weight="duotone" className="w-4 h-4" />}
               >
                 Allow Notifications
               </Button>

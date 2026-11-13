@@ -10,16 +10,12 @@ import { sound } from '../../services/sound';
 import { buildInviteUrl } from '../../utils/inviteLink';
 import { debugLog } from '../../utils/debugLog';
 import {
-  Home,
   Check,
   Copy,
   ArrowRight,
-  ArrowLeft,
-  Shield,
-  Clock,
-  Link2,
-  Share2,
-} from 'lucide-react';
+  Link,
+  ShareNetwork,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
 
@@ -452,7 +448,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                   variant="outline"
                   size="md"
                   onClick={handleCopyLink}
-                  icon={copiedLink ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Link2 className="w-4 h-4 text-[#5B5BD6]" />}
+                  icon={copiedLink ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Link className="w-4 h-4 text-[#5B5BD6]" />}
                 >
                   {copiedLink ? 'Copied link!' : 'Copy Link'}
                 </Button>
@@ -464,7 +460,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                   size="sm"
                   fullWidth
                   onClick={handleShareInvite}
-                  icon={<Share2 className="w-4 h-4" />}
+                  icon={<ShareNetwork className="w-4 h-4" />}
                 >
                   Share invite to roomies
                 </Button>

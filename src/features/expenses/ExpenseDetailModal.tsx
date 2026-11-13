@@ -6,7 +6,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { DisputeReasonModal } from './DisputeReasonModal';
 import { Expense, User } from '../../types';
-import { Check, AlertCircle, Receipt, MessageSquare, Split, ShieldAlert } from 'lucide-react';
+import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getCurrencySymbol } from '../../utils/stateTable';
 
@@ -133,7 +133,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {isDisputed && expense.disputeReason && (
             <div className="p-3.5 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] space-y-1.5 text-left">
               <div className="flex items-center gap-1.5 text-[#E5484D] font-bold text-[14px]">
-                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <ShieldWarning className="w-4 h-4 shrink-0" />
                 <span>Disputed Item</span>
               </div>
               <p className="type-secondary text-[#7F1D1D] leading-relaxed">
@@ -174,7 +174,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                   }}
                   className="type-secondary font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
                 >
-                  <Split className="w-3.5 h-3.5" /> Edit split
+                  <GitFork className="w-3.5 h-3.5" /> Edit split
                 </button>
               )}
             </div>
@@ -240,7 +240,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                   variant="danger-outline"
                   size="md"
                   onClick={() => setDisputeModalOpen(true)}
-                  icon={<AlertCircle className="w-4 h-4 text-[#E5484D]" />}
+                  icon={<WarningCircle className="w-4 h-4 text-[#E5484D]" />}
                 >
                   Dispute
                 </Button>
@@ -249,7 +249,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                   size="md"
                   disabled={loading}
                   onClick={handleAgree}
-                  icon={<Check className="w-4 h-4" />}
+                  icon={<Check className="w-4 h-4" weight="bold" />}
                 >
                   Agree
                 </Button>
@@ -270,7 +270,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       onClose();
                       onEditSplit();
                     }}
-                    icon={<Split className="w-4 h-4" />}
+                    icon={<GitFork className="w-4 h-4" />}
                   >
                     Edit split
                   </Button>
@@ -300,7 +300,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 onClose();
                 onOpenChat();
               }}
-              icon={<MessageSquare className="w-4 h-4 text-[#5B5BD6]" />}
+              icon={<ChatCircleDots className="w-4 h-4 text-[#5B5BD6]" />}
             >
               Discuss in Chat
             </Button>

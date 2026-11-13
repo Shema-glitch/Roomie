@@ -3,16 +3,16 @@ import { Modal } from './Modal';
 import { Button } from './Button';
 import { Card } from './Card';
 import {
-  Activity,
+  Pulse,
   Bug,
-  CheckCircle2,
+  CheckCircle,
   Copy,
-  RefreshCw,
+  ArrowsClockwise,
   ShieldCheck,
-  Trash2,
-  AlertTriangle,
+  Trash,
+  Warning,
   XCircle,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { DEBUG_MODULES, DebugEntry, DebugLevel, DebugModule, debugLog } from '../../utils/debugLog';
 import { outbox } from '../../services/outbox';
 import { api } from '../../services/api';
@@ -87,20 +87,20 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
     if (level === 'error') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black bg-[#FFF0ED] text-[#E5484D] border border-[#FFD7CF]">
-          <XCircle className="w-3 h-3" /> ERROR
+          <XCircle weight="fill" className="w-3 h-3" /> ERROR
         </span>
       );
     }
     if (level === 'warn') {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black bg-[#FFF8E6] text-[#8A6200] border border-[#FFE8A3]">
-          <AlertTriangle className="w-3 h-3" /> WARN
+          <Warning weight="fill" className="w-3 h-3" /> WARN
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black bg-[#E6FAF8] text-[#149689] border border-[#97E5DE]">
-        <CheckCircle2 className="w-3 h-3" /> OK
+        <CheckCircle weight="fill" className="w-3 h-3" /> OK
       </span>
     );
   };
@@ -150,7 +150,7 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-xl bg-[#EEF0FD] text-[#5B5BD6]">
-                <Bug className="w-4 h-4" />
+                <Bug weight="duotone" className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-xs font-black text-[#1F2430]">
@@ -167,7 +167,7 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
                 size="sm"
                 onClick={handleProbe}
                 disabled={probing}
-                icon={<ShieldCheck className={`w-3.5 h-3.5 ${probing ? 'animate-pulse' : ''}`} />}
+                icon={<ShieldCheck weight="duotone" className={`w-3.5 h-3.5 ${probing ? 'animate-pulse' : ''}`} />}
               >
                 {probing ? 'Probing...' : 'Probe RLS'}
               </Button>
@@ -176,7 +176,7 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
                 size="sm"
                 onClick={handleFlushOutbox}
                 disabled={flushing || pendingCount === 0}
-                icon={<RefreshCw className={`w-3.5 h-3.5 ${flushing ? 'animate-spin' : ''}`} />}
+                icon={<ArrowsClockwise weight="duotone" className={`w-3.5 h-3.5 ${flushing ? 'animate-spin' : ''}`} />}
               >
                 Flush ({pendingCount})
               </Button>
@@ -281,14 +281,14 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
             ))}
           </div>
           <div className="flex items-center gap-1.5">
-            <Button variant="outline" size="sm" onClick={handleCopyReport} icon={<Copy className="w-3.5 h-3.5" />}>
+            <Button variant="outline" size="sm" onClick={handleCopyReport} icon={<Copy weight="duotone" className="w-3.5 h-3.5" />}>
               Copy JSON
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => debugLog.clear(selectedModule === 'all' ? undefined : selectedModule)}
-              icon={<Trash2 className="w-3.5 h-3.5 text-[#E5484D]" />}
+              icon={<Trash weight="duotone" className="w-3.5 h-3.5 text-[#E5484D]" />}
             >
               Clear
             </Button>
@@ -299,7 +299,7 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
         <div className="space-y-2 max-h-64 overflow-y-auto pr-0.5">
           {entries.length === 0 ? (
             <div className="py-8 text-center text-xs text-[#64748B] bg-[#F7F8FB] rounded-2xl border border-dashed border-[#CBD5E1]">
-              <Activity className="w-5 h-5 mx-auto mb-1.5 text-[#94A3B8]" />
+              <Pulse weight="duotone" className="w-5 h-5 mx-auto mb-1.5 text-[#94A3B8]" />
               No debug events recorded yet for this filter. Interact with expenses, chores, QR, chat, or run Probe RLS.
             </div>
           ) : (

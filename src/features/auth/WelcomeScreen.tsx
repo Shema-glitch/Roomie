@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, MailCheck } from 'lucide-react';
+import { CaretLeft, EnvelopeOpen } from '@phosphor-icons/react';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
 import { useBackHandler } from '../../utils/useBackHandler';
@@ -217,7 +217,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             className="p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-90 transition-transform cursor-pointer shrink-0 focus:outline-none"
             aria-label="Go back"
           >
-            <ChevronLeft className="w-7 h-7 stroke-[2.5]" />
+            <CaretLeft weight="bold" className="w-7 h-7" />
           </button>
 
           {stage === 'signup' && (
@@ -272,7 +272,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="flex-1 flex flex-col">
           {verificationSentTo && (
             <div className="mb-4 p-3.5 rounded-2xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-start gap-2.5">
-              <MailCheck className="w-5 h-5 text-[#4F46E5] shrink-0 mt-0.5" />
+              <EnvelopeOpen weight="duotone" className="w-5 h-5 text-[#4F46E5] shrink-0 mt-0.5" />
               <div className="text-left text-xs leading-relaxed text-[#3730A3]">
                 <p className="font-black">Confirm your email to continue</p>
                 <p className="mt-0.5 text-[#4338CA]">

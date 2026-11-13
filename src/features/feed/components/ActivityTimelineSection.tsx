@@ -6,12 +6,12 @@ import { SectionTitle } from '../../../components/common/SectionTitle';
 import { ChatMessage } from '../../../types';
 import { sound } from '../../../services/sound';
 import {
-  MessageSquare,
-  Repeat,
-  ClipboardCheck,
+  ChatCircleDots,
+  ArrowsClockwise,
+  CheckCircle,
   Receipt,
   UserPlus,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 
 type FeedFilter = 'all' | 'chores' | 'expenses' | 'drafts';
 
@@ -78,13 +78,13 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     const { text, isDraft, isChore, isExpense } = classifyActivity(act.body);
     const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
     const icon = isDraft ? (
-      <Repeat className="w-5 h-5" />
+      <ArrowsClockwise weight="duotone" className="w-5 h-5" />
     ) : isChore ? (
-      <ClipboardCheck className="w-5 h-5" />
+      <CheckCircle weight="duotone" className="w-5 h-5" />
     ) : isExpense ? (
-      <Receipt className="w-5 h-5" />
+      <Receipt weight="duotone" className="w-5 h-5" />
     ) : (
-      <MessageSquare className="w-5 h-5" />
+      <ChatCircleDots weight="duotone" className="w-5 h-5" />
     );
 
     const isRevealReady = act.linkTarget?.screen === 'chore-reveal' || text.includes('reveal ready');
@@ -134,7 +134,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
               variant="indigo"
               size="sm"
               onClick={onOpenChoreReveal}
-              icon={<ClipboardCheck className="w-3.5 h-3.5" />}
+              icon={<CheckCircle weight="fill" className="w-3.5 h-3.5" />}
             >
               Reveal schedule
             </Button>
@@ -147,7 +147,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
               variant="secondary"
               size="sm"
               onClick={() => onNavigateTab('apartment')}
-              icon={<UserPlus className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+              icon={<UserPlus weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6]" />}
             >
               Review request
             </Button>
@@ -163,7 +163,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
                 onNavigateTab('expenses');
                 if (act.linkTarget?.id) onSelectExpense(act.linkTarget.id);
               }}
-              icon={<Receipt className="w-3.5 h-3.5" />}
+              icon={<Receipt weight="fill" className="w-3.5 h-3.5" />}
             >
               Review receipt
             </Button>
@@ -191,7 +191,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
           variant="indigo"
           size="sm"
           onClick={() => onNavigateTab('chat')}
-          icon={<MessageSquare className="w-4 h-4" />}
+          icon={<ChatCircleDots weight="fill" className="w-4 h-4" />}
         >
           Open chat
         </Button>

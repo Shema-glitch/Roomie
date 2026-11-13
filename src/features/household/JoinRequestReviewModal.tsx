@@ -5,7 +5,7 @@ import { Button } from '../../components/common/Button';
 import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { JoinRequest, User, Membership } from '../../types';
-import { Check, HelpCircle, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Check, Question, ShieldWarning, ShieldCheck } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface JoinRequestReviewModalProps {
@@ -115,7 +115,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
               variant={myVote === 'unsure' ? 'danger-outline' : 'secondary'}
               size="md"
               onClick={() => handleVote('unsure')}
-              icon={<HelpCircle className="w-4 h-4" />}
+              icon={<Question className="w-4 h-4" />}
             >
               {myVote === 'unsure' ? 'Voted Not sure' : 'Not sure'}
             </Button>
@@ -163,7 +163,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
         {/* Privacy & Anti-Surveillance Consent Warning */}
         {unsureCount > 0 && (
           <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 flex items-start gap-2.5 text-xs text-amber-900">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <ShieldWarning className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <span className="font-bold block">Privacy & Flatmate Consent Alert</span>
               <p className="leading-relaxed">
@@ -184,7 +184,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
             {confirmOverride && unsureCount > 0 ? (
               <div className="p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-900 space-y-2.5">
                 <div className="flex items-center gap-1.5 font-bold">
-                  <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
+                  <ShieldWarning className="w-4 h-4 text-red-600 shrink-0" />
                   <span>Confirm Admission Against Roomie Votes?</span>
                 </div>
                 <p className="leading-relaxed">

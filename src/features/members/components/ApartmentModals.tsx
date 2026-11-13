@@ -6,7 +6,7 @@ import { Avatar } from '../../../components/common/Avatar';
 import { User, Membership, MeetingTopic, HouseAgreement } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
-import { Check, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Check, Warning, ShieldWarning } from '@phosphor-icons/react';
 
 interface ProposeTopicModalProps {
   isOpen: boolean;
@@ -338,7 +338,7 @@ export const LeaveApartmentModal: React.FC<LeaveApartmentModalProps> = ({
         {hasUnsettledDebt ? (
           <div className="p-4 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-2">
             <div className="flex items-center gap-2 text-[#E5484D] font-bold">
-              <AlertTriangle className="w-5 h-5" />
+              <Warning className="w-5 h-5" />
               <span>
                 You have an unsettled balance of {currencySymbol}
                 {Math.abs(netBalance).toFixed(2)}
@@ -425,7 +425,7 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
       <div className="space-y-4">
         <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-2">
           <div className="flex items-center gap-1.5 font-bold">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+            <ShieldWarning className="w-4 h-4 text-amber-600 shrink-0" />
             <span>WhatsApp-Style Roster Announcement</span>
           </div>
           <p className="leading-relaxed">
