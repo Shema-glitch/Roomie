@@ -194,9 +194,9 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                         setSelectedRecipientId(r.id);
                         if (debt) setAmountStr(debt.amount.toFixed(2));
                       }}
-                      className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      className={`p-3.5 rounded-2xl border-2 border-b-4 flex items-center justify-between cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                         isSelected
-                          ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-xs'
+                          ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-2xs'
                           : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
                       }`}
                     >
@@ -269,7 +269,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-big-number focus:outline-none focus:border-[#FF6B4A]"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white type-big-number focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
                 />
               </div>
             </div>
@@ -285,10 +285,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                     sound.playTap();
                     setMethod('bank');
                   }}
-                  className={`p-3 rounded-2xl border flex items-center gap-2 cursor-pointer transition-all ${
+                  className={`p-3 rounded-2xl border-2 border-b-4 flex items-center gap-2 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                     method === 'bank'
-                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50'
-                      : 'border-[#E6E8EE] bg-white'
+                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50 shadow-2xs'
+                      : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
                   }`}
                 >
                   <Money className="w-5 h-5 text-[#19B5A5]" />
@@ -300,10 +300,10 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                     sound.playTap();
                     setMethod('cash');
                   }}
-                  className={`p-3 rounded-2xl border flex items-center gap-2 cursor-pointer transition-all ${
+                  className={`p-3 rounded-2xl border-2 border-b-4 flex items-center gap-2 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                     method === 'cash'
-                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50'
-                      : 'border-[#E6E8EE] bg-white'
+                      ? 'border-[#19B5A5] bg-[#E6FAF8]/50 shadow-2xs'
+                      : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
                   }`}
                 >
                   <HandCoins className="w-5 h-5 text-[#19B5A5]" />

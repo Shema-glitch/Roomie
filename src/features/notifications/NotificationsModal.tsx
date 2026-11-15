@@ -69,10 +69,10 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id as any)}
-                className={`px-3 py-1.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] cursor-pointer min-h-[44px] flex items-center justify-center ${
                   filter === f.id
-                    ? 'bg-[#1F2430] text-white'
-                    : 'bg-[#F7F8FB] text-[#64748B] border border-[#E6E8EE]'
+                    ? 'bg-[#1F2430] text-white border-2 border-b-4 border-[#1F2430] shadow-2xs'
+                    : 'bg-[#F7F8FB] text-[#64748B] border-2 border-b-4 border-[#E6E8EE] hover:border-[#CBD5E1]'
                 }`}
               >
                 {f.label}
@@ -93,7 +93,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
         {/* Single-Source Chore Draft State Banner */}
         {draftState.state !== 'reveal_done' && (
-          <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border border-[#C7D2FE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border-2 border-[#C7D2FE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3 min-w-0">
               <IconTile icon={<Shuffle className="w-5 h-5" />} color="indigo" size="sm" />
               <div className="min-w-0">
@@ -131,11 +131,11 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             filtered.map((n) => (
               <div
                 key={n.id}
-                className={`p-3 rounded-2xl border transition-all ${
+                className={`p-3 rounded-2xl border-2 border-b-4 transition-[transform,background-color,border-color] duration-150 ${
                   !n.read
                     ? n.type === 'privacy_alert'
-                      ? 'bg-amber-50/80 border-amber-300'
-                      : 'bg-[#FFF0ED]/40 border-[#FFD7CF]'
+                      ? 'bg-amber-50/80 border-amber-300 shadow-2xs'
+                      : 'bg-[#FFF0ED]/40 border-[#FFD7CF] shadow-2xs'
                     : 'bg-white border-[#E6E8EE]'
                 }`}
               >

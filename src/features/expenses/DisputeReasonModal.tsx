@@ -64,10 +64,10 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
           {predefinedReasons.map((r) => (
             <label
               key={r}
-              className={`p-3 rounded-2xl border flex items-center gap-3 cursor-pointer text-[14px] font-normal transition-all ${
+              className={`p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 cursor-pointer text-[14px] font-normal transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                 selectedReason === r
-                  ? 'border-[#E5484D] bg-[#FDECEE] text-[#BF3337]'
-                  : 'border-[#E6E8EE] bg-white text-[#1F2430]'
+                  ? 'border-[#E5484D] bg-[#FDECEE] text-[#BF3337] shadow-2xs font-bold'
+                  : 'border-[#E6E8EE] bg-white text-[#1F2430] hover:border-[#CBD5E1]'
               }`}
             >
               <input
@@ -91,7 +91,7 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
             value={customNote}
             onChange={(e) => setCustomNote(e.target.value)}
             placeholder="e.g. I already have my own laundry soap"
-            className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#E5484D]"
+            className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] focus:outline-none focus:border-[#E5484D] min-h-[44px]"
           />
         </div>
 

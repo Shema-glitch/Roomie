@@ -94,7 +94,7 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
           </div>
         ) : (
           <div className="w-full space-y-3">
-            <div className="p-3 bg-[#E6FAF8] border border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
+            <div className="p-3 bg-[#E6FAF8] border-2 border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
               You are currently in Away Mode.
             </div>
             <Button

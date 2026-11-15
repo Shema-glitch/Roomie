@@ -236,7 +236,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Lefkoşa Flat 12, Gönyeli Villa 4B"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-semibold text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
               />
             </div>
 
@@ -284,10 +284,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setCurrency(c);
                     }}
-                    className={`py-3 px-2 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                    className={`py-3 px-2 rounded-2xl border-2 border-b-4 text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       currency === c
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                        : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A] shadow-2xs'
+                        : 'border-[#E6E8EE] bg-white text-[#6B7280] hover:border-[#CBD5E1]'
                     }`}
                   >
                     <span className="text-[14px] font-bold">
@@ -318,10 +318,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setRotation(r.id as any);
                     }}
-                    className={`p-3 rounded-2xl border text-[14px] font-bold text-left cursor-pointer transition-all ${
+                    className={`p-3 rounded-2xl border-2 border-b-4 text-[14px] font-bold text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       rotation === r.id
-                        ? 'border-[#19B5A5] bg-[#E6FAF8] text-[#138E82]'
-                        : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                        ? 'border-[#19B5A5] bg-[#E6FAF8] text-[#138E82] shadow-2xs'
+                        : 'border-[#E6E8EE] bg-white text-[#6B7280] hover:border-[#CBD5E1]'
                     }`}
                   >
                     {r.label}

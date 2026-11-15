@@ -125,7 +125,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
-            <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] text-left flex items-center justify-between">
+            <Card padding="sm" className="bg-[#FFF8E6] border-2 border-[#FFE8A3] text-left flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
                 <div>
@@ -223,7 +223,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                 <button
                   type="button"
                   onClick={handleSamplePhoto}
-                  className="type-secondary font-bold text-[#19B5A5] hover:underline cursor-pointer text-center w-full"
+                  className="type-secondary font-bold text-[#19B5A5] hover:underline cursor-pointer text-center w-full min-h-[44px] flex items-center justify-center"
                 >
                   Or use sample proof preview
                 </button>
@@ -270,7 +270,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
-            <Card padding="md" className="w-full bg-[#FFF8E6] border border-[#FFE8A3] space-y-1.5">
+            <Card padding="md" className="w-full bg-[#FFF8E6] border-2 border-[#FFE8A3] space-y-1.5">
               <div className="flex items-center justify-center gap-2 type-section-heading text-[#8A6200]">
                 <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
                 <span>Streak: {currentUser.streakDays + 1} Days Active</span>

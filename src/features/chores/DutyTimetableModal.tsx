@@ -95,7 +95,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
     >
       <div className="space-y-4">
         {/* Banner */}
-        <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border border-[#C7D2FE] flex items-center justify-between gap-3 text-xs text-[#1F2430]">
+        <div className="p-3.5 rounded-2xl bg-[#EEF0FD] border-2 border-[#C7D2FE] flex items-center justify-between gap-3 text-xs text-[#1F2430]">
           <div className="flex items-center gap-2.5">
             <Calendar className="w-5 h-5 text-[#5B5BD6] shrink-0" />
             <div>
@@ -136,11 +136,11 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
             return (
               <div
                 key={entry.day}
-                className={`p-3.5 rounded-2xl border transition-all ${
+                className={`p-3.5 rounded-2xl border-2 border-b-4 transition-[transform,background-color,border-color] duration-150 ${
                   isSelectedForSwap
-                    ? 'ring-2 ring-amber-500 bg-amber-50/70 border-amber-300'
+                    ? 'ring-2 ring-amber-500 bg-amber-50/70 border-amber-400 shadow-2xs'
                     : isToday
-                    ? 'bg-white border-[#FF6B4A] shadow-sm'
+                    ? 'bg-white border-[#FF6B4A] shadow-2xs'
                     : 'bg-white border-[#E6E8EE]'
                 }`}
               >
@@ -225,7 +225,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
 
                 {/* Admin Quick Reassign Picker */}
                 {reassignDayTarget === entry.day && (
-                  <div className="mt-3 p-2.5 rounded-xl bg-[#F7F8FB] border border-[#E6E8EE] space-y-2">
+                  <div className="mt-3 p-2.5 rounded-xl bg-[#F7F8FB] border-2 border-[#E6E8EE] space-y-2">
                     <span className="text-[11px] font-bold text-[#64748B] block uppercase tracking-wider">
                       Reassign {DAY_DISPLAY_NAMES[entry.day].full} to:
                     </span>
@@ -235,9 +235,9 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                           key={r.id}
                           type="button"
                           onClick={() => handleSelectReassign(entry.day, r.id)}
-                          className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          className={`p-2 min-h-[44px] rounded-xl border-2 border-b-4 text-xs font-bold flex items-center gap-1.5 transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] cursor-pointer ${
                             entry.assignedUserId === r.id
-                              ? 'bg-[#1F2430] text-white border-[#1F2430]'
+                              ? 'bg-[#1F2430] text-white border-[#1F2430] shadow-2xs'
                               : 'bg-white text-[#1F2430] border-[#E6E8EE] hover:border-[#1F2430]'
                           }`}
                         >

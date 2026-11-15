@@ -71,7 +71,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
     >
       <div className="space-y-4">
         {/* Recipient Profile */}
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE]">
           <Avatar src={targetUser.avatar} name={targetUser.name} flag={targetUser.flag} size="md" />
           <div>
             <h4 className="type-section-heading">
@@ -100,10 +100,10 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('thanks');
               sound.playPop();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'thanks'
-                ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
             <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="coral" size="sm" />
@@ -119,10 +119,10 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('great_job');
               sound.playPop();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'great_job'
-                ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
             <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="amber" size="sm" />
@@ -138,10 +138,10 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('needs_look');
               sound.playTap();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'needs_look'
-                ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
             <IconTile icon={<WarningCircle className="w-5 h-5" />} color="indigo" size="sm" />
@@ -168,7 +168,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 ? 'e.g. Could you wipe the mirror too? Thanks!'
                 : 'e.g. The kitchen smells amazing!'
             }
-            className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
+            className="w-full px-4 py-2.5 rounded-2xl border-2 border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
           />
         </div>
 

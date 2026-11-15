@@ -207,9 +207,9 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                       sound.playTap();
                       setPayerId(r.id);
                     }}
-                    className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-2xl border-2 border-b-4 flex items-center justify-between cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       isSelected
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-xs'
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-2xs'
                         : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
                     }`}
                   >
@@ -264,9 +264,9 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                       sound.playTap();
                       setCategory(cat.id);
                     }}
-                    className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-2xl border-2 border-b-4 flex items-center justify-between cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       isSelected
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-xs'
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED]/40 shadow-2xs'
                         : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1]'
                     }`}
                   >
@@ -331,7 +331,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Lemar weekly groceries, Water refills"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[16px] font-semibold text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
               />
             </div>
 
@@ -351,7 +351,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A]"
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
                 />
               </div>
             </div>

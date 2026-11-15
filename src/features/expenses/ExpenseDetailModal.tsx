@@ -97,7 +97,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
       >
         <div className="space-y-4">
           {/* Header Amount */}
-          <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <span className="type-label block">
                 {expense.category}
@@ -131,7 +131,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
           {/* Dispute Warning Banner if disputed */}
           {isDisputed && expense.disputeReason && (
-            <div className="p-3.5 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] space-y-1.5 text-left">
+            <div className="p-3.5 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-1.5 text-left">
               <div className="flex items-center gap-1.5 text-[#E5484D] font-bold text-[14px]">
                 <ShieldWarning className="w-4 h-4 shrink-0" />
                 <span>Disputed Item</span>
@@ -186,7 +186,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 return (
                   <div
                     key={s.userId}
-                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-2.5"
+                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-2.5"
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <Avatar

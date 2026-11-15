@@ -301,7 +301,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </span>
 
             {/* Language */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Globe className="w-4 h-4" />} color="indigo" size="sm" />
                 <span className="text-[14px] font-bold text-[#1F2430]">Language</span>
@@ -316,9 +316,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   <button
                     key={l.id}
                     onClick={() => handleLanguageChange(l.id as any)}
-                    className={`px-2.5 py-1 rounded-lg text-[14px] font-bold cursor-pointer transition-colors ${
+                    className={`px-2.5 py-1.5 rounded-xl text-[14px] font-bold cursor-pointer transition-[transform,background-color] duration-150 active:translate-y-[1px] min-h-[38px] flex items-center justify-center ${
                       settings.language === l.id
-                        ? 'bg-[#FF6B4A] text-white'
+                        ? 'bg-[#FF6B4A] text-white shadow-2xs'
                         : 'bg-[#F7F8FB] text-[#64748B] hover:text-[#1F2430]'
                     }`}
                   >
@@ -329,7 +329,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
 
             {/* Sound Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile
                   icon={settings.soundEnabled ? <SpeakerHigh className="w-4 h-4" /> : <SpeakerSlash className="w-4 h-4" />}
@@ -348,12 +348,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <button
                 type="button"
                 onClick={toggleSound}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
                   settings.soundEnabled ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.soundEnabled ? 'right-1' : 'left-1'
                   }`}
                 />
@@ -361,7 +361,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
 
             {/* Reduced Motion Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Eye className="w-4 h-4" />} color="teal" size="sm" />
                 <div>
@@ -376,12 +376,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <button
                 type="button"
                 onClick={toggleReducedMotion}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
                   settings.reducedMotion ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.reducedMotion ? 'right-1' : 'left-1'
                   }`}
                 />
@@ -389,7 +389,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
 
             {/* Push Notifications Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Bell className="w-4 h-4" />} color="amber" size="sm" />
                 <div>
@@ -404,12 +404,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <button
                 type="button"
                 onClick={togglePush}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
                   settings.pushNotifications ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.pushNotifications ? 'right-1' : 'left-1'
                   }`}
                 />

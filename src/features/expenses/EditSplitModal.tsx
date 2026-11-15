@@ -115,7 +115,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Adjust expense split" maxWidth="lg">
       <div className="space-y-4">
         {/* Banner about the dispute */}
-        <div className="p-3.5 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] text-[#E5484D]">
+        <div className="p-3.5 rounded-2xl bg-[#FFF5F2] border-2 border-[#FFD3C9] text-[14px] text-[#E5484D]">
           <p className="font-bold text-[14px] text-[#1F2430] mb-0.5">{expense.title}</p>
           <p className="text-[#475569]">Total Amount: <span className="font-bold text-[#1F2430]">{sym}{expense.amount.toFixed(2)}</span></p>
           {expense.shares.some((s) => s.disputeReason) && (
@@ -158,7 +158,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
             return (
               <div
                 key={s.userId}
-                className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-3"
+                className="p-3 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar src={user?.avatar} name={user?.name || 'Roomie'} flag={user?.flag} size="xs" />
@@ -182,7 +182,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
                     min="0"
                     value={currentVal}
                     onChange={(e) => handleShareChange(s.userId, parseFloat(e.target.value) || 0)}
-                    className="w-24 px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-right font-mono font-bold text-[14px] text-[#1F2430] focus:outline-none focus:ring-2 focus:ring-[#FF6B4A]"
+                    className="w-24 px-2.5 py-2 rounded-xl border-2 border-[#CBD5E1] bg-white text-right font-mono font-bold text-[14px] text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
                   />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
 
         {/* Balance status */}
         <div
-          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between border ${
+          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between border-2 ${
             isBalanced
               ? 'bg-[#EBF9F0] text-[#2CA358] border-[#B8ECC8]'
               : 'bg-[#FFF0ED] text-[#E5484D] border-[#FFD7CF]'

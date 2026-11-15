@@ -61,12 +61,17 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] animate-fade-up motion-reduce:animate-none`}
+        className={`w-full ${maxWidthClass} rounded-t-[32px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform transition-[transform,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] animate-fade-up motion-reduce:animate-none`}
         style={{ backgroundColor: THEME.colors.surface }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile bottom-sheet drag handle pill */}
+        <div className="w-full flex justify-center pt-2.5 pb-1 sm:hidden bg-white">
+          <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1]" />
+        </div>
+
         {(title || showClose) && (
-          <div className="flex items-center justify-between px-6 pt-5 pb-4 sm:px-8 sm:pt-6 sm:pb-4 border-b border-[#E6E8EE] bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between px-6 pt-3 pb-4 sm:px-8 sm:pt-6 sm:pb-4 border-b border-[#E6E8EE] bg-white sticky top-0 z-10">
             <div>
               {title && <h3 className="type-title">{title}</h3>}
               {subtitle && <p className="type-secondary mt-0.5">{subtitle}</p>}
@@ -78,7 +83,7 @@ export const Modal: React.FC<ModalProps> = ({
                   sound.playTap();
                   onClose();
                 }}
-                className="w-10 h-10 rounded-2xl border border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:scale-[0.95] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-[transform,background-color,border-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
+                className="w-10 h-10 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] active:translate-y-[2px] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] transition-[transform,background-color,border-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
                 aria-label="Close dialog"
               >
                 <X weight="bold" className="w-5 h-5" />

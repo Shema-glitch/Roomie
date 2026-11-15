@@ -276,7 +276,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
               <button
                 type="button"
                 onClick={startLiveCamera}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
+                className="p-4 rounded-2xl border-2 border-b-4 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <IconTile icon={<QrCode className="w-6 h-6" />} color="coral" size="md" />
                 <div>
@@ -295,7 +295,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                   sound.playTap();
                   setStep(2);
                 }}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
+                className="p-4 rounded-2xl border-2 border-b-4 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" />
                 <div>
@@ -329,7 +329,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="e.g. CYP-7492 or invite link"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-wide focus:outline-none focus:border-[#FF6B4A] text-center"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white type-title tracking-wide focus:outline-none focus:border-[#FF6B4A] text-center min-h-[48px]"
               />
               <p className="type-secondary mt-1.5 text-center text-xs text-[#6B7280]">
                 Enter the 8-character code or paste a Roomie invite link from your flatmate.
