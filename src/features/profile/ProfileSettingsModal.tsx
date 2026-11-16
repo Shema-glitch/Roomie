@@ -85,6 +85,37 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [editFlag, setEditFlag] = useState(currentUser.flag);
   const [editAvatar, setEditAvatar] = useState(currentUser.avatar);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [devModeUnlocked, setDevModeUnlocked] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('roomie_dev_mode') === 'true';
+    }
+    return false;
+  });
+  const [versionTapCount, setVersionTapCount] = useState(0);
+
+  const handleVersionTap = () => {
+    sound.playPop();
+    const nextCount = versionTapCount + 1;
+    if (nextCount >= 5) {
+      const nextUnlocked = !devModeUnlocked;
+      setDevModeUnlocked(nextUnlocked);
+      setVersionTapCount(0);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('roomie_dev_mode', String(nextUnlocked));
+      }
+      if (nextUnlocked) {
+        sound.playCelebration();
+        showToast('🛠️ Developer & Debug mode unlocked!', 'reward');
+      } else {
+        showToast('Developer mode hidden', 'info');
+      }
+    } else {
+      setVersionTapCount(nextCount);
+      if (nextCount >= 2) {
+        showToast(`${5 - nextCount} more taps to ${devModeUnlocked ? 'hide' : 'unlock'} Developer tools`, 'info');
+      }
+    }
+  };
 
   const toggleSound = async () => {
     const next = !settings.soundEnabled;
@@ -460,7 +491,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     How it works
                   </Button>
                 )}
-                {onOpenDebugInspector && (
+                {devModeUnlocked && onOpenDebugInspector && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -469,8 +500,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                       onOpenDebugInspector();
                     }}
                     icon={<Bug className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                    className="border-dashed border-[#5B5BD6] text-[#5B5BD6]"
                   >
-                    Debug Layer
+                    Debug Layer 🛠️
                   </Button>
                 )}
               </div>
@@ -590,6 +622,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             >
               Delete account
             </Button>
+          </div>
+
+          {/* App Version & Secret Dev Mode Trigger */}
+          <div className="pt-3 pb-1 text-center border-t border-[#E6E8EE]/60">
+            <button
+              type="button"
+              onClick={handleVersionTap}
+              className="text-[12px] font-bold text-[#94A3B8] hover:text-[#64748B] active:scale-95 transition-all cursor-pointer select-none"
+            >
+              Roomie v1.0.0-phase1 {devModeUnlocked ? '• 🛠️ Dev Mode Active' : ''}
+            </button>
           </div>
         </div>
       </Modal>
