@@ -249,3 +249,11 @@ Baseline Tag: `v1.0.0-phase1`
   - **49 / 49 unit tests passing** (`npm test`).
   - **0 TypeScript errors** (`npm run lint`).
   - Standalone Android APK built and stream-installed onto device (`TECNO_CLA5`).
+
+### Multi-Agent UI & UX Audit Resolutions (Commit `e1864b9`):
+- **Deferred Chore Reassignment Until Consent**: Eliminated premature task transfer from the offer action; chore duty is now only reassigned when the recipient explicitly accepts the swap.
+- **Inbound Trade Alerts**: Surfaced pending swap requests directly onto `HomeScreen.tsx` via a dedicated `ActionCard` with 1-tap Accept / Decline buttons.
+- **Empathetic Mood Audio**: `VibeCheckModal` plays soft, reassuring chimes (`sound.playCalmNotice`) for `stressed` or `down` states, preserving party fanfare only for high-energy ratings.
+- **Small-Flat Privacy Adaptation**: `VibeCheckWidget` automatically adapts when household members $< 3$, informing flatmates that k-anonymity requires 3+ roommates to protect privacy.
+- **Ballot-Stuffing Receipt**: Prevented duplicate voting by recording weekly submission state in localStorage (`roomie_vibe_submitted_${weekKey}`).
+- **Tactile Token & Border Polish**: Aligned line borders to canonical `#E6E8EE` and button drop shelves to `#D94E30`, with `reducedMotion` guardrails on particle bursts.
