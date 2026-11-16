@@ -90,6 +90,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [editAvatar, setEditAvatar] = useState(currentUser.avatar);
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'account'>('profile');
   const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,11 +229,58 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         title="Profile & Settings"
-        subtitle="Customise your Roomie experience"
+        subtitle="Manage your identity, roomie habits and account"
       >
         <div className="space-y-4">
-          {/* User Profile Card or Edit Form */}
-          {!isEditingProfile ? (
+          {/* Segmented Pill Navigation */}
+          <div className="flex p-1 bg-[#EEF0F6] rounded-2xl border-2 border-[#E2E5EC] gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('profile');
+              }}
+              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+                activeTab === 'profile'
+                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('preferences');
+              }}
+              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+                activeTab === 'preferences'
+                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Preferences
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('account');
+              }}
+              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+                activeTab === 'account'
+                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Account
+            </button>
+          </div>
+          {/* TAB 1: PROFILE */}
+          {activeTab === 'profile' && (
+            <div className="space-y-4">
+              {!isEditingProfile ? (
             <Card padding="md" variant="calm" className="flex items-center justify-between gap-3 bg-[#F7F8FB]">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Avatar
@@ -376,8 +424,23 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </form>
           )}
 
-          {/* Preferences */}
-          <div className="space-y-2">
+              {/* Roomie Stats Highlight */}
+              <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border-2 border-[#FFE8A3] flex items-center justify-between">
+                <div>
+                  <span className="type-label block text-[#8A6200]">Streaks & Contribution</span>
+                  <span className="text-sm font-bold text-[#1F2430]">
+                    {currentUser.streakDays} Day Chore Streak • {currentUser.points} Roomie Points
+                  </span>
+                </div>
+                <div className="text-2xl">🔥</div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PREFERENCES */}
+          {activeTab === 'preferences' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
             <span className="type-label block">
               Preferences
             </span>
@@ -559,9 +622,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
             </div>
           )}
+            </div>
+          )}
 
-          {/* Account & Data */}
-          <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">
+          {/* TAB 3: ACCOUNT & DATA */}
+          {activeTab === 'account' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
             <span className="type-label block">
               Account & Feedback
             </span>
@@ -674,6 +741,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               Delete account
             </Button>
           </div>
+            </div>
+          )}
 
           {/* App Version & Secret Dev Mode Trigger */}
           <div className="pt-3 pb-1 text-center border-t border-[#E6E8EE]/60">
