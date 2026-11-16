@@ -68,7 +68,7 @@ export class AuthApi {
     return this.store.households.filter((h) => memberIds.has(h.id));
   }
 
-  private syncAccountSetupMode(mode: 'pending' | 'configured' | 'demo'): void {
+  public syncAccountSetupMode(mode: 'pending' | 'configured' | 'demo'): void {
     const cleanEmail = this.store.currentUser.email.trim().toLowerCase();
     if (this.store.localAccounts && this.store.localAccounts[cleanEmail]) {
       this.store.localAccounts[cleanEmail].setupMode = mode;

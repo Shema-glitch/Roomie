@@ -42,7 +42,7 @@ describe('anonymous household vibe check engine', () => {
 
   it('does NOT contain user ID in anonymous submission payload', () => {
     const check = createAnonymousVibeCheck('h1', currentWeek, 'fire');
-    assert.strictEqual((check as any).userId, undefined);
+    assert.strictEqual('userId' in check, false);
     assert.strictEqual(check.score, 5);
     assert.strictEqual(check.rating, 'fire');
   });

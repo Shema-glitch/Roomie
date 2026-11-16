@@ -223,31 +223,39 @@
 
 ---
 
-## 8. Phase 2: The Features People Love (Current Implementation & Testing)
+## 8. Phase 2: The Features People Love (Completed & Verified ✅)
 
 Branch: `feature/phase-2-love-it-features`
 Baseline Tag: `v1.0.0-phase1`
 
 - **Weekly Awards (Everyone Wins)**:
-  - Evaluation Engine: `src/utils/awards.ts` dynamically evaluates weekly awards without negative or loser rankings.
-  - Zero-Shame Guarantee: Every single active roommate is assigned a humorous, positive badge (*Kitchen Hero*, *Bin Boss*, *Night Chef*, *Peacemaker*, *Streak Master*, *Early Bird*, *The Dependable*).
-  - UI Component: `src/features/feed/components/WeeklyAwardsSection.tsx` features a prominent card for the current user's honor, horizontal badges for flatmates, celebration button with particle confetti burst, haptic vibrations, and celebratory audio.
-  - Unit tests: `src/utils/awards.test.ts` verifying zero loser boards and full flatmate coverage.
+  - Evaluation Engine: `src/utils/awards.ts` dynamically evaluates weekly awards without negative or loser rankings, handling 0 chores, 1–2 roommates, and ties deterministically.
+  - Zero-Shame Guarantee: Every single active roommate is assigned a humorous, positive badge (*Kitchen Hero*, *Bin Boss*, *Night Chef*, *Peacemaker*, *Streak Master*, *Early Bird*, *The Dependable*, *Flat Cheerleader*) rendered with pre-registered offline `fluent-emoji-flat` vector SVGs (`src/utils/registerIcons.ts`).
+  - UI Component: `src/features/feed/components/WeeklyAwardsSection.tsx` features a hero card for the current user's honor, flatmate honor cards, unclipped confetti particle burst, and the distinct `awardCelebrate` C-Major triad arpeggio + double-pulse haptic fanfare.
+  - Unit tests: `src/utils/awards.test.ts` (6 tests).
 
 - **Anonymous Household Vibe Check**:
-  - Evaluation Engine: `src/utils/vibe.ts` calculates apartment average vibe on a 1-5 scale.
-  - Strict k-Anonymity Protection: Submissions are strictly unlinked from user IDs. Aggregate scores and dominant moods are completely concealed until $\ge 3$ roommates submit.
-  - UI Components: `VibeCheckWidget.tsx` on the home feed displays unlock status or privacy shield; `VibeCheckModal.tsx` provides 5 expressive mascot emotion buttons with instant anonymous voting.
-  - Unit tests: `src/utils/vibe.test.ts` verifying threshold secrecy and payload privacy.
+  - Evaluation Engine: `src/utils/vibe.ts` calculates apartment average vibe on a 1–5 scale.
+  - Strict k-Anonymity Protection: Submissions are strictly unlinked from user IDs (`submit_anonymous_vibe` Postgres RPC and RLS `COUNT >= 3` guard). Aggregate scores and dominant moods are concealed until $\ge 3$ roommates submit.
+  - UI Components: `VibeCheckWidget.tsx` on the home feed displays unlock status or privacy lock; `VibeCheckModal.tsx` provides 5 expressive vector emotion cards with `tokenClink` selection feedback and empathetic `vibeSubmit` F-Major dyad swell (or gentle descending tone for low/stressed moods).
+  - Unit tests: `src/utils/vibe.test.ts` (5 tests).
 
-- **Favor Tokens & Chore Trades**:
-  - Ledger Engine: `src/utils/tokens.ts` & `src/services/api/social.api.ts` manages non-financial social currency balances, swap transactions, and affordability checks.
-  - UI Integration: Users see their token balance (`🪙 5 tokens`) in the header pill and Profile modal; `ChoreSwapModal.tsx` enables offering 1-2 Favor Tokens to incentivize trades, plus 1-tap accept/decline of incoming roommate requests.
-  - Unit tests: `src/utils/tokens.test.ts` verifying token deduction on acceptance and zero transfer on decline.
+- **Favor Tokens & Chore Swaps (`MAX_FAVOR_TOKENS = 10` Anti-Hoarding Cap)**:
+  - Ledger Engine: `src/utils/tokens.ts` & `src/services/api/social.api.ts` manage non-financial social currency balances, swap proposals (`proposeChoreSwap`), atomic resolutions (`resolveChoreSwap`), and `MAX_FAVOR_TOKENS = 10` anti-hoarding cap (automatically converting excess streak/award/swap tokens into celebratory flatmate kudos).
+  - Offline Outbox & Telemetry: Mutations (`submit_vibe_pulse`, `propose_chore_swap`, `resolve_chore_swap`) are wired into `src/services/outbox.ts` and tracked under the `'social'` module in `src/utils/debugLog.ts` (12 total tracked modules).
+  - Database Migration: `supabase/migrations/20261116043000_social_vibe_tokens_and_swaps.sql` defines `vibe_pulses`, `favor_tokens`, and `chore_swap_requests` with RLS policies and atomic row-locked RPCs (`submit_anonymous_vibe`, `resolve_chore_swap`).
+  - UI Integration: Vector coin pill in `AppHeaderAndNav.tsx` and `ProfileSettingsModal.tsx`; `ChoreSwapModal.tsx` and `HomeScreen.tsx` inbound trade cards wired with `tokenClink`, `swapAccept`, and `softReject` audio/haptic signatures.
+  - Unit tests: `src/utils/tokens.test.ts` (6 tests).
 
-- **Quality & Verification**:
-  - **49 / 49 unit tests passing** (`npm test`).
-  - **0 TypeScript errors** (`npm run lint`).
+- **Distinct Sensory Engine & Preferences Toggles**:
+  - Synthesized Web Audio (`src/services/sound.ts` exporting `isSoundEnabled`/`setSoundEnabled`) and Capacitor Haptics with Web Vibration fallback (`src/utils/haptics.ts` exporting `isHapticsEnabled`/`setHapticsEnabled`) provide 5 distinct Phase 2 signatures (`awardCelebrate`, `vibeSubmit`, `tokenClink`, `swapAccept`, `softReject`) plus `notificationPing`.
+  - Wired tactile Duolingo-style toggle switches (`SpeakerHigh`/`SpeakerSlash` and `Vibrate` in `@phosphor-icons/react` `duotone` weight) into `ProfileSettingsModal.tsx` with live preview on toggle-on.
+  - Unit tests: `src/utils/haptics.test.ts` (3 tests).
+
+- **Quality, Bundle Budget & Zero-Slop Verification**:
+  - **57 / 57 unit tests passing** (`npm test`).
+  - **0 TypeScript errors** (`npm run lint`), zero `as any`, zero `@ts-ignore`, zero `console.log`.
+  - **Initial JS Bundle**: **132.98 kB gzipped** (`dist/assets/index-*.js`), strictly under the `< 200 KB` gzipped budget with `React.lazy` code-splitting across all secondary screens and modals.
   - Standalone Android APK built and stream-installed onto device (`TECNO_CLA5`).
 
 ### Multi-Agent UI & UX Audit Resolutions (Commit `e1864b9`):

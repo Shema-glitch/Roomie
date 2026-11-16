@@ -24,9 +24,10 @@ import {
 } from '../../types';
 import { UnifiedDraftState } from '../../utils/stateTable';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
-import { outbox, OutboxActionType } from '../outbox';
+import { outbox, OutboxActionType, OutboxItem } from '../outbox';
 import { debugLog, DebugModule } from '../../utils/debugLog';
 import { supabase } from '../supabase';
+import { Json } from '../../types/database.types';
 import {
   AppStore,
   loadStore,
@@ -37,6 +38,7 @@ import {
   toChoreAssignmentRow,
   dispatchRemoteMutation,
   getDebugModuleForOutboxType,
+  RemoteMutationError,
   STORAGE_KEY,
 } from './shared';
 import { AuthApi } from './auth.api';
@@ -83,7 +85,7 @@ export class ApiService {
         outboxType: OutboxActionType,
         payload: T,
         summary: string,
-        remoteExec: () => Promise<{ error: any } | void>
+        remoteExec: () => Promise<{ error: RemoteMutationError } | void>
       ) => {
         dispatchRemoteMutation(
           self.auth.isDemoMode(),
@@ -113,7 +115,7 @@ export class ApiService {
     this.households = new HouseholdsApi({
       ...baseContext,
       getScopedLocalHouseholds: () => self.auth.getScopedLocalHouseholds(),
-      syncAccountSetupMode: (mode) => (self.auth as any).syncAccountSetupMode(mode),
+      syncAccountSetupMode: (mode) => self.auth.syncAccountSetupMode(mode),
     });
 
     this.expenses = new ExpensesApi(baseContext);
@@ -121,7 +123,7 @@ export class ApiService {
     this.chat = new ChatApi(baseContext);
     this.governance = new GovernanceApi(baseContext);
     this.notifications = new NotificationsApi(baseContext);
-    this.social = new SocialApi(() => self._store);
+    this.social = new SocialApi(baseContext);
     this.system = new SystemApi({
       store: this._store,
       setStore: (s: AppStore) => {
@@ -146,18 +148,18 @@ export class ApiService {
     this._store = val;
   }
 
-  private async processOutboxItem(item: any): Promise<boolean> {
+  private async processOutboxItem(item: OutboxItem): Promise<boolean> {
     if (!supabase) return false;
     const sb = supabase;
     const mod = getDebugModuleForOutboxType(item.type);
     const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
     try {
-      let error: any = null;
-      const p = item.payload || {};
+      let error: RemoteMutationError = null;
+      const p = (item.payload || {}) as Record<string, unknown>;
 
       switch (item.type as OutboxActionType) {
         case 'create_expense': {
-          const exp: Expense = p.expense;
+          const exp = p.expense as Expense;
           const res1 = await sb.from('expenses').upsert(
             {
               ...(isUuid(exp.id) ? { id: exp.id } : {}),
@@ -188,10 +190,14 @@ export class ApiService {
         }
         case 'agree_expense':
         case 'dispute_expense': {
-          const { expenseId, userId, response, disputeReason, nextStatus } = p;
+          const expenseId = String(p.expenseId || '');
+          const userId = p.userId ? String(p.userId) : '';
+          const response = p.response as 'pending' | 'agreed' | 'disputed';
+          const disputeReason = p.disputeReason ? String(p.disputeReason) : null;
+          const nextStatus = p.nextStatus as Expense['status'] | undefined;
           let shareQuery = sb
             .from('expense_shares')
-            .update({ response, dispute_reason: disputeReason || null })
+            .update({ response, dispute_reason: disputeReason })
             .eq('expense_id', expenseId);
           if (userId) shareQuery = shareQuery.eq('user_id', userId);
           const res1 = await shareQuery;
@@ -201,7 +207,7 @@ export class ApiService {
               .from('expenses')
               .update({
                 status: nextStatus,
-                dispute_reason: response === 'disputed' ? disputeReason || null : null,
+                dispute_reason: response === 'disputed' ? disputeReason : null,
               })
               .eq('id', expenseId);
             error = res2.error;
@@ -209,15 +215,19 @@ export class ApiService {
           break;
         }
         case 'edit_expense_split': {
-          const { expenseId, shares } = p;
+          const expenseId = String(p.expenseId || '');
+          const shares = (Array.isArray(p.shares) ? p.shares : []) as Array<{
+            userId: string;
+            shareAmount: number;
+          }>;
           const res1 = await sb
             .from('expense_shares')
             .upsert(
-              (shares || []).map((s: any) => ({
+              shares.map((s) => ({
                 expense_id: expenseId,
                 user_id: s.userId,
                 share_amount: s.shareAmount,
-                response: 'agreed',
+                response: 'agreed' as const,
                 dispute_reason: null,
               })),
               { onConflict: 'expense_id,user_id' }
@@ -230,12 +240,12 @@ export class ApiService {
           break;
         }
         case 'cancel_expense': {
-          const res = await sb.from('expenses').update({ status: 'cancelled' }).eq('id', p.expenseId);
+          const res = await sb.from('expenses').update({ status: 'cancelled' }).eq('id', String(p.expenseId || ''));
           error = res.error;
           break;
         }
         case 'create_settlement': {
-          const s: Settlement = p.settlement;
+          const s = p.settlement as Settlement;
           const res = await sb.from('settlements').upsert(
             {
               ...(isUuid(s.id) ? { id: s.id } : {}),
@@ -253,16 +263,20 @@ export class ApiService {
         case 'confirm_settlement': {
           const res = await sb
             .from('settlements')
-            .update({ status: 'confirmed', confirmed_at: p.confirmedAt || new Date().toISOString() })
-            .eq('id', p.settlementId);
+            .update({
+              status: 'confirmed',
+              confirmed_at: p.confirmedAt ? String(p.confirmedAt) : new Date().toISOString(),
+            })
+            .eq('id', String(p.settlementId || ''));
           error = res.error;
           break;
         }
         case 'open_draft_round': {
+          const roundId = p.roundId ? String(p.roundId) : undefined;
           const res = await sb.from('draft_rounds').upsert(
             {
-              ...(isUuid(p.roundId) ? { id: p.roundId } : {}),
-              household_id: p.householdId,
+              ...(isUuid(roundId) ? { id: roundId } : {}),
+              household_id: String(p.householdId || ''),
               status: 'collecting',
             },
             { onConflict: 'id' }
@@ -271,8 +285,12 @@ export class ApiService {
           break;
         }
         case 'submit_draft_picks': {
-          const { roundId, userId, picks, status, assignments } = p;
-          if (isUuid(roundId) && Array.isArray(picks) && picks.length > 0) {
+          const roundId = String(p.roundId || '');
+          const userId = String(p.userId || '');
+          const picks = (Array.isArray(p.picks) ? p.picks : []) as DraftPick[];
+          const status = p.status as string | undefined;
+          const assignments = (Array.isArray(p.assignments) ? p.assignments : []) as ChoreAssignment[];
+          if (isUuid(roundId) && picks.length > 0) {
             const resDel = await sb.from('draft_picks').delete().eq('round_id', roundId).eq('user_id', userId);
             error = resDel.error;
             if (!error) {
@@ -283,7 +301,7 @@ export class ApiService {
               error = resIns.error;
             }
           }
-          if (!error && status === 'ready_to_reveal' && Array.isArray(assignments) && assignments.length > 0 && isUuid(roundId)) {
+          if (!error && status === 'ready_to_reveal' && assignments.length > 0 && isUuid(roundId)) {
             const resAssign = await sb.from('chore_assignments').upsert(
               assignments.map((a: ChoreAssignment) => toChoreAssignmentRow(roundId, a)),
               { onConflict: 'round_id,chore_id' }
@@ -297,8 +315,9 @@ export class ApiService {
           break;
         }
         case 'update_assignments': {
-          const { roundId, assignments } = p;
-          if (isUuid(roundId) && Array.isArray(assignments) && assignments.length > 0) {
+          const roundId = String(p.roundId || '');
+          const assignments = (Array.isArray(p.assignments) ? p.assignments : []) as ChoreAssignment[];
+          if (isUuid(roundId) && assignments.length > 0) {
             const res = await sb.from('chore_assignments').upsert(
               assignments.map((a: ChoreAssignment) => toChoreAssignmentRow(roundId, a)),
               { onConflict: 'round_id,chore_id' }
@@ -310,18 +329,26 @@ export class ApiService {
         case 'reveal_draft': {
           const res = await sb
             .from('draft_rounds')
-            .update({ status: 'revealed', revealed_at: p.revealedAt || new Date().toISOString() })
-            .eq('id', p.roundId);
+            .update({
+              status: 'revealed',
+              revealed_at: p.revealedAt ? String(p.revealedAt) : new Date().toISOString(),
+            })
+            .eq('id', String(p.roundId || ''));
           error = res.error;
           break;
         }
         case 'complete_chore': {
-          const { roundId, householdId, choreId, userId, photoUrl, logId } = p;
+          const roundId = p.roundId ? String(p.roundId) : undefined;
+          const householdId = String(p.householdId || '');
+          const choreId = String(p.choreId || '');
+          const userId = String(p.userId || '');
+          const photoUrl = p.photoUrl ? String(p.photoUrl) : null;
+          const logId = p.logId ? String(p.logId) : undefined;
           let q = sb
             .from('chore_assignments')
-            .update({ completed_today: true, last_photo_url: photoUrl || null })
+            .update({ completed_today: true, last_photo_url: photoUrl })
             .eq('chore_id', choreId);
-          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId!);
           const res1 = await q;
           error = res1.error;
           if (!error && isUuid(householdId) && isUuid(choreId) && isUuid(userId)) {
@@ -331,7 +358,7 @@ export class ApiService {
                 household_id: householdId,
                 chore_id: choreId,
                 user_id: userId,
-                photo_url: photoUrl || null,
+                photo_url: photoUrl,
               },
               { onConflict: 'id' }
             );
@@ -340,23 +367,27 @@ export class ApiService {
           break;
         }
         case 'give_kudos': {
-          const { roundId, choreId, kudos } = p;
-          let q = sb.from('chore_assignments').update({ kudos: kudos || [] }).eq('chore_id', choreId);
-          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          const roundId = p.roundId ? String(p.roundId) : undefined;
+          const choreId = String(p.choreId || '');
+          const kudos = (p.kudos || []) as unknown as Json;
+          let q = sb.from('chore_assignments').update({ kudos }).eq('chore_id', choreId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId!);
           const res = await q;
           error = res.error;
           break;
         }
         case 'swap_chore': {
-          const { roundId, choreId, toUserId } = p;
+          const roundId = p.roundId ? String(p.roundId) : undefined;
+          const choreId = String(p.choreId || '');
+          const toUserId = String(p.toUserId || '');
           let q = sb.from('chore_assignments').update({ user_id: toUserId }).eq('chore_id', choreId);
-          if (isUuid(roundId)) q = q.eq('round_id', roundId);
+          if (isUuid(roundId)) q = q.eq('round_id', roundId!);
           const res = await q;
           error = res.error;
           break;
         }
         case 'send_message': {
-          const msg: ChatMessage = p.message;
+          const msg = p.message as ChatMessage;
           const res = await sb.from('chat_messages').upsert(
             {
               ...(isUuid(msg.id) ? { id: msg.id } : {}),
@@ -364,8 +395,8 @@ export class ApiService {
               sender_id: msg.senderId,
               type: msg.type,
               body: msg.body,
-              link_target: (msg.linkTarget as any) || null,
-              reactions: (msg.reactions as any) || [],
+              link_target: (msg.linkTarget || null) as unknown as Json,
+              reactions: (msg.reactions || []) as unknown as Json,
             },
             { onConflict: 'id' }
           );
@@ -375,13 +406,13 @@ export class ApiService {
         case 'add_reaction': {
           const res = await sb
             .from('chat_messages')
-            .update({ reactions: p.reactions || [] })
-            .eq('id', p.messageId);
+            .update({ reactions: (p.reactions || []) as unknown as Json })
+            .eq('id', String(p.messageId || ''));
           error = res.error;
           break;
         }
         case 'create_topic': {
-          const t: MeetingTopic = p.topic;
+          const t = p.topic as MeetingTopic;
           const res = await sb.from('meeting_topics').upsert(
             {
               ...(isUuid(t.id) ? { id: t.id } : {}),
@@ -390,8 +421,8 @@ export class ApiService {
               title: t.title,
               description: t.description,
               status: t.status,
-              votes: t.votes as any,
-              comments: t.comments as any,
+              votes: t.votes as unknown as Json,
+              comments: t.comments as unknown as Json,
             },
             { onConflict: 'id' }
           );
@@ -401,21 +432,24 @@ export class ApiService {
         case 'vote_topic': {
           const res = await sb
             .from('meeting_topics')
-            .update({ votes: p.votes || [], status: p.status || 'open' })
-            .eq('id', p.topicId);
+            .update({
+              votes: (p.votes || []) as unknown as Json,
+              status: (p.status as MeetingTopic['status']) || 'open',
+            })
+            .eq('id', String(p.topicId || ''));
           error = res.error;
           break;
         }
         case 'add_comment': {
           const res = await sb
             .from('meeting_topics')
-            .update({ comments: p.comments || [] })
-            .eq('id', p.topicId);
+            .update({ comments: (p.comments || []) as unknown as Json })
+            .eq('id', String(p.topicId || ''));
           error = res.error;
           break;
         }
         case 'add_agreement': {
-          const a: HouseAgreement = p.agreement;
+          const a = p.agreement as HouseAgreement;
           const res = await sb.from('house_agreements').upsert(
             {
               ...(isUuid(a.id) ? { id: a.id } : {}),
@@ -430,15 +464,56 @@ export class ApiService {
           break;
         }
         case 'mark_notification_read': {
-          const res = await sb.from('notifications').update({ read: true }).eq('id', p.id);
+          const res = await sb.from('notifications').update({ read: true }).eq('id', String(p.id || ''));
           error = res.error;
           break;
         }
         case 'mark_all_notifications_read': {
           if (Array.isArray(p.ids) && p.ids.length > 0) {
-            const res = await sb.from('notifications').update({ read: true }).in('id', p.ids);
+            const res = await sb
+              .from('notifications')
+              .update({ read: true })
+              .in('id', p.ids as string[]);
             error = res.error;
           }
+          break;
+        }
+        case 'submit_vibe_pulse': {
+          const res = await sb.rpc('submit_anonymous_vibe', {
+            p_household_id: String(p.householdId || ''),
+            p_week_key: String(p.weekKey || ''),
+            p_rating: String(p.rating || 'chill'),
+          });
+          error = res.error;
+          break;
+        }
+        case 'propose_chore_swap': {
+          const req = p.request as import('../../types').ChoreSwapRequest | undefined;
+          if (req) {
+            const res = await sb.from('chore_swap_requests').upsert(
+              {
+                ...(isUuid(req.id) ? { id: req.id } : {}),
+                household_id: req.householdId,
+                requester_user_id: req.requesterUserId,
+                target_user_id: req.targetUserId,
+                requester_chore_name: req.requesterChoreName,
+                target_chore_name: req.targetChoreName,
+                token_cost: req.tokenCost,
+                status: req.status,
+                note: req.note || null,
+              },
+              { onConflict: 'id' }
+            );
+            error = res.error;
+          }
+          break;
+        }
+        case 'resolve_chore_swap': {
+          const res = await sb.rpc('resolve_chore_swap', {
+            p_request_id: String(p.requestId || ''),
+            p_action: String(p.action || 'decline'),
+          });
+          error = res.error;
           break;
         }
         default:
@@ -452,9 +527,10 @@ export class ApiService {
       }
       debugLog.info(mod, `outbox_replay_${item.type}`, `Replayed ${item.type}`, { actionId: item.id }, durationMs);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
-      debugLog.error(mod, `outbox_replay_${item.type}`, err?.message || 'Outbox replay exception', { actionId: item.id }, durationMs);
+      const msg = err instanceof Error ? err.message : 'Outbox replay exception';
+      debugLog.error(mod, `outbox_replay_${item.type}`, msg, { actionId: item.id }, durationMs);
       return false;
     }
   }
@@ -603,23 +679,40 @@ export class ApiService {
   public markNotificationRead = (id: string) => this.notifications.markNotificationRead(id);
   public markAllNotificationsRead = () => this.notifications.markAllNotificationsRead();
 
-  // --- Phase 2 Social Facade (Awards, Vibe Checks, Favor Tokens) ---
+  // --- Social & Rituals Facade (Awards, Vibe Checks, Favor Tokens) ---
   public getWeeklyAwards = (householdId?: string) => this.social.getWeeklyAwards(householdId);
   public refreshWeeklyAwards = (householdId?: string) => this.social.refreshWeeklyAwards(householdId);
   public getVibeSummary = (householdId?: string, weekKey?: string) => this.social.getVibeSummary(householdId, weekKey);
+  public submitVibePulse = (rating: import('../../types').VibeRating, householdId?: string) =>
+    this.social.submitVibePulse(rating, householdId);
   public submitVibeCheck = (rating: import('../../types').VibeRating, householdId?: string) =>
-    this.social.submitVibeCheck(rating, householdId);
+    this.social.submitVibePulse(rating, householdId);
   public getFavorTokenBalance = (userId?: string) => this.social.getFavorTokenBalance(userId);
+  public awardFavorTokens = (
+    userId: string,
+    amount: number,
+    reason?: 'streak_milestone' | 'weekly_award' | 'roommate_favor',
+    note?: string
+  ) => this.social.awardFavorTokens(userId, amount, reason, note);
   public getSwapRequests = (householdId?: string) => this.social.getSwapRequests(householdId);
+  public proposeChoreSwap = (params: {
+    targetUserId: string;
+    requesterChoreName: string;
+    targetChoreName: string;
+    tokenCost?: number;
+    note?: string;
+  }) => this.social.proposeChoreSwap(params);
   public createSwapRequest = (params: {
     targetUserId: string;
     requesterChoreName: string;
     targetChoreName: string;
     tokenCost?: number;
     note?: string;
-  }) => this.social.createSwapRequest(params);
+  }) => this.social.proposeChoreSwap(params);
+  public resolveChoreSwap = (requestId: string, action: 'accept' | 'decline') =>
+    this.social.resolveChoreSwap(requestId, action);
   public resolveSwapRequest = (requestId: string, action: 'accept' | 'decline') =>
-    this.social.resolveSwapRequest(requestId, action);
+    this.social.resolveChoreSwap(requestId, action);
 
   // --- Diagnostics Facade ---
   public pingSupabaseHealth = () => this.system.pingSupabaseHealth();

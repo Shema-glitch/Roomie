@@ -251,7 +251,7 @@ export interface DutySchedule {
 }
 
 // -------------------------------------------------------------
-// Phase 2: The Features People Love (Awards, Vibes, Favor Tokens)
+// Social & Rituals Domain Types (Weekly Awards, Vibe Pulse, Favor Tokens)
 // -------------------------------------------------------------
 
 export type AwardBadgeId =
@@ -305,7 +305,13 @@ export interface FavorTokenTransaction {
   userId: string;
   type: 'earn' | 'spend';
   amount: number;
-  reason: 'streak_milestone' | 'chore_pickup' | 'chore_swap' | 'roommate_favor' | 'gift';
+  reason:
+    | 'streak_milestone'
+    | 'weekly_award'
+    | 'chore_pickup'
+    | 'chore_swap'
+    | 'roommate_favor'
+    | 'gift';
   note?: string;
   createdAt: string;
 }

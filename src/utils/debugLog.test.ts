@@ -7,19 +7,22 @@ describe('debugLog', () => {
     debugLog.clear();
   });
 
-  it('tracks per-module logs and summary stats across all 11 modules', () => {
-    assert.equal(DEBUG_MODULES.length, 11);
+  it('tracks per-module logs and summary stats across all 12 modules including social', () => {
+    assert.equal(DEBUG_MODULES.length, 12);
 
     debugLog.info('expenses', 'create_expense', 'Added 120.00 TRY', { amount: 120 }, 42);
+    debugLog.info('social', 'submit_vibe_pulse', 'Anonymous vibe pulse recorded', { weekKey: '2026-W46' }, 18);
     debugLog.warn('qr_scanner', 'camera_error', 'Fallback triggered');
     debugLog.error('outbox', 'sync_failed', 'Timeout');
 
     const stats = debugLog.getModuleStats();
     assert.equal(stats.expenses.total, 1);
     assert.equal(stats.expenses.lastDurationMs, 42);
+    assert.equal(stats.social.total, 1);
     assert.equal(stats.qr_scanner.warnings, 1);
     assert.equal(stats.outbox.errors, 1);
     assert.equal(debugLog.getEntries({ module: 'expenses' }).length, 1);
+    assert.equal(debugLog.getEntries({ module: 'social' }).length, 1);
     assert.equal(debugLog.getEntries({ level: 'error' }).length, 1);
   });
 

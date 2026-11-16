@@ -8,7 +8,7 @@ describe('Phase 2 sensory engine: distinct haptics & sound signatures', () => {
 
   beforeEach(() => {
     vibratedPatterns = [];
-    (globalThis as any).window = {
+    Reflect.set(globalThis, 'window', {
       navigator: {
         vibrate: (pattern: number | number[]) => {
           vibratedPatterns.push(pattern);
@@ -21,7 +21,7 @@ describe('Phase 2 sensory engine: distinct haptics & sound signatures', () => {
       },
       addEventListener: () => {},
       removeEventListener: () => {},
-    };
+    });
   });
 
   it('triggers distinct haptic vibration patterns for all 5 Phase 2 signatures + notifications', () => {
@@ -95,7 +95,7 @@ describe('Phase 2 sensory engine: distinct haptics & sound signatures', () => {
       }
     }
 
-    (globalThis as any).window.AudioContext = MockAudioContext;
+    Reflect.set(window, 'AudioContext', MockAudioContext);
 
     const soundSvc = new SoundService();
     // Disabled by default -> no oscillators created

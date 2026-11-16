@@ -79,24 +79,27 @@ flowchart TD
 
 ---
 
-### Phase 2: The Features People Love (Engagement Without Toxicity)
+### Phase 2: The Features People Love (Engagement Without Toxicity — Core Rituals Completed ✅)
 *Objective: Build delightful daily rituals that turn shared living into a positive shared experience.*
 
-1. **Weekly Awards (Everyone Wins)**:
-   - System rotates humorous, uplifting badges (*Kitchen Hero*, *Bin Boss*, *Night Chef*, *Peacemaker*).
+- [x] **1. Weekly Awards (Everyone Wins)**:
+   - System rotates humorous, uplifting badges (*Kitchen Hero*, *Bin Boss*, *Night Chef*, *Peacemaker*, *Streak Master*, *Early Bird*, *The Dependable*, *Flat Cheerleader*) using pre-registered offline `fluent-emoji-flat` vector SVGs.
    - Nominations automatically derived from kudos and on-time completions. No flatmate is ever ranked last.
-2. **Weekly Vibe Check**:
-   - 1-tap weekly mood pulse (5 expressive mascot faces).
-   - **Privacy Guardrail**: Completely anonymous; individual answers are never stored with user IDs. Apartment average is displayed only after at least 3 flatmates submit.
-3. **Favor Tokens**:
-   - Social ledger (earn tokens via chore streaks and helpful acts; spend to swap a chore or pick dinner/movie).
-   - Hard individual token ceiling prevents hoarding or unhealthy dynamic shifts.
-4. **Roomie Wrapped (Monthly & Semester Recap)**:
+   - Paired with unclipped confetti celebration burst and ascending C-Major triad arpeggio (`awardCelebrate`) + double-pulse haptic fanfare.
+- [x] **2. Weekly Vibe Check**:
+   - 1-tap weekly mood pulse (5 expressive vector faces: *On Fire*, *Super Chill*, *Just Okay*, *A Bit Stressed*, *Feeling Low*).
+   - **Privacy Guardrail**: Completely anonymous; individual answers are never stored with user IDs. Apartment average is displayed only after at least 3 flatmates submit (`submit_anonymous_vibe` RPC & k-anonymity RLS).
+   - Empathetic sensory feedback: warm F-Major dyad swell (`vibeSubmit`) for high/neutral moods and soft descending notice for stressed/low moods.
+- [x] **3. Favor Tokens & Chore Swaps**:
+   - Social ledger (earn tokens via chore streaks and helpful acts; spend 1–2 tokens to propose a chore swap).
+   - Hard individual token ceiling (`MAX_FAVOR_TOKENS = 10`) prevents hoarding and automatically converts excess streak/award/swap tokens into celebratory flatmate kudos (`resolve_chore_swap` atomic row-locked RPC).
+   - Distinct tactile audio & haptic signatures (`tokenClink`, `swapAccept`, `softReject`) and idempotent offline outbox integration (`submit_vibe_pulse`, `propose_chore_swap`, `resolve_chore_swap`).
+- [ ] **4. Roomie Wrapped (Monthly & Semester Recap)**:
    - Swipeable story cards summarizing shared accomplishments: total dinners cooked, dispute-free streaks, fastest settlements, and most thanked roomie.
-5. **Apartment Challenges & Cultural Dinners**:
+- [ ] **5. Apartment Challenges & Cultural Dinners**:
    - Cooperative flat progress goals (e.g. "Sparkling Sunday: all chores completed on time for 4 consecutive weeks").
    - Cultural dinner rotation schedule with user-controlled dietary badges (halal, vegetarian, allergy notes).
-6. **Shareable Cards**:
+- [ ] **6. Shareable Cards**:
    - Client-side canvas image generator exporting positive milestone cards to WhatsApp or Instagram stories (strictly zero financial or private data).
 
 ---

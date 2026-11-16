@@ -4,10 +4,6 @@ import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { Chip } from '../../components/common/Chip';
-import { DoneFlowModal } from './DoneFlowModal';
-import { KudosModal } from './KudosModal';
-import { ChoreSwapModal } from './ChoreSwapModal';
-import { AwayModeModal } from './AwayModeModal';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayOfWeek } from '../../types';
 import { DutyTodayBanner } from './DutyTodayBanner';
@@ -16,7 +12,22 @@ import { sound } from '../../services/sound';
 import { ArrowsClockwise, PlusCircle, CheckCircle } from '@phosphor-icons/react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
 import { ChoresSidebar } from './components/ChoresSidebar';
-import { NewChoreModal } from './components/NewChoreModal';
+
+const DoneFlowModal = React.lazy(() =>
+  import('./DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
+);
+const KudosModal = React.lazy(() =>
+  import('./KudosModal').then((m) => ({ default: m.KudosModal }))
+);
+const ChoreSwapModal = React.lazy(() =>
+  import('./ChoreSwapModal').then((m) => ({ default: m.ChoreSwapModal }))
+);
+const AwayModeModal = React.lazy(() =>
+  import('./AwayModeModal').then((m) => ({ default: m.AwayModeModal }))
+);
+const NewChoreModal = React.lazy(() =>
+  import('./components/NewChoreModal').then((m) => ({ default: m.NewChoreModal }))
+);
 
 interface ChoresScreenProps {
   chores: Chore[];
@@ -268,42 +279,54 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
         </div>
       </div>
 
-      <NewChoreModal
-        isOpen={newChoreModalOpen}
-        onClose={() => setNewChoreModalOpen(false)}
-        onAddChore={onAddChore}
-      />
+      <React.Suspense fallback={null}>
+        {newChoreModalOpen && (
+          <NewChoreModal
+            isOpen={newChoreModalOpen}
+            onClose={() => setNewChoreModalOpen(false)}
+            onAddChore={onAddChore}
+          />
+        )}
 
-      <DoneFlowModal
-        isOpen={Boolean(doneModalChore)}
-        onClose={() => setDoneModalChore(null)}
-        chore={doneModalChore}
-        currentUser={currentUser}
-        onComplete={onCompleteChore}
-      />
+        {doneModalChore && (
+          <DoneFlowModal
+            isOpen={Boolean(doneModalChore)}
+            onClose={() => setDoneModalChore(null)}
+            chore={doneModalChore}
+            currentUser={currentUser}
+            onComplete={onCompleteChore}
+          />
+        )}
 
-      <KudosModal
-        isOpen={Boolean(kudosModalData)}
-        onClose={() => setKudosModalData(null)}
-        chore={kudosModalData?.chore || null}
-        targetUser={kudosModalData?.target || null}
-        onGiveKudos={onGiveKudos}
-      />
+        {kudosModalData && (
+          <KudosModal
+            isOpen={Boolean(kudosModalData)}
+            onClose={() => setKudosModalData(null)}
+            chore={kudosModalData?.chore || null}
+            targetUser={kudosModalData?.target || null}
+            onGiveKudos={onGiveKudos}
+          />
+        )}
 
-      <ChoreSwapModal
-        isOpen={Boolean(swapModalChore)}
-        onClose={() => setSwapModalChore(null)}
-        chore={swapModalChore}
-        roommates={roommates.filter((r) => r.id !== currentUser.id)}
-        onSwap={onSwapChore}
-      />
+        {swapModalChore && (
+          <ChoreSwapModal
+            isOpen={Boolean(swapModalChore)}
+            onClose={() => setSwapModalChore(null)}
+            chore={swapModalChore}
+            roommates={roommates.filter((r) => r.id !== currentUser.id)}
+            onSwap={onSwapChore}
+          />
+        )}
 
-      <AwayModeModal
-        isOpen={awayModalOpen}
-        onClose={() => setAwayModalOpen(false)}
-        isAway={Boolean(currentUser.awayUntil)}
-        onSetAway={onSetAway}
-      />
+        {awayModalOpen && (
+          <AwayModeModal
+            isOpen={awayModalOpen}
+            onClose={() => setAwayModalOpen(false)}
+            isAway={Boolean(currentUser.awayUntil)}
+            onSetAway={onSetAway}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 };

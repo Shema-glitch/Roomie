@@ -4,7 +4,6 @@ import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
 import { MascotView } from '../../components/common/MascotView';
-import { DoneFlowModal } from '../chores/DoneFlowModal';
 import {
   User,
   Household,
@@ -40,7 +39,13 @@ import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
 import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
 import { VibeCheckWidget } from './components/VibeCheckWidget';
-import { VibeCheckModal } from './components/VibeCheckModal';
+
+const DoneFlowModal = React.lazy(() =>
+  import('../chores/DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
+);
+const VibeCheckModal = React.lazy(() =>
+  import('./components/VibeCheckModal').then((m) => ({ default: m.VibeCheckModal }))
+);
 
 interface HomeScreenProps {
   currentUser: User;
@@ -413,29 +418,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
-      {doneChoreModalTarget && (
-        <DoneFlowModal
-          isOpen={Boolean(doneChoreModalTarget)}
-          onClose={() => setDoneChoreModalTarget(null)}
-          chore={doneChoreModalTarget}
-          currentUser={currentUser}
-          onComplete={async (choreId: string, photoUrl?: string) => {
-            if (onCompleteChore) {
-              await onCompleteChore(choreId, photoUrl);
-            }
-            setDoneChoreModalTarget(null);
-            showToast('Chore marked as complete! Streak updated.', 'success');
-          }}
-        />
-      )}
+      <React.Suspense fallback={null}>
+        {doneChoreModalTarget && (
+          <DoneFlowModal
+            isOpen={Boolean(doneChoreModalTarget)}
+            onClose={() => setDoneChoreModalTarget(null)}
+            chore={doneChoreModalTarget}
+            currentUser={currentUser}
+            onComplete={async (choreId: string, photoUrl?: string) => {
+              if (onCompleteChore) {
+                await onCompleteChore(choreId, photoUrl);
+              }
+              setDoneChoreModalTarget(null);
+              showToast('Chore marked as complete! Streak updated.', 'success');
+            }}
+          />
+        )}
 
-      {isVibeModalOpen && (
-        <VibeCheckModal
-          isOpen={isVibeModalOpen}
-          onClose={() => setIsVibeModalOpen(false)}
-          onSubmit={handleVibeSubmit}
-        />
-      )}
+        {isVibeModalOpen && (
+          <VibeCheckModal
+            isOpen={isVibeModalOpen}
+            onClose={() => setIsVibeModalOpen(false)}
+            onSubmit={handleVibeSubmit}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 };

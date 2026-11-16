@@ -161,8 +161,9 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       setDutySchedule(dSchedule);
 
       await api.checkDutyDayReminder();
-    } catch (err: any) {
-      setLoadError(err?.message || 'Could not load apartment data.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not load apartment data.';
+      setLoadError(msg);
     }
   }, []);
 

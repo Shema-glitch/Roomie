@@ -31,6 +31,9 @@ import { getCurrentWeekKey } from '../../utils/vibe';
 import { outbox, OutboxActionType } from '../outbox';
 import { debugLog, DebugModule } from '../../utils/debugLog';
 import { supabase } from '../supabase';
+import { Json } from '../../types/database.types';
+
+export type RemoteMutationError = { message: string; code?: string } | null;
 
 export const STORAGE_KEY = 'roomie_prototype_v3_store';
 
@@ -83,11 +86,9 @@ export function createDomainLogger(domainTag: string, defaultModule: DebugModule
       debugLog.info(defaultModule, action, `[${domainTag}] ${summary}`, meta, durationMs);
     },
     warn: (action: string, summary: string, meta?: Record<string, unknown>, durationMs?: number) => {
-      console.warn(`[${domainTag}] ${summary}`, meta);
       debugLog.warn(defaultModule, action, `[${domainTag}] ${summary}`, meta, durationMs);
     },
     error: (action: string, summary: string, meta?: Record<string, unknown>, durationMs?: number) => {
-      console.error(`[${domainTag}] ${summary}`, meta);
       debugLog.error(defaultModule, action, `[${domainTag}] ${summary}`, meta, durationMs);
     },
   };
@@ -750,7 +751,21 @@ export function getInitialStore(): AppStore {
   };
 }
 
-export function mapProfileToUser(p: any): User {
+export interface RawProfileRow {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  avatar?: string | null;
+  country?: string | null;
+  country_code?: string | null;
+  flag?: string | null;
+  is_home?: boolean | null;
+  streak_days?: number | null;
+  points?: number | null;
+  away_until?: string | null;
+}
+
+export function mapProfileToUser(p: RawProfileRow): User {
   return {
     id: p.id,
     name: p.name || 'Roomie',
@@ -759,31 +774,67 @@ export function mapProfileToUser(p: any): User {
     country: p.country || 'Cyprus',
     countryCode: p.country_code || 'CY',
     flag: p.flag || '🏠',
-    isHome: p.is_home !== undefined ? p.is_home : true,
+    isHome: p.is_home !== undefined && p.is_home !== null ? p.is_home : true,
     streakDays: p.streak_days || 0,
     points: p.points || 0,
     awayUntil: p.away_until || null,
   };
 }
 
-export function mapHousehold(h: any): Household {
+export interface RawHouseholdRow {
+  id: string;
+  name: string;
+  currency?: Household['currency'] | null;
+  invite_code: string;
+  invites_enabled?: boolean | null;
+  created_by?: string | null;
+  settings?: unknown;
+  created_at?: string | null;
+}
+
+export function mapHousehold(h: RawHouseholdRow): Household {
+  const settingsObj = (h.settings && typeof h.settings === 'object' ? h.settings : {}) as {
+    rotationInterval?: 'weekly' | 'monthly';
+    rotatingAdmin?: boolean;
+    quietHours?: string;
+  };
   return {
     id: h.id,
     name: h.name,
     currency: h.currency || 'TRY',
     inviteCode: h.invite_code,
-    invitesEnabled: h.invites_enabled !== undefined ? h.invites_enabled : true,
-    createdBy: h.created_by,
+    invitesEnabled: h.invites_enabled !== undefined && h.invites_enabled !== null ? h.invites_enabled : true,
+    createdBy: h.created_by || '',
     settings: {
-      rotationInterval: h.settings?.rotationInterval || 'weekly',
-      rotatingAdmin: Boolean(h.settings?.rotatingAdmin),
-      quietHours: h.settings?.quietHours || '23:00 - 08:00',
+      rotationInterval: settingsObj.rotationInterval || 'weekly',
+      rotatingAdmin: Boolean(settingsObj.rotatingAdmin),
+      quietHours: settingsObj.quietHours || '23:00 - 08:00',
     },
-    createdAt: h.created_at,
+    createdAt: h.created_at || new Date().toISOString(),
   };
 }
 
-export function mapExpense(e: any, shares: any[] = []): Expense {
+export interface RawExpenseShareRow {
+  user_id: string;
+  share_amount: number | string;
+  response: Expense['shares'][number]['response'];
+  dispute_reason?: string | null;
+}
+
+export interface RawExpenseRow {
+  id: string;
+  household_id: string;
+  paid_by: string;
+  title: string;
+  amount: number | string;
+  category: Expense['category'];
+  receipt_url?: string | null;
+  date: string;
+  status: Expense['status'];
+  created_at?: string | null;
+}
+
+export function mapExpense(e: RawExpenseRow, shares: RawExpenseShareRow[] = []): Expense {
   return {
     id: e.id,
     householdId: e.household_id,
@@ -800,11 +851,22 @@ export function mapExpense(e: any, shares: any[] = []): Expense {
       response: s.response,
       disputeReason: s.dispute_reason || undefined,
     })),
-    createdAt: e.created_at,
+    createdAt: e.created_at || new Date().toISOString(),
   };
 }
 
-export function mapSettlement(s: any): Settlement {
+export interface RawSettlementRow {
+  id: string;
+  household_id: string;
+  from_user: string;
+  to_user: string;
+  amount: number | string;
+  status: Settlement['status'];
+  created_at?: string | null;
+  confirmed_at?: string | null;
+}
+
+export function mapSettlement(s: RawSettlementRow): Settlement {
   return {
     id: s.id,
     householdId: s.household_id,
@@ -812,25 +874,47 @@ export function mapSettlement(s: any): Settlement {
     toUser: s.to_user,
     amount: Number(s.amount),
     status: s.status,
-    createdAt: s.created_at,
+    createdAt: s.created_at || new Date().toISOString(),
     confirmedAt: s.confirmed_at || undefined,
   };
 }
 
-export function mapChore(c: any): Chore {
+export interface RawChoreRow {
+  id: string;
+  household_id: string;
+  name: string;
+  frequency: Chore['frequency'];
+  effort_level: Chore['effortLevel'];
+  active?: boolean | null;
+  description?: string | null;
+  icon_name?: string | null;
+}
+
+export function mapChore(c: RawChoreRow): Chore {
   return {
     id: c.id,
     householdId: c.household_id,
     name: c.name,
     frequency: c.frequency,
     effortLevel: c.effort_level,
-    active: c.active !== undefined ? c.active : true,
+    active: c.active !== undefined && c.active !== null ? c.active : true,
     description: c.description || '',
     iconName: c.icon_name || 'Sparkles',
   };
 }
 
-export function mapMeetingTopic(t: any): MeetingTopic {
+export interface RawMeetingTopicRow {
+  id: string;
+  household_id: string;
+  proposed_by: string;
+  title: string;
+  description?: string | null;
+  status: MeetingTopic['status'];
+  votes?: unknown;
+  comments?: unknown;
+}
+
+export function mapMeetingTopic(t: RawMeetingTopicRow): MeetingTopic {
   return {
     id: t.id,
     householdId: t.household_id,
@@ -838,12 +922,21 @@ export function mapMeetingTopic(t: any): MeetingTopic {
     title: t.title,
     description: t.description || '',
     status: t.status,
-    votes: (t.votes as any) || [],
-    comments: (t.comments as any) || [],
+    votes: Array.isArray(t.votes) ? (t.votes as MeetingTopic['votes']) : [],
+    comments: Array.isArray(t.comments) ? (t.comments as MeetingTopic['comments']) : [],
   };
 }
 
-export function mapAgreement(a: any): HouseAgreement {
+export interface RawAgreementRow {
+  id: string;
+  household_id: string;
+  text: string;
+  category?: string | null;
+  agreed_at?: string | null;
+  created_at?: string | null;
+}
+
+export function mapAgreement(a: RawAgreementRow): HouseAgreement {
   return {
     id: a.id,
     householdId: a.household_id,
@@ -853,16 +946,30 @@ export function mapAgreement(a: any): HouseAgreement {
   };
 }
 
-export function mapNotification(n: any): InAppNotification {
+export interface RawNotificationRow {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string;
+  read?: boolean | null;
+  created_at?: string | null;
+  link_target?: unknown;
+}
+
+export function mapNotification(n: RawNotificationRow): InAppNotification {
   return {
     id: n.id,
     userId: n.user_id,
-    type: n.type,
+    type: n.type as InAppNotification['type'],
     title: n.title,
     body: n.body,
     read: Boolean(n.read),
-    createdAt: n.created_at,
-    linkTarget: n.link_target || undefined,
+    createdAt: n.created_at || new Date().toISOString(),
+    linkTarget:
+      n.link_target && typeof n.link_target === 'object'
+        ? (n.link_target as InAppNotification['linkTarget'])
+        : undefined,
   };
 }
 
@@ -885,20 +992,34 @@ export function toChoreAssignmentRow(roundId: string, a: ChoreAssignment) {
     scheduled_time: a.scheduledTime,
     completed_today: a.completedToday,
     last_photo_url: a.lastPhotoUrl || null,
-    kudos: (a.kudos || []) as any,
+    kudos: (a.kudos || []) as unknown as Json,
   };
 }
 
-export function mapChatMessage(m: any): ChatMessage {
+export interface RawChatMessageRow {
+  id: string;
+  household_id: string;
+  sender_id?: string | null;
+  type: string;
+  body: string;
+  link_target?: unknown;
+  reactions?: unknown;
+  created_at?: string | null;
+}
+
+export function mapChatMessage(m: RawChatMessageRow): ChatMessage {
   return {
     id: m.id,
     householdId: m.household_id,
-    senderId: m.sender_id,
-    type: m.type,
+    senderId: m.sender_id || null,
+    type: m.type as ChatMessage['type'],
     body: m.body,
-    linkTarget: m.link_target || undefined,
-    reactions: m.reactions || [],
-    createdAt: m.created_at,
+    linkTarget:
+      m.link_target && typeof m.link_target === 'object'
+        ? (m.link_target as ChatMessage['linkTarget'])
+        : undefined,
+    reactions: Array.isArray(m.reactions) ? (m.reactions as ChatMessage['reactions']) : [],
+    createdAt: m.created_at || new Date().toISOString(),
   };
 }
 
@@ -936,6 +1057,14 @@ export function saveStore(store: AppStore): void {
 }
 
 export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule {
+  if (
+    type === 'submit_vibe_pulse' ||
+    type === 'propose_chore_swap' ||
+    type === 'resolve_chore_swap' ||
+    type === 'swap_chore'
+  ) {
+    return 'social';
+  }
   if (type.includes('expense')) return 'expenses';
   if (type.includes('settlement')) return 'settlements';
   if (type.includes('draft') || type.includes('chore') || type.includes('kudos') || type.includes('assignment')) {
@@ -954,7 +1083,7 @@ export function dispatchRemoteMutation<T>(
   outboxType: OutboxActionType,
   payload: T,
   summary: string,
-  remoteExec: () => Promise<{ error: any } | void>
+  remoteExec: () => Promise<{ error: RemoteMutationError } | void>
 ): void {
   if (isDemoMode || !isUuid(householdId)) return;
   const action = outbox.enqueue(householdId, outboxType, payload);
@@ -978,9 +1107,9 @@ export function dispatchRemoteMutation<T>(
         }, durationMs);
       }
     })
-    .catch((err: any) => {
+    .catch((err: unknown) => {
       const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
-      const msg = err?.message || 'Network error';
+      const msg = err instanceof Error ? err.message : 'Network error';
       outbox.markFailed(action.id, msg);
       debugLog.error(module, outboxType, `${summary} network error: ${msg}`, { householdId, actionId: action.id }, durationMs);
     });

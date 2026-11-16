@@ -5,13 +5,14 @@ import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
-import { sound } from '../../services/sound';
-import { haptics } from '../../utils/haptics';
+import { sound, isSoundEnabled, setSoundEnabled } from '../../services/sound';
+import { haptics, isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics';
 import {
   Camera,
   UploadSimple,
   SpeakerHigh,
   SpeakerSlash,
+  Vibrate,
   Eye,
   Bell,
   Globe,
@@ -146,18 +147,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   };
 
   const toggleSound = async () => {
-    const next = !settings.soundEnabled;
-    sound.setEnabled(next);
-    if (next) sound.playSuccess();
+    const current = settings.soundEnabled ?? isSoundEnabled();
+    const next = !current;
+    setSoundEnabled(next);
+    if (next) sound.awardCelebrate();
     await onUpdateSettings({ soundEnabled: next });
     showToast(next ? 'Sound effects enabled' : 'Sound effects muted', 'info');
   };
 
   const toggleHaptics = async () => {
-    const currentHaptics = settings.hapticsEnabled ?? haptics.isEnabled();
+    const currentHaptics = settings.hapticsEnabled ?? isHapticsEnabled();
     const next = !currentHaptics;
-    haptics.setEnabled(next);
-    if (next) haptics.tokenClink();
+    setHapticsEnabled(next);
+    if (next) haptics.awardCelebrate();
     await onUpdateSettings({ hapticsEnabled: next });
     showToast(next ? 'Haptic vibration enabled' : 'Haptic vibration muted', 'info');
   };
@@ -475,15 +477,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 <span className="text-[14px] font-bold text-[#1F2430]">Language</span>
               </div>
               <div className="flex gap-1">
-                {[
-                  { id: 'en', label: 'EN' },
-                  { id: 'tr', label: 'TR' },
-                  { id: 'fr', label: 'FR' },
-                  { id: 'ar', label: 'العربية' },
-                ].map((l) => (
+                {(
+                  [
+                    { id: 'en', label: 'EN' },
+                    { id: 'tr', label: 'TR' },
+                    { id: 'fr', label: 'FR' },
+                    { id: 'ar', label: 'العربية' },
+                  ] satisfies Array<{ id: UserSettings['language']; label: string }>
+                ).map((l) => (
                   <button
                     key={l.id}
-                    onClick={() => handleLanguageChange(l.id as any)}
+                    onClick={() => handleLanguageChange(l.id)}
                     className={`px-2.5 py-1.5 rounded-xl text-[14px] font-bold cursor-pointer transition-[transform,background-color] duration-150 active:translate-y-[1px] min-h-[38px] flex items-center justify-center ${
                       settings.language === l.id
                         ? 'bg-[#FF6B4A] text-white shadow-2xs'
@@ -500,7 +504,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile
-                  icon={settings.soundEnabled ? <SpeakerHigh className="w-4 h-4" /> : <SpeakerSlash className="w-4 h-4" />}
+                  icon={
+                    settings.soundEnabled ? (
+                      <SpeakerHigh weight="duotone" className="w-4 h-4" />
+                    ) : (
+                      <SpeakerSlash weight="duotone" className="w-4 h-4" />
+                    )
+                  }
                   color="coral"
                   size="sm"
                 />
@@ -515,14 +525,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={settings.soundEnabled}
+                aria-label="Toggle sound effects"
                 onClick={toggleSound}
-                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
-                  settings.soundEnabled ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
+                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                  settings.soundEnabled
+                    ? 'bg-[#FF6B4A] border-[#D94E30]'
+                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
                 }`}
               >
                 <span
                   className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    settings.soundEnabled ? 'right-1' : 'left-1'
+                    settings.soundEnabled ? 'right-0.5' : 'left-0.5'
                   }`}
                 />
               </button>
@@ -531,7 +546,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             {/* Haptics Toggle */}
             <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
-                <IconTile icon={<DeviceMobile className="w-4 h-4" />} color="indigo" size="sm" />
+                <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
                 <div>
                   <span className="text-[14px] font-bold text-[#1F2430] block">
                     Haptic feedback
@@ -543,14 +558,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={settings.hapticsEnabled ?? isHapticsEnabled()}
+                aria-label="Toggle haptic feedback"
                 onClick={toggleHaptics}
-                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
-                  (settings.hapticsEnabled ?? haptics.isEnabled()) ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
+                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                  (settings.hapticsEnabled ?? isHapticsEnabled())
+                    ? 'bg-[#FF6B4A] border-[#D94E30]'
+                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
                 }`}
               >
                 <span
                   className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    (settings.hapticsEnabled ?? haptics.isEnabled()) ? 'right-1' : 'left-1'
+                    (settings.hapticsEnabled ?? isHapticsEnabled()) ? 'right-0.5' : 'left-0.5'
                   }`}
                 />
               </button>

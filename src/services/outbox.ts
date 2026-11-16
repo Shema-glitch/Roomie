@@ -30,11 +30,14 @@ export type OutboxActionType =
   | 'add_comment'
   | 'add_agreement'
   | 'mark_notification_read'
-  | 'mark_all_notifications_read';
+  | 'mark_all_notifications_read'
+  | 'submit_vibe_pulse'
+  | 'propose_chore_swap'
+  | 'resolve_chore_swap';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'synced';
 
-export interface OutboxItem<T = any> {
+export interface OutboxItem<T = unknown> {
   id: string; // Action UUID
   householdId: string;
   type: OutboxActionType;
@@ -177,8 +180,9 @@ class OutboxService {
         } else {
           this.markFailed(item.id, 'Sync handler returned false');
         }
-      } catch (err: any) {
-        this.markFailed(item.id, err?.message || 'Sync failed');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Sync failed';
+        this.markFailed(item.id, msg);
       }
     }
   }

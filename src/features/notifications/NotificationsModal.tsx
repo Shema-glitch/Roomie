@@ -73,16 +73,18 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
         {/* Filter pills & Mark All Read */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
           <div className="flex gap-1.5">
-            {[
-              { id: 'all', label: 'All' },
-              { id: 'chore', label: 'Chores' },
-              { id: 'expense', label: 'Money' },
-            ].map((f) => (
+            {(
+              [
+                { id: 'all', label: 'All' },
+                { id: 'chore', label: 'Chores' },
+                { id: 'expense', label: 'Money' },
+              ] satisfies Array<{ id: 'all' | 'chore' | 'expense'; label: string }>
+            ).map((f) => (
               <button
                 key={f.id}
                 onClick={() => {
                   sound.playTap();
-                  setFilter(f.id as any);
+                  setFilter(f.id);
                 }}
                 className={`px-3 py-1.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] cursor-pointer min-h-[44px] flex items-center justify-center ${
                   filter === f.id

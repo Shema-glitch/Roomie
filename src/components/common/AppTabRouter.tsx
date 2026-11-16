@@ -20,12 +20,23 @@ import {
   ExpenseCategory,
 } from '../../types';
 import { NetBalance } from '../../utils/balances';
+import { ScreenSkeleton } from './PageSkeletons';
 
-import { HomeScreen } from '../../features/feed/HomeScreen';
-import { ChoresScreen } from '../../features/chores/ChoresScreen';
-import { ExpensesScreen } from '../../features/expenses/ExpensesScreen';
-import { ChatScreen } from '../../features/chat/ChatScreen';
-import { ApartmentScreen } from '../../features/members/ApartmentScreen';
+const HomeScreen = React.lazy(() =>
+  import('../../features/feed/HomeScreen').then((m) => ({ default: m.HomeScreen }))
+);
+const ChoresScreen = React.lazy(() =>
+  import('../../features/chores/ChoresScreen').then((m) => ({ default: m.ChoresScreen }))
+);
+const ExpensesScreen = React.lazy(() =>
+  import('../../features/expenses/ExpensesScreen').then((m) => ({ default: m.ExpensesScreen }))
+);
+const ChatScreen = React.lazy(() =>
+  import('../../features/chat/ChatScreen').then((m) => ({ default: m.ChatScreen }))
+);
+const ApartmentScreen = React.lazy(() =>
+  import('../../features/members/ApartmentScreen').then((m) => ({ default: m.ApartmentScreen }))
+);
 
 interface AppTabRouterProps {
   activeTab: AppTab;
@@ -228,178 +239,182 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
       [setSelectedExpenseAction]
     );
 
-    if (activeTab === 'feed') {
-      return (
-        <HomeScreen
-          currentUser={currentUser}
-          household={activeHousehold}
-          roommates={roommatesList}
-          chores={chores}
-          assignments={draftRound.assignments}
-          draftRound={draftRound}
-          expenses={expenses}
-          activityMessages={messages}
-          pendingJoinRequests={pendingJoinRequests}
-          netBalance={myNetBalance}
-          dutySchedule={dutySchedule}
-          onNavigateTab={setActiveTab}
-          onOpenChoreReveal={handleOpenChoreReveal}
-          onOpenDraftPicks={handleOpenDraftPicks}
-          onOpenTimetable={handleOpenTimetable}
-          onCompleteTodayDuty={handleCompleteTodayDuty}
-          onSelectExpense={(id) => {
-            setSelectedExpenseId(id);
-            setActiveTab('expenses');
-          }}
-          onSelectJoinRequest={setReviewJoinRequest}
-          onToggleHomeStatus={async () => {
-            const next = await api.toggleHomeStatus();
-            setCurrentUser((prev) => (prev ? { ...prev, isHome: next } : null));
-            showToast(next ? 'Marked as at home 🏠' : 'Marked as out 🏃‍♂️', 'info');
-          }}
-          onCompleteChore={handleCompleteChore}
-          onGiveKudos={handleGiveKudos}
-          onOpenExpensesAction={(action) => {
-            setSelectedExpenseAction(action);
-            setActiveTab('expenses');
-          }}
-          onRemindRoomies={async () => {
-            await api.remindRoomies(
-              'Gentle reminder to settle apartment balances when you have a moment 🙏'
-            );
-            await loadData();
-          }}
-        />
-      );
-    }
-
-    if (activeTab === 'chores') {
-      return (
-        <ChoresScreen
-          chores={chores}
-          assignments={draftRound.assignments}
-          draftRound={draftRound}
-          roommates={roommatesList}
-          currentUser={currentUser}
-          dutySchedule={dutySchedule}
-          onOpenDraftPicks={handleOpenDraftPicks}
-          onOpenReveal={handleOpenChoreReveal}
-          onOpenTimetable={handleOpenTimetable}
-          onCompleteTodayDuty={handleCompleteTodayDuty}
-          onCompleteChore={handleCompleteChore}
-          onGiveKudos={handleGiveKudos}
-          onSwapChore={handleSwapChore}
-          onSetAway={handleSetAway}
-          onAddChore={handleAddChore}
-        />
-      );
-    }
-
-    if (activeTab === 'expenses') {
-      return (
-        <ExpensesScreen
-          expenses={expenses}
-          settlements={settlements}
-          roommates={roommatesList}
-          currentUser={currentUser}
-          currency={activeHousehold.currency}
-          initialExpenseId={selectedExpenseId}
-          onClearInitialExpense={handleClearInitialExpense}
-          initialAction={selectedExpenseAction}
-          onClearInitialAction={handleClearInitialAction}
-          balances={balances}
-          onAddExpense={handleAddExpense}
-          onRespondExpense={handleRespondExpense}
-          onEditSplit={handleEditSplit}
-          onCancelExpense={handleCancelExpense}
-          onRemindRoomies={handleRemindRoomies}
-          onMarkPaid={handleMarkPaid}
-          onConfirmSettlement={handleConfirmSettlement}
-          onOpenChat={handleOpenChat}
-        />
-      );
-    }
-
-    if (activeTab === 'chat') {
-      return (
-        <ChatScreen
-          messages={messages}
-          roommates={roommatesList}
-          currentUser={currentUser}
-          draftRound={draftRound}
-          householdName={activeHousehold.name}
-          onSendMessage={async (text) => {
-            const m = await api.sendMessage(text);
-            await loadData();
-            return m;
-          }}
-          onAddReaction={async (msgId, emoji) => {
-            await api.addReaction(msgId, emoji);
-            await loadData();
-          }}
-          onNavigateAction={(target) => {
-            if (target.screen === 'expenses') {
-              if (target.id) setSelectedExpenseId(target.id);
+    const renderActiveTabContent = () => {
+      if (activeTab === 'feed') {
+        return (
+          <HomeScreen
+            currentUser={currentUser}
+            household={activeHousehold}
+            roommates={roommatesList}
+            chores={chores}
+            assignments={draftRound.assignments}
+            draftRound={draftRound}
+            expenses={expenses}
+            activityMessages={messages}
+            pendingJoinRequests={pendingJoinRequests}
+            netBalance={myNetBalance}
+            dutySchedule={dutySchedule}
+            onNavigateTab={setActiveTab}
+            onOpenChoreReveal={handleOpenChoreReveal}
+            onOpenDraftPicks={handleOpenDraftPicks}
+            onOpenTimetable={handleOpenTimetable}
+            onCompleteTodayDuty={handleCompleteTodayDuty}
+            onSelectExpense={(id) => {
+              setSelectedExpenseId(id);
               setActiveTab('expenses');
-            }
-            if (target.screen === 'chores') setActiveTab('chores');
-            if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
-            if (target.screen === 'chore-draft') setDraftFlowState('picking');
-            if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
-            if (target.screen === 'members' || target.screen === 'apartment') {
-              setActiveTab('apartment');
-            }
+            }}
+            onSelectJoinRequest={setReviewJoinRequest}
+            onToggleHomeStatus={async () => {
+              const next = await api.toggleHomeStatus();
+              setCurrentUser((prev) => (prev ? { ...prev, isHome: next } : null));
+              showToast(next ? 'Marked as at home' : 'Marked as out', 'info');
+            }}
+            onCompleteChore={handleCompleteChore}
+            onGiveKudos={handleGiveKudos}
+            onOpenExpensesAction={(action) => {
+              setSelectedExpenseAction(action);
+              setActiveTab('expenses');
+            }}
+            onRemindRoomies={async () => {
+              await api.remindRoomies(
+                'Gentle reminder to settle apartment balances when you have a moment'
+              );
+              await loadData();
+            }}
+          />
+        );
+      }
+
+      if (activeTab === 'chores') {
+        return (
+          <ChoresScreen
+            chores={chores}
+            assignments={draftRound.assignments}
+            draftRound={draftRound}
+            roommates={roommatesList}
+            currentUser={currentUser}
+            dutySchedule={dutySchedule}
+            onOpenDraftPicks={handleOpenDraftPicks}
+            onOpenReveal={handleOpenChoreReveal}
+            onOpenTimetable={handleOpenTimetable}
+            onCompleteTodayDuty={handleCompleteTodayDuty}
+            onCompleteChore={handleCompleteChore}
+            onGiveKudos={handleGiveKudos}
+            onSwapChore={handleSwapChore}
+            onSetAway={handleSetAway}
+            onAddChore={handleAddChore}
+          />
+        );
+      }
+
+      if (activeTab === 'expenses') {
+        return (
+          <ExpensesScreen
+            expenses={expenses}
+            settlements={settlements}
+            roommates={roommatesList}
+            currentUser={currentUser}
+            currency={activeHousehold.currency}
+            initialExpenseId={selectedExpenseId}
+            onClearInitialExpense={handleClearInitialExpense}
+            initialAction={selectedExpenseAction}
+            onClearInitialAction={handleClearInitialAction}
+            balances={balances}
+            onAddExpense={handleAddExpense}
+            onRespondExpense={handleRespondExpense}
+            onEditSplit={handleEditSplit}
+            onCancelExpense={handleCancelExpense}
+            onRemindRoomies={handleRemindRoomies}
+            onMarkPaid={handleMarkPaid}
+            onConfirmSettlement={handleConfirmSettlement}
+            onOpenChat={handleOpenChat}
+          />
+        );
+      }
+
+      if (activeTab === 'chat') {
+        return (
+          <ChatScreen
+            messages={messages}
+            roommates={roommatesList}
+            currentUser={currentUser}
+            draftRound={draftRound}
+            householdName={activeHousehold.name}
+            onSendMessage={async (text) => {
+              const m = await api.sendMessage(text);
+              await loadData();
+              return m;
+            }}
+            onAddReaction={async (msgId, emoji) => {
+              await api.addReaction(msgId, emoji);
+              await loadData();
+            }}
+            onNavigateAction={(target) => {
+              if (target.screen === 'expenses') {
+                if (target.id) setSelectedExpenseId(target.id);
+                setActiveTab('expenses');
+              }
+              if (target.screen === 'chores') setActiveTab('chores');
+              if (target.screen === 'chore-reveal') setDraftFlowState('reveal');
+              if (target.screen === 'chore-draft') setDraftFlowState('picking');
+              if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
+              if (target.screen === 'members' || target.screen === 'apartment') {
+                setActiveTab('apartment');
+              }
+            }}
+          />
+        );
+      }
+
+      return (
+        <ApartmentScreen
+          household={activeHousehold}
+          members={members}
+          currentUser={currentUser}
+          netBalance={myNetBalance}
+          topics={topics}
+          agreements={agreements}
+          roommates={roommatesList}
+          joinRequests={joinRequests}
+          onReviewJoinRequest={setReviewJoinRequest}
+          onShowQR={() => setShowQROpen(true)}
+          onHandoverAdmin={async (toUserId) => {
+            await api.handoverAdmin(toUserId);
+            await loadData();
           }}
+          onRemoveMember={async (userId) => {
+            await api.removeHouseholdMember(activeHousehold.id, userId);
+            await loadData();
+          }}
+          onLeaveHousehold={async () => {
+            await api.leaveHousehold(activeHousehold.id);
+            await loadData();
+          }}
+          onCreateTopic={async (title, desc) => {
+            const t = await api.createMeetingTopic(title, desc);
+            await loadData();
+            return t;
+          }}
+          onVoteTopic={async (topicId, vote) => {
+            await api.voteTopic(topicId, vote);
+            await loadData();
+          }}
+          onAddComment={async (topicId, text) => {
+            await api.addCommentToTopic(topicId, text);
+            await loadData();
+          }}
+          onAddAgreement={async (text, cat) => {
+            const a = await api.addAgreement(text, cat);
+            await loadData();
+            return a;
+          }}
+          onOpenHouseholdSwitcher={() => setHouseholdSwitcherOpen(true)}
+          onOpenHowItWorks={() => setShowOnboarding(true)}
         />
       );
-    }
+    };
 
-    return (
-      <ApartmentScreen
-        household={activeHousehold}
-        members={members}
-        currentUser={currentUser}
-        netBalance={myNetBalance}
-        topics={topics}
-        agreements={agreements}
-        roommates={roommatesList}
-        joinRequests={joinRequests}
-        onReviewJoinRequest={setReviewJoinRequest}
-        onShowQR={() => setShowQROpen(true)}
-        onHandoverAdmin={async (toUserId) => {
-          await api.handoverAdmin(toUserId);
-          await loadData();
-        }}
-        onRemoveMember={async (userId) => {
-          await api.removeHouseholdMember(activeHousehold.id, userId);
-          await loadData();
-        }}
-        onLeaveHousehold={async () => {
-          await api.leaveHousehold(activeHousehold.id);
-          await loadData();
-        }}
-        onCreateTopic={async (title, desc) => {
-          const t = await api.createMeetingTopic(title, desc);
-          await loadData();
-          return t;
-        }}
-        onVoteTopic={async (topicId, vote) => {
-          await api.voteTopic(topicId, vote);
-          await loadData();
-        }}
-        onAddComment={async (topicId, text) => {
-          await api.addCommentToTopic(topicId, text);
-          await loadData();
-        }}
-        onAddAgreement={async (text, cat) => {
-          const a = await api.addAgreement(text, cat);
-          await loadData();
-          return a;
-        }}
-        onOpenHouseholdSwitcher={() => setHouseholdSwitcherOpen(true)}
-        onOpenHowItWorks={() => setShowOnboarding(true)}
-      />
-    );
+    return <React.Suspense fallback={<ScreenSkeleton />}>{renderActiveTabContent()}</React.Suspense>;
   }
 );
 AppTabRouter.displayName = 'AppTabRouter';

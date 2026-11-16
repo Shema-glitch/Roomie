@@ -481,3 +481,31 @@ export class SoundService {
 }
 
 export const sound = new SoundService();
+
+export function isSoundEnabled(): boolean {
+  return sound.isEnabled();
+}
+
+export function setSoundEnabled(enabled: boolean): void {
+  sound.setEnabled(enabled);
+}
+
+export function awardCelebrate(): void {
+  sound.awardCelebrate();
+}
+
+export function vibeSubmit(mood?: string): void {
+  sound.vibeSubmit(mood);
+}
+
+export function tokenClink(): void {
+  sound.tokenClink();
+}
+
+export function swapAccept(): void {
+  sound.swapAccept();
+}
+
+export function softReject(): void {
+  sound.softReject();
+}

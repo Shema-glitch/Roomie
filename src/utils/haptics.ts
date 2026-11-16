@@ -246,3 +246,31 @@ export class HapticService {
 }
 
 export const haptics = new HapticService();
+
+export function isHapticsEnabled(): boolean {
+  return haptics.isEnabled();
+}
+
+export function setHapticsEnabled(enabled: boolean): void {
+  haptics.setEnabled(enabled);
+}
+
+export function awardCelebrateHaptic(): void {
+  haptics.awardCelebrate();
+}
+
+export function vibeSubmitHaptic(): void {
+  haptics.vibeSubmit();
+}
+
+export function tokenClinkHaptic(): void {
+  haptics.tokenClink();
+}
+
+export function swapAcceptHaptic(): void {
+  haptics.swapAccept();
+}
+
+export function softRejectHaptic(): void {
+  haptics.softReject();
+}

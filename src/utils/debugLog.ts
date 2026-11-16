@@ -6,6 +6,7 @@ export type DebugModule =
   | 'governance'
   | 'chat'
   | 'notifications'
+  | 'social'
   | 'qr_scanner'
   | 'storage'
   | 'outbox'
@@ -27,6 +28,7 @@ export const DEBUG_MODULES: readonly DebugModuleInfo[] = [
   { id: 'governance', label: 'Governance', description: 'Meeting topics, votes, comments & house agreements' },
   { id: 'chat', label: 'House Chat', description: 'Messages, linked items & emoji reactions' },
   { id: 'notifications', label: 'Notifications', description: 'Inbox alerts & read acknowledgments' },
+  { id: 'social', label: 'Social & Rituals', description: 'Weekly honors, anonymous vibe pulse & favor token swaps' },
   { id: 'qr_scanner', label: 'QR & Invites', description: 'BarcodeDetector / jsQR camera scan & deep-link parsing' },
   { id: 'storage', label: 'Photo Storage', description: 'Client JPEG compression, bucket uploads & signed URLs' },
   { id: 'outbox', label: 'Offline Outbox', description: 'Persistent offline queue & retry replay engine' },
@@ -205,11 +207,12 @@ class DebugLogger {
         meta: info.meta,
       });
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const durationMs = nowMs() - started;
-      this.log(module, 'error', action, err?.message || `${action} failed`, {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      this.log(module, 'error', action, errMsg || `${action} failed`, {
         durationMs,
-        meta: { error: err?.message || String(err) },
+        meta: { error: errMsg },
       });
       throw err;
     }

@@ -1216,15 +1216,87 @@ export type Database = {
           },
         ]
       }
+      chore_swap_requests: {
+        Row: {
+          created_at: string | null
+          deleted_at: string | null
+          household_id: string
+          id: string
+          note: string | null
+          requester_chore_name: string
+          requester_user_id: string
+          status: string
+          target_chore_name: string
+          target_user_id: string
+          token_cost: number
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          deleted_at?: string | null
+          household_id: string
+          id?: string
+          note?: string | null
+          requester_chore_name: string
+          requester_user_id: string
+          status?: string
+          target_chore_name?: string
+          target_user_id: string
+          token_cost?: number
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          deleted_at?: string | null
+          household_id?: string
+          id?: string
+          note?: string | null
+          requester_chore_name?: string
+          requester_user_id?: string
+          status?: string
+          target_chore_name?: string
+          target_user_id?: string
+          token_cost?: number
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_swap_requests_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_swap_requests_requester_user_id_fkey"
+            columns: ["requester_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_swap_requests_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibe_pulses: {
         Row: {
           created_at: string | null
           deleted_at: string | null
           household_id: string
           id: string
+          rating: string | null
           score: number
           updated_at: string | null
           version: number | null
+          week_key: string | null
           week_start: string
         }
         Insert: {
@@ -1232,19 +1304,23 @@ export type Database = {
           deleted_at?: string | null
           household_id: string
           id?: string
+          rating?: string | null
           score: number
           updated_at?: string | null
           version?: number | null
-          week_start: string
+          week_key?: string | null
+          week_start?: string
         }
         Update: {
           created_at?: string | null
           deleted_at?: string | null
           household_id?: string
           id?: string
+          rating?: string | null
           score?: number
           updated_at?: string | null
           version?: number | null
+          week_key?: string | null
           week_start?: string
         }
         Relationships: [
@@ -1263,6 +1339,14 @@ export type Database = {
     }
     Functions: {
       is_household_member: { Args: { h_id: string }; Returns: boolean }
+      submit_anonymous_vibe: {
+        Args: { p_household_id: string; p_week_key: string; p_rating: string }
+        Returns: Json
+      }
+      resolve_chore_swap: {
+        Args: { p_request_id: string; p_action: string }
+        Returns: Json
+      }
     }
     Enums: {
       chore_frequency: "daily" | "weekly"

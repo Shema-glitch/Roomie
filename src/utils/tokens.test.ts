@@ -5,7 +5,9 @@ import {
   createChoreSwapRequest,
   resolveChoreSwapRequest,
   applyTokenTransactions,
+  awardFavorTokensWithCap,
   INITIAL_FAVOR_TOKENS,
+  MAX_FAVOR_TOKENS,
 } from './tokens';
 
 describe('favor tokens & chore swap engine', () => {
@@ -95,5 +97,38 @@ describe('favor tokens & chore swap engine', () => {
     ];
     const safeBalance = applyTokenTransactions(2, spendTxs, 'u_kai');
     assert.strictEqual(safeBalance, 0);
+  });
+
+  it('enforces MAX_FAVOR_TOKENS = 10 anti-hoarding cap and converts excess streak/award tokens into celebratory kudos', () => {
+    const outcome = awardFavorTokensWithCap({
+      currentBalance: 9,
+      amount: 3,
+      householdId: 'h1',
+      userId: 'u_kai',
+      reason: 'streak_milestone',
+      fromUserId: 'u_amina',
+    });
+
+    assert.strictEqual(outcome.newBalance, MAX_FAVOR_TOKENS);
+    assert.strictEqual(outcome.tokensAdded, 1);
+    assert.strictEqual(outcome.overflowConvertedToKudos, 2);
+    assert.strictEqual(outcome.celebratoryKudos.length, 2);
+    assert.strictEqual(outcome.celebratoryKudos[0].type, 'great_job');
+    assert.ok(outcome.transaction);
+    assert.strictEqual(outcome.transaction?.amount, 1);
+
+    // Also verify swap resolution at cap converts overflow to celebratory kudos
+    const swapAtCap = createChoreSwapRequest({
+      householdId: 'h1',
+      requesterUserId: 'u_amina',
+      targetUserId: 'u_kai',
+      requesterChoreName: 'Vacuum Hallway',
+      targetChoreName: 'Take Out Trash',
+      tokenCost: 2,
+    });
+    const resolvedAtCap = resolveChoreSwapRequest(swapAtCap, 'accept', 9);
+    assert.strictEqual(resolvedAtCap.celebratoryKudos.length, 1);
+    const clampedBalance = applyTokenTransactions(9, resolvedAtCap.transactions, 'u_kai');
+    assert.strictEqual(clampedBalance, MAX_FAVOR_TOKENS);
   });
 });
