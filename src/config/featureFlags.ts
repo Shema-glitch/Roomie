@@ -13,8 +13,8 @@ export interface FeatureFlags {
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
-  culturalDinnersBeta: false,
-  roomieWrappedBeta: false,
+  culturalDinnersBeta: true,
+  roomieWrappedBeta: true,
 };
 
 const FEATURE_FLAGS_STORAGE_KEY = 'roomie_feature_flags_v1';
@@ -34,8 +34,14 @@ export function getFeatureFlags(): FeatureFlags {
     if (!raw) return { ...inMemoryFlags };
     const parsed = JSON.parse(raw);
     return {
-      culturalDinnersBeta: Boolean(parsed.culturalDinnersBeta),
-      roomieWrappedBeta: Boolean(parsed.roomieWrappedBeta),
+      culturalDinnersBeta:
+        typeof parsed.culturalDinnersBeta === 'boolean'
+          ? parsed.culturalDinnersBeta
+          : inMemoryFlags.culturalDinnersBeta,
+      roomieWrappedBeta:
+        typeof parsed.roomieWrappedBeta === 'boolean'
+          ? parsed.roomieWrappedBeta
+          : inMemoryFlags.roomieWrappedBeta,
     };
   } catch {
     return { ...inMemoryFlags };

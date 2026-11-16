@@ -152,6 +152,34 @@ export function registerOfflineIcons(): void {
     body: "<g fill=\"none\"><path fill=\"#ffb02e\" d=\"M8 5h6v7c0 3.3-2.7 6-6 6H7c-.6 0-1-.4-1-1v-6c0-3.3 2.7-6 6-6\"/><path fill=\"#ff9f2e\" d=\"M24 5h-6v7c0 3.3 2.7 6 6 6h1c.6 0 1-.4 1-1v-6c0-3.3-2.7-6-6-6\"/><path fill=\"#aeddff\" d=\"M10 18v8h2v-8zm10 0v8h2v-8z\"/><path fill=\"#46a4fb\" d=\"M7 26h8v2H7zm10 0h8v2h-8z\"/></g>",
   });
 
+  // fluent-emoji-flat:shopping-cart (32x32 viewBox)
+  addIcon('fluent-emoji-flat:shopping-cart', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ff6723\" d=\"M10 22a2 2 0 1 0 0 4a2 2 0 0 0 0-4m14 0a2 2 0 1 0 0 4a2 2 0 0 0 0-4\"/><path fill=\"#ffb02e\" d=\"M4 4h3l3.6 12h14.4l3-9H8\"/><path fill=\"#d3883e\" d=\"M8 8h21l-2.4 7.2H11z\" opacity=\".4\"/></g>",
+  });
+
+  // fluent-emoji-flat:glass-of-milk (32x32 viewBox)
+  addIcon('fluent-emoji-flat:glass-of-milk', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#aeddff\" d=\"M8 4h16l-2 22a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4z\"/><path fill=\"#fff\" d=\"M9.5 9h13l-1.5 17a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2z\"/></g>",
+  });
+
+  // fluent-emoji-flat:house (32x32 viewBox)
+  addIcon('fluent-emoji-flat:house', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ff5e59\" d=\"M16 2l14 12h-4v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V14H2z\"/><path fill=\"#ffcf30\" d=\"M13 20h6v10h-6z\"/></g>",
+  });
+
+  // fluent-emoji-flat:locked-with-key (32x32 viewBox)
+  addIcon('fluent-emoji-flat:locked-with-key', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ffb02e\" d=\"M8 14h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V16a2 2 0 0 1 2-2\"/><path fill=\"#9b9b9b\" d=\"M11 14V9a5 5 0 0 1 10 0v5h-2V9a3 3 0 0 0-6 0v5z\"/><path fill=\"#402a32\" d=\"M16 20a2 2 0 1 0 0 4v2h-1v-2a2 2 0 0 0 1-4\"/></g>",
+  });
+
 }
 
 registerOfflineIcons();

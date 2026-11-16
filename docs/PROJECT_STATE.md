@@ -361,3 +361,43 @@ Baseline Tag: `v1.0.0-phase1`
   - Lazy modal chunks: `CulturalDinnerModal` is **2.72 kB gzipped**, `RoomieWrappedModal` is **4.59 kB gzipped**.
   - 74 / 74 unit tests pass across 9 test suites. `tsc --noEmit` passes with 0 errors.
   - Zero raw Unicode emojis in JSX: all badges render via pre-registered `fluent-emoji-flat` icons and `@phosphor-icons/react`.
+
+
+---
+
+## 13. Phase 3 Flat Utilities & Shared Shopping List (Branch `feature/flat-utilities-and-shopping`)
+
+- **Default Beta Labs Toggles ON (`src/config/featureFlags.ts`)**:
+  - Set `culturalDinnersBeta` and `roomieWrappedBeta` default to `true` (ON) for fresh installs while preserving existing `localStorage` user overrides.
+  - Non-intrusive `BETA` badges remain visible in UI cards to signal experimental status.
+
+- **Phase 3 Pillar A: Shared Shopping List & Supermarket Ping**:
+  - **Database Migrations** (`supabase/migrations/20261116120000_shopping_and_apartment_info.sql` & `20261116121000_shopping_columns_alignment.sql`):
+    - Multi-tenant `shopping_items` table (`id`, `household_id`, `title`, `category`, `quantity_label`, `is_low`, `status`, `added_by`, `claimed_by`, `created_at`, `updated_at`, `deleted_at`, `version`).
+    - Enforced `CHECK (char_length(title) BETWEEN 1 AND 80)`, `CHECK (char_length(quantity_label) <= 30)`, categories (`groceries`, `household`, `cleaning`, `pantry`, `other`), status (`needed`, `in_cart`, `purchased`).
+    - Composite index `idx_shopping_items_household_status` on `(household_id, status, created_at DESC) WHERE deleted_at IS NULL`.
+    - Applied and verified against remote Supabase (`ebiyvhodxrliiwdzonzu`).
+  - **Data Layer & Offline Outbox** (`src/services/api/shopping.api.ts`, `outbox.ts`, `localCache.ts`):
+    - Windowed query `getShoppingItems` fetching latest 60 active items with explicit column projections and local-first snapshot hydration.
+    - Full mutation suite: `addShoppingItem`, `toggleShoppingItemStatus`, `deleteShoppingItem`, `triggerSupermarketPing`, and `convertCartToExpense`.
+    - `triggerSupermarketPing` broadcasts chat activity and sends in-app notifications to all flatmates.
+  - **Tactile UI** ([`ShoppingListCard.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/shopping/ShoppingListCard.tsx) & [`ShoppingListModal.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/shopping/ShoppingListModal.tsx)):
+    - Feed card on `HomeScreen.tsx` showing running-low count, top items, and 1-tap "Going to Supermarket" broadcast button.
+    - Lazy-loaded checklist modal with category filter pills, low-stock highlight chips, add item form, and "Convert to Expense" batch checkout button.
+
+- **Phase 3 Pillar B: Members-Only Apartment Info & Wi-Fi Card**:
+  - **Database Migration** (`supabase/migrations/20261116120000_shopping_and_apartment_info.sql`):
+    - Created `household_info_cards` table (`household_id` PK, `wifi_ssid`, `wifi_password`, `trash_schedule`, `delivery_address`, `emergency_note`, `updated_by`, `updated_at`, `version`).
+    - RLS enforced: viewable, insertable, updatable strictly by active household members.
+    - Strict security check: `CHECK (no_identity_documents)` rejecting passport and national ID numbers.
+  - **Tactile UI** ([`ApartmentInfoCard.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/members/components/ApartmentInfoCard.tsx)):
+    - Embedded in [`ApartmentScreen.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/members/ApartmentScreen.tsx) with masked Wi-Fi password, eye reveal toggle, and 1-tap clipboard copy buttons with haptic feedback and toast confirmation.
+    - Trash collection schedule, delivery address, and emergency note (e.g., water shutoff valve).
+    - Inline edit modal with client-side identity document prohibition validator.
+
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **151.50 kB gzipped** (well below the 200 kB budget).
+  - Lazy modal chunks: `ShoppingListModal` is **2.09 kB gzipped**.
+  - 80 / 80 unit tests pass across 9 test suites (`npm test`). `tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX, zero temporary files, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - Git boundary maintained: branched off `feature/interactive-dinners-and-wrapped` into `feature/flat-utilities-and-shopping`. Remote push restricted strictly to feature branch.

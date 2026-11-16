@@ -384,4 +384,43 @@ export interface RoomieWrappedMetrics {
   topAwardTitle?: string;
 }
 
+// -------------------------------------------------------------
+// Phase 3 Real-Life Flat Tools (Shopping List & Apartment Info)
+// -------------------------------------------------------------
+
+export type ShoppingItemCategory =
+  | 'groceries'
+  | 'household'
+  | 'cleaning'
+  | 'pantry'
+  | 'other';
+
+export type ShoppingItemStatus = 'needed' | 'in_cart' | 'purchased';
+
+export interface ShoppingItem {
+  id: string;
+  householdId: string;
+  title: string;
+  category: ShoppingItemCategory;
+  quantityLabel: string;
+  isLow: boolean;
+  status: ShoppingItemStatus;
+  addedBy: string;
+  claimedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HouseholdInfoCard {
+  householdId: string;
+  wifiSsid: string;
+  wifiPassword: string;
+  trashSchedule: string;
+  deliveryAddress: string;
+  emergencyNote: string;
+  updatedBy?: string | null;
+  updatedAt: string;
+}
+
+
 

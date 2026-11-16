@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
-import { User, Household, Membership, MeetingTopic, HouseAgreement, JoinRequest } from '../../types';
+import React, { useState, useEffect } from 'react';
+import {
+  User,
+  Household,
+  Membership,
+  MeetingTopic,
+  HouseAgreement,
+  JoinRequest,
+  HouseholdInfoCard,
+} from '../../types';
 import { sound } from '../../services/sound';
+import { api } from '../../services/api';
+import { localCache } from '../../services/localCache';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { ChatCircleDots, UsersThree } from '@phosphor-icons/react';
 import { ApartmentHeaderCard } from './components/ApartmentHeaderCard';
 import { RoomiesRoster } from './components/RoomiesRoster';
 import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules';
+import { ApartmentInfoCard } from './components/ApartmentInfoCard';
 import {
   ProposeTopicModal,
   AddAgreementModal,
@@ -34,6 +45,14 @@ interface ApartmentScreenProps {
   onAddAgreement: (text: string, category: string) => Promise<HouseAgreement>;
   onOpenHouseholdSwitcher?: () => void;
   onOpenHowItWorks?: () => void;
+  infoCard?: HouseholdInfoCard | null;
+  onUpdateInfoCard?: (params: {
+    wifiSsid?: string;
+    wifiPassword?: string;
+    trashSchedule?: string;
+    deliveryAddress?: string;
+    emergencyNote?: string;
+  }) => Promise<void>;
 }
 
 export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
@@ -56,6 +75,8 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   onAddAgreement,
   onOpenHouseholdSwitcher,
   onOpenHowItWorks,
+  infoCard,
+  onUpdateInfoCard,
 }) => {
   const sym = getCurrencySymbol(household?.currency);
 
@@ -65,6 +86,47 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   const [removeTargetUser, setRemoveTargetUser] = useState<User | null>(null);
   const [proposeModalOpen, setProposeModalOpen] = useState(false);
   const [addAgreementModalOpen, setAddAgreementModalOpen] = useState(false);
+
+  const [activeInfoCard, setActiveInfoCard] = useState<HouseholdInfoCard | null>(
+    () => infoCard || localCache.getSnapshot(household?.id)?.infoCard || null
+  );
+
+  useEffect(() => {
+    if (infoCard !== undefined) {
+      setActiveInfoCard(infoCard);
+    } else if (household?.id) {
+      const snap = localCache.getSnapshot(household.id);
+      if (snap?.infoCard) {
+        setActiveInfoCard(snap.infoCard);
+      }
+      api.shopping
+        .getHouseholdInfoCard(household.id)
+        .then((card) => {
+          if (card) setActiveInfoCard(card);
+        })
+        .catch(() => {});
+    }
+  }, [household?.id, infoCard]);
+
+  const handleUpdateInfoCard = async (params: {
+    wifiSsid?: string;
+    wifiPassword?: string;
+    trashSchedule?: string;
+    deliveryAddress?: string;
+    emergencyNote?: string;
+  }) => {
+    if (onUpdateInfoCard) {
+      await onUpdateInfoCard(params);
+    } else if (household?.id) {
+      const res = await api.shopping.updateHouseholdInfoCard({
+        ...params,
+        householdId: household.id,
+      });
+      if (res.card) {
+        setActiveInfoCard(res.card);
+      }
+    }
+  };
 
   const currentMembership = members.find((m) => m.user.id === currentUser.id)?.membership;
   const isAdmin = currentMembership?.role === 'admin';
@@ -149,6 +211,10 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
+          <ApartmentInfoCard
+            infoCard={activeInfoCard}
+            onUpdateInfoCard={handleUpdateInfoCard}
+          />
           <HouseDiscussionsAndRules
             topics={topics}
             agreements={agreements}

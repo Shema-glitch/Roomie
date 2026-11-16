@@ -111,17 +111,18 @@ flowchart TD
 1. **Rent & Recurring Bills**:
    - Templates for recurring rent, Wi-Fi, and utilities with customizable split rules (equal, room-size, or percentage-based).
    - Reminders sent to payers; collectors confirm receipt.
-2. **Shared Shopping List with Live Pings**:
-   - Collaborative list with an *"I'm going to the supermarket"* broadcast button.
-   - One-tap conversion of purchased items into an agreed shared expense with receipt photo.
+- [x] **2. Shared Shopping List with Live Pings** (Completed ✅):
+   - Collaborative checklist with running-low tags, category filter chips (`groceries`, `household`, `cleaning`, `pantry`), and 1-tap *"I'm going to the supermarket"* broadcast button (`ShoppingListCard.tsx` & `ShoppingListModal.tsx`).
+   - Batch conversion of in-cart items into an agreed shared expense with automatic status update to `purchased`.
 3. **Move-in Condition Snapshot**:
    - Room-by-room dated photo inventory verified and confirmed by all tenants upon move-in.
    - Exportable as a deposit-protecting PDF.
 4. **Maintenance & Landlord Hub**:
    - Landlord/superintendent contact card and issue tracker (`reported` → `notified landlord` → `fixed`).
    - Warning banner prohibiting identity documents (passports, visas).
-5. **Apartment Info Card & Wi-Fi Card**:
-   - Visible to active members only: Wi-Fi credentials, trash collection schedule, emergency numbers, and bilingual street address for delivery drivers.
+- [x] **5. Apartment Info Card & Wi-Fi Card** (Completed ✅):
+   - Visible to active members only: Wi-Fi credentials with 1-tap masked/reveal toggle and clipboard copy button, trash collection schedule, emergency shutoff notes, and street address with delivery driver instructions (`ApartmentInfoCard.tsx` embedded in `ApartmentScreen.tsx`).
+   - Client-side and database-level RLS with strict identity document prohibition constraint (`no_identity_documents`).
 6. **Apartment Agreement PDF**:
    - Compiled PDF export of all agreed house rules and meeting outcomes with tenant sign-off timestamps.
 

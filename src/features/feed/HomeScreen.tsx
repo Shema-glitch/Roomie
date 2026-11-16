@@ -24,6 +24,9 @@ import {
   MascotState,
   CulturalDinner,
   DietaryTag,
+  ShoppingItem,
+  ShoppingItemCategory,
+  ShoppingItemStatus,
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
@@ -46,6 +49,7 @@ import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
 import { VibeCheckWidget } from './components/VibeCheckWidget';
 import { useFeatureFlag } from '../../config/featureFlags';
 import { CulturalDinnerCard } from './components/CulturalDinnerCard';
+import { ShoppingListCard } from '../shopping/ShoppingListCard';
 
 const DoneFlowModal = React.lazy(() =>
   import('../chores/DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
@@ -58,6 +62,9 @@ const RoomieWrappedModal = React.lazy(() =>
 );
 const CulturalDinnerModal = React.lazy(() =>
   import('./components/CulturalDinnerModal').then((m) => ({ default: m.CulturalDinnerModal }))
+);
+const ShoppingListModal = React.lazy(() =>
+  import('../shopping/ShoppingListModal').then((m) => ({ default: m.ShoppingListModal }))
 );
 
 interface HomeScreenProps {
@@ -124,9 +131,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [culturalDinners, setCulturalDinners] = useState<CulturalDinner[]>(
     () => localCache.getSnapshot(household?.id)?.culturalDinners || []
   );
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(
+    () => localCache.getSnapshot(household?.id)?.shoppingItems || []
+  );
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
   const [isWrappedModalOpen, setIsWrappedModalOpen] = useState(false);
   const [isDinnerModalOpen, setIsDinnerModalOpen] = useState(false);
+  const [isShoppingModalOpen, setIsShoppingModalOpen] = useState(false);
   const isCulturalDinnersEnabled = useFeatureFlag('culturalDinnersBeta');
   const isRoomieWrappedEnabled = useFeatureFlag('roomieWrappedBeta');
   const [mascotReaction, setMascotReaction] = useState<{
@@ -156,10 +167,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         if (snap.culturalDinners) {
           setCulturalDinners(snap.culturalDinners);
         }
+        if (snap.shoppingItems) {
+          setShoppingItems(snap.shoppingItems);
+        }
       }
       api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
       api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
       api.social.getCulturalDinners(household.id).then(setCulturalDinners).catch(() => {});
+      api.shopping.getShoppingItems(household.id).then(setShoppingItems).catch(() => {});
       api.getSwapRequests(household.id).then((reqs) => {
         const incoming = reqs.filter(
           (r) => r.targetUserId === currentUser.id && r.status === 'pending'
@@ -229,6 +244,101 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     await api.social.updateUserDietaryPreferences(tags);
     triggerMascotReaction('calm', 'Dietary preferences updated!');
     showToast('Dietary preferences updated!', 'success');
+  };
+
+  const handleAddShoppingItem = async (params: {
+    title: string;
+    category: ShoppingItemCategory;
+    quantityLabel?: string;
+    isLow?: boolean;
+  }) => {
+    try {
+      const res = await api.shopping.addShoppingItem({
+        ...params,
+        householdId: household.id,
+      });
+      if (res.success && res.item) {
+        setShoppingItems((prev) => [res.item!, ...prev]);
+        sound.tokenClink();
+        haptics.tokenClink();
+        triggerMascotReaction('cheering', `Added ${params.title} to the shopping list! 🛒`);
+        showToast(`Added ${params.title} to list`, 'success');
+      } else {
+        showToast(res.error || 'Failed to add item', 'error');
+      }
+    } catch {
+      showToast('Failed to add shopping item', 'error');
+    }
+  };
+
+  const handleToggleShoppingStatus = async (
+    itemId: string,
+    newStatus: ShoppingItemStatus
+  ) => {
+    try {
+      const res = await api.shopping.toggleShoppingItemStatus(itemId, newStatus, household.id);
+      if (res.success && res.item) {
+        setShoppingItems((prev) =>
+          prev.map((i) => (i.id === itemId ? res.item! : i))
+        );
+        sound.playTap();
+        haptics.light();
+      }
+    } catch {
+      showToast('Failed to update item status', 'error');
+    }
+  };
+
+  const handleDeleteShoppingItem = async (itemId: string) => {
+    try {
+      const res = await api.shopping.deleteShoppingItem(itemId, household.id);
+      if (res.success) {
+        setShoppingItems((prev) => prev.filter((i) => i.id !== itemId));
+        sound.softReject();
+        showToast('Shopping item removed', 'info');
+      }
+    } catch {
+      showToast('Failed to delete item', 'error');
+    }
+  };
+
+  const handleTriggerSupermarketPing = async () => {
+    try {
+      const res = await api.shopping.triggerSupermarketPing(household.id);
+      if (res.success) {
+        sound.playSuccess();
+        haptics.swapAccept();
+        triggerMascotReaction('celebrating', 'Supermarket ping sent to roomies! 🛒');
+        showToast('Pinged roomies! Let them know to add items.', 'success');
+      }
+    } catch {
+      showToast('Failed to send supermarket ping', 'error');
+    }
+  };
+
+  const handleConvertCartToExpense = async (cartItems: ShoppingItem[]) => {
+    try {
+      const res = await api.shopping.convertCartToExpense(
+        cartItems.map((i) => i.id),
+        household.id
+      );
+      if (res.success) {
+        setShoppingItems((prev) =>
+          prev.map((i) =>
+            cartItems.some((c) => c.id === i.id) ? { ...i, status: 'bought' as ShoppingItemStatus } : i
+          )
+        );
+        sound.swapAccept();
+        haptics.swapAccept();
+        setIsShoppingModalOpen(false);
+        if (onOpenExpensesAction) {
+          onOpenExpensesAction('add');
+        }
+        showToast(`Converted ${cartItems.length} items to pending expense!`, 'reward');
+      }
+    } catch {
+      showToast('Failed to convert cart to expense', 'error');
+    }
   };
 
   const sym = getCurrencySymbol(household?.currency);
@@ -310,6 +420,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             currentUser={currentUser}
             onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
             onCompleteTodayDuty={onCompleteTodayDuty}
+          />
+
+          {/* Phase 3: Shared Shopping List & Supermarket Ping */}
+          <ShoppingListCard
+            items={shoppingItems}
+            onOpenShoppingModal={() => setIsShoppingModalOpen(true)}
+            onToggleItemStatus={handleToggleShoppingStatus}
+            onTriggerSupermarketPing={handleTriggerSupermarketPing}
           />
 
           {/* Phase 2: Anonymous Household Vibe Check Widget */}
@@ -623,6 +741,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             awards={awards}
             culturalDinners={culturalDinners}
             vibeSummary={vibeSummary}
+          />
+        )}
+
+        {isShoppingModalOpen && (
+          <ShoppingListModal
+            isOpen={isShoppingModalOpen}
+            onClose={() => setIsShoppingModalOpen(false)}
+            items={shoppingItems}
+            onAddItem={async (params) => {
+              await handleAddShoppingItem(params);
+            }}
+            onToggleItemStatus={handleToggleShoppingStatus}
+            onDeleteItem={handleDeleteShoppingItem}
+            onConvertCartToExpense={handleConvertCartToExpense}
           />
         )}
       </React.Suspense>

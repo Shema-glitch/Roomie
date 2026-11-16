@@ -36,7 +36,12 @@ export type OutboxActionType =
   | 'resolve_chore_swap'
   | 'schedule_cultural_dinner'
   | 'toggle_dinner_rsvp'
-  | 'update_dietary_preferences';
+  | 'update_dietary_preferences'
+  | 'add_shopping_item'
+  | 'toggle_shopping_item'
+  | 'delete_shopping_item'
+  | 'trigger_supermarket_ping'
+  | 'update_apartment_info';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 

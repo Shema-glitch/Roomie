@@ -26,6 +26,8 @@ import {
   ChoreSwapRequest,
   CulturalDinner,
   DietaryTag,
+  ShoppingItem,
+  HouseholdInfoCard,
 } from '../../types';
 import { getChoreDraftState, getChoreStateEvent } from '../../utils/stateTable';
 import { evaluateWeeklyAwards } from '../../utils/awards';
@@ -64,6 +66,8 @@ export interface AppStore {
   favorTransactions?: Record<string, FavorTokenTransaction[]>;
   swapRequests?: Record<string, ChoreSwapRequest[]>;
   culturalDinners?: Record<string, CulturalDinner[]>;
+  shoppingItems?: Record<string, ShoppingItem[]>;
+  infoCards?: Record<string, HouseholdInfoCard>;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
   localAccounts?: Record<
@@ -751,6 +755,73 @@ export function getInitialStore(): AppStore {
     ],
   };
 
+  const shoppingItems: Record<string, ShoppingItem[]> = {
+    h_main: [
+      {
+        id: 'shop_seed_1',
+        householdId: 'h_main',
+        title: 'Oat Milk (Barista Edition)',
+        category: 'groceries',
+        quantityLabel: '2 cartons',
+        isLow: true,
+        status: 'needed',
+        addedBy: 'u_amina',
+        createdAt: '2026-11-15T09:00:00Z',
+        updatedAt: '2026-11-15T09:00:00Z',
+      },
+      {
+        id: 'shop_seed_2',
+        householdId: 'h_main',
+        title: 'Eco Dishwasher Tablets',
+        category: 'cleaning',
+        quantityLabel: '1 pack',
+        isLow: true,
+        status: 'needed',
+        addedBy: 'u_curr',
+        createdAt: '2026-11-15T11:30:00Z',
+        updatedAt: '2026-11-15T11:30:00Z',
+      },
+      {
+        id: 'shop_seed_3',
+        householdId: 'h_main',
+        title: 'Large Heavy Trash Liners (60L)',
+        category: 'household',
+        quantityLabel: '1 roll',
+        isLow: false,
+        status: 'needed',
+        addedBy: 'u_lucas',
+        createdAt: '2026-11-14T16:00:00Z',
+        updatedAt: '2026-11-14T16:00:00Z',
+      },
+      {
+        id: 'shop_seed_4',
+        householdId: 'h_main',
+        title: 'Extra Virgin Olive Oil',
+        category: 'pantry',
+        quantityLabel: '1 liter',
+        isLow: false,
+        status: 'in_cart',
+        addedBy: 'u_yasmin',
+        claimedBy: 'u_curr',
+        createdAt: '2026-11-16T07:00:00Z',
+        updatedAt: '2026-11-16T07:15:00Z',
+      },
+    ],
+  };
+
+  const infoCards: Record<string, HouseholdInfoCard> = {
+    h_main: {
+      householdId: 'h_main',
+      wifiSsid: 'SunnyFlat_5G',
+      wifiPassword: 'LemonTree992!',
+      trashSchedule: 'Recycling: Tuesdays & Fridays 08:00 • General waste: Daily 20:00',
+      deliveryAddress: 'Bedreddin Demirel Caddesi, No 44, Daire 4B, Lefkoşa / TRNC',
+      emergencyNote: 'Main water shutoff valve behind kitchen sink. Superintendent Hasan: +90 533 800 1234',
+      updatedBy: 'u_amina',
+      updatedAt: '2026-10-01T10:00:00Z',
+    },
+  };
+
   return {
     currentUser,
     users,
@@ -775,6 +846,8 @@ export function getInitialStore(): AppStore {
     favorTransactions: { h_main: [] },
     swapRequests,
     culturalDinners,
+    shoppingItems,
+    infoCards,
   };
 }
 
@@ -1094,10 +1167,15 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
     type === 'schedule_cultural_dinner' ||
     type === 'toggle_dinner_rsvp' ||
     type === 'update_dietary_preferences' ||
+    type === 'add_shopping_item' ||
+    type === 'toggle_shopping_item' ||
+    type === 'delete_shopping_item' ||
+    type === 'trigger_supermarket_ping' ||
     type === 'swap_chore'
   ) {
     return 'social';
   }
+  if (type === 'update_apartment_info') return 'auth';
   if (type.includes('expense')) return 'expenses';
   if (type.includes('settlement')) return 'settlements';
   if (type.includes('draft') || type.includes('chore') || type.includes('kudos') || type.includes('assignment')) {

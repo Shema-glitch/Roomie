@@ -50,6 +50,7 @@ import { GovernanceApi } from './governance.api';
 import { NotificationsApi } from './notifications.api';
 import { SystemApi } from './system.api';
 import { SocialApi } from './social.api';
+import { ShoppingApi } from './shopping.api';
 
 export class ApiService {
   private _store: AppStore;
@@ -63,6 +64,7 @@ export class ApiService {
   public notifications: NotificationsApi;
   public system: SystemApi;
   public social: SocialApi;
+  public shopping: ShoppingApi;
 
   constructor() {
     this._store = loadStore();
@@ -124,6 +126,7 @@ export class ApiService {
     this.governance = new GovernanceApi(baseContext);
     this.notifications = new NotificationsApi(baseContext);
     this.social = new SocialApi(baseContext);
+    this.shopping = new ShoppingApi(baseContext);
     this.system = new SystemApi({
       store: this._store,
       setStore: (s: AppStore) => {

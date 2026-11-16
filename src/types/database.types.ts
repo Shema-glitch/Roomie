@@ -1155,54 +1155,50 @@ export type Database = {
       shopping_items: {
         Row: {
           added_by: string
-          created_at: string | null
+          category: string
+          claimed_by: string | null
+          created_at: string
           deleted_at: string | null
           household_id: string
           id: string
           is_low: boolean
-          name: string
-          purchased_at: string | null
-          purchased_by: string | null
+          quantity_label: string
           status: string
-          updated_at: string | null
-          version: number | null
+          title: string
+          updated_at: string
+          version: number
         }
         Insert: {
           added_by: string
-          created_at?: string | null
+          category?: string
+          claimed_by?: string | null
+          created_at?: string
           deleted_at?: string | null
           household_id: string
           id?: string
           is_low?: boolean
-          name: string
-          purchased_at?: string | null
-          purchased_by?: string | null
+          quantity_label?: string
           status?: string
-          updated_at?: string | null
-          version?: number | null
+          title: string
+          updated_at?: string
+          version?: number
         }
         Update: {
           added_by?: string
-          created_at?: string | null
+          category?: string
+          claimed_by?: string | null
+          created_at?: string
           deleted_at?: string | null
           household_id?: string
           id?: string
           is_low?: boolean
-          name?: string
-          purchased_at?: string | null
-          purchased_by?: string | null
+          quantity_label?: string
           status?: string
-          updated_at?: string | null
-          version?: number | null
+          title?: string
+          updated_at?: string
+          version?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "shopping_items_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "shopping_items_household_id_fkey"
             columns: ["household_id"]
@@ -1211,8 +1207,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shopping_items_purchased_by_fkey"
-            columns: ["purchased_by"]
+            foreignKeyName: "shopping_items_added_by_fkey"
+            columns: ["added_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1395,6 +1391,50 @@ export type Database = {
             columns: ["host_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      household_info_cards: {
+        Row: {
+          delivery_address: string
+          emergency_note: string
+          household_id: string
+          trash_schedule: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          wifi_password: string
+          wifi_ssid: string
+        }
+        Insert: {
+          delivery_address?: string
+          emergency_note?: string
+          household_id: string
+          trash_schedule?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          wifi_password?: string
+          wifi_ssid?: string
+        }
+        Update: {
+          delivery_address?: string
+          emergency_note?: string
+          household_id?: string
+          trash_schedule?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          wifi_password?: string
+          wifi_ssid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_info_cards_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: true
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
         ]
