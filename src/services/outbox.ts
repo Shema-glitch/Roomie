@@ -35,7 +35,7 @@ export type OutboxActionType =
   | 'propose_chore_swap'
   | 'resolve_chore_swap';
 
-export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'synced';
+export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 
 export interface OutboxItem<T = unknown> {
   id: string; // Action UUID
@@ -45,9 +45,12 @@ export interface OutboxItem<T = unknown> {
   status: OutboxStatus;
   retryCount: number;
   lastAttemptAt?: string;
+  nextRetryAt?: string;
   errorMessage?: string;
   createdAt: string;
 }
+
+export const MAX_OUTBOX_RETRIES = 5;
 
 const OUTBOX_STORAGE_KEY = 'roomie_outbox_queue_v1';
 
@@ -108,11 +111,61 @@ class OutboxService {
   }
 
   public getPending(): OutboxItem[] {
-    return this.items.filter((item) => item.status === 'pending' || item.status === 'failed');
+    const now = Date.now();
+    return this.items.filter((item) => {
+      if (item.status === 'quarantined' || item.status === 'synced') return false;
+      if (item.status === 'pending') return true;
+      if (item.status === 'failed') {
+        if (!item.nextRetryAt) return true;
+        return new Date(item.nextRetryAt).getTime() <= now;
+      }
+      return false;
+    });
   }
 
   public getPendingCount(): number {
     return this.getPending().length;
+  }
+
+  public getQuarantined(): OutboxItem[] {
+    return this.items.filter((item) => item.status === 'quarantined');
+  }
+
+  public getQuarantinedCount(): number {
+    return this.getQuarantined().length;
+  }
+
+  public retryQuarantined(id?: string): void {
+    if (id) {
+      const item = this.items.find((i) => i.id === id && i.status === 'quarantined');
+      if (item) {
+        item.status = 'pending';
+        item.retryCount = 0;
+        item.nextRetryAt = undefined;
+        item.errorMessage = undefined;
+      }
+    } else {
+      this.items.forEach((item) => {
+        if (item.status === 'quarantined') {
+          item.status = 'pending';
+          item.retryCount = 0;
+          item.nextRetryAt = undefined;
+          item.errorMessage = undefined;
+        }
+      });
+    }
+    this.save();
+    debugLog.info('outbox', 'retry_quarantined', 'Reset quarantined mutation(s) to pending');
+  }
+
+  public discardQuarantined(id?: string): void {
+    if (id) {
+      this.items = this.items.filter((i) => !(i.id === id && i.status === 'quarantined'));
+    } else {
+      this.items = this.items.filter((i) => i.status !== 'quarantined');
+    }
+    this.save();
+    debugLog.info('outbox', 'discard_quarantined', 'Discarded quarantined mutation(s)');
   }
 
   public markSyncing(id: string) {
@@ -140,16 +193,34 @@ class OutboxService {
   public markFailed(id: string, error: string) {
     const item = this.items.find((i) => i.id === id);
     if (item) {
-      item.status = 'failed';
       item.retryCount += 1;
+      item.lastAttemptAt = new Date().toISOString();
       item.errorMessage = error;
-      this.save();
-      debugLog.warn('outbox', 'sync_failed', `Failed ${item.type}: ${error}`, {
-        actionId: id,
-        type: item.type,
-        retryCount: item.retryCount,
-        error,
-      });
+
+      if (item.retryCount >= MAX_OUTBOX_RETRIES) {
+        item.status = 'quarantined';
+        item.nextRetryAt = undefined;
+        this.save();
+        debugLog.error('outbox', 'quarantine', `Quarantined ${item.type} after ${item.retryCount} failed attempts: ${error}`, {
+          actionId: id,
+          type: item.type,
+          retryCount: item.retryCount,
+          error,
+        });
+      } else {
+        item.status = 'failed';
+        // Bounded exponential backoff: 1s, 2s, 4s, 8s, 16s... up to max 60s
+        const backoffMs = Math.min(60000, 1000 * Math.pow(2, item.retryCount - 1));
+        item.nextRetryAt = new Date(Date.now() + backoffMs).toISOString();
+        this.save();
+        debugLog.warn('outbox', 'sync_failed', `Failed ${item.type} (retry ${item.retryCount}/${MAX_OUTBOX_RETRIES}, next in ${Math.round(backoffMs / 1000)}s): ${error}`, {
+          actionId: id,
+          type: item.type,
+          retryCount: item.retryCount,
+          nextRetryAt: item.nextRetryAt,
+          error,
+        });
+      }
     }
   }
 

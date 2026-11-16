@@ -322,13 +322,6 @@ export class SocialApi {
     };
   }
 
-  public async getSwapRequests(householdId?: string): Promise<ChoreSwapRequest[]> {
-    const store = this.getStore();
-    const hId = householdId || store.activeHouseholdId;
-    if (!store.swapRequests) store.swapRequests = {};
-    return store.swapRequests[hId] || [];
-  }
-
   public async proposeChoreSwap(
     params: ProposeChoreSwapParams
   ): Promise<{ success: boolean; request?: ChoreSwapRequest; error?: string }> {
@@ -420,6 +413,53 @@ export class SocialApi {
     params: ProposeChoreSwapParams
   ): Promise<{ success: boolean; request?: ChoreSwapRequest; error?: string }> {
     return this.proposeChoreSwap(params);
+  }
+
+  public async getSwapRequests(householdId?: string): Promise<ChoreSwapRequest[]> {
+    const store = this.getStore();
+    const hId = householdId || store.activeHouseholdId;
+    if (supabase && !this.isDemoMode() && isUuid(hId)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data: rows, error } = await supabase
+          .from('chore_swap_requests')
+          .select('id, household_id, requester_user_id, target_user_id, requester_chore_name, target_chore_name, token_cost, status, note, created_at, updated_at, deleted_at, version')
+          .eq('household_id', hId)
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (!error && Array.isArray(rows)) {
+          const liveSwaps: ChoreSwapRequest[] = rows.map((r: any) => ({
+            id: r.id,
+            householdId: r.household_id,
+            requesterUserId: r.requester_user_id,
+            targetUserId: r.target_user_id,
+            requesterChoreName: r.requester_chore_name,
+            targetChoreName: r.target_chore_name,
+            tokenCost: r.token_cost,
+            status: r.status,
+            note: r.note || undefined,
+            createdAt: r.created_at,
+          }));
+
+          if (!store.swapRequests) store.swapRequests = {};
+          const existing = store.swapRequests[hId] || [];
+          const map = new Map(existing.map((s) => [s.id, s]));
+          liveSwaps.forEach((s) => map.set(s.id, s));
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          store.swapRequests[hId] = merged;
+          this.save(store);
+          logger.info('fetch_swap_requests', `Loaded ${liveSwaps.length} swap(s) [windowed 30, cached: ${merged.length}]`, { householdId: hId }, durationMs);
+          return merged;
+        }
+      } catch (err: any) {
+        logger.error('fetch_swap_requests', err?.message || 'Supabase getSwapRequests fallback', { householdId: hId });
+      }
+    }
+    return store.swapRequests?.[hId] || [];
   }
 
   public async resolveChoreSwap(

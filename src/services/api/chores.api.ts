@@ -77,9 +77,11 @@ export class ChoresApi {
       try {
         const { data: choreRows, error } = await supabase
           .from('chores')
-          .select('*')
+          .select('id, household_id, name, frequency, effort_level, active, description, icon_name, created_at, updated_at, deleted_at, version')
           .eq('household_id', hid)
-          .eq('active', true);
+          .eq('active', true)
+          .order('created_at', { ascending: true })
+          .limit(100);
 
         const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
         if (error) {

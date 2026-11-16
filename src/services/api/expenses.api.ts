@@ -59,21 +59,30 @@ export class ExpensesApi {
       try {
         const { data: expRows, error } = await supabase
           .from('expenses')
-          .select('*, expense_shares(*)')
+          .select('id, household_id, paid_by, title, amount, category, receipt_url, date, status, dispute_reason, created_at, updated_at, deleted_at, version, expense_shares(id, expense_id, user_id, share_amount, response, dispute_reason)')
           .eq('household_id', hid)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(60);
 
         const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
         if (error) {
           logger.warn('fetch_expenses', error.message, { householdId: hid, code: error.code }, durationMs);
         } else if (Array.isArray(expRows)) {
           const liveExpenses = expRows.map((e: any) => mapExpense(e, e.expense_shares || []));
+          // Delta merge with local cached expenses preserving older history
+          const existing = this.store.expenses.filter((e) => e.householdId === hid);
+          const existingMap = new Map(existing.map((e) => [e.id, e]));
+          liveExpenses.forEach((e) => existingMap.set(e.id, e));
+          const merged = Array.from(existingMap.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
           this.store.expenses = [
             ...this.store.expenses.filter((e) => e.householdId !== hid),
-            ...liveExpenses,
+            ...merged,
           ];
-          logger.info('fetch_expenses', `Loaded ${liveExpenses.length} expense(s)`, { householdId: hid, count: liveExpenses.length }, durationMs);
-          return liveExpenses;
+          logger.info('fetch_expenses', `Loaded ${liveExpenses.length} expense(s) [windowed 60, cached total: ${merged.length}]`, { householdId: hid, count: liveExpenses.length }, durationMs);
+          return merged;
         }
       } catch (err: any) {
         logger.error('fetch_expenses', err?.message || 'Supabase getExpenses fallback', { householdId: hid });
@@ -373,20 +382,29 @@ export class ExpensesApi {
       try {
         const { data: setRows, error } = await supabase
           .from('settlements')
-          .select('*')
-          .eq('household_id', hid);
+          .select('id, household_id, from_user, to_user, amount, status, confirmed_at, created_at, updated_at, deleted_at, version')
+          .eq('household_id', hid)
+          .order('created_at', { ascending: false })
+          .limit(50);
 
         const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
         if (error) {
           settlementLogger.warn('fetch_settlements', error.message, { householdId: hid, code: error.code }, durationMs);
         } else if (Array.isArray(setRows)) {
           const liveSets = setRows.map(mapSettlement);
+          const existing = this.store.settlements.filter((s) => s.householdId === hid);
+          const existingMap = new Map(existing.map((s) => [s.id, s]));
+          liveSets.forEach((s) => existingMap.set(s.id, s));
+          const merged = Array.from(existingMap.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
           this.store.settlements = [
             ...this.store.settlements.filter((s) => s.householdId !== hid),
-            ...liveSets,
+            ...merged,
           ];
-          settlementLogger.info('fetch_settlements', `Loaded ${liveSets.length} settlement(s)`, { householdId: hid, count: liveSets.length }, durationMs);
-          return liveSets;
+          settlementLogger.info('fetch_settlements', `Loaded ${liveSets.length} settlement(s) [windowed 50, cached total: ${merged.length}]`, { householdId: hid, count: liveSets.length }, durationMs);
+          return merged;
         }
       } catch (err: any) {
         settlementLogger.error('fetch_settlements', err?.message || 'Supabase getSettlements fallback', { householdId: hid });

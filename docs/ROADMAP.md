@@ -94,11 +94,12 @@ flowchart TD
    - Social ledger (earn tokens via chore streaks and helpful acts; spend 1–2 tokens to propose a chore swap).
    - Hard individual token ceiling (`MAX_FAVOR_TOKENS = 10`) prevents hoarding and automatically converts excess streak/award/swap tokens into celebratory flatmate kudos (`resolve_chore_swap` atomic row-locked RPC).
    - Distinct tactile audio & haptic signatures (`tokenClink`, `swapAccept`, `softReject`) and idempotent offline outbox integration (`submit_vibe_pulse`, `propose_chore_swap`, `resolve_chore_swap`).
-- [ ] **4. Roomie Wrapped (Monthly & Semester Recap)**:
-   - Swipeable story cards summarizing shared accomplishments: total dinners cooked, dispute-free streaks, fastest settlements, and most thanked roomie.
-- [ ] **5. Apartment Challenges & Cultural Dinners**:
-   - Cooperative flat progress goals (e.g. "Sparkling Sunday: all chores completed on time for 4 consecutive weeks").
-   - Cultural dinner rotation schedule with user-controlled dietary badges (halal, vegetarian, allergy notes).
+- [x] **4. Roomie Wrapped (Monthly & Semester Recap) - Phase 2B Beta**:
+   - Gated behind `roomieWrappedBeta` feature flag (`src/config/featureFlags.ts`).
+   - Modal summarizing household milestones: chores completed, total settled, streaks, and standout accolades (`src/features/feed/components/RoomieWrappedModal.tsx`).
+- [x] **5. Apartment Challenges & Cultural Dinners - Phase 2B Beta**:
+   - Gated behind `culturalDinnersBeta` feature flag (`src/config/featureFlags.ts`).
+   - Cultural dinner rotation schedule card with host assignments, dietary badges (halal, vegetarian, allergy notes), and cuisine themes (`src/features/feed/components/CulturalDinnerCard.tsx`).
 - [ ] **6. Shareable Cards**:
    - Client-side canvas image generator exporting positive milestone cards to WhatsApp or Instagram stories (strictly zero financial or private data).
 

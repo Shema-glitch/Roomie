@@ -298,3 +298,35 @@ Baseline Tag: `v1.0.0-phase1`
 - **Small-Flat Privacy Adaptation**: `VibeCheckWidget` automatically adapts when household members $< 3$, informing flatmates that k-anonymity requires 3+ roommates to protect privacy.
 - **Ballot-Stuffing Receipt**: Prevented duplicate voting by recording weekly submission state in localStorage (`roomie_vibe_submitted_${weekKey}`).
 - **Tactile Token & Border Polish**: Aligned line borders to canonical `#E6E8EE` and button drop shelves to `#D94E30`, with `reducedMotion` guardrails on particle bursts.
+
+---
+
+## 11. Database/Cloud Hardening & Phase 2B Beta Sprint (Branch `feature/hardening-and-phase2b-beta`)
+
+- **Supabase Database Hardening** (`supabase/migrations/`):
+  - Remote Supabase project (`ebiyvhodxrliiwdzonzu`) updated with `20261116043000_social_vibe_tokens_and_swaps.sql` and `20261116063000_query_indexes_and_payload_guards.sql`.
+  - Added composite indexes `(household_id, created_at DESC)` and `(household_id, week_key)` on high-frequency tables (`vibe_pulses`, `favor_tokens`, `chore_swap_requests`, `chore_logs`, `expenses`, `chat_messages`) preventing sequential table scans.
+  - Added database-level `CHECK` constraints guarding payload lengths: `body <= 1000`, `note <= 280`, `reason <= 280`.
+  - Hardened `submit_anonymous_vibe` and `resolve_chore_swap` RPCs with rate/duplicate checks and row locks.
+- **Windowed Queries & Delta Merging** (`src/services/api/`):
+  - Replaced unbounded table fetches with explicit column lists and `.limit()` windows:
+    - `getMessages` in `chat.api.ts`: explicit columns, `.order('created_at', { ascending: false }).limit(50)`, delta-merged with cached history.
+    - `getExpenses` and `getSettlements` in `expenses.api.ts`: limits 60 and 50 with explicit column selections.
+    - `getChores` in `chores.api.ts`: `.limit(100)` with explicit column selections.
+    - `getSwapRequests` in `social.api.ts`: `.limit(30)` with explicit column selections.
+- **Storage Egress Reduction & Deduplication** (`src/utils/photoPipeline.ts` & `src/services/supabase.ts`):
+  - Configured Supabase Storage uploads with `cacheControl: '31536000'` (1 year immutable cache).
+  - Added client-side SHA-256 blob hashing via `crypto.subtle.digest('SHA-256', ...)`. Re-uploading an identical compressed image reuses the cached signed URL without hitting the network or increasing storage billing.
+- **Outbox Circuit Breaker & Quarantine** (`src/services/outbox.ts` & `DebugInspectorModal.tsx`):
+  - Hardened outbox engine with `MAX_OUTBOX_RETRIES = 5` and bounded exponential backoff (`Math.min(60000, 1000 * 2^(retry - 1))`).
+  - Items failing 5 times enter `'quarantined'` status, halting endless retry loops that drain mobile battery and backend bandwidth.
+  - Added Quarantine card to `DebugInspectorModal.tsx` with "Retry All" and "Discard" actions.
+- **Phase 2B Beta Feature Flags & Scaffolding** (`src/config/featureFlags.ts`):
+  - Built typed, storage-persisted feature flag system (`culturalDinnersBeta`, `roomieWrappedBeta`).
+  - Added **Beta Labs 🧪** section to `ProfileSettingsModal.tsx` with Duolingo-styled tactile toggle switches.
+  - Scaffolded `CulturalDinnerCard.tsx` on `HomeScreen.tsx` (cultural dinner rotation, host badges, dietary flags).
+  - Scaffolded lazy-loaded `RoomieWrappedModal.tsx` (`2.04 kB gzipped`) summarizing semester milestones and accolades.
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **145.28 kB gzipped** (well below the 200 kB budget).
+  - Zero temporary scripts, zero phase-numbered files/types, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - 67 / 67 unit tests pass across 9 test suites. TypeScript compilation (`tsc --noEmit`) passes with 0 errors.

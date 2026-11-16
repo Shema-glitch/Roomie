@@ -29,11 +29,15 @@ import {
   DeviceMobile,
   Lightning,
   Bug,
+  Flask,
+  ForkKnife,
+  Sparkle,
 } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { Icon } from '@iconify/react';
 import { processPhoto } from '../../utils/photoPipeline';
 import { uploadPhotoToStorage } from '../../services/supabase';
+import { getFeatureFlags, setFeatureFlag } from '../../config/featureFlags';
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -121,6 +125,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     }
     return false;
   });
+  const [culturalDinnersBeta, setCulturalDinnersBeta] = useState<boolean>(
+    () => getFeatureFlags().culturalDinnersBeta
+  );
+  const [roomieWrappedBeta, setRoomieWrappedBeta] = useState<boolean>(
+    () => getFeatureFlags().roomieWrappedBeta
+  );
   const [versionTapCount, setVersionTapCount] = useState(0);
 
   const handleVersionTap = () => {
@@ -644,6 +654,98 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   }`}
                 />
               </button>
+            </div>
+
+            {/* Beta Labs Section */}
+            <div className="pt-2 border-t border-[#E6E8EE] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="type-label flex items-center gap-1.5 text-[#5B5BD6]">
+                  <Flask weight="duotone" className="w-4 h-4" />
+                  <span>Beta Labs (Experimental)</span>
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#EEF0FD] text-[#5B5BD6] uppercase tracking-wider">
+                  Phase 2B Preview
+                </span>
+              </div>
+              <p className="type-secondary text-xs">
+                Test upcoming collaborative features before official release. Isolated from core workflows.
+              </p>
+
+              {/* Cultural Dinners Toggle */}
+              <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <IconTile icon={<ForkKnife weight="duotone" className="w-4 h-4" />} color="amber" size="sm" />
+                  <div>
+                    <span className="text-[14px] font-bold text-[#1F2430] block">
+                      Cultural Dinners Rotation
+                    </span>
+                    <span className="type-secondary text-[13px]">
+                      Weekly shared flat meal with dietary tags (Halal, Vegan, Allergies)
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={culturalDinnersBeta}
+                  aria-label="Toggle Cultural Dinners Beta"
+                  onClick={() => {
+                    const next = !culturalDinnersBeta;
+                    setCulturalDinnersBeta(next);
+                    setFeatureFlag('culturalDinnersBeta', next);
+                    sound.playTap();
+                    haptics.tokenClink();
+                    showToast(next ? 'Cultural Dinners Beta enabled 🍲' : 'Cultural Dinners Beta disabled', 'info');
+                  }}
+                  className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                    culturalDinnersBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
+                  }`}
+                >
+                  <span
+                    className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+                      culturalDinnersBeta ? 'right-0.5' : 'left-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Roomie Wrapped Toggle */}
+              <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <IconTile icon={<Sparkle weight="duotone" className="w-4 h-4" />} color="coral" size="sm" />
+                  <div>
+                    <span className="text-[14px] font-bold text-[#1F2430] block">
+                      Roomie Monthly Wrapped
+                    </span>
+                    <span className="type-secondary text-[13px]">
+                      Swipeable monthly recap of streaks, expenses & flat harmony
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={roomieWrappedBeta}
+                  aria-label="Toggle Roomie Wrapped Beta"
+                  onClick={() => {
+                    const next = !roomieWrappedBeta;
+                    setRoomieWrappedBeta(next);
+                    setFeatureFlag('roomieWrappedBeta', next);
+                    sound.playTap();
+                    haptics.tokenClink();
+                    showToast(next ? 'Roomie Wrapped Beta enabled 🎁' : 'Roomie Wrapped Beta disabled', 'info');
+                  }}
+                  className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                    roomieWrappedBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
+                  }`}
+                >
+                  <span
+                    className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+                      roomieWrappedBeta ? 'right-0.5' : 'left-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 

@@ -46,7 +46,20 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
   );
   const outboxItems = outbox.getItems();
   const pendingCount = outbox.getPendingCount();
+  const quarantinedItems = outbox.getQuarantined();
   const isDemo = api.isDemoMode();
+
+  const handleRetryQuarantined = () => {
+    outbox.retryQuarantined();
+    setTick((t) => t + 1);
+    showToast('Reset quarantined outbox items to pending', 'info');
+  };
+
+  const handleDiscardQuarantined = () => {
+    outbox.discardQuarantined();
+    setTick((t) => t + 1);
+    showToast('Discarded quarantined outbox items', 'info');
+  };
 
   const handleProbe = async () => {
     setProbing(true);
@@ -209,6 +222,39 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
             </div>
           )}
         </Card>
+
+        {/* Quarantined Outbox Items (Circuit Breaker) */}
+        {quarantinedItems.length > 0 && (
+          <Card padding="sm" className="bg-[#FFF5F5] border-2 border-[#FEB2B2] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-black text-[#9B2C2C]">
+                <span>⚠️ Outbox Quarantine Circuit Breaker ({quarantinedItems.length})</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={handleRetryQuarantined}>
+                  Retry All
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDiscardQuarantined}>
+                  Discard
+                </Button>
+              </div>
+            </div>
+            <p className="text-[11px] text-[#742A2A]">
+              Mutations that failed 5 consecutive attempts are quarantined to protect backend bandwidth.
+            </p>
+            <div className="space-y-1 max-h-28 overflow-y-auto pr-0.5">
+              {quarantinedItems.map((item) => (
+                <div key={item.id} className="p-1.5 rounded-lg bg-white border border-[#FEB2B2] text-[10px] flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-bold text-[#1F2430] uppercase">{item.type}</span>
+                    <span className="text-[#E53E3E] ml-1.5 truncate">{item.errorMessage || 'Failed'}</span>
+                  </div>
+                  <span className="text-[#718096] shrink-0 font-mono">5 retries</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Per-Module Health Matrix */}
         <div className="space-y-1.5">

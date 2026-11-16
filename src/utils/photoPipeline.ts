@@ -17,6 +17,51 @@ export interface ProcessedPhoto {
   width: number;
   height: number;
   sizeBytes: number;
+  contentHash?: string;
+}
+
+const photoHashCache = new Map<string, string>();
+
+/**
+ * Computes a fast hex hash of an image blob for egress deduplication.
+ */
+export async function computeBlobHash(blob: Blob): Promise<string> {
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    try {
+      const buffer = await blob.arrayBuffer();
+      const digest = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(digest));
+      return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+      // Fallback below
+    }
+  }
+  return `${blob.size}_${blob.type}_${Date.now()}`;
+}
+
+export function getCachedUploadUrl(hash: string): string | undefined {
+  if (!hash) return undefined;
+  if (photoHashCache.has(hash)) return photoHashCache.get(hash);
+  if (typeof window !== 'undefined') {
+    try {
+      return localStorage.getItem(`roomie_photo_hash_${hash}`) || undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+export function setCachedUploadUrl(hash: string, url: string): void {
+  if (!hash || !url) return;
+  photoHashCache.set(hash, url);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`roomie_photo_hash_${hash}`, url);
+    } catch {
+      // ignore storage quota
+    }
+  }
 }
 
 export async function processPhoto(fileOrBlob: File | Blob): Promise<ProcessedPhoto> {
@@ -110,14 +155,27 @@ export async function processPhoto(fileOrBlob: File | Blob): Promise<ProcessedPh
                     },
                     durationMs
                   );
-                  resolve({
-                    fullDataUrl,
-                    fullBlob,
-                    thumbnailDataUrl,
-                    thumbnailBlob,
-                    width,
-                    height,
-                    sizeBytes: fullBlob.size,
+                  computeBlobHash(fullBlob).then((contentHash) => {
+                    resolve({
+                      fullDataUrl,
+                      fullBlob,
+                      thumbnailDataUrl,
+                      thumbnailBlob,
+                      width,
+                      height,
+                      sizeBytes: fullBlob.size,
+                      contentHash,
+                    });
+                  }).catch(() => {
+                    resolve({
+                      fullDataUrl,
+                      fullBlob,
+                      thumbnailDataUrl,
+                      thumbnailBlob,
+                      width,
+                      height,
+                      sizeBytes: fullBlob.size,
+                    });
                   });
                 },
                 'image/jpeg',

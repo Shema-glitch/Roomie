@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database.types';
 import { debugLog } from '../utils/debugLog';
+import { computeBlobHash, getCachedUploadUrl, setCachedUploadUrl } from '../utils/photoPipeline';
 
 const supabaseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || process.env.VITE_SUPABASE_ANON_KEY;
@@ -58,6 +59,19 @@ export async function uploadPhotoToStorage(
   fallbackDataUrl?: string
 ): Promise<string> {
   const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+  // Deduplication check: skip network upload if identical content was already uploaded
+  const blobHash = await computeBlobHash(blob);
+  const cachedUrl = getCachedUploadUrl(blobHash);
+  if (cachedUrl) {
+    debugLog.info('storage', 'upload_photo_dedup', `Reused cached storage URL for hash ${blobHash.slice(0, 8)}`, {
+      bucket,
+      fileName,
+      cachedUrl,
+    });
+    return cachedUrl;
+  }
+
   if (!supabase) {
     debugLog.warn('storage', 'upload_photo', `Offline/unconfigured storage fallback for ${bucket}/${fileName}`, {
       bucket,
@@ -71,6 +85,7 @@ export async function uploadPhotoToStorage(
     const { data, error } = await supabase.storage.from(bucket).upload(fileName, blob, {
       upsert: true,
       contentType: blob.type || 'image/jpeg',
+      cacheControl: '31536000',
     });
 
     if (error) {
@@ -94,6 +109,7 @@ export async function uploadPhotoToStorage(
         { bucket, path: data.path, sizeBytes: blob.size },
         durationMs
       );
+      setCachedUploadUrl(blobHash, pubData.publicUrl);
       return pubData.publicUrl;
     }
 
@@ -119,6 +135,7 @@ export async function uploadPhotoToStorage(
       { bucket, path: data.path, sizeBytes: blob.size },
       durationMs
     );
+    setCachedUploadUrl(blobHash, signData.signedUrl);
     return signData.signedUrl;
   } catch (err: any) {
     debugLog.error('storage', 'upload_photo', err?.message || 'Exception during photo upload', {

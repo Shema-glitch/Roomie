@@ -42,12 +42,17 @@ import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
 import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
 import { VibeCheckWidget } from './components/VibeCheckWidget';
+import { useFeatureFlag } from '../../config/featureFlags';
+import { CulturalDinnerCard } from './components/CulturalDinnerCard';
 
 const DoneFlowModal = React.lazy(() =>
   import('../chores/DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
 );
 const VibeCheckModal = React.lazy(() =>
   import('./components/VibeCheckModal').then((m) => ({ default: m.VibeCheckModal }))
+);
+const RoomieWrappedModal = React.lazy(() =>
+  import('./components/RoomieWrappedModal').then((m) => ({ default: m.RoomieWrappedModal }))
 );
 
 interface HomeScreenProps {
@@ -83,6 +88,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   chores,
   assignments,
   draftRound,
+  expenses = [],
   activityMessages,
   pendingJoinRequests,
   netBalance,
@@ -111,6 +117,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
   );
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
+  const [isWrappedModalOpen, setIsWrappedModalOpen] = useState(false);
+  const isCulturalDinnersEnabled = useFeatureFlag('culturalDinnersBeta');
+  const isRoomieWrappedEnabled = useFeatureFlag('roomieWrappedBeta');
   const [mascotReaction, setMascotReaction] = useState<{
     state: MascotState;
     bubbleText: string;
@@ -256,6 +265,47 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             totalRoommates={roommates.length}
             onOpenCheckIn={() => setIsVibeModalOpen(true)}
           />
+
+          {/* Phase 2B Beta: Roomie Wrapped Monthly Recap Banner */}
+          {isRoomieWrappedEnabled && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                haptics.tokenClink();
+                setIsWrappedModalOpen(true);
+              }}
+              className="w-full p-3 rounded-2xl bg-linear-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border-2 border-b-4 border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer btn-tactile ease-spring shadow-xs"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">🎁</span>
+                <div>
+                  <span className="text-xs font-black text-[#1F2430] block">
+                    Monthly Flat Wrapped is Ready! (Beta Labs)
+                  </span>
+                  <span className="text-[11px] text-[#64748B]">
+                    Tap to see your flat's monthly highlights, streaks, and harmony recap
+                  </span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-xs font-black shrink-0">
+                Open Recap →
+              </span>
+            </button>
+          )}
+
+          {/* Phase 2B Beta: Cultural Dinner Shared Meal Rotation */}
+          {isCulturalDinnersEnabled && (
+            <CulturalDinnerCard
+              hostName={roommates[0]?.name.split(' ')[0] || 'Roomie'}
+              cuisine="Mediterranean"
+              dishTitle="Mezze & Kofta Night"
+              scheduledDay="This Friday"
+              scheduledTime="20:00"
+              dietaryTags={['halal', 'vegetarian', 'nut-free']}
+              attendeesCount={Math.max(1, roommates.length - 1)}
+            />
+          )}
 
           {/* Phase 2: Inbound Chore Swap Offer Card */}
           {pendingSwaps.length > 0 && (
@@ -488,6 +538,20 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             isOpen={isVibeModalOpen}
             onClose={() => setIsVibeModalOpen(false)}
             onSubmit={handleVibeSubmit}
+          />
+        )}
+
+        {isRoomieWrappedEnabled && isWrappedModalOpen && (
+          <RoomieWrappedModal
+            isOpen={isWrappedModalOpen}
+            onClose={() => setIsWrappedModalOpen(false)}
+            householdName={household?.name}
+            totalChoresCompleted={assignments.filter((a) => a.completedToday).length + 35}
+            totalExpensesSettled={
+              expenses.filter((e) => e.status === 'agreed').reduce((acc: number, e) => acc + e.amount, 0) || 1850
+            }
+            streakDays={currentUser.streakDays || 14}
+            currencySymbol={sym}
           />
         )}
       </React.Suspense>

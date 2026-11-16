@@ -48,18 +48,26 @@ export class ChatApi {
       try {
         const { data: msgRows, error } = await supabase
           .from('chat_messages')
-          .select('*')
+          .select('id, household_id, sender_id, type, body, link_target, reactions, created_at, updated_at, deleted_at, version')
           .eq('household_id', hid)
-          .order('created_at', { ascending: true });
+          .order('created_at', { ascending: false })
+          .limit(50);
 
         const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
         if (error) {
           logger.warn('fetch_messages', error.message, { householdId: hid, code: error.code }, durationMs);
         } else if (Array.isArray(msgRows)) {
-          const liveMsgs = msgRows.map(mapChatMessage);
-          this.store.messages[hid] = liveMsgs;
-          logger.info('fetch_messages', `Loaded ${liveMsgs.length} message(s)`, { householdId: hid, count: liveMsgs.length }, durationMs);
-          return liveMsgs;
+          const liveMsgs = msgRows.slice().reverse().map(mapChatMessage);
+          // Delta merge with local snapshot/store cache preserving older messages
+          const existing = this.store.messages[hid] || [];
+          const existingMap = new Map(existing.map((m) => [m.id, m]));
+          liveMsgs.forEach((m) => existingMap.set(m.id, m));
+          const merged = Array.from(existingMap.values()).sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+          this.store.messages[hid] = merged;
+          logger.info('fetch_messages', `Loaded ${liveMsgs.length} message(s) [windowed 50, cached total: ${merged.length}]`, { householdId: hid, count: liveMsgs.length }, durationMs);
+          return merged;
         }
       } catch (err: any) {
         logger.error('fetch_messages', err?.message || 'Supabase getMessages fallback', { householdId: hid });
