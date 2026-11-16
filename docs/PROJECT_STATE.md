@@ -474,11 +474,20 @@ Baseline Tag: `v1.0.0-phase1`
   - `AppHeaderAndNav.tsx`: Apartment switcher text container widened to `max-w-[215px] sm:max-w-[260px] md:max-w-none`, resolving premature ellipsis truncation for multiline apartment titles (`Selin Court B Blok`).
   - `ProfileSettingsModal.tsx`: Updated footer version string from `Roomie v1.0.0-phase1` to `Roomie v2.1.0-beta`.
   - Purged remaining raw Unicode emojis from copy strings and JSX across `ProfileSettingsModal.tsx` (`🔥` replaced with registered `fluent-emoji-flat:fire` vector icon, raw toast/button emojis sanitized).
+- **Preferences Tab & Beta Labs Responsive Bento Polish (`ProfileSettingsModal.tsx`)**:
+  - Resolved text-pushing-switch bug by introducing a unified `SettingsRowToggle` component with strict `shrink-0` and unified 3D tactile styling (`w-12 h-7 rounded-full border-2 border-b-3 active:translate-y-[1px]`).
+  - Added `min-w-0 flex-1` across all preference rows so text wraps cleanly and never crowds or squeezes toggle switches on narrow viewports.
+  - Re-architected Beta Labs into a high-craft Bento container (`bg-[#FAF5FF] border-2 border-b-4 border-[#E9D5FF]`) with an integrated `<Flask weight="fill" />` icon, clean `Preview` tag, concise feature copy, and nested white tactile cards.
+  - Enhanced Language selector with responsive flex wrap to prevent overflow on mobile.
+- **Native Android Haptic Engine (`src/utils/haptics.ts`, `AndroidManifest.xml`)**:
+  - Integrated `@capacitor/haptics` natively with Capacitor Android bridge (`Capacitor.isPluginAvailable('Haptics')`).
+  - Added `<uses-permission android:name="android.permission.VIBRATE" />` to `AndroidManifest.xml` so Android OS permits vibration calls.
+  - Linked immediate tactile haptic ticks (`haptics.tokenClink()` / `haptics.awardCelebrate()`) directly to all switch toggles.
 - **Zero-Slop Verification**:
-  - Initial JS bundle: **154.79 kB gzipped** (well below the 200 KB threshold).
+  - Initial JS bundle: **154.78 kB gzipped** (well below the 200 KB threshold).
   - Test Suite: **102 / 102 unit tests passing** across 15 suites. `tsc --noEmit` passes with 0 errors.
   - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
-  - Git boundary maintained: branched off `feature/home-bento-and-modal-polish` into `feature/ui-bento-and-modal-discipline`. Untouched `main`.
+  - Git boundary maintained: on `feature/ui-bento-and-modal-discipline`. Untouched `main`.
 
 
 

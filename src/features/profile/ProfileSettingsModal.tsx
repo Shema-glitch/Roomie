@@ -66,6 +66,44 @@ const PRESET_AVATARS = [
   { label: 'Tariq', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80' },
 ];
 
+interface SettingsRowToggleProps {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  disabled?: boolean;
+}
+
+const SettingsRowToggle: React.FC<SettingsRowToggleProps> = ({
+  checked,
+  onChange,
+  label,
+  disabled,
+}) => {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => {
+        sound.playTap();
+        haptics.tokenClink();
+        onChange();
+      }}
+      className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative shrink-0 cursor-pointer active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed ${
+        checked ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
+      }`}
+    >
+      <span
+        className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+          checked ? 'right-0.5' : 'left-0.5'
+        }`}
+      />
+    </button>
+  );
+};
+
 export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   isOpen,
   onClose,
@@ -489,267 +527,213 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           {/* TAB 2: PREFERENCES */}
           {activeTab === 'preferences' && (
             <div className="space-y-4">
-              <div className="space-y-2">
-            <span className="type-label block">
-              Preferences
-            </span>
-
-            {/* Language */}
-            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <IconTile icon={<Globe className="w-4 h-4" />} color="indigo" size="sm" />
-                <span className="text-[14px] font-bold text-[#1F2430]">Language</span>
-              </div>
-              <div className="flex gap-1">
-                {(
-                  [
-                    { id: 'en', label: 'EN' },
-                    { id: 'tr', label: 'TR' },
-                    { id: 'fr', label: 'FR' },
-                    { id: 'ar', label: 'العربية' },
-                  ] satisfies Array<{ id: UserSettings['language']; label: string }>
-                ).map((l) => (
-                  <button
-                    key={l.id}
-                    onClick={() => handleLanguageChange(l.id)}
-                    className={`px-2.5 py-1.5 rounded-xl text-[14px] font-bold cursor-pointer transition-[transform,background-color] duration-150 active:translate-y-[1px] min-h-[38px] flex items-center justify-center ${
-                      settings.language === l.id
-                        ? 'bg-[#FF6B4A] text-white shadow-2xs'
-                        : 'bg-[#F7F8FB] text-[#64748B] hover:text-[#1F2430]'
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Sound Toggle */}
-            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <IconTile
-                  icon={
-                    settings.soundEnabled ? (
-                      <SpeakerHigh weight="duotone" className="w-4 h-4" />
-                    ) : (
-                      <SpeakerSlash weight="duotone" className="w-4 h-4" />
-                    )
-                  }
-                  color="coral"
-                  size="sm"
-                />
-                <div>
-                  <span className="text-[14px] font-bold text-[#1F2430] block">
-                    Sound effects
-                  </span>
-                  <span className="type-secondary text-[14px]">
-                    Tactile chimes and celebratory fanfares
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.soundEnabled}
-                aria-label="Toggle sound effects"
-                onClick={toggleSound}
-                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
-                  settings.soundEnabled
-                    ? 'bg-[#FF6B4A] border-[#D94E30]'
-                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    settings.soundEnabled ? 'right-0.5' : 'left-0.5'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Haptics Toggle */}
-            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
-                <div>
-                  <span className="text-[14px] font-bold text-[#1F2430] block">
-                    Haptic feedback
-                  </span>
-                  <span className="type-secondary text-[14px]">
-                    Tactile micro-vibrations for awards, vibe & swaps
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={settings.hapticsEnabled ?? isHapticsEnabled()}
-                aria-label="Toggle haptic feedback"
-                onClick={toggleHaptics}
-                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
-                  (settings.hapticsEnabled ?? isHapticsEnabled())
-                    ? 'bg-[#FF6B4A] border-[#D94E30]'
-                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    (settings.hapticsEnabled ?? isHapticsEnabled()) ? 'right-0.5' : 'left-0.5'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Reduced Motion Toggle */}
-            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <IconTile icon={<Eye className="w-4 h-4" />} color="teal" size="sm" />
-                <div>
-                  <span className="text-[14px] font-bold text-[#1F2430] block">
-                    Reduced motion
-                  </span>
-                  <span className="type-secondary text-[14px]">
-                    Calmer transitions (defaults to device setting)
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={toggleReducedMotion}
-                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
-                  settings.reducedMotion ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    settings.reducedMotion ? 'right-1' : 'left-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Push Notifications Toggle */}
-            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-3">
-                <IconTile icon={<Bell className="w-4 h-4" />} color="amber" size="sm" />
-                <div>
-                  <span className="text-[14px] font-bold text-[#1F2430] block">
-                    Push notifications
-                  </span>
-                  <span className="type-secondary text-[14px]">
-                    Time-based reminders for your chores
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={togglePush}
-                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
-                  settings.pushNotifications ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                    settings.pushNotifications ? 'right-1' : 'left-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Beta Labs Section */}
-            <div className="pt-2 border-t border-[#E6E8EE] space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="type-label flex items-center gap-1.5 text-[#5B5BD6]">
-                  <Flask weight="duotone" className="w-4 h-4" />
-                  <span>Beta Labs (Experimental)</span>
+              <div className="space-y-2.5">
+                <span className="type-label block text-xs uppercase tracking-wider text-[#64748B]">
+                  Interface & System
                 </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#EEF0FD] text-[#5B5BD6] uppercase tracking-wider">
-                  Phase 2B Preview
-                </span>
-              </div>
-              <p className="type-secondary text-xs">
-                Test upcoming collaborative features before official release. Isolated from core workflows.
-              </p>
 
-              {/* Cultural Dinners Toggle */}
-              <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <IconTile icon={<ForkKnife weight="duotone" className="w-4 h-4" />} color="amber" size="sm" />
-                  <div>
-                    <span className="text-[14px] font-bold text-[#1F2430] block">
-                      Cultural Dinners Rotation
-                    </span>
-                    <span className="type-secondary text-[13px]">
-                      Weekly shared flat meal with dietary tags (Halal, Vegan, Allergies)
-                    </span>
+                {/* Language */}
+                <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <IconTile icon={<Globe className="w-4 h-4" />} color="indigo" size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[14px] font-bold text-[#1F2430] block">Language</span>
+                      <span className="type-secondary text-[12px] block">Interface language</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto flex-wrap">
+                    {(
+                      [
+                        { id: 'en', label: 'EN' },
+                        { id: 'tr', label: 'TR' },
+                        { id: 'fr', label: 'FR' },
+                        { id: 'ar', label: 'العربية' },
+                      ] satisfies Array<{ id: UserSettings['language']; label: string }>
+                    ).map((l) => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => handleLanguageChange(l.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black cursor-pointer transition-[transform,background-color] duration-150 active:translate-y-[1px] min-h-[34px] flex items-center justify-center shrink-0 ${
+                          settings.language === l.id
+                            ? 'bg-[#FF6B4A] text-white shadow-2xs'
+                            : 'bg-[#F7F8FB] text-[#64748B] hover:text-[#1F2430] hover:bg-[#EEF0F6]'
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={culturalDinnersBeta}
-                  aria-label="Toggle Cultural Dinners Beta"
-                  onClick={() => {
-                    const next = !culturalDinnersBeta;
-                    setCulturalDinnersBeta(next);
-                    setFeatureFlag('culturalDinnersBeta', next);
-                    sound.playTap();
-                    haptics.tokenClink();
-                    showToast(next ? 'Cultural Dinners Beta enabled' : 'Cultural Dinners Beta disabled', 'info');
-                  }}
-                  className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
-                    culturalDinnersBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
-                  }`}
-                >
-                  <span
-                    className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                      culturalDinnersBeta ? 'right-0.5' : 'left-0.5'
-                    }`}
+
+                {/* Sound Toggle */}
+                <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <IconTile
+                      icon={
+                        settings.soundEnabled ? (
+                          <SpeakerHigh weight="duotone" className="w-4 h-4" />
+                        ) : (
+                          <SpeakerSlash weight="duotone" className="w-4 h-4" />
+                        )
+                      }
+                      color="coral"
+                      size="sm"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[14px] font-bold text-[#1F2430] block truncate">
+                        Sound effects
+                      </span>
+                      <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                        Tactile chimes and celebratory fanfares
+                      </span>
+                    </div>
+                  </div>
+                  <SettingsRowToggle
+                    checked={settings.soundEnabled}
+                    onChange={toggleSound}
+                    label="Toggle sound effects"
                   />
-                </button>
+                </div>
+
+                {/* Haptics Toggle */}
+                <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[14px] font-bold text-[#1F2430] block truncate">
+                        Haptic feedback
+                      </span>
+                      <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                        Tactile vibrations for awards, vibe & swaps
+                      </span>
+                    </div>
+                  </div>
+                  <SettingsRowToggle
+                    checked={settings.hapticsEnabled ?? isHapticsEnabled()}
+                    onChange={toggleHaptics}
+                    label="Toggle haptic feedback"
+                  />
+                </div>
+
+                {/* Reduced Motion Toggle */}
+                <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <IconTile icon={<Eye weight="duotone" className="w-4 h-4" />} color="teal" size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[14px] font-bold text-[#1F2430] block truncate">
+                        Reduced motion
+                      </span>
+                      <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                        Calmer transitions (syncs with OS setting)
+                      </span>
+                    </div>
+                  </div>
+                  <SettingsRowToggle
+                    checked={settings.reducedMotion}
+                    onChange={toggleReducedMotion}
+                    label="Toggle reduced motion"
+                  />
+                </div>
+
+                {/* Push Notifications Toggle */}
+                <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <IconTile icon={<Bell weight="duotone" className="w-4 h-4" />} color="amber" size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[14px] font-bold text-[#1F2430] block truncate">
+                        Push notifications
+                      </span>
+                      <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                        Time-based reminders for chore duties
+                      </span>
+                    </div>
+                  </div>
+                  <SettingsRowToggle
+                    checked={settings.pushNotifications}
+                    onChange={togglePush}
+                    label="Toggle push notifications"
+                  />
+                </div>
               </div>
 
-              {/* Roomie Wrapped Toggle */}
-              <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-3">
-                  <IconTile icon={<Sparkle weight="duotone" className="w-4 h-4" />} color="coral" size="sm" />
-                  <div>
-                    <span className="text-[14px] font-bold text-[#1F2430] block">
-                      Roomie Monthly Wrapped
-                    </span>
-                    <span className="type-secondary text-[13px]">
-                      Swipeable monthly recap of streaks, expenses & flat harmony
-                    </span>
+              {/* Beta Labs Bento Section */}
+              <div className="p-3.5 sm:p-4 rounded-3xl bg-[#FAF5FF] border-2 border-b-4 border-[#E9D5FF] space-y-3 shadow-2xs">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-[#9333EA] text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Flask weight="fill" className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-[#581C87] uppercase tracking-wider block">
+                          Beta Labs
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#F3E8FF] text-[#7E22CE] border border-[#D8B4FE] uppercase tracking-wider shrink-0">
+                          Preview
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#7E22CE] block leading-tight">
+                        Experimental flat features in early access
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={roomieWrappedBeta}
-                  aria-label="Toggle Roomie Wrapped Beta"
-                  onClick={() => {
-                    const next = !roomieWrappedBeta;
-                    setRoomieWrappedBeta(next);
-                    setFeatureFlag('roomieWrappedBeta', next);
-                    sound.playTap();
-                    haptics.tokenClink();
-                    showToast(next ? 'Roomie Wrapped Beta enabled' : 'Roomie Wrapped Beta disabled', 'info');
-                  }}
-                  className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
-                    roomieWrappedBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
-                  }`}
-                >
-                  <span
-                    className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-                      roomieWrappedBeta ? 'right-0.5' : 'left-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Walkthrough & Flat Setup */}
+                <div className="space-y-2">
+                  {/* Cultural Dinners Toggle */}
+                  <div className="p-3 rounded-2xl border-2 border-b-3 border-[#E9D5FF] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <IconTile icon={<ForkKnife weight="duotone" className="w-4 h-4" />} color="amber" size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[13px] font-bold text-[#1F2430] block truncate">
+                          Cultural Dinners
+                        </span>
+                        <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                          Weekly flat dinners & dietary badges
+                        </span>
+                      </div>
+                    </div>
+                    <SettingsRowToggle
+                      checked={culturalDinnersBeta}
+                      onChange={() => {
+                        const next = !culturalDinnersBeta;
+                        setCulturalDinnersBeta(next);
+                        setFeatureFlag('culturalDinnersBeta', next);
+                        showToast(next ? 'Cultural Dinners enabled' : 'Cultural Dinners disabled', 'info');
+                      }}
+                      label="Toggle Cultural Dinners Beta"
+                    />
+                  </div>
+
+                  {/* Roomie Wrapped Toggle */}
+                  <div className="p-3 rounded-2xl border-2 border-b-3 border-[#E9D5FF] bg-white flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <IconTile icon={<Sparkle weight="duotone" className="w-4 h-4" />} color="coral" size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[13px] font-bold text-[#1F2430] block truncate">
+                          Roomie Wrapped
+                        </span>
+                        <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
+                          Monthly story recap of flat harmony & streaks
+                        </span>
+                      </div>
+                    </div>
+                    <SettingsRowToggle
+                      checked={roomieWrappedBeta}
+                      onChange={() => {
+                        const next = !roomieWrappedBeta;
+                        setRoomieWrappedBeta(next);
+                        setFeatureFlag('roomieWrappedBeta', next);
+                        showToast(next ? 'Roomie Wrapped enabled' : 'Roomie Wrapped disabled', 'info');
+                      }}
+                      label="Toggle Roomie Wrapped Beta"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Walkthrough & Flat Setup */}
           {(onOpenShowcase || onOpenHowItWorks || onOpenHouseholdSetup) && (
             <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">
               <span className="type-label block">

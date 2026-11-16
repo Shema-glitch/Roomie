@@ -1,25 +1,7 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
-/**
- * Roomie Tactile Haptic Engine (Phase 2 Sensory Upgrade)
- * Uses Capacitor Haptics plugin when available on native Android/iOS with
- * automatic fallback to Web Vibration API (`navigator.vibrate`),
- * while respecting the user's haptics toggle and reduced-motion preferences.
- */
-
-export type ImpactStyle = 'HEAVY' | 'MEDIUM' | 'LIGHT';
-export type NotificationType = 'SUCCESS' | 'WARNING' | 'ERROR';
-
-export interface CapacitorHapticsPlugin {
-  impact(options: { style: ImpactStyle }): Promise<void>;
-  notification(options: { type: NotificationType }): Promise<void>;
-  vibrate(options?: { duration: number }): Promise<void>;
-  selectionStart(): Promise<void>;
-  selectionChanged(): Promise<void>;
-  selectionEnd(): Promise<void>;
-}
-
-const CapHaptics = registerPlugin<CapacitorHapticsPlugin>('Haptics');
+export { ImpactStyle, NotificationType };
 
 const HAPTICS_STORAGE_KEY = 'roomie_haptics_enabled';
 
@@ -102,10 +84,10 @@ export class HapticService {
   public awardCelebrate(): void {
     if (!this.shouldFire('awardCelebrate')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'LIGHT' })
+      Haptics.impact({ style: ImpactStyle.Light })
         .then(() => {
           setTimeout(() => {
-            CapHaptics.impact({ style: 'HEAVY' }).catch(() => {});
+            Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
           }, 55);
         })
         .catch(() => this.vibrateFallback([15, 45, 35]));
@@ -120,7 +102,7 @@ export class HapticService {
   public vibeSubmit(): void {
     if (!this.shouldFire('vibeSubmit')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'LIGHT' }).catch(() => this.vibrateFallback([18]));
+      Haptics.impact({ style: ImpactStyle.Light }).catch(() => this.vibrateFallback([18]));
     } else {
       this.vibrateFallback([18]);
     }
@@ -132,7 +114,7 @@ export class HapticService {
   public tokenClink(): void {
     if (!this.shouldFire('tokenClink')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'MEDIUM' }).catch(() => this.vibrateFallback([12]));
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => this.vibrateFallback([12]));
     } else {
       this.vibrateFallback([12]);
     }
@@ -144,7 +126,7 @@ export class HapticService {
   public swapAccept(): void {
     if (!this.shouldFire('swapAccept')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.notification({ type: 'SUCCESS' }).catch(() =>
+      Haptics.notification({ type: NotificationType.Success }).catch(() =>
         this.vibrateFallback([15, 30, 20])
       );
     } else {
@@ -158,7 +140,7 @@ export class HapticService {
   public softReject(): void {
     if (!this.shouldFire('softReject')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.notification({ type: 'WARNING' }).catch(() =>
+      Haptics.notification({ type: NotificationType.Warning }).catch(() =>
         this.vibrateFallback([25, 40, 25])
       );
     } else {
@@ -172,10 +154,10 @@ export class HapticService {
   public notificationPing(): void {
     if (!this.shouldFire('notificationPing')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'LIGHT' })
+      Haptics.impact({ style: ImpactStyle.Light })
         .then(() => {
           setTimeout(() => {
-            CapHaptics.impact({ style: 'MEDIUM' }).catch(() => {});
+            Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
           }, 35);
         })
         .catch(() => this.vibrateFallback([14, 30, 18]));
@@ -194,7 +176,7 @@ export class HapticService {
   public light(): void {
     if (!this.shouldFire('light')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'LIGHT' }).catch(() => this.vibrateFallback(12));
+      Haptics.impact({ style: ImpactStyle.Light }).catch(() => this.vibrateFallback(12));
     } else {
       this.vibrateFallback(12);
     }
@@ -206,7 +188,7 @@ export class HapticService {
   public medium(): void {
     if (!this.shouldFire('medium')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.impact({ style: 'MEDIUM' }).catch(() => this.vibrateFallback(28));
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => this.vibrateFallback(28));
     } else {
       this.vibrateFallback(28);
     }
@@ -218,7 +200,7 @@ export class HapticService {
   public celebration(): void {
     if (!this.shouldFire('celebration')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.notification({ type: 'SUCCESS' }).catch(() =>
+      Haptics.notification({ type: NotificationType.Success }).catch(() =>
         this.vibrateFallback([35, 60, 45])
       );
     } else {
@@ -236,7 +218,7 @@ export class HapticService {
   public warning(): void {
     if (!this.shouldFire('warning')) return;
     if (this.isNativePluginReady()) {
-      CapHaptics.notification({ type: 'WARNING' }).catch(() =>
+      Haptics.notification({ type: NotificationType.Warning }).catch(() =>
         this.vibrateFallback([20, 40, 20])
       );
     } else {
