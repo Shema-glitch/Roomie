@@ -3,7 +3,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { Chore, User, ChoreSwapRequest } from '../../types';
-import { ArrowsLeftRight, Check, Coins, Sparkle } from '@phosphor-icons/react';
+import { ArrowsLeftRight, Check } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
 import { sound } from '../../services/sound';
