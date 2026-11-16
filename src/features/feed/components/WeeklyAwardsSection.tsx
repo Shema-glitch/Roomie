@@ -6,11 +6,13 @@ import { haptics } from '../../../services/haptics';
 interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
   currentUserId: string;
+  reducedMotion?: boolean;
 }
 
 export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   awards,
   currentUserId,
+  reducedMotion = false,
 }) => {
   const [celebrated, setCelebrated] = useState(false);
 
@@ -36,9 +38,9 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E2E8F0] p-5 sm:p-6 shadow-sm space-y-4 relative overflow-hidden">
-      {/* Celebration Confetti Burst */}
-      {celebrated && (
+    <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E6E8EE] p-4 sm:p-6 shadow-xs space-y-4 relative overflow-hidden">
+      {/* Celebration Confetti Burst (respects reduced motion) */}
+      {!reducedMotion && celebrated && (
         <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
           {Array.from({ length: 28 }).map((_, i) => {
             const colors = ['#FF6B4A', '#19B5A5', '#FFC93C', '#5B5BD6', '#3DBE6D'];
@@ -64,17 +66,17 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#FEF08A] to-[#FBBF24] border-2 border-b-3 border-[#D97706] flex items-center justify-center text-xl shadow-xs">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#FEF08A] to-[#FBBF24] border-2 border-b-3 border-[#D97706] flex items-center justify-center text-xl shadow-xs shrink-0">
             🏆
           </div>
-          <div>
-            <h3 className="text-lg font-heading font-black text-[#1F2430]">
+          <div className="min-w-0">
+            <h3 className="text-base sm:text-lg font-heading font-black text-[#1F2430] truncate">
               Weekly Honors · Everyone Wins!
             </h3>
-            <p className="text-xs font-semibold text-[#64748B]">
-              Roomie recognition with zero shame or loser boards
+            <p className="text-xs font-semibold text-[#64748B] line-clamp-1 sm:line-clamp-none">
+              Celebrating everyone who makes our home awesome ✨
             </p>
           </div>
         </div>
@@ -82,7 +84,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
         <button
           type="button"
           onClick={handleCelebrate}
-          className={`px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-3 transition-all cursor-pointer flex items-center gap-1.5 active:translate-y-[1px] active:border-b-2 ${
+          className={`px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 transition-all cursor-pointer flex items-center gap-1.5 active:translate-y-[2px] active:border-b-2 shrink-0 ${
             celebrated
               ? 'bg-[#19B5A5] text-white border-[#138E82]'
               : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
@@ -130,32 +132,40 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       )}
 
       {/* Other Flatmate Awards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-        {otherAwards.map((award) => {
-          const style = colorStyles[award.colorScheme];
-          return (
-            <div
-              key={award.id}
-              className={`p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between`}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xl shrink-0">{award.icon}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-bold text-[#64748B] truncate">
-                    {award.recipientName.split(' ')[0]}
-                  </div>
-                  <div className="text-xs font-heading font-black text-[#1F2430] truncate">
-                    {award.title}
+      {otherAwards.length > 0 && (
+        <div className={`grid gap-2.5 pt-1 ${
+          otherAwards.length === 1
+            ? 'grid-cols-1'
+            : otherAwards.length === 2
+            ? 'grid-cols-1 sm:grid-cols-2'
+            : 'grid-cols-1 sm:grid-cols-3'
+        }`}>
+          {otherAwards.map((award) => {
+            const style = colorStyles[award.colorScheme];
+            return (
+              <div
+                key={award.id}
+                className={`p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between`}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-xl shrink-0">{award.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-bold text-[#64748B] truncate">
+                      {award.recipientName.split(' ')[0]}
+                    </div>
+                    <div className="text-xs font-heading font-black text-[#1F2430] truncate">
+                      {award.title}
+                    </div>
                   </div>
                 </div>
+                <p className="text-[11px] font-medium text-[#475569] line-clamp-2 leading-tight">
+                  {award.reason}
+                </p>
               </div>
-              <p className="text-[11px] font-medium text-[#475569] line-clamp-2 leading-tight">
-                {award.reason}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

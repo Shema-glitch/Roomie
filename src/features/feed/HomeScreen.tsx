@@ -20,9 +20,11 @@ import {
   WeeklyAward,
   HouseholdVibeSummary,
   VibeRating,
+  ChoreSwapRequest,
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
+import { haptics } from '../../services/haptics';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
 import { Icon } from '@iconify/react';
@@ -30,6 +32,7 @@ import {
   CheckCircle,
   UserPlus,
   ArrowsClockwise,
+  ArrowsLeftRight,
 } from '@phosphor-icons/react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
 import { DailyFocusSection } from './components/DailyFocusSection';
@@ -92,14 +95,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
   const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(undefined);
   const [awards, setAwards] = useState<WeeklyAward[]>([]);
+  const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>([]);
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
 
   useEffect(() => {
     if (household?.id) {
       api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
       api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
+      api.getSwapRequests(household.id).then((reqs) => {
+        const incoming = reqs.filter(
+          (r) => r.targetUserId === currentUser.id && r.status === 'pending'
+        );
+        setPendingSwaps(incoming);
+      }).catch(() => {});
     }
-  }, [household?.id]);
+  }, [household?.id, currentUser.id]);
 
   const handleVibeSubmit = async (rating: VibeRating) => {
     try {
@@ -192,8 +202,60 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Phase 2: Anonymous Household Vibe Check Widget */}
           <VibeCheckWidget
             summary={vibeSummary}
+            totalRoommates={roommates.length}
             onOpenCheckIn={() => setIsVibeModalOpen(true)}
           />
+
+          {/* Phase 2: Inbound Chore Swap Offer Card */}
+          {pendingSwaps.length > 0 && (
+            <ActionCard
+              tint="amber"
+              iconTile={<IconTile icon={<ArrowsLeftRight className="w-6 h-6" />} color="amber" size="md" />}
+              title={`${
+                roommates.find((r) => r.id === pendingSwaps[0].requesterUserId)?.name.split(' ')[0] || 'Roommate'
+              } offered a chore swap!`}
+              subtitle={`Wants to trade "${pendingSwaps[0].requesterChoreName}" (+${pendingSwaps[0].tokenCost} 🪙)`}
+              detail={
+                pendingSwaps[0].note ? (
+                  <span className="text-xs text-[#854D0E] italic font-medium">"{pendingSwaps[0].note}"</span>
+                ) : undefined
+              }
+              actions={
+                <div className="w-full flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    className="flex-1"
+                    onClick={async () => {
+                      sound.playTap();
+                      await api.resolveSwapRequest(pendingSwaps[0].id, 'decline');
+                      setPendingSwaps((prev) => prev.slice(1));
+                      showToast('Chore swap offer declined', 'info');
+                    }}
+                  >
+                    Decline
+                  </Button>
+                  <Button
+                    variant="reward"
+                    size="md"
+                    className="flex-1"
+                    onClick={async () => {
+                      haptics.celebration();
+                      sound.playCelebration();
+                      await api.resolveSwapRequest(pendingSwaps[0].id, 'accept');
+                      setPendingSwaps((prev) => prev.slice(1));
+                      showToast(
+                        `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token 🪙`,
+                        'success'
+                      );
+                    }}
+                  >
+                    Accept (+{pendingSwaps[0].tokenCost} 🪙)
+                  </Button>
+                </div>
+              }
+            />
+          )}
 
           {pendingJoinRequests.length > 0 && (
             <ActionCard
@@ -293,6 +355,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <WeeklyAwardsSection
             awards={awards}
             currentUserId={currentUser.id}
+            reducedMotion={
+              typeof window !== 'undefined' && window.matchMedia
+                ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                : false
+            }
           />
 
           <ActivityTimelineSection

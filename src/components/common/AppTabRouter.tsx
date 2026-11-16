@@ -134,7 +134,6 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             note,
           });
         }
-        await api.swapChore(choreId, toUserId);
         await loadData();
       },
       [chores, loadData]

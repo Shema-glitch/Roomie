@@ -178,16 +178,52 @@ export class SocialApi {
       const reqBalance = store.favorTokens[originalReq.requesterUserId] ?? INITIAL_FAVOR_TOKENS;
       const targetBalance = store.favorTokens[originalReq.targetUserId] ?? INITIAL_FAVOR_TOKENS;
 
-      store.favorTokens[originalReq.requesterUserId] = applyTokenTransactions(
+      const newReqBalance = applyTokenTransactions(
         reqBalance,
         resolution.transactions,
         originalReq.requesterUserId
       );
-      store.favorTokens[originalReq.targetUserId] = applyTokenTransactions(
+      const newTargetBalance = applyTokenTransactions(
         targetBalance,
         resolution.transactions,
         originalReq.targetUserId
       );
+
+      store.favorTokens[originalReq.requesterUserId] = newReqBalance;
+      store.favorTokens[originalReq.targetUserId] = newTargetBalance;
+
+      // Keep currentUser.favorTokens in sync for reactive UI
+      if (store.currentUser.id === originalReq.requesterUserId) {
+        store.currentUser.favorTokens = newReqBalance;
+      } else if (store.currentUser.id === originalReq.targetUserId) {
+        store.currentUser.favorTokens = newTargetBalance;
+      }
+
+      // Reassign chore upon mutual consent
+      if (store.draftRounds?.[hId]?.assignments) {
+        const choreObj = (store.chores || []).find((c) => c.name === originalReq.requesterChoreName);
+        const choreId = choreObj?.id;
+        const assignment = store.draftRounds[hId].assignments.find(
+          (a) => a.userId === originalReq.requesterUserId && (!choreId || a.choreId === choreId)
+        );
+        if (assignment) {
+          assignment.userId = originalReq.targetUserId;
+        }
+      }
+
+      // Warm chat activity announcement
+      const requester = store.users.find((u) => u.id === originalReq.requesterUserId);
+      const target = store.users.find((u) => u.id === originalReq.targetUserId);
+      if (store.messages && store.messages[hId]) {
+        store.messages[hId].push({
+          id: `msg_swap_${Date.now()}`,
+          householdId: hId,
+          senderId: null,
+          type: 'activity',
+          body: `${target?.name.split(' ')[0] || 'Roommate'} accepted a chore swap with ${requester?.name.split(' ')[0] || 'roomie'} (+${originalReq.tokenCost} 🪙)!`,
+          createdAt: new Date().toISOString(),
+        });
+      }
     }
 
     saveStore(store);

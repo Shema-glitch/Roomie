@@ -156,16 +156,16 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleResolveIncoming(req.id, 'decline')}
-                    className="flex-1 py-1.5 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#64748B] hover:bg-[#F8FAFC]"
+                    className="flex-1 py-1.5 px-3 rounded-xl border-2 border-b-2 border-[#CBD5E1] bg-white text-xs font-bold text-[#64748B] hover:bg-[#F8FAFC] active:translate-y-[1px]"
                   >
                     Decline
                   </button>
                   <button
                     type="button"
                     onClick={() => handleResolveIncoming(req.id, 'accept')}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-[#19B5A5] text-white text-xs font-black border-b-2 border-[#138E82] active:translate-y-[1px]"
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-[#19B5A5] text-white text-xs font-black border-2 border-b-2 border-[#138E82] active:translate-y-[1px]"
                   >
-                    Accept (+{req.tokenCost} Token)
+                    Accept (+{req.tokenCost} 🪙)
                   </button>
                 </div>
               </div>
@@ -179,13 +179,14 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
             Offer this chore to:
           </label>
           {roommates.map((r) => (
-            <div
+            <button
               key={r.id}
+              type="button"
               onClick={() => {
                 haptics.light();
                 setSelectedRoommateId(r.id);
               }}
-              className={`p-3 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
+              className={`w-full p-3 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all text-left ${
                 selectedRoommateId === r.id
                   ? 'border-[#FF6B4A] bg-[#FFF0ED] border-b-4'
                   : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1] border-b-3'
@@ -201,11 +202,11 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                 </div>
               </div>
               {selectedRoommateId === r.id && (
-                <div className="w-5 h-5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-[#FF6B4A] text-white flex items-center justify-center shrink-0">
                   <Check className="w-3.5 h-3.5" />
                 </div>
               )}
-            </div>
+            </button>
           ))}
         </div>
 
@@ -251,6 +252,12 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
         </div>
 
         {/* Actions */}
+        {userTokens < tokenCost && (
+          <p className="text-[11px] font-semibold text-[#854D0E] bg-[#FFF8E6] p-2.5 rounded-xl border border-[#FDE68A] leading-snug">
+            🪙 <span className="font-bold">Need more tokens?</span> Complete tasks on time, maintain streaks, or accept chore swaps for flatmates to earn Favor Tokens!
+          </p>
+        )}
+
         <div className="pt-2 grid grid-cols-2 gap-2">
           <Button variant="outline" size="md" onClick={onClose}>
             Cancel

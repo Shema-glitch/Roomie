@@ -97,11 +97,14 @@ export function evaluateWeeklyAwards(params: EvaluateAwardsParams): WeeklyAward[
 
   if (!users || users.length === 0) return [];
 
+  // Sort users by highest streak and points to reward top contributors fairly
+  const sortedUsers = [...users].sort((a, b) => (b.streakDays + b.points) - (a.streakDays + a.points));
+
   const assignedBadges = new Set<AwardBadgeId>();
-  const awards: WeeklyAward[] = [];
+  const awardsMap = new Map<string, WeeklyAward>();
 
   // 1. Calculate per-user candidate badges
-  for (const user of users) {
+  for (const user of sortedUsers) {
     const userAssignments = assignments.filter((a) => a.userId === user.id);
     const completedAssignments = userAssignments.filter((a) => a.completedToday);
     const userKudosSent = kudos.filter((k) => k.fromUser === user.id);
@@ -143,7 +146,7 @@ export function evaluateWeeklyAwards(params: EvaluateAwardsParams): WeeklyAward[
     assignedBadges.add(chosenBadge);
     const meta = AWARD_BADGE_DEFINITIONS[chosenBadge];
 
-    awards.push({
+    awardsMap.set(user.id, {
       id: `awd_${user.id}_${Date.now()}`,
       householdId,
       weekLabel,
@@ -158,5 +161,6 @@ export function evaluateWeeklyAwards(params: EvaluateAwardsParams): WeeklyAward[
     });
   }
 
-  return awards;
+  // Preserve initial user ordering in returned array for stable rendering
+  return users.map((u) => awardsMap.get(u.id)!);
 }
