@@ -20,8 +20,14 @@ import {
   InAppNotification,
   UserSettings,
   DutySchedule,
+  WeeklyAward,
+  WeeklyVibeCheck,
+  FavorTokenTransaction,
+  ChoreSwapRequest,
 } from '../../types';
 import { getChoreDraftState, getChoreStateEvent } from '../../utils/stateTable';
+import { evaluateWeeklyAwards } from '../../utils/awards';
+import { getCurrentWeekKey } from '../../utils/vibe';
 import { outbox, OutboxActionType } from '../outbox';
 import { debugLog, DebugModule } from '../../utils/debugLog';
 import { supabase } from '../supabase';
@@ -46,6 +52,11 @@ export interface AppStore {
   notifications: InAppNotification[];
   dutySchedules?: Record<string, DutySchedule>;
   settings: UserSettings;
+  weeklyAwards?: Record<string, WeeklyAward[]>;
+  vibeChecks?: Record<string, WeeklyVibeCheck[]>;
+  favorTokens?: Record<string, number>;
+  favorTransactions?: Record<string, FavorTokenTransaction[]>;
+  swapRequests?: Record<string, ChoreSwapRequest[]>;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
   localAccounts?: Record<
@@ -660,6 +671,59 @@ export function getInitialStore(): AppStore {
     reminderEarly30Min: true,
   };
 
+  const currentWeek = getCurrentWeekKey();
+  const initialAwards = evaluateWeeklyAwards({
+    householdId: 'h_main',
+    weekLabel: 'Week Recap',
+    users,
+    assignments: draftRound.assignments,
+    kudos: draftRound.assignments.flatMap((a) => a.kudos),
+    expenses,
+  });
+
+  const initialVibes: WeeklyVibeCheck[] = [
+    {
+      id: 'vibe_seed_1',
+      householdId: 'h_main',
+      weekKey: currentWeek,
+      score: 5,
+      rating: 'fire',
+      createdAt: '2026-11-15T18:00:00Z',
+    },
+    {
+      id: 'vibe_seed_2',
+      householdId: 'h_main',
+      weekKey: currentWeek,
+      score: 4,
+      rating: 'chill',
+      createdAt: '2026-11-15T19:30:00Z',
+    },
+  ];
+
+  const favorTokens: Record<string, number> = {
+    u_curr: 5,
+    u_amina: 8,
+    u_lucas: 4,
+    u_yasmin: 6,
+  };
+
+  const swapRequests: Record<string, ChoreSwapRequest[]> = {
+    h_main: [
+      {
+        id: 'swap_demo_1',
+        householdId: 'h_main',
+        requesterUserId: 'u_lucas',
+        targetUserId: 'u_curr',
+        requesterChoreName: 'Dishwasher & Sink Clearance',
+        targetChoreName: 'Cook Dinner',
+        tokenCost: 1,
+        status: 'pending',
+        note: 'Have late soccer practice tonight! Can we swap?',
+        createdAt: '2026-11-16T08:00:00Z',
+      },
+    ],
+  };
+
   return {
     currentUser,
     users,
@@ -678,6 +742,11 @@ export function getInitialStore(): AppStore {
     notifications,
     dutySchedules: {},
     settings,
+    weeklyAwards: { h_main: initialAwards },
+    vibeChecks: { h_main: initialVibes },
+    favorTokens,
+    favorTransactions: { h_main: [] },
+    swapRequests,
   };
 }
 

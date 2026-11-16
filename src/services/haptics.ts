@@ -44,6 +44,10 @@ class HapticService {
     } catch {}
   }
 
+  public success() {
+    this.celebration();
+  }
+
   /**
    * Alert pulse for notices or disputes
    */

@@ -123,11 +123,21 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
       [loadData]
     );
     const handleSwapChore = useCallback(
-      async (choreId: string, toUserId: string) => {
+      async (choreId: string, toUserId: string, tokenCost?: number, note?: string) => {
+        const choreObj = chores.find((c) => c.id === choreId);
+        if (choreObj) {
+          await api.createSwapRequest({
+            targetUserId: toUserId,
+            requesterChoreName: choreObj.name,
+            targetChoreName: 'Chore Duty',
+            tokenCost: tokenCost ?? 1,
+            note,
+          });
+        }
         await api.swapChore(choreId, toUserId);
         await loadData();
       },
-      [loadData]
+      [chores, loadData]
     );
     const handleSetAway = useCallback(
       async (days: number | null) => {

@@ -47,6 +47,7 @@ import { ChatApi } from './chat.api';
 import { GovernanceApi } from './governance.api';
 import { NotificationsApi } from './notifications.api';
 import { SystemApi } from './system.api';
+import { SocialApi } from './social.api';
 
 export class ApiService {
   private _store: AppStore;
@@ -59,6 +60,7 @@ export class ApiService {
   public governance: GovernanceApi;
   public notifications: NotificationsApi;
   public system: SystemApi;
+  public social: SocialApi;
 
   constructor() {
     this._store = loadStore();
@@ -119,6 +121,7 @@ export class ApiService {
     this.chat = new ChatApi(baseContext);
     this.governance = new GovernanceApi(baseContext);
     this.notifications = new NotificationsApi(baseContext);
+    this.social = new SocialApi(() => self._store);
     this.system = new SystemApi({
       store: this._store,
       setStore: (s: AppStore) => {
@@ -600,6 +603,24 @@ export class ApiService {
   public markNotificationRead = (id: string) => this.notifications.markNotificationRead(id);
   public markAllNotificationsRead = () => this.notifications.markAllNotificationsRead();
 
+  // --- Phase 2 Social Facade (Awards, Vibe Checks, Favor Tokens) ---
+  public getWeeklyAwards = (householdId?: string) => this.social.getWeeklyAwards(householdId);
+  public refreshWeeklyAwards = (householdId?: string) => this.social.refreshWeeklyAwards(householdId);
+  public getVibeSummary = (householdId?: string, weekKey?: string) => this.social.getVibeSummary(householdId, weekKey);
+  public submitVibeCheck = (rating: import('../../types').VibeRating, householdId?: string) =>
+    this.social.submitVibeCheck(rating, householdId);
+  public getFavorTokenBalance = (userId?: string) => this.social.getFavorTokenBalance(userId);
+  public getSwapRequests = (householdId?: string) => this.social.getSwapRequests(householdId);
+  public createSwapRequest = (params: {
+    targetUserId: string;
+    requesterChoreName: string;
+    targetChoreName: string;
+    tokenCost?: number;
+    note?: string;
+  }) => this.social.createSwapRequest(params);
+  public resolveSwapRequest = (requestId: string, action: 'accept' | 'decline') =>
+    this.social.resolveSwapRequest(requestId, action);
+
   // --- Diagnostics Facade ---
   public pingSupabaseHealth = () => this.system.pingSupabaseHealth();
   public exportData = () => this.system.exportData();
@@ -617,3 +638,4 @@ export * from './chat.api';
 export * from './governance.api';
 export * from './notifications.api';
 export * from './system.api';
+export * from './social.api';

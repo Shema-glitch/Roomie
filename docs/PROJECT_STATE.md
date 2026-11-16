@@ -219,3 +219,33 @@
 - **Bundle & Test Verification**:
   - All **15 / 15 unit tests passing**.
   - Production build in **1.00s**, initial JavaScript gzip bundle at **~103.4 kB** (budget: < 200 kB).
+
+
+---
+
+## 8. Phase 2: The Features People Love (Current Implementation & Testing)
+
+Branch: `feature/phase-2-love-it-features`
+Baseline Tag: `v1.0.0-phase1`
+
+- **Weekly Awards (Everyone Wins)**:
+  - Evaluation Engine: `src/utils/awards.ts` dynamically evaluates weekly awards without negative or loser rankings.
+  - Zero-Shame Guarantee: Every single active roommate is assigned a humorous, positive badge (*Kitchen Hero*, *Bin Boss*, *Night Chef*, *Peacemaker*, *Streak Master*, *Early Bird*, *The Dependable*).
+  - UI Component: `src/features/feed/components/WeeklyAwardsSection.tsx` features a prominent card for the current user's honor, horizontal badges for flatmates, celebration button with particle confetti burst, haptic vibrations, and celebratory audio.
+  - Unit tests: `src/utils/awards.test.ts` verifying zero loser boards and full flatmate coverage.
+
+- **Anonymous Household Vibe Check**:
+  - Evaluation Engine: `src/utils/vibe.ts` calculates apartment average vibe on a 1-5 scale.
+  - Strict k-Anonymity Protection: Submissions are strictly unlinked from user IDs. Aggregate scores and dominant moods are completely concealed until $\ge 3$ roommates submit.
+  - UI Components: `VibeCheckWidget.tsx` on the home feed displays unlock status or privacy shield; `VibeCheckModal.tsx` provides 5 expressive mascot emotion buttons with instant anonymous voting.
+  - Unit tests: `src/utils/vibe.test.ts` verifying threshold secrecy and payload privacy.
+
+- **Favor Tokens & Chore Trades**:
+  - Ledger Engine: `src/utils/tokens.ts` & `src/services/api/social.api.ts` manages non-financial social currency balances, swap transactions, and affordability checks.
+  - UI Integration: Users see their token balance (`🪙 5 tokens`) in the header pill and Profile modal; `ChoreSwapModal.tsx` enables offering 1-2 Favor Tokens to incentivize trades, plus 1-tap accept/decline of incoming roommate requests.
+  - Unit tests: `src/utils/tokens.test.ts` verifying token deduction on acceptance and zero transfer on decline.
+
+- **Quality & Verification**:
+  - **49 / 49 unit tests passing** (`npm test`).
+  - **0 TypeScript errors** (`npm run lint`).
+  - Standalone Android APK built and stream-installed onto device (`TECNO_CLA5`).

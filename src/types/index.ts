@@ -28,6 +28,7 @@ export interface User {
   isHome: boolean;
   streakDays: number;
   points: number;
+  favorTokens?: number;
   awayUntil: string | null; // "I'm away" mode date ISO or null
 }
 
@@ -247,3 +248,77 @@ export interface DutySchedule {
   weekStartDate: string;
   entries: DutyDayEntry[];
 }
+
+// -------------------------------------------------------------
+// Phase 2: The Features People Love (Awards, Vibes, Favor Tokens)
+// -------------------------------------------------------------
+
+export type AwardBadgeId =
+  | 'kitchen_hero'
+  | 'bin_boss'
+  | 'night_chef'
+  | 'peacemaker'
+  | 'streak_master'
+  | 'early_bird'
+  | 'the_dependable'
+  | 'cheerleader';
+
+export interface WeeklyAward {
+  id: string;
+  householdId: string;
+  weekLabel: string;
+  badgeId: AwardBadgeId;
+  title: string;
+  icon: string;
+  recipientUserId: string;
+  recipientName: string;
+  reason: string;
+  colorScheme: 'amber' | 'emerald' | 'purple' | 'sky' | 'rose' | 'indigo';
+  awardedAt: string;
+}
+
+export type VibeRating = 'fire' | 'chill' | 'meh' | 'stressed' | 'down';
+
+export interface WeeklyVibeCheck {
+  id: string;
+  householdId: string;
+  weekKey: string;
+  score: number; // 1 (down) to 5 (fire)
+  rating: VibeRating;
+  createdAt: string;
+}
+
+export interface HouseholdVibeSummary {
+  householdId: string;
+  weekKey: string;
+  submissionCount: number;
+  revealed: boolean; // strictly requires >= 3 submissions to protect roommate privacy
+  minRequired: number;
+  averageScore?: number;
+  dominantMood?: VibeRating;
+}
+
+export interface FavorTokenTransaction {
+  id: string;
+  householdId: string;
+  userId: string;
+  type: 'earn' | 'spend';
+  amount: number;
+  reason: 'streak_milestone' | 'chore_pickup' | 'chore_swap' | 'roommate_favor' | 'gift';
+  note?: string;
+  createdAt: string;
+}
+
+export interface ChoreSwapRequest {
+  id: string;
+  householdId: string;
+  requesterUserId: string;
+  targetUserId: string;
+  requesterChoreName: string;
+  targetChoreName: string;
+  tokenCost: number;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  note?: string;
+  createdAt: string;
+}
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActionCard } from '../../components/common/ActionCard';
 import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
@@ -17,10 +17,14 @@ import {
   KudosType,
   DutySchedule,
   DayOfWeek,
+  WeeklyAward,
+  HouseholdVibeSummary,
+  VibeRating,
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
+import { api } from '../../services/api';
 import { Icon } from '@iconify/react';
 import {
   CheckCircle,
@@ -31,6 +35,9 @@ import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../
 import { DailyFocusSection } from './components/DailyFocusSection';
 import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
+import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
+import { VibeCheckWidget } from './components/VibeCheckWidget';
+import { VibeCheckModal } from './components/VibeCheckModal';
 
 interface HomeScreenProps {
   currentUser: User;
@@ -83,6 +90,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { showToast } = useToast();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
+  const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(undefined);
+  const [awards, setAwards] = useState<WeeklyAward[]>([]);
+  const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (household?.id) {
+      api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
+      api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
+    }
+  }, [household?.id]);
+
+  const handleVibeSubmit = async (rating: VibeRating) => {
+    try {
+      const updated = await api.submitVibeCheck(rating, household.id);
+      setVibeSummary(updated);
+      showToast(
+        updated.revealed
+          ? `Vibe pulse unlocked! Flat average: ${updated.averageScore} / 5`
+          : 'Vibe check recorded anonymously! Waiting on roomies.',
+        'success'
+      );
+    } catch {
+      showToast('Could not record vibe check', 'error');
+    }
+  };
 
   const sym = getCurrencySymbol(household?.currency);
   const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
@@ -155,6 +187,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             currentUser={currentUser}
             onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
             onCompleteTodayDuty={onCompleteTodayDuty}
+          />
+
+          {/* Phase 2: Anonymous Household Vibe Check Widget */}
+          <VibeCheckWidget
+            summary={vibeSummary}
+            onOpenCheckIn={() => setIsVibeModalOpen(true)}
           />
 
           {pendingJoinRequests.length > 0 && (
@@ -251,6 +289,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onOpenExpensesAction={onOpenExpensesAction}
           />
 
+          {/* Phase 2: Weekly Awards (Everyone Wins) */}
+          <WeeklyAwardsSection
+            awards={awards}
+            currentUserId={currentUser.id}
+          />
+
           <ActivityTimelineSection
             activityMessages={activityMessages}
             onNavigateTab={onNavigateTab}
@@ -286,6 +330,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             setDoneChoreModalTarget(null);
             showToast('Chore marked as complete! Streak updated.', 'success');
           }}
+        />
+      )}
+
+      {isVibeModalOpen && (
+        <VibeCheckModal
+          isOpen={isVibeModalOpen}
+          onClose={() => setIsVibeModalOpen(false)}
+          onSubmit={handleVibeSubmit}
         />
       )}
     </div>

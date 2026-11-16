@@ -294,10 +294,14 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     {currentUser.name}
                   </h4>
                   <p className="type-secondary truncate" title={currentUser.email}>{currentUser.email}</p>
-                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430] truncate">
+                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430] flex-wrap">
                     <span className="truncate">{currentUser.country} {currentUser.flag}</span>
                     <span className="shrink-0">•</span>
-                    <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} points</span>
+                    <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} pts</span>
+                    <span className="shrink-0">•</span>
+                    <span className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A]">
+                      🪙 {currentUser.favorTokens ?? 5} tokens
+                    </span>
                   </div>
                 </div>
               </div>

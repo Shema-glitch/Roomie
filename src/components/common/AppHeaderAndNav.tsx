@@ -268,6 +268,15 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               </span>
             </button>
 
+            {/* Phase 2: Favor Token Pill */}
+            <div
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none"
+              title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
+            >
+              <span>🪙</span>
+              <span>{currentUser.favorTokens ?? 5}</span>
+            </div>
+
             <button
               onClick={() => {
                 sound.playTap();

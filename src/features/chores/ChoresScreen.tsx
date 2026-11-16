@@ -36,7 +36,12 @@ interface ChoresScreenProps {
     type: KudosType,
     note?: string
   ) => Promise<void>;
-  onSwapChore: (choreId: string, toUserId: string) => Promise<void>;
+  onSwapChore: (
+    choreId: string,
+    toUserId: string,
+    tokenCost?: number,
+    note?: string
+  ) => Promise<void>;
   onSetAway: (days: number | null) => Promise<void>;
   onAddChore: (
     name: string,
