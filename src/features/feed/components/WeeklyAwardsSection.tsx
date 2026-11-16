@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { WeeklyAward } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../services/haptics';
+import { Icon } from '@iconify/react';
+import { Sparkle } from '@phosphor-icons/react';
 
 interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
@@ -38,10 +40,10 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E6E8EE] p-4 sm:p-6 shadow-xs space-y-4 relative overflow-hidden">
-      {/* Celebration Confetti Burst (respects reduced motion) */}
+    <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E6E8EE] p-4 sm:p-6 shadow-xs space-y-4 relative">
+      {/* Celebration Confetti Burst (respects reduced motion, unclipped by parent) */}
       {!reducedMotion && celebrated && (
-        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+        <div className="absolute -top-3 inset-x-0 h-48 pointer-events-none z-30 overflow-visible">
           {Array.from({ length: 28 }).map((_, i) => {
             const colors = ['#FF6B4A', '#19B5A5', '#FFC93C', '#5B5BD6', '#3DBE6D'];
             const color = colors[i % colors.length];
@@ -68,15 +70,16 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       {/* Header */}
       <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#FEF08A] to-[#FBBF24] border-2 border-b-3 border-[#D97706] flex items-center justify-center text-xl shadow-xs shrink-0">
-            🏆
+          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#FEF08A] to-[#FBBF24] border-2 border-b-3 border-[#D97706] flex items-center justify-center shadow-xs shrink-0">
+            <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
           </div>
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-heading font-black text-[#1F2430] truncate">
               Weekly Honors · Everyone Wins!
             </h3>
-            <p className="text-xs font-semibold text-[#64748B] line-clamp-1 sm:line-clamp-none">
-              Celebrating everyone who makes our home awesome ✨
+            <p className="text-xs font-semibold text-[#64748B] flex items-center gap-1 line-clamp-1 sm:line-clamp-none">
+              <span>Celebrating everyone who makes our home awesome</span>
+              <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#F59E0B] inline shrink-0" />
             </p>
           </div>
         </div>
@@ -91,7 +94,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           }`}
           title="Celebrate this week's honors"
         >
-          <span>🎉</span>
+          <Icon icon="fluent-emoji-flat:party-popper" className="w-4 h-4 shrink-0" />
           <span>{celebrated ? 'Cheering!' : 'Celebrate'}</span>
         </button>
       </div>
@@ -104,8 +107,8 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           } ${colorStyles[myAward.colorScheme].border}`}
         >
           <div className="flex items-start gap-3.5">
-            <span className="text-3xl shrink-0 p-1.5 rounded-2xl bg-white/80 shadow-xs border border-white">
-              {myAward.icon}
+            <span className="shrink-0 p-2 rounded-2xl bg-white/80 shadow-xs border border-white flex items-center justify-center">
+              <Icon icon={myAward.icon} className="w-8 h-8" />
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -147,8 +150,10 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
                 key={award.id}
                 className={`p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-xl shrink-0">{award.icon}</span>
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <span className="shrink-0 flex items-center justify-center">
+                    <Icon icon={award.icon} className="w-6 h-6" />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <div className="text-[11px] font-bold text-[#64748B] truncate">
                       {award.recipientName.split(' ')[0]}

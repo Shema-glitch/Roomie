@@ -15,6 +15,15 @@ class SoundService {
       if (stored !== null) {
         this.enabled = stored === 'true';
       }
+
+      // Android WebView user-gesture AudioContext resume listener
+      const unlockAudio = () => {
+        this.initCtx();
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+      };
+      window.addEventListener('pointerdown', unlockAudio, { once: true });
+      window.addEventListener('keydown', unlockAudio, { once: true });
     }
   }
 

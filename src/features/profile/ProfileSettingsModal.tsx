@@ -28,6 +28,7 @@ import {
   Bug,
 } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { Icon } from '@iconify/react';
 import { processPhoto } from '../../utils/photoPipeline';
 import { uploadPhotoToStorage } from '../../services/supabase';
 
@@ -299,8 +300,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <span className="shrink-0">•</span>
                     <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} pts</span>
                     <span className="shrink-0">•</span>
-                    <span className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A]">
-                      🪙 {currentUser.favorTokens ?? 5} tokens
+                    <span className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A] inline-flex items-center gap-1">
+                      <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0" />
+                      <span>{currentUser.favorTokens ?? 5} tokens</span>
                     </span>
                   </div>
                 </div>

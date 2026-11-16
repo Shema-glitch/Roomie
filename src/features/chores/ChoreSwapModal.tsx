@@ -4,6 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { Chore, User, ChoreSwapRequest } from '../../types';
 import { ArrowsLeftRight, Check } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
 import { sound } from '../../services/sound';
@@ -110,7 +111,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
         {/* Token Balance Header */}
         <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border-2 border-b-3 border-[#F59E0B]/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🪙</span>
+            <Icon icon="fluent-emoji-flat:coin" className="w-5 h-5 shrink-0" />
             <div>
               <div className="text-xs font-bold text-[#854D0E] uppercase tracking-wider">
                 Your Favor Tokens
@@ -140,8 +141,8 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                   <div className="text-xs font-bold text-[#138E82]">
                     Roommate wants to trade
                   </div>
-                  <span className="text-xs font-black text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-full">
-                    +{req.tokenCost} 🪙
+                  <span className="text-xs font-black text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    +{req.tokenCost} <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0" />
                   </span>
                 </div>
                 <div className="text-xs font-medium text-[#1F2430]">
@@ -163,9 +164,11 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleResolveIncoming(req.id, 'accept')}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-[#19B5A5] text-white text-xs font-black border-2 border-b-2 border-[#138E82] active:translate-y-[1px]"
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-[#19B5A5] text-white text-xs font-black border-2 border-b-2 border-[#138E82] active:translate-y-[1px] inline-flex items-center justify-center gap-1"
                   >
-                    Accept (+{req.tokenCost} 🪙)
+                    <span>Accept (+{req.tokenCost}</span>
+                    <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0 inline" />
+                    <span>)</span>
                   </button>
                 </div>
               </div>
@@ -230,7 +233,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                     : 'border-[#CBD5E1] bg-white text-[#64748B]'
                 }`}
               >
-                <span>🪙</span>
+                <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
                 <span>{amount} {amount === 1 ? 'Token' : 'Tokens'}</span>
               </button>
             ))}
@@ -253,8 +256,11 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
 
         {/* Actions */}
         {userTokens < tokenCost && (
-          <p className="text-[11px] font-semibold text-[#854D0E] bg-[#FFF8E6] p-2.5 rounded-xl border border-[#FDE68A] leading-snug">
-            🪙 <span className="font-bold">Need more tokens?</span> Complete tasks on time, maintain streaks, or accept chore swaps for flatmates to earn Favor Tokens!
+          <p className="text-[11px] font-semibold text-[#854D0E] bg-[#FFF8E6] p-2.5 rounded-xl border border-[#FDE68A] leading-snug flex items-start gap-1.5">
+            <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              <span className="font-bold">Need more tokens?</span> Complete tasks on time, maintain streaks, or accept chore swaps for flatmates to earn Favor Tokens!
+            </span>
           </p>
         )}
 
@@ -269,7 +275,15 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
             onClick={handleConfirm}
             icon={<ArrowsLeftRight className="w-4 h-4" />}
           >
-            {loading ? 'Offering...' : `Offer (-${tokenCost} 🪙)`}
+            {loading ? (
+              'Offering...'
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <span>Offer (-{tokenCost}</span>
+                <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline" />
+                <span>)</span>
+              </span>
+            )}
           </Button>
         </div>
       </div>

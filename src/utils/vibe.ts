@@ -10,6 +10,7 @@ export interface VibeMeta {
   score: number;
   label: string;
   emoji: string;
+  icon: string;
   description: string;
   colorScheme: 'amber' | 'emerald' | 'sky' | 'indigo' | 'rose';
 }
@@ -20,6 +21,7 @@ export const VIBE_DEFINITIONS: Record<VibeRating, VibeMeta> = {
     score: 5,
     label: 'On Fire',
     emoji: '🔥',
+    icon: 'fluent-emoji-flat:fire',
     description: 'Energized, motivated, and feeling fantastic!',
     colorScheme: 'rose',
   },
@@ -28,6 +30,7 @@ export const VIBE_DEFINITIONS: Record<VibeRating, VibeMeta> = {
     score: 4,
     label: 'Super Chill',
     emoji: '😎',
+    icon: 'fluent-emoji-flat:smiling-face-with-sunglasses',
     description: 'Smooth sailing, relaxed, and happy at home.',
     colorScheme: 'emerald',
   },
@@ -36,6 +39,7 @@ export const VIBE_DEFINITIONS: Record<VibeRating, VibeMeta> = {
     score: 3,
     label: 'Just Okay',
     emoji: '😐',
+    icon: 'fluent-emoji-flat:neutral-face',
     description: 'Neutral and taking things day by day.',
     colorScheme: 'sky',
   },
@@ -44,6 +48,7 @@ export const VIBE_DEFINITIONS: Record<VibeRating, VibeMeta> = {
     score: 2,
     label: 'A Bit Stressed',
     emoji: '😩',
+    icon: 'fluent-emoji-flat:weary-face',
     description: 'Exam pressure or busy routine, need extra quiet.',
     colorScheme: 'amber',
   },
@@ -52,6 +57,7 @@ export const VIBE_DEFINITIONS: Record<VibeRating, VibeMeta> = {
     score: 1,
     label: 'Feeling Low',
     emoji: '🌧️',
+    icon: 'fluent-emoji-flat:cloud-with-rain',
     description: 'Tired and running on low battery.',
     colorScheme: 'indigo',
   },

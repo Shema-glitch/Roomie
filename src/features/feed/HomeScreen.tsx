@@ -214,7 +214,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               title={`${
                 roommates.find((r) => r.id === pendingSwaps[0].requesterUserId)?.name.split(' ')[0] || 'Roommate'
               } offered a chore swap!`}
-              subtitle={`Wants to trade "${pendingSwaps[0].requesterChoreName}" (+${pendingSwaps[0].tokenCost} 🪙)`}
+              subtitle={
+                <span className="inline-flex items-center gap-1">
+                  <span>Wants to trade "{pendingSwaps[0].requesterChoreName}" (+{pendingSwaps[0].tokenCost}</span>
+                  <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline shrink-0" />
+                  <span>)</span>
+                </span>
+              }
               detail={
                 pendingSwaps[0].note ? (
                   <span className="text-xs text-[#854D0E] italic font-medium">"{pendingSwaps[0].note}"</span>
@@ -266,7 +272,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       }
                     }}
                   >
-                    Accept (+{pendingSwaps[0].tokenCost} 🪙)
+                    <span className="inline-flex items-center justify-center gap-1">
+                      <span>Accept (+{pendingSwaps[0].tokenCost}</span>
+                      <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline shrink-0" />
+                      <span>)</span>
+                    </span>
                   </Button>
                 </div>
               }

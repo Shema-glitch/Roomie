@@ -16,6 +16,7 @@ import {
   Buildings,
   WarningCircle,
 } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 export type AppTab = 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment';
 
@@ -273,7 +274,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none"
               title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
             >
-              <span>🪙</span>
+              <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
               <span>{currentUser.favorTokens ?? 5}</span>
             </div>
 

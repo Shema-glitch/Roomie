@@ -4,7 +4,8 @@ import { VIBE_DEFINITIONS, VIBE_RATINGS_LIST, getCurrentWeekKey } from '../../..
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../services/haptics';
 import { useBackHandler } from '../../../utils/useBackHandler';
-import { X, ShieldCheck, Heart, Check } from '@phosphor-icons/react';
+import { X, ShieldCheck, Heart, Check, Sparkle } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface VibeCheckModalProps {
   isOpen: boolean;
@@ -92,8 +93,8 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFF5F2] border-2 border-[#FFD3C9] flex items-center justify-center text-xl shadow-xs shrink-0">
-              ✨
+            <div className="w-10 h-10 rounded-2xl bg-[#FFF5F2] border-2 border-[#FFD3C9] flex items-center justify-center shadow-xs shrink-0">
+              <Sparkle weight="fill" className="w-5 h-5 text-[#FF6B4A]" />
             </div>
             <div className="min-w-0">
               <h3 id="vibe-modal-title" className="text-lg sm:text-xl font-heading font-black text-[#1F2430] truncate">
@@ -133,7 +134,9 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl shrink-0">{meta.emoji}</span>
+                  <span className="shrink-0 flex items-center justify-center">
+                    <Icon icon={meta.icon} className="w-7 h-7" />
+                  </span>
                   <div className="min-w-0">
                     <div className="text-sm font-heading font-black text-[#1F2430] truncate">
                       {meta.label}

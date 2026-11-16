@@ -4,6 +4,7 @@ import { VIBE_DEFINITIONS } from '../../../utils/vibe';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../services/haptics';
 import { LockKey, Sparkle } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 
 interface VibeCheckWidgetProps {
   summary?: HouseholdVibeSummary;
@@ -34,13 +35,17 @@ export const VibeCheckWidget: React.FC<VibeCheckWidgetProps> = ({
     <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E6E8EE] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div className="flex items-center gap-3.5 min-w-0">
         <div
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border-2 border-b-3 shadow-2xs shrink-0 ${
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-b-3 shadow-2xs shrink-0 ${
             isRevealed
               ? 'bg-[#FFF8E6] border-[#F59E0B]'
               : 'bg-[#F1F5F9] border-[#CBD5E1]'
           }`}
         >
-          {isRevealed && dominantMeta ? dominantMeta.emoji : '🔒'}
+          {isRevealed && dominantMeta ? (
+            <Icon icon={dominantMeta.icon} className="w-7 h-7" />
+          ) : (
+            <LockKey weight="fill" className="w-5 h-5 text-[#64748B]" />
+          )}
         </div>
 
         <div className="min-w-0">
