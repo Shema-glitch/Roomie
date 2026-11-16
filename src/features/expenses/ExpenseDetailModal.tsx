@@ -1,3 +1,4 @@
+import { sound } from '../../services/sound';
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
@@ -6,7 +7,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { DisputeReasonModal } from './DisputeReasonModal';
 import { Expense, User } from '../../types';
-import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning } from '@phosphor-icons/react';
+import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning, ShareNetwork } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getCurrencySymbol } from '../../utils/stateTable';
 
@@ -70,6 +71,21 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
       showToast('Could not register dispute', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShareSummary = () => {
+    sound.playTap();
+    const summary = `Shared Expense: "${expense.title}" (${sym}${expense.amount.toFixed(2)})\nPaid by: ${payer?.name || 'Roomie'}\nCategory: ${expense.category}\nView details on Roomie: ${window.location.origin}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summary)}`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(summary).catch(() => {});
+    }
+    const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      showToast('Copied expense summary to clipboard!', 'info');
+    } else {
+      showToast('Opening WhatsApp with expense summary...', 'info');
     }
   };
 
@@ -290,19 +306,26 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             </div>
           )}
 
-          {/* Settle in chat helper */}
-          <div className="pt-2">
+          {/* Settle in chat & Share summary */}
+          <div className="pt-2 grid grid-cols-2 gap-2">
             <Button
               variant="secondary"
               size="md"
-              fullWidth
               onClick={() => {
                 onClose();
                 onOpenChat();
               }}
               icon={<ChatCircleDots className="w-4 h-4 text-[#5B5BD6]" />}
             >
-              Discuss in Chat
+              Chat
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={handleShareSummary}
+              icon={<ShareNetwork className="w-4 h-4 text-[#19B5A5]" />}
+            >
+              Share bill
             </Button>
           </div>
         </div>

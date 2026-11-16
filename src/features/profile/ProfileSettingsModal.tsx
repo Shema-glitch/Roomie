@@ -7,6 +7,8 @@ import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
 import { sound } from '../../services/sound';
 import {
+  Camera,
+  UploadSimple,
   SpeakerHigh,
   SpeakerSlash,
   Eye,
@@ -26,6 +28,8 @@ import {
   Bug,
 } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { processPhoto } from '../../utils/photoPipeline';
+import { uploadPhotoToStorage } from '../../services/supabase';
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -85,6 +89,27 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [editFlag, setEditFlag] = useState(currentUser.flag);
   const [editAvatar, setEditAvatar] = useState(currentUser.avatar);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingAvatar(true);
+      sound.playPop();
+      const processed = await processPhoto(file);
+      const fileName = `avatar_${currentUser.id}_${Date.now()}.jpg`;
+      const finalUrl = await uploadPhotoToStorage('avatars', fileName, processed.fullBlob, processed.fullDataUrl);
+      setEditAvatar(finalUrl);
+      sound.playSuccess();
+      showToast('Custom photo avatar attached!', 'reward');
+    } catch {
+      showToast('Could not process avatar photo', 'error');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
   const [devModeUnlocked, setDevModeUnlocked] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('roomie_dev_mode') === 'true';
@@ -291,18 +316,44 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
 
               <div>
-                <label className="type-label block mb-1">Avatar Preset</label>
-                <div className="flex items-center gap-2 overflow-x-auto py-1">
+                <label className="type-label block mb-1.5">Your Photo or Avatar</label>
+                <input
+                  ref={avatarFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarFileChange}
+                />
+                <div className="flex items-center gap-2.5 overflow-x-auto py-1.5">
+                  {/* Custom Photo Button */}
+                  <button
+                    type="button"
+                    disabled={uploadingAvatar}
+                    onClick={() => avatarFileInputRef.current?.click()}
+                    className="w-12 h-12 rounded-full border-2 border-dashed border-[#FF6B4A] bg-[#FFF5F2] hover:bg-[#FFEAE4] flex flex-col items-center justify-center text-[#FF6B4A] shrink-0 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                    title="Upload custom photo or selfie"
+                  >
+                    {uploadingAvatar ? (
+                      <UploadSimple className="w-5 h-5 animate-bounce" />
+                    ) : (
+                      <Camera className="w-5 h-5" weight="bold" />
+                    )}
+                  </button>
+
+                  {/* Preset Avatars */}
                   {PRESET_AVATARS.map((p) => (
                     <button
                       type="button"
                       key={p.label}
-                      onClick={() => setEditAvatar(p.url)}
-                      className={`relative rounded-full p-0.5 transition-all cursor-pointer ${
-                        editAvatar === p.url ? 'ring-2 ring-[#FF6B4A]' : 'opacity-70 hover:opacity-100'
+                      onClick={() => {
+                        sound.playPop();
+                        setEditAvatar(p.url);
+                      }}
+                      className={`relative rounded-full p-0.5 transition-all cursor-pointer shrink-0 ${
+                        editAvatar === p.url ? 'ring-2 ring-[#FF6B4A] scale-105 shadow-2xs' : 'opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={p.url} alt={p.label} className="w-9 h-9 rounded-full object-cover" />
+                      <img src={p.url} alt={p.label} className="w-11 h-11 rounded-full object-cover border border-[#E6E8EE]" />
                     </button>
                   ))}
                 </div>

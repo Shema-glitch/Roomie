@@ -121,6 +121,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   <span className="font-medium whitespace-nowrap">
                     {currentUser.points} pts
                   </span>
+                  <span aria-hidden="true">·</span>
+                  {/* 1-Tap Quick Presence Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playPop();
+                      onToggleHomeStatus();
+                      showToast(currentUser.isHome ? 'Status: Out of the flat' : 'Status: You are Home 🏠', 'info');
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer active:scale-95 border-2 ${
+                      currentUser.isHome
+                        ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
+                        : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
+                    }`}
+                    title="Tap to toggle if you are at home or out"
+                  >
+                    <span className={`w-2 h-2 rounded-full ${currentUser.isHome ? 'bg-[#19B5A5] animate-pulse' : 'bg-[#94A3B8]'}`} />
+                    <span>{currentUser.isHome ? 'I\'m Home' : 'Out'}</span>
+                  </button>
                 </div>
               </div>
 

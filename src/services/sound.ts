@@ -1,3 +1,4 @@
+import { haptics } from './haptics';
 /**
  * Web Audio API synthesizer for Roomie sound effects
  * Gentle, warm, original sounds without external asset dependencies
@@ -42,6 +43,7 @@ class SoundService {
 
   // Soft tactile button tap
   public playTap() {
+    haptics.light();
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
@@ -68,6 +70,7 @@ class SoundService {
 
   // Cheerful pop for kudos, selection, or checkbox
   public playPop() {
+    haptics.light();
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
@@ -92,6 +95,7 @@ class SoundService {
 
   // Two-tone friendly chime for settled or completed tasks
   public playSuccess() {
+    haptics.medium();
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
@@ -119,6 +123,7 @@ class SoundService {
 
   // Celebratory fanfare for Chore Reveal
   public playCelebration() {
+    haptics.celebration();
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
@@ -147,6 +152,7 @@ class SoundService {
 
   // Soft low warm chime for dispute or reminder
   public playCalmNotice() {
+    haptics.warning();
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;

@@ -3,6 +3,7 @@ import { ActionCard } from '../../../components/common/ActionCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { SectionTitle } from '../../../components/common/SectionTitle';
+import { ChoreDueCountdownBadge } from '../../../components/common/ChoreDueCountdownBadge';
 import { Chore, ChoreAssignment } from '../../../types';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
@@ -58,6 +59,14 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
               color="teal"
               size="md"
             />
+          }
+          badge={
+            myTodayChore ? (
+              <ChoreDueCountdownBadge
+                scheduledTime={myTodayAssignment?.scheduledTime}
+                completedToday={myTodayAssignment?.completedToday}
+              />
+            ) : undefined
           }
           title={myTodayChore ? myTodayChore.name : 'All chores done'}
           subtitle={
