@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { WeeklyAward } from '../../../types';
 import { sound } from '../../../services/sound';
-import { haptics } from '../../../services/haptics';
+import { haptics } from '../../../utils/haptics';
 import { Icon } from '@iconify/react';
 import { Sparkle } from '@phosphor-icons/react';
 
@@ -24,8 +24,8 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   const otherAwards = awards.filter((a) => a.recipientUserId !== currentUserId);
 
   const handleCelebrate = () => {
-    haptics.celebration();
-    sound.playCelebration();
+    haptics.awardCelebrate();
+    sound.awardCelebrate();
     setCelebrated(true);
     setTimeout(() => setCelebrated(false), 2500);
   };

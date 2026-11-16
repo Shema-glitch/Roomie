@@ -26,12 +26,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const id = 'toast_' + Date.now() + Math.random().toString(36).substring(2, 5);
       setToasts((prev) => [...prev.slice(-2), { id, message, type, duration }]);
 
-      if (type === 'success' || type === 'reward') {
+      if (type === 'reward') {
+        if (message.toLowerCase().includes('token')) {
+          sound.tokenClink();
+        } else {
+          sound.awardCelebrate();
+        }
+      } else if (type === 'success') {
         sound.playSuccess();
       } else if (type === 'error') {
-        sound.playCalmNotice();
+        sound.softReject();
       } else {
-        sound.playPop();
+        sound.notificationPing();
       }
 
       setTimeout(() => {
@@ -45,12 +51,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const getIcon = (type?: ToastType) => {
+  const getIcon = (type?: ToastType, message: string = '') => {
     switch (type) {
       case 'success':
         return <CheckCircle weight="fill" className="w-5 h-5 text-[#2CA358] shrink-0" />;
       case 'reward':
-        return <Icon icon="fluent-emoji-flat:trophy" className="w-5 h-5 shrink-0" />;
+        return message.toLowerCase().includes('token') ? (
+          <Icon icon="fluent-emoji-flat:coin" className="w-5 h-5 shrink-0" />
+        ) : (
+          <Icon icon="fluent-emoji-flat:trophy" className="w-5 h-5 shrink-0" />
+        );
       case 'error':
         return <WarningCircle weight="fill" className="w-5 h-5 text-[#E5484D] shrink-0" />;
       case 'info':
@@ -86,7 +96,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               toast.type
             )}`}
           >
-            {getIcon(toast.type)}
+            {getIcon(toast.type, toast.message)}
             <p className="text-sm font-bold text-[#1F2430] flex-1 leading-snug">{toast.message}</p>
             <button
               onClick={() => removeToast(toast.id)}

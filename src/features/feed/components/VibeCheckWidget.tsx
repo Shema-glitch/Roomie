@@ -2,7 +2,7 @@ import React from 'react';
 import { HouseholdVibeSummary } from '../../../types';
 import { VIBE_DEFINITIONS } from '../../../utils/vibe';
 import { sound } from '../../../services/sound';
-import { haptics } from '../../../services/haptics';
+import { haptics } from '../../../utils/haptics';
 import { LockKey, Sparkle } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 

@@ -88,9 +88,26 @@ export class SocialApi {
 
     const newVibe = createAnonymousVibeCheck(hId, wKey, rating);
     store.vibeChecks[hId].push(newVibe);
-    saveStore(store);
 
-    return calculateHouseholdVibe(hId, wKey, store.vibeChecks[hId], 3);
+    const summary = calculateHouseholdVibe(hId, wKey, store.vibeChecks[hId], 3);
+    // Notify household members when the 3-vote k-anonymity threshold unlocks the weekly pulse
+    if (summary.revealed && summary.submissionCount === 3 && store.notifications) {
+      store.users.forEach((u) => {
+        store.notifications.unshift({
+          id: `notif_vibe_${Date.now()}_${u.id}`,
+          userId: u.id,
+          type: 'household',
+          title: 'Apartment Vibe Pulse Unlocked!',
+          body: `3 roommates have checked in anonymously this week. Tap to see how the flat is feeling.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget: { screen: 'feed' },
+        });
+      });
+    }
+
+    saveStore(store);
+    return summary;
   }
 
   // -------------------------------------------------------------
@@ -145,6 +162,22 @@ export class SocialApi {
     if (!store.swapRequests) store.swapRequests = {};
     if (!store.swapRequests[hId]) store.swapRequests[hId] = [];
     store.swapRequests[hId].unshift(swapRequest);
+
+    // Emit in-app notification for the target roommate
+    if (store.notifications) {
+      const requester = store.users.find((u) => u.id === requesterId);
+      store.notifications.unshift({
+        id: `notif_swap_offer_${Date.now()}`,
+        userId: params.targetUserId,
+        type: 'chore',
+        title: `Chore Swap Offer (+${cost} Favor Token${cost > 1 ? 's' : ''})`,
+        body: `${requester?.name.split(' ')[0] || 'A roommate'} offered ${cost} Favor Token${cost > 1 ? 's' : ''} if you take "${params.requesterChoreName}"${params.note ? ` — "${params.note}"` : ''}.`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        linkTarget: { screen: 'chores', id: swapRequest.id },
+      });
+    }
+
     saveStore(store);
 
     return { success: true, request: swapRequest };
@@ -233,10 +266,35 @@ export class SocialApi {
           householdId: hId,
           senderId: null,
           type: 'activity',
-          body: `${target?.name.split(' ')[0] || 'Roommate'} accepted a chore swap with ${requester?.name.split(' ')[0] || 'roomie'} (+${originalReq.tokenCost} 🪙)!`,
+          body: `${target?.name.split(' ')[0] || 'Roommate'} accepted a chore swap with ${requester?.name.split(' ')[0] || 'roomie'} (+${originalReq.tokenCost} Favor Token${originalReq.tokenCost > 1 ? 's' : ''})!`,
           createdAt: new Date().toISOString(),
         });
       }
+
+      if (store.notifications) {
+        store.notifications.unshift({
+          id: `notif_swap_accept_${Date.now()}`,
+          userId: originalReq.requesterUserId,
+          type: 'chore',
+          title: 'Chore Swap Accepted!',
+          body: `${target?.name.split(' ')[0] || 'Your roommate'} accepted your swap for "${originalReq.requesterChoreName}" (${originalReq.tokenCost} Favor Token${originalReq.tokenCost > 1 ? 's' : ''} transferred).`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget: { screen: 'chores', id: originalReq.id },
+        });
+      }
+    } else if (action === 'decline' && store.notifications) {
+      const target = store.users.find((u) => u.id === originalReq.targetUserId);
+      store.notifications.unshift({
+        id: `notif_swap_decline_${Date.now()}`,
+        userId: originalReq.requesterUserId,
+        type: 'chore',
+        title: 'Chore Swap Declined — Tokens Kept',
+        body: `${target?.name.split(' ')[0] || 'Your roommate'} couldn't take "${originalReq.requesterChoreName}" right now. Your Favor Tokens were not spent.`,
+        read: false,
+        createdAt: new Date().toISOString(),
+        linkTarget: { screen: 'chores', id: originalReq.id },
+      });
     }
 
     saveStore(store);

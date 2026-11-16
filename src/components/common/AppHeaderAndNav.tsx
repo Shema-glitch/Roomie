@@ -3,6 +3,7 @@ import { Avatar } from './Avatar';
 import { SyncStatusType } from './SyncStatusPanel';
 import { User, Household } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import {
   House,
   Receipt,
@@ -270,17 +271,28 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
             </button>
 
             {/* Phase 2: Favor Token Pill */}
-            <div
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none"
+            <button
+              type="button"
+              onClick={() => {
+                haptics.tokenClink();
+                sound.tokenClink();
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer"
               title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
+              aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
             >
               <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
               <span>{currentUser.favorTokens ?? 5}</span>
-            </div>
+            </button>
 
             <button
               onClick={() => {
-                sound.playTap();
+                if (unreadNotifsCount > 0) {
+                  haptics.notificationPing();
+                  sound.notificationPing();
+                } else {
+                  sound.playTap();
+                }
                 onOpenNotifications();
               }}
               className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 shrink-0"

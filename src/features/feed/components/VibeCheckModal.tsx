@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VibeRating } from '../../../types';
 import { VIBE_DEFINITIONS, VIBE_RATINGS_LIST, getCurrentWeekKey } from '../../../utils/vibe';
 import { sound } from '../../../services/sound';
-import { haptics } from '../../../services/haptics';
+import { haptics } from '../../../utils/haptics';
 import { useBackHandler } from '../../../utils/useBackHandler';
 import { X, ShieldCheck, Heart, Check, Sparkle } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
@@ -51,22 +51,18 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
 
   const handleSelect = (rating: VibeRating) => {
     setSelectedRating(rating);
-    haptics.light();
-    sound.playPop();
+    haptics.tokenClink();
+    sound.tokenClink();
   };
 
   const handleConfirm = async () => {
     if (!selectedRating || submitting) return;
     setSubmitting(true);
     try {
-      // Empathetic sensory feedback: warm notice for low moods, celebration for high moods
-      if (selectedRating === 'stressed' || selectedRating === 'down') {
-        haptics.light();
-        sound.playCalmNotice();
-      } else {
-        haptics.celebration();
-        sound.playCelebration();
-      }
+      // Distinct Vibe Check signature: warm F-Major dyad swell for high/neutral moods,
+      // soft empathetic descending tone for low/stressed moods, paired with single heartbeat pulse
+      haptics.vibeSubmit();
+      sound.vibeSubmit(selectedRating);
 
       await onSubmit(selectedRating);
       if (typeof window !== 'undefined') {

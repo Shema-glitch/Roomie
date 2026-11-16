@@ -7,7 +7,18 @@ import { IconTile } from '../../components/common/IconTile';
 import { InAppNotification, DraftRound, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Bell, CheckCircle, Receipt, Buildings, Clock, Shuffle, ShieldWarning } from '@phosphor-icons/react';
+import { haptics } from '../../utils/haptics';
+import {
+  Bell,
+  CheckCircle,
+  Receipt,
+  Buildings,
+  Clock,
+  Shuffle,
+  ShieldWarning,
+  ArrowsLeftRight,
+  Sparkle,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -45,7 +56,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleSnooze = (id: string) => {
-    sound.playTap();
+    haptics.softReject();
+    sound.softReject();
     onMarkRead(id);
     showToast('Reminder snoozed for 30 minutes', 'info');
   };
@@ -68,7 +80,10 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
             ].map((f) => (
               <button
                 key={f.id}
-                onClick={() => setFilter(f.id as any)}
+                onClick={() => {
+                  sound.playTap();
+                  setFilter(f.id as any);
+                }}
                 className={`px-3 py-1.5 rounded-xl text-[14px] font-bold whitespace-nowrap transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] cursor-pointer min-h-[44px] flex items-center justify-center ${
                   filter === f.id
                     ? 'bg-[#1F2430] text-white border-2 border-b-4 border-[#1F2430] shadow-2xs'
@@ -82,6 +97,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
           <button
             onClick={() => {
+              haptics.swapAccept();
+              sound.swapAccept();
               onMarkAllRead();
               showToast('All notifications marked as read', 'info');
             }}
@@ -110,6 +127,13 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 size="sm"
                 className="w-full sm:w-auto"
                 onClick={() => {
+                  if (draftState.state === 'reveal_ready') {
+                    haptics.awardCelebrate();
+                    sound.awardCelebrate();
+                  } else {
+                    haptics.notificationPing();
+                    sound.notificationPing();
+                  }
                   onClose();
                   onActionClick({ screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft' });
                 }}
@@ -128,109 +152,136 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               All caught up! No unread notifications.
             </div>
           ) : (
-            filtered.map((n) => (
-              <div
-                key={n.id}
-                className={`p-3 rounded-2xl border-2 border-b-4 transition-[transform,background-color,border-color] duration-150 ${
-                  !n.read
-                    ? n.type === 'privacy_alert'
-                      ? 'bg-amber-50/80 border-amber-300 shadow-2xs'
-                      : 'bg-[#FFF0ED]/40 border-[#FFD7CF] shadow-2xs'
-                    : 'bg-white border-[#E6E8EE]'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start gap-2.5 flex-1">
-                    <IconTile
-                      icon={
-                        n.type === 'privacy_alert' ? (
-                          <ShieldWarning className="w-4 h-4" />
-                        ) : n.type === 'chore' ? (
-                          <CheckCircle className="w-4 h-4" />
-                        ) : n.type === 'expense' ? (
-                          <Receipt className="w-4 h-4" />
-                        ) : (
-                          <Buildings className="w-4 h-4" />
-                        )
-                      }
-                      color={
-                        n.type === 'privacy_alert'
-                          ? 'amber'
-                          : n.type === 'chore'
-                          ? 'teal'
-                          : n.type === 'expense'
-                          ? 'coral'
-                          : 'indigo'
-                      }
-                      size="sm"
-                    />
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="type-section-heading">
-                          {n.title}
-                        </h4>
-                        {n.type === 'privacy_alert' && (
-                          <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 tracking-wider">
-                            Privacy Notice
-                          </span>
-                        )}
+            filtered.map((n) => {
+              const titleLower = n.title.toLowerCase();
+              const isSwapNotif = titleLower.includes('swap');
+              const isVibeNotif = titleLower.includes('vibe');
+
+              return (
+                <div
+                  key={n.id}
+                  className={`p-3 rounded-2xl border-2 border-b-4 transition-[transform,background-color,border-color] duration-150 ${
+                    !n.read
+                      ? n.type === 'privacy_alert'
+                        ? 'bg-amber-50/80 border-amber-300 shadow-2xs'
+                        : 'bg-[#FFF0ED]/40 border-[#FFD7CF] shadow-2xs'
+                      : 'bg-white border-[#E6E8EE]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2.5 flex-1">
+                      <IconTile
+                        icon={
+                          n.type === 'privacy_alert' ? (
+                            <ShieldWarning className="w-4 h-4" />
+                          ) : isSwapNotif ? (
+                            <ArrowsLeftRight className="w-4 h-4" />
+                          ) : isVibeNotif ? (
+                            <Sparkle weight="fill" className="w-4 h-4" />
+                          ) : n.type === 'chore' ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : n.type === 'expense' ? (
+                            <Receipt className="w-4 h-4" />
+                          ) : (
+                            <Buildings className="w-4 h-4" />
+                          )
+                        }
+                        color={
+                          n.type === 'privacy_alert' || isSwapNotif
+                            ? 'amber'
+                            : isVibeNotif || n.type === 'chore'
+                            ? 'teal'
+                            : n.type === 'expense'
+                            ? 'coral'
+                            : 'indigo'
+                        }
+                        size="sm"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="type-section-heading">
+                            {n.title}
+                          </h4>
+                          {n.type === 'privacy_alert' && (
+                            <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 tracking-wider">
+                              Privacy Notice
+                            </span>
+                          )}
+                        </div>
+                        <p className="type-secondary mt-0.5 leading-relaxed">
+                          {n.body}
+                        </p>
+                        <span className="type-secondary block mt-1">
+                          {new Date(n.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
-                      <p className="type-secondary mt-0.5 leading-relaxed">
-                        {n.body}
-                      </p>
-                      <span className="type-secondary block mt-1">
-                        {new Date(n.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
                     </div>
+
+                    {!n.read && (
+                      <span className={`w-2 h-2 rounded-full shrink-0 mt-1 ${n.type === 'privacy_alert' ? 'bg-amber-500' : 'bg-[#FF6B4A]'}`} />
+                    )}
                   </div>
 
-                  {!n.read && (
-                    <span className={`w-2 h-2 rounded-full shrink-0 mt-1 ${n.type === 'privacy_alert' ? 'bg-amber-500' : 'bg-[#FF6B4A]'}`} />
-                  )}
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-3 mt-2 pt-2 border-t border-[#E6E8EE]/60">
+                    {n.type === 'chore' && !isSwapNotif && (
+                      <button
+                        onClick={() => handleSnooze(n.id)}
+                        className="type-secondary font-bold text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer active:translate-y-[1px]"
+                      >
+                        <Clock className="w-3.5 h-3.5" /> Snooze 30m
+                      </button>
+                    )}
+                    {n.linkTarget && (
+                      <button
+                        onClick={() => {
+                          if (isSwapNotif) {
+                            haptics.tokenClink();
+                            sound.tokenClink();
+                          } else if (n.linkTarget?.screen === 'chore-reveal' || titleLower.includes('reveal')) {
+                            haptics.awardCelebrate();
+                            sound.awardCelebrate();
+                          } else if (isVibeNotif) {
+                            haptics.vibeSubmit();
+                            sound.vibeSubmit('high');
+                          } else {
+                            haptics.notificationPing();
+                            sound.notificationPing();
+                          }
+                          onMarkRead(n.id);
+                          onClose();
+                          onActionClick(n.linkTarget!);
+                        }}
+                        className={`px-3.5 py-1.5 rounded-xl text-white text-[14px] font-bold cursor-pointer transition-all active:translate-y-[1px] ${
+                          n.type === 'privacy_alert'
+                            ? 'bg-amber-600 hover:bg-amber-700'
+                            : 'bg-[#FF6B4A] hover:bg-[#D94E30]'
+                        }`}
+                      >
+                        {n.type === 'privacy_alert' || n.linkTarget.screen === 'apartment'
+                          ? 'View Roster'
+                          : isSwapNotif
+                          ? 'Review swap'
+                          : isVibeNotif
+                          ? 'View Vibe Pulse'
+                          : n.linkTarget.screen === 'chore-reveal' || titleLower.includes('reveal')
+                          ? 'Reveal'
+                          : n.linkTarget.screen === 'expenses' || n.type === 'expense'
+                          ? 'Review receipt'
+                          : n.linkTarget.screen === 'members' || n.linkTarget.id?.startsWith('req_') || titleLower.includes('request')
+                          ? 'Review request'
+                          : n.type === 'chore'
+                          ? 'Review chore'
+                          : 'Review'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-end gap-3 mt-2 pt-2 border-t border-[#E6E8EE]/60">
-                  {n.type === 'chore' && (
-                    <button
-                      onClick={() => handleSnooze(n.id)}
-                      className="type-secondary font-bold text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer"
-                    >
-                      <Clock className="w-3.5 h-3.5" /> Snooze 30m
-                    </button>
-                  )}
-                  {n.linkTarget && (
-                    <button
-                      onClick={() => {
-                        onMarkRead(n.id);
-                        onClose();
-                        onActionClick(n.linkTarget!);
-                      }}
-                      className={`px-3.5 py-1.5 rounded-xl text-white text-[14px] font-bold cursor-pointer transition-colors ${
-                        n.type === 'privacy_alert'
-                          ? 'bg-amber-600 hover:bg-amber-700'
-                          : 'bg-[#FF6B4A] hover:bg-[#D94E30]'
-                      }`}
-                    >
-                      {n.type === 'privacy_alert' || n.linkTarget.screen === 'apartment'
-                        ? 'View Roster'
-                        : n.linkTarget.screen === 'chore-reveal' || n.title.toLowerCase().includes('reveal')
-                        ? 'Reveal'
-                        : n.linkTarget.screen === 'expenses' || n.type === 'expense'
-                        ? 'Review receipt'
-                        : n.linkTarget.screen === 'members' || n.linkTarget.id?.startsWith('req_') || n.title.toLowerCase().includes('request')
-                        ? 'Review request'
-                        : n.type === 'chore'
-                        ? 'Review chore'
-                        : 'Review'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

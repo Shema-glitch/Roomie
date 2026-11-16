@@ -6,6 +6,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import {
   Camera,
   UploadSimple,
@@ -150,6 +151,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     if (next) sound.playSuccess();
     await onUpdateSettings({ soundEnabled: next });
     showToast(next ? 'Sound effects enabled' : 'Sound effects muted', 'info');
+  };
+
+  const toggleHaptics = async () => {
+    const currentHaptics = settings.hapticsEnabled ?? haptics.isEnabled();
+    const next = !currentHaptics;
+    haptics.setEnabled(next);
+    if (next) haptics.tokenClink();
+    await onUpdateSettings({ hapticsEnabled: next });
+    showToast(next ? 'Haptic vibration enabled' : 'Haptic vibration muted', 'info');
   };
 
   const toggleReducedMotion = async () => {
@@ -300,10 +310,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <span className="shrink-0">•</span>
                     <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} pts</span>
                     <span className="shrink-0">•</span>
-                    <span className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A] inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        haptics.tokenClink();
+                        sound.tokenClink();
+                      }}
+                      className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A] inline-flex items-center gap-1 active:scale-95 transition-transform cursor-pointer"
+                    >
                       <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0" />
                       <span>{currentUser.favorTokens ?? 5} tokens</span>
-                    </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -506,6 +523,34 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 <span
                   className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.soundEnabled ? 'right-1' : 'left-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Haptics Toggle */}
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-3">
+                <IconTile icon={<DeviceMobile className="w-4 h-4" />} color="indigo" size="sm" />
+                <div>
+                  <span className="text-[14px] font-bold text-[#1F2430] block">
+                    Haptic feedback
+                  </span>
+                  <span className="type-secondary text-[14px]">
+                    Tactile micro-vibrations for awards, vibe & swaps
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={toggleHaptics}
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
+                  (settings.hapticsEnabled ?? haptics.isEnabled()) ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+                    (settings.hapticsEnabled ?? haptics.isEnabled()) ? 'right-1' : 'left-1'
                   }`}
                 />
               </button>

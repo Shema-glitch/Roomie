@@ -24,7 +24,7 @@ import {
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
-import { haptics } from '../../services/haptics';
+import { haptics } from '../../utils/haptics';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
 import { Icon } from '@iconify/react';
@@ -233,7 +233,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     size="md"
                     className="flex-1"
                     onClick={async () => {
-                      sound.playTap();
+                      haptics.softReject();
+                      sound.softReject();
                       try {
                         const res = await api.resolveSwapRequest(pendingSwaps[0].id, 'decline');
                         if (res.success) {
@@ -257,14 +258,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       try {
                         const res = await api.resolveSwapRequest(pendingSwaps[0].id, 'accept');
                         if (res.success) {
-                          haptics.celebration();
-                          sound.playCelebration();
+                          haptics.swapAccept();
+                          sound.swapAccept();
                           setPendingSwaps((prev) => prev.slice(1));
                           showToast(
-                            `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token 🪙`,
-                            'success'
+                            `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token`,
+                            'reward'
                           );
                         } else {
+                          haptics.softReject();
+                          sound.softReject();
                           showToast('Could not accept swap: Requester no longer has enough tokens', 'error');
                         }
                       } catch {

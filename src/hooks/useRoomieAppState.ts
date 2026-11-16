@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api } from '../services/api';
 import { sound } from '../services/sound';
+import { haptics } from '../utils/haptics';
 import { useToast } from '../components/common/Toast';
 import { SyncStatusType } from '../components/common/SyncStatusPanel';
 import {
@@ -102,6 +103,9 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       setSettings(setts);
       setIsDemoMode(demoActive);
       sound.setEnabled(setts.soundEnabled);
+      if (setts.hapticsEnabled !== undefined) {
+        haptics.setEnabled(setts.hapticsEnabled);
+      }
 
       if (!activeH) {
         setMembers([]);

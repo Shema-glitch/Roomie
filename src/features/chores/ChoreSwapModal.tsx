@@ -8,7 +8,7 @@ import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
 import { sound } from '../../services/sound';
-import { haptics } from '../../services/haptics';
+import { haptics } from '../../utils/haptics';
 
 interface ChoreSwapModalProps {
   isOpen: boolean;
@@ -58,8 +58,8 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
 
     setLoading(true);
     try {
-      haptics.celebration();
-      sound.playPop();
+      haptics.tokenClink();
+      sound.tokenClink();
       await onSwap(chore.id, selectedRoommateId, tokenCost, note);
       const target = roommates.find((r) => r.id === selectedRoommateId);
       showToast(
@@ -76,19 +76,27 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
 
   const handleResolveIncoming = async (requestId: string, action: 'accept' | 'decline') => {
     try {
-      if (action === 'accept') {
-        haptics.celebration();
-        sound.playCelebration();
-      } else {
-        haptics.light();
+      const res = await api.resolveSwapRequest(requestId, action);
+      if (!res.success) {
+        haptics.softReject();
+        sound.softReject();
+        showToast('Could not complete swap: Requester no longer has enough tokens', 'error');
+        return;
       }
 
-      await api.resolveSwapRequest(requestId, action);
+      if (action === 'accept') {
+        haptics.swapAccept();
+        sound.swapAccept();
+      } else {
+        haptics.softReject();
+        sound.softReject();
+      }
+
       showToast(
         action === 'accept'
-          ? 'Swap accepted! You earned a Favor Token 🪙'
+          ? 'Swap accepted! You earned a Favor Token'
           : 'Swap declined',
-        action === 'accept' ? 'success' : 'info'
+        action === 'accept' ? 'reward' : 'info'
       );
 
       // Refresh
@@ -186,10 +194,10 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
               key={r.id}
               type="button"
               onClick={() => {
-                haptics.light();
+                sound.playTap();
                 setSelectedRoommateId(r.id);
               }}
-              className={`w-full p-3 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all text-left ${
+              className={`w-full p-3 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all text-left active:translate-y-[1px] ${
                 selectedRoommateId === r.id
                   ? 'border-[#FF6B4A] bg-[#FFF0ED] border-b-4'
                   : 'border-[#E6E8EE] bg-white hover:border-[#CBD5E1] border-b-3'
@@ -224,10 +232,11 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                 key={amount}
                 type="button"
                 onClick={() => {
-                  haptics.light();
+                  haptics.tokenClink();
+                  sound.tokenClink();
                   setTokenCost(amount);
                 }}
-                className={`py-2 px-3 rounded-xl border-2 font-heading font-black text-xs transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-3 rounded-xl border-2 font-heading font-black text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:translate-y-[1px] ${
                   tokenCost === amount
                     ? 'border-[#F59E0B] bg-[#FFF8E6] text-[#B45309] border-b-3'
                     : 'border-[#CBD5E1] bg-white text-[#64748B]'

@@ -221,6 +221,7 @@ export interface InAppNotification {
 export interface UserSettings {
   language: 'en' | 'tr' | 'fr' | 'ar';
   soundEnabled: boolean;
+  hapticsEnabled?: boolean;
   reducedMotion: boolean;
   pushNotifications: boolean;
   reminderEarly30Min: boolean;
