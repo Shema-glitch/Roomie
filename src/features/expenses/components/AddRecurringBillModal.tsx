@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Modal } from '../../../components/common/Modal';
 import {
   X,
   Buildings,
@@ -100,42 +101,14 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-recurring-bill-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Add Recurring Bill"
+      subtitle="Set up recurring rent, Wi-Fi, or utility templates"
+      maxWidth="lg"
     >
-      <div
-        className="w-full max-w-lg bg-surface rounded-3xl p-6 shadow-card border border-border flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scale-up"
-        style={{ contain: 'content' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-              <Buildings weight="duotone" className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 id="add-recurring-bill-title" className="type-h3 text-text-primary">
-                Add Recurring Bill
-              </h2>
-              <p className="type-caption text-text-secondary">
-                Set up recurring rent, Wi-Fi, or utility templates
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-surface-elevated transition-colors"
-          >
-            <X weight="bold" className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-1">
           {/* Category Selector */}
           <div>
             <label className="type-label block text-text-secondary mb-1.5">Category</label>
@@ -259,7 +232,6 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };

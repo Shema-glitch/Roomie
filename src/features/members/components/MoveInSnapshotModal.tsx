@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Modal } from '../../../components/common/Modal';
 import {
   X,
   Camera,
@@ -135,40 +136,14 @@ export const MoveInSnapshotModal: React.FC<MoveInSnapshotModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="move-in-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Move-In Condition Snapshot"
+      subtitle="Document apartment condition at move-in for deposit safety"
+      maxWidth="xl"
     >
-      <div
-        className="w-full max-w-2xl bg-surface rounded-3xl p-6 shadow-card border border-border flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scale-up"
-        style={{ contain: 'content' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-              <HouseLine weight="duotone" className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 id="move-in-modal-title" className="type-h3 text-text-primary">
-                Move-In Condition Snapshot
-              </h2>
-              <p className="type-caption text-text-secondary">
-                Document apartment condition at move-in for deposit safety
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-surface-elevated transition-colors"
-          >
-            <X weight="bold" className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="flex flex-col gap-4 py-1">
 
         {/* Tab Switcher & Export Action */}
         <div className="flex items-center justify-between gap-3">
@@ -456,6 +431,6 @@ export const MoveInSnapshotModal: React.FC<MoveInSnapshotModalProps> = ({
           </form>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };

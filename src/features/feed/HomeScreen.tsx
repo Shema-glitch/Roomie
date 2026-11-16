@@ -42,14 +42,11 @@ import {
   ArrowsLeftRight,
 } from '@phosphor-icons/react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
-import { DailyFocusSection } from './components/DailyFocusSection';
 import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
 import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
-import { VibeCheckWidget } from './components/VibeCheckWidget';
+import { ApartmentPulseGrid } from './components/ApartmentPulseGrid';
 import { useFeatureFlag } from '../../config/featureFlags';
-import { CulturalDinnerCard } from './components/CulturalDinnerCard';
-import { ShoppingListCard } from '../shopping/ShoppingListCard';
 
 const DoneFlowModal = React.lazy(() =>
   import('../chores/DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
@@ -213,8 +210,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         setCulturalDinners((prev) =>
           prev.map((d) => (d.id === dinnerId ? { ...d, rsvpUserIds: res.rsvpUserIds } : d))
         );
-        triggerMascotReaction('cheering', res.isAttending ? "You're in for dinner! 🍲" : 'RSVP updated!');
-        showToast(res.isAttending ? "You're attending dinner! 🍲" : 'RSVP updated', 'success');
+        triggerMascotReaction('cheering', res.isAttending ? "You're in for dinner!" : 'RSVP updated!');
+        showToast(res.isAttending ? "You're attending dinner!" : 'RSVP updated', 'success');
       }
     } catch {
       showToast('Failed to update dinner RSVP', 'error');
@@ -233,7 +230,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     });
     if (res.success && res.dinner) {
       setCulturalDinners((prev) => [res.dinner!, ...prev]);
-      triggerMascotReaction('celebrating', 'Dinner announced! Smells delicious! 🍲');
+      triggerMascotReaction('celebrating', 'Dinner announced! Smells delicious!');
       showToast(`Cultural dinner scheduled: ${res.dinner.dishTitle}!`, 'success');
     } else {
       showToast(res.error || 'Failed to schedule dinner', 'error');
@@ -261,7 +258,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         setShoppingItems((prev) => [res.item!, ...prev]);
         sound.tokenClink();
         haptics.tokenClink();
-        triggerMascotReaction('cheering', `Added ${params.title} to the shopping list! 🛒`);
+        triggerMascotReaction('cheering', `Added ${params.title} to the shopping list!`);
         showToast(`Added ${params.title} to list`, 'success');
       } else {
         showToast(res.error || 'Failed to add item', 'error');
@@ -308,7 +305,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       if (res.success) {
         sound.playSuccess();
         haptics.swapAccept();
-        triggerMascotReaction('celebrating', 'Supermarket ping sent to roomies! 🛒');
+        triggerMascotReaction('celebrating', 'Supermarket ping sent to roomies!');
         showToast('Pinged roomies! Let them know to add items.', 'success');
       }
     } catch {
@@ -343,6 +340,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const sym = getCurrencySymbol(household?.currency);
   const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
+  const homeCount = roommates.filter((r) => r.isHome).length;
+  const reducedMotion =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      : false;
 
   const myTodayAssignment = assignments.find(
     (a) => a.userId === currentUser.id && isAssignmentDueToday(a) && !a.completedToday
@@ -354,136 +356,103 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   return (
     <div className="w-full select-none pb-28 md:pb-8">
       <div className="w-full lg:grid lg:grid-cols-12 lg:gap-8 items-start">
-        <div className="w-full lg:col-span-8 self-start space-y-6">
+        <div className="w-full lg:col-span-8 self-start space-y-5">
+          {/* ZONE 1 — Hero & Inline Roomie Presence */}
           <InfoCard
             tint="coral"
             padding="lg"
             className="bg-linear-to-br from-[#FFF5F2] via-[#FFFFFF] to-[#FFF8E6] border-2 border-[#FFD3C9]"
           >
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 space-y-2">
-                <h2 className="text-2xl sm:text-3xl font-heading font-black text-[#1F2430] leading-snug">
-                  Hey, {currentUser.name.split(' ')[0]}!
-                </h2>
-                <p className="text-base font-semibold text-[#475569]">
-                  Keeping your apartment running peacefully today.
-                </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 space-y-2">
+                  <h2 className="text-2xl sm:text-3xl font-heading font-black text-[#1F2430] leading-snug">
+                    Hey, {currentUser.name.split(' ')[0]}!
+                  </h2>
+                  <p className="text-sm sm:text-base font-semibold text-[#475569]">
+                    Keeping your apartment running peacefully today.
+                  </p>
 
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
-                  <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
-                    <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
-                    <AnimatedNumber value={currentUser.streakDays} /> day streak
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  <span className="font-medium whitespace-nowrap">
-                    <AnimatedNumber value={currentUser.points} /> pts
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  {/* 1-Tap Quick Presence Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playPop();
-                      onToggleHomeStatus();
-                      triggerMascotReaction(
-                        currentUser.isHome ? 'calm' : 'cheering',
-                        currentUser.isHome ? 'Catch you later!' : 'Welcome back home!'
-                      );
-                      showToast(currentUser.isHome ? 'Status: Out of the flat' : 'Status: You are Home 🏠', 'info');
-                    }}
-                    className={`btn-tactile ease-spring inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer border-2 ${
-                      currentUser.isHome
-                        ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
-                        : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
-                    }`}
-                    title="Tap to toggle if you are at home or out"
-                  >
-                    <span className={`w-2 h-2 rounded-full ${currentUser.isHome ? 'bg-[#19B5A5] animate-pulse' : 'bg-[#94A3B8]'}`} />
-                    <span>{currentUser.isHome ? 'I\'m Home' : 'Out'}</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
+                      <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
+                      <AnimatedNumber value={currentUser.streakDays} /> day streak
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-medium whitespace-nowrap">
+                      <AnimatedNumber value={currentUser.points} /> pts
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    {/* 1-Tap Quick Presence Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPop();
+                        onToggleHomeStatus();
+                        triggerMascotReaction(
+                          currentUser.isHome ? 'calm' : 'cheering',
+                          currentUser.isHome ? 'Catch you later!' : 'Welcome back home!'
+                        );
+                        showToast(currentUser.isHome ? 'Status: Out of the flat' : 'Status: You are Home', 'info');
+                      }}
+                      className={`btn-tactile ease-spring inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer border-2 ${
+                        currentUser.isHome
+                          ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
+                          : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
+                      }`}
+                      title="Tap to toggle if you are at home or out"
+                    >
+                      <span className={`w-2 h-2 rounded-full ${currentUser.isHome ? 'bg-[#19B5A5] animate-pulse' : 'bg-[#94A3B8]'}`} />
+                      <span>{currentUser.isHome ? "I'm Home" : 'Out'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <MascotView
+                    state={mascotReaction?.state || 'idle'}
+                    size="md"
+                    bubbleText={mascotReaction?.bubbleText || 'Good day, roomie!'}
+                  />
                 </div>
               </div>
 
-              <div className="shrink-0">
-                <MascotView
-                  state={mascotReaction?.state || 'idle'}
-                  size="md"
-                  bubbleText={mascotReaction?.bubbleText || 'Good day, roomie!'}
-                />
+              {/* Inline Roommate Presence Footer */}
+              <div className="pt-3 border-t border-[#FFD3C9]/70 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5 overflow-hidden">
+                    {roommates.map((r) => (
+                      <span
+                        key={r.id}
+                        title={`${r.name} (${r.isHome ? 'Home' : 'Away'})`}
+                        className={`relative inline-block w-6 h-6 rounded-full border-2 border-white ring-1 transition-all ${
+                          r.isHome ? 'ring-[#19B5A5] z-10' : 'ring-[#CBD5E1] opacity-50'
+                        }`}
+                      >
+                        <img
+                          src={r.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${r.name}`}
+                          alt={r.name}
+                          className="w-full h-full rounded-full object-cover bg-white"
+                        />
+                        {r.isHome && (
+                          <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-[#19B5A5] ring-1 ring-white" />
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-xs font-semibold text-[#475569]">
+                    {homeCount} of {roommates.length} at home
+                  </span>
+                </div>
+
+                <span className="text-[11px] font-semibold text-[#64748B]">
+                  Live presence status
+                </span>
               </div>
             </div>
           </InfoCard>
 
-          <DutyTodayBanner
-            dutySchedule={dutySchedule || null}
-            roommates={roommates}
-            currentUser={currentUser}
-            onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
-            onCompleteTodayDuty={onCompleteTodayDuty}
-          />
-
-          {/* Phase 3: Shared Shopping List & Supermarket Ping */}
-          <ShoppingListCard
-            items={shoppingItems}
-            onOpenShoppingModal={() => setIsShoppingModalOpen(true)}
-            onToggleItemStatus={handleToggleShoppingStatus}
-            onTriggerSupermarketPing={handleTriggerSupermarketPing}
-          />
-
-          {/* Phase 2: Anonymous Household Vibe Check Widget */}
-          <VibeCheckWidget
-            summary={vibeSummary}
-            totalRoommates={roommates.length}
-            onOpenCheckIn={() => setIsVibeModalOpen(true)}
-          />
-
-          {/* Phase 2B Beta: Roomie Wrapped Monthly Recap Banner */}
-          {isRoomieWrappedEnabled && (
-            <button
-              type="button"
-              onClick={() => {
-                sound.playTap();
-                haptics.tokenClink();
-                setIsWrappedModalOpen(true);
-              }}
-              className="w-full p-3 rounded-2xl bg-linear-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border-2 border-b-4 border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer btn-tactile ease-spring shadow-xs"
-            >
-              <div className="flex items-center gap-2.5">
-                <Icon icon="fluent-emoji-flat:wrapped-gift" className="w-6 h-6 shrink-0" />
-                <div>
-                  <span className="text-xs font-black text-[#1F2430] block">
-                    Semester Flat Wrapped is Ready! (Beta Labs)
-                  </span>
-                  <span className="text-[11px] text-[#64748B]">
-                    Tap to view your flat milestones, harmony rating, and share story card
-                  </span>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-xs font-black shrink-0">
-                Open Recap
-              </span>
-            </button>
-          )}
-
-          {/* Phase 2B Beta: Cultural Dinner Shared Meal Rotation */}
-          {isCulturalDinnersEnabled && (
-            <CulturalDinnerCard
-              dinner={culturalDinners[0] || null}
-              hostName={roommates[0]?.name.split(' ')[0] || 'Roomie'}
-              cuisine="Mediterranean"
-              dishTitle="Mezze & Kofta Night"
-              scheduledDay="This Friday"
-              scheduledTime="20:00"
-              dietaryTags={['halal', 'vegetarian', 'nut_free']}
-              attendeesCount={Math.max(1, roommates.length - 1)}
-              currentUserId={currentUser.id}
-              roommates={roommates}
-              onToggleRsvp={handleToggleDinnerRsvp}
-              onOpenHostModal={() => setIsDinnerModalOpen(true)}
-            />
-          )}
-
-          {/* Phase 2: Inbound Chore Swap Offer Card */}
+          {/* ZONE 2 — Single Contextual Action Spotlight */}
           {pendingSwaps.length > 0 && (
             <ActionCard
               tint="amber"
@@ -493,14 +462,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               } offered a chore swap!`}
               subtitle={
                 <span className="inline-flex items-center gap-1">
-                  <span>Wants to trade "{pendingSwaps[0].requesterChoreName}" (+{pendingSwaps[0].tokenCost}</span>
+                  <span>Wants to trade &quot;{pendingSwaps[0].requesterChoreName}&quot; (+{pendingSwaps[0].tokenCost}</span>
                   <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline shrink-0" />
                   <span>)</span>
                 </span>
               }
               detail={
                 pendingSwaps[0].note ? (
-                  <span className="text-xs text-[#854D0E] italic font-medium">"{pendingSwaps[0].note}"</span>
+                  <span className="text-xs text-[#854D0E] italic font-medium">&quot;{pendingSwaps[0].note}&quot;</span>
                 ) : undefined
               }
               actions={
@@ -595,7 +564,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           )}
 
-          {choreDraftState.state !== 'reveal_done' && (
+          {choreDraftState.state !== 'reveal_done' ? (
             <ActionCard
               tint={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
               iconTile={
@@ -645,30 +614,110 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 </div>
               }
             />
+          ) : dutySchedule ? (
+            <DutyTodayBanner
+              dutySchedule={dutySchedule}
+              roommates={roommates}
+              currentUser={currentUser}
+              onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
+              onCompleteTodayDuty={onCompleteTodayDuty}
+            />
+          ) : myTodayChore ? (
+            <ActionCard
+              tint="teal"
+              className="contain-content"
+              iconTile={
+                <IconTile icon={<Icon icon="fluent-emoji-flat:broom" className="w-6 h-6" />} color="teal" size="md" />
+              }
+              title={myTodayChore.name}
+              subtitle={`${myTodayChore.frequency === 'daily' ? 'Daily' : 'Weekly'} · ${
+                myTodayChore.effortLevel.charAt(0).toUpperCase() + myTodayChore.effortLevel.slice(1)
+              } · ${myTodayAssignment?.scheduledTime || 'Today'}`}
+              detail={
+                <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
+                  Earn +{((myTodayChore.effortLevel === 'heavy' ? 3 : myTodayChore.effortLevel === 'medium' ? 2 : 1) * 10)} streak points
+                </span>
+              }
+              actions={
+                <div className="w-full flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    className="flex-1"
+                    onClick={() => onNavigateTab('chores')}
+                  >
+                    View chores
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="flex-1"
+                    onClick={() => {
+                      sound.playTap();
+                      setDoneChoreModalTarget(myTodayChore);
+                    }}
+                    icon={<CheckCircle weight="fill" className="w-4 h-4" />}
+                  >
+                    Mark done
+                  </Button>
+                </div>
+              }
+            />
+          ) : (
+            <ActionCard
+              tint="teal"
+              className="contain-content"
+              iconTile={
+                <IconTile icon={<Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />} color="teal" size="md" />
+              }
+              title="All chores done"
+              subtitle="Kitchen and living area are clean"
+              detail={
+                <span className="type-secondary text-[#19B5A5] font-bold text-[14px]">
+                  Streak protected for today
+                </span>
+              }
+              actions={
+                <div className="w-full">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth
+                    onClick={() => onNavigateTab('chores')}
+                  >
+                    View chore schedule
+                  </Button>
+                </div>
+              }
+            />
           )}
 
-          <DailyFocusSection
-            myTodayChore={myTodayChore}
-            myTodayAssignment={myTodayAssignment}
+          {/* ZONE 3 — 2x2 "Apartment Pulse" Bento Grid */}
+          <ApartmentPulseGrid
             netBalance={netBalance}
             currencySymbol={sym}
-            onSelectDoneChore={setDoneChoreModalTarget}
-            onNavigateTab={onNavigateTab}
-            onRemindRoomies={onRemindRoomies}
-            onOpenExpensesAction={onOpenExpensesAction}
+            onNavigateMoney={() => onNavigateTab('expenses')}
+            shoppingItems={shoppingItems}
+            onOpenShoppingList={() => setIsShoppingModalOpen(true)}
+            onTriggerSupermarketPing={handleTriggerSupermarketPing}
+            vibeSummary={vibeSummary}
+            totalRoommates={roommates.length}
+            onOpenVibeCheck={() => setIsVibeModalOpen(true)}
+            isCulturalDinnersEnabled={isCulturalDinnersEnabled}
+            culturalDinner={culturalDinners[0] || null}
+            onOpenCulturalDinner={() => setIsDinnerModalOpen(true)}
           />
 
-          {/* Phase 2: Weekly Awards (Everyone Wins) */}
+          {/* ZONE 4 — Compact Flat Celebrations */}
           <WeeklyAwardsSection
             awards={awards}
             currentUserId={currentUser.id}
-            reducedMotion={
-              typeof window !== 'undefined' && window.matchMedia
-                ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                : false
-            }
+            isRoomieWrappedEnabled={isRoomieWrappedEnabled}
+            onOpenWrapped={() => setIsWrappedModalOpen(true)}
+            reducedMotion={reducedMotion}
           />
 
+          {/* ZONE 5 — Lightweight Recent Activity */}
           <ActivityTimelineSection
             activityMessages={activityMessages}
             onNavigateTab={onNavigateTab}
@@ -677,7 +726,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           />
         </div>
 
-        <div className="w-full lg:col-span-4 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-0">
+        {/* Desktop Sidebar (hidden on mobile to eliminate redundant Presence card) */}
+        <div className="hidden lg:block w-full lg:col-span-4 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-0">
           <HomeSidebar
             roommates={roommates}
             currentUser={currentUser}

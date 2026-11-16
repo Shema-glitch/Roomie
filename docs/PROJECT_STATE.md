@@ -429,3 +429,32 @@ Baseline Tag: `v1.0.0-phase1`
   - Zero raw Unicode emojis in JSX, zero root scratch scripts, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
   - Physical device verification: Installed and verified on Tecno Camon 30S (`TECNO_CLA5`).
 
+---
+
+## 15. Canonical Portal Modals & 5-Zone Home Bento Architecture (Branch `feature/home-bento-and-modal-polish`)
+
+- **Canonical Portal Modals (`src/components/common/Modal.tsx`)**:
+  - Refactored `Modal.tsx` to render exclusively through `createPortal(..., document.body)` with `fixed inset-0 z-50` scrim, completely preventing header and bottom navigation bar overlap/slicing across the dimmed scrim.
+  - Automatic body scroll lock (`overflow: hidden` on `document.body` with previous style restoration on unmount).
+  - Mobile bottom sheet anchored to viewport (`fixed inset-x-0 bottom-0 sm:static max-h-[88dvh] rounded-t-[28px] pb-safe`) with drag-to-dismiss handle, scrollable body, and optional sticky footer CTA.
+  - Converted custom modals across Phase 2/3 (`VibeCheckModal.tsx`, `AddRecurringBillModal.tsx`, `MoveInSnapshotModal.tsx`, `MaintenanceIssueModal.tsx`, `ExportAgreementPdfModal.tsx`) to route strictly through `<Modal>`.
+- **5-Zone Progressive-Disclosure Home Screen (`src/features/feed/HomeScreen.tsx`)**:
+  - **Zone 1 (Hero & Inline Presence)**: Hero card with mascot, streak/token counters, 1-tap presence toggle pill, and compact flatmate presence avatars (`1 of N at home`) in footer. Standalone duplicate presence card eliminated on mobile.
+  - **Zone 2 (Contextual Action Spotlight)**: Urgent swap offer and join request cards paired with a single focused spotlight (Sunday Chore Draft when active, Today's Chore / Duty Captain when due, or calm "All chores done" state). Duplicate picks action removed from Quick Actions.
+  - **Zone 3 (2x2 Apartment Pulse Bento Grid)**: `ApartmentPulseGrid.tsx` rendering 4 tactile bento tiles (`grid-cols-2 gap-3`):
+    - *Money Tile*: Net balance with status chip (`Owed` / `Due` / `Settled`) navigating to Expenses tab.
+    - *Shopping Tile*: Item count, low-stock badge, 1-tap broadcast supermarket ping, and list opener.
+    - *Vibe Pulse Tile*: Unlocked flat average mood or private pulse status opening Vibe Check modal.
+    - *Cultural Dinner Tile*: Scheduled dinner dish, cuisine, and RSVP counter opening Cultural Dinner modal.
+  - **Zone 4 (Compact Flat Celebrations)**: `WeeklyAwardsSection.tsx` focused on current user honor + `Celebrate` button, with flatmate honors in a horizontal swipe strip (`overflow-x-auto`) and Roomie Wrapped story pill trigger.
+  - **Zone 5 (Lightweight Recent Activity)**: `ActivityTimelineSection.tsx` showing the 3 most recent flat events with "Open Chat" button, removing heavy filter tabs.
+- **Header & Emoji Polish**:
+  - Widened apartment switcher pill in `AppHeaderAndNav.tsx` (`max-w-[215px] sm:max-w-[260px] md:max-w-none`) ensuring long names like `Selin Court B Blok` render cleanly without truncation.
+  - Purged raw inline Unicode emojis across `stateTable.ts`, `HomeScreen.tsx`, `WeeklyAwardsSection.tsx`, and `ChatScreen.tsx`, routing chat reactions through pre-registered `fluent-emoji-flat` vector SVGs.
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **154.78 kB gzipped** (reduced by 1.51 kB from previous sprint, well below 200 KB budget).
+  - Test Suite: **102 / 102 unit tests passing** across 15 suites. `tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - Git boundary maintained: branched off `feature/flat-bills-snapshot-landlord` into `feature/home-bento-and-modal-polish`. Untouched `main`.
+
+

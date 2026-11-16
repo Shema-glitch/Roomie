@@ -166,7 +166,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               }}
               className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink"
             >
-              <span className="type-section-heading max-w-[120px] sm:max-w-[200px] md:max-w-none truncate text-[14px] sm:text-[18px]">
+              <span className="type-section-heading max-w-[215px] sm:max-w-[260px] md:max-w-none truncate text-[14px] sm:text-[18px]">
                 {activeHousehold.name}
               </span>
               <CaretDown weight="bold" className="w-3.5 h-3.5 text-[#475569] shrink-0" />

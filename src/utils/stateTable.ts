@@ -40,34 +40,34 @@ export function getChoreStateEvent(state: UnifiedDraftState): ChoreStateEvent {
     case 'draft_open':
       return {
         state,
-        title: 'Sunday Chore Draft is Open! 📋',
+        title: 'Sunday Chore Draft is Open!',
         body: 'Pick chores you love, avoid chores you dislike before Sunday reveal.',
-        activityMessage: 'Sunday Chore Draft is open! Submit your secret wishes before Sunday reveal 📋',
+        activityMessage: 'Sunday Chore Draft is open! Submit your secret wishes before Sunday reveal.',
         linkTarget: { screen: 'chore-draft' },
       };
     case 'waiting_others':
       return {
         state,
-        title: 'Chore Picks Submitted ⏳',
+        title: 'Chore Picks Submitted',
         body: 'Your secret wishes are locked in. Waiting for the rest of the flat.',
-        activityMessage: 'Submitted secret chore picks. Waiting for roomies ⏳',
+        activityMessage: 'Submitted secret chore picks. Waiting for roomies.',
         linkTarget: { screen: 'chore-waiting' },
       };
     case 'reveal_ready':
       return {
         state,
-        title: 'Chore Reveal Ready! 🎭',
+        title: 'Chore Reveal Ready!',
         body: 'All roomies submitted secret picks. Start the reveal ceremony!',
-        activityMessage: 'All picks are in for Sunday Chore Draft! Reveal is ready to view 🎭',
+        activityMessage: 'All picks are in for Sunday Chore Draft! Reveal is ready to view.',
         linkTarget: { screen: 'chore-reveal' },
       };
     case 'reveal_done':
     default:
       return {
         state,
-        title: 'Weekly Chores Active ✨',
+        title: 'Weekly Chores Active',
         body: 'The Chore Reveal is complete. Check your new weekly schedule.',
-        activityMessage: 'The Chore Reveal is complete. Check your new weekly schedule ✨',
+        activityMessage: 'The Chore Reveal is complete. Check your new weekly schedule.',
         linkTarget: { screen: 'chores' },
       };
   }
@@ -84,7 +84,7 @@ export function getChoreDraftState(
     return {
       state: 'reveal_done',
       badgeLabel: 'Active Rotation',
-      bannerTitle: 'Weekly Chores Active ✨',
+      bannerTitle: 'Weekly Chores Active',
       bannerSubtitle: 'Fair assignments are active. Check off tasks when completed.',
       actionLabel: 'View Schedule',
     };
@@ -94,7 +94,7 @@ export function getChoreDraftState(
     return {
       state: 'reveal_ready',
       badgeLabel: 'All picks in',
-      bannerTitle: 'Chore reveal ready! 🎭',
+      bannerTitle: 'Chore reveal ready!',
       bannerSubtitle: 'All roomies submitted secret picks. Start the reveal ceremony!',
       actionLabel: 'Reveal assignments!',
     };
@@ -106,7 +106,7 @@ export function getChoreDraftState(
     return {
       state: 'waiting_others',
       badgeLabel: 'Picks Submitted',
-      bannerTitle: 'Picks Submitted! Waiting for Roomies ⏳',
+      bannerTitle: 'Picks Submitted! Waiting for Roomies',
       bannerSubtitle: 'Your secret wishes are locked in. Waiting for the rest of the flat.',
       actionLabel: 'Edit My Picks',
     };
@@ -115,7 +115,7 @@ export function getChoreDraftState(
   return {
     state: 'draft_open',
     badgeLabel: 'Draft Open',
-    bannerTitle: 'Sunday Chore Draft is Open! 📋',
+    bannerTitle: 'Sunday Chore Draft is Open!',
     bannerSubtitle: 'Pick chores you love, avoid chores you dislike before Sunday reveal.',
     actionLabel: 'Submit Secret Picks',
   };

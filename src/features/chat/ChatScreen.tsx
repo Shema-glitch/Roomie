@@ -4,9 +4,32 @@ import { Avatar } from '../../components/common/Avatar';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
+import { Icon } from '@iconify/react';
 import { PaperPlaneRight, Receipt, CheckCircle, ArrowsClockwise, ChatCircleDots } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
+
+const QUICK_REACTIONS = [
+  { emoji: 'heart', icon: 'fluent-emoji-flat:red-heart', label: 'Love' },
+  { emoji: 'party', icon: 'fluent-emoji-flat:party-popper', label: 'Celebrate' },
+  { emoji: 'thumbsup', icon: 'fluent-emoji-flat:thumbs-up', label: 'Thumbs Up' },
+  { emoji: 'fire', icon: 'fluent-emoji-flat:fire', label: 'Fire' },
+  { emoji: 'star', icon: 'fluent-emoji-flat:glowing-star', label: 'Star' },
+];
+
+const REACTION_ICON_MAP: Record<string, string> = {
+  heart: 'fluent-emoji-flat:red-heart',
+  '❤️': 'fluent-emoji-flat:red-heart',
+  party: 'fluent-emoji-flat:party-popper',
+  '🎉': 'fluent-emoji-flat:party-popper',
+  thumbsup: 'fluent-emoji-flat:thumbs-up',
+  '👍': 'fluent-emoji-flat:thumbs-up',
+  fire: 'fluent-emoji-flat:fire',
+  '🔥': 'fluent-emoji-flat:fire',
+  star: 'fluent-emoji-flat:glowing-star',
+  '🌟': 'fluent-emoji-flat:glowing-star',
+  '😋': 'fluent-emoji-flat:trophy',
+};
 
 interface ChatScreenProps {
   messages: ChatMessage[];
@@ -85,8 +108,6 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       longPressTimerRef.current = null;
     }
   };
-
-  const quickEmojis = ['❤️', '🎉', '👍', '😋', '🔥'];
 
   return (
     <div
@@ -266,15 +287,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                     }`}
                   >
                     <span className="text-sm font-black text-[#475569] pl-1">React:</span>
-                    {quickEmojis.map((e) => (
+                    {QUICK_REACTIONS.map((r) => (
                       <button
-                        key={e}
+                        key={r.emoji}
                         type="button"
-                        onClick={() => handleReaction(msg.id, e)}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center text-xl hover:scale-125 transition-transform cursor-pointer rounded-xl hover:bg-[#F7F8FB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
-                        aria-label={`React with ${e}`}
+                        onClick={() => handleReaction(msg.id, r.emoji)}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center hover:scale-125 transition-transform cursor-pointer rounded-xl hover:bg-[#F7F8FB] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
+                        aria-label={`React with ${r.label}`}
                       >
-                        {e}
+                        <Icon icon={r.icon} className="w-5 h-5" />
                       </button>
                     ))}
                   </div>
@@ -290,14 +311,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                           e.stopPropagation();
                           handleReaction(msg.id, rx.emoji);
                         }}
-                        className={`min-h-[32px] px-2.5 py-1 rounded-full text-sm font-black border-2 flex items-center gap-1 transition-all cursor-pointer ${
+                        className={`min-h-[32px] px-2.5 py-1 rounded-full text-sm font-black border-2 flex items-center gap-1.5 transition-all cursor-pointer ${
                           rx.userIds.includes(currentUser.id)
                             ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
                             : 'border-[#E6E8EE] bg-white text-[#475569]'
                         }`}
                         title={`${rx.userIds.length} reaction${rx.userIds.length > 1 ? 's' : ''}`}
                       >
-                        <span>{rx.emoji}</span>
+                        {REACTION_ICON_MAP[rx.emoji] ? (
+                          <Icon icon={REACTION_ICON_MAP[rx.emoji]} className="w-4 h-4 shrink-0" />
+                        ) : (
+                          <span className="text-xs font-bold">{rx.emoji}</span>
+                        )}
                         <span>{rx.userIds.length}</span>
                       </button>
                     ))}

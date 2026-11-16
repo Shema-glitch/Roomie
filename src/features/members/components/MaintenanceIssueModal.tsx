@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Modal } from '../../../components/common/Modal';
 import {
   X,
   Wrench,
@@ -116,42 +117,14 @@ export const MaintenanceIssueModal: React.FC<MaintenanceIssueModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="maint-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={existingIssue ? 'Maintenance Issue Details' : 'Report Maintenance Issue'}
+      subtitle="Track broken fixtures, leaks, and landlord notifications"
+      maxWidth="lg"
     >
-      <div
-        className="w-full max-w-lg bg-surface rounded-3xl p-6 shadow-card border border-border flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scale-up"
-        style={{ contain: 'content' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600">
-              <Wrench weight="duotone" className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 id="maint-modal-title" className="type-h3 text-text-primary">
-                {existingIssue ? 'Maintenance Issue Details' : 'Report Maintenance Issue'}
-              </h2>
-              <p className="type-caption text-text-secondary">
-                Track broken fixtures, leaks, and landlord notifications
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-surface-elevated transition-colors"
-          >
-            <X weight="bold" className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-1">
           {/* Privacy Warning */}
           {isProhibited && (
             <div
@@ -321,7 +294,6 @@ export const MaintenanceIssueModal: React.FC<MaintenanceIssueModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };

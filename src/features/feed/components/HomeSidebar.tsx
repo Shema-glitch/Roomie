@@ -121,6 +121,8 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
               sound.playTap();
               if (choreDraftState.state === 'reveal_ready') {
                 onOpenChoreReveal();
+              } else if (choreDraftState.state === 'reveal_done') {
+                onNavigateTab('chores');
               } else {
                 onOpenDraftPicks();
               }
@@ -130,8 +132,12 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <ArrowsClockwise weight="bold" className="w-4 h-4" />
             </div>
-            <p className="text-[14px] font-bold text-[#1F2430]">{choreDraftState.actionLabel}</p>
-            <p className="text-[14px] text-[#475569]">{choreDraftState.badgeLabel}</p>
+            <p className="text-[14px] font-bold text-[#1F2430]">
+              {choreDraftState.state === 'reveal_done' ? 'Chore schedule' : choreDraftState.actionLabel}
+            </p>
+            <p className="text-[14px] text-[#475569]">
+              {choreDraftState.state === 'reveal_done' ? 'View all tasks' : choreDraftState.badgeLabel}
+            </p>
           </button>
         </div>
       </InfoCard>

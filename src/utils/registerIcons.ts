@@ -180,6 +180,20 @@ export function registerOfflineIcons(): void {
     body: "<g fill=\"none\"><path fill=\"#ffb02e\" d=\"M8 14h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V16a2 2 0 0 1 2-2\"/><path fill=\"#9b9b9b\" d=\"M11 14V9a5 5 0 0 1 10 0v5h-2V9a3 3 0 0 0-6 0v5z\"/><path fill=\"#402a32\" d=\"M16 20a2 2 0 1 0 0 4v2h-1v-2a2 2 0 0 0 1-4\"/></g>",
   });
 
+  // fluent-emoji-flat:red-heart (32x32 viewBox)
+  addIcon('fluent-emoji-flat:red-heart', {
+    width: 32,
+    height: 32,
+    body: "<path fill=\"#f8312f\" d=\"M16 28.5S2 19.5 2 10.5C2 5.5 6 2 11 2c3.5 0 5 2.5 5 2.5S17.5 2 21 2c5 0 9 3.5 9 8.5c0 9-14 18-14 18\"/>",
+  });
+
+  // fluent-emoji-flat:thumbs-up (32x32 viewBox)
+  addIcon('fluent-emoji-flat:thumbs-up', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ffb02e\" d=\"M9.5 13H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h4.5z\"/><path fill=\"#ff9f2e\" d=\"M9 13v14h11.5a3.5 3.5 0 0 0 3.4-2.6l2.1-8.5A3 3 0 0 0 23.1 12H16l1.3-5.2c.4-1.6-.8-3.1-2.4-3.1h-.4c-.8 0-1.5.4-1.9 1L9 13\"/></g>",
+  });
+
 }
 
 registerOfflineIcons();

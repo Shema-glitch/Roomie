@@ -9,12 +9,16 @@ interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
   currentUserId: string;
   reducedMotion?: boolean;
+  isRoomieWrappedEnabled?: boolean;
+  onOpenWrapped?: () => void;
 }
 
 export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   awards,
   currentUserId,
   reducedMotion = false,
+  isRoomieWrappedEnabled = false,
+  onOpenWrapped,
 }) => {
   const [celebrated, setCelebrated] = useState(false);
 
@@ -134,43 +138,72 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
         </div>
       )}
 
-      {/* Other Flatmate Awards */}
+      {/* Flatmate Awards in Horizontal Swipe Strip */}
       {otherAwards.length > 0 && (
-        <div className={`grid gap-2.5 pt-1 ${
-          otherAwards.length === 1
-            ? 'grid-cols-1'
-            : otherAwards.length === 2
-            ? 'grid-cols-1 sm:grid-cols-2'
-            : 'grid-cols-1 sm:grid-cols-3'
-        }`}>
-          {otherAwards.map((award, idx) => {
-            const style = colorStyles[award.colorScheme];
-            return (
-              <div
-                key={award.id}
-                style={{ '--stagger-index': idx + 1 } as React.CSSProperties}
-                className={`stagger-item card-interactive ease-spring p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
-              >
-                <div className="flex items-center gap-2.5 mb-1.5">
-                  <span className="shrink-0 flex items-center justify-center">
-                    <Icon icon={award.icon} className="w-6 h-6" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-bold text-[#64748B] truncate">
-                      {award.recipientName.split(' ')[0]}
-                    </div>
-                    <div className="text-xs font-heading font-black text-[#1F2430] truncate">
-                      {award.title}
+        <div className="space-y-1.5">
+          <div className="text-[11px] font-bold text-[#64748B] px-0.5">
+            Flatmate Honors
+          </div>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 scrollbar-none snap-x">
+            {otherAwards.map((award, idx) => {
+              const style = colorStyles[award.colorScheme];
+              return (
+                <div
+                  key={award.id}
+                  style={{ '--stagger-index': idx + 1 } as React.CSSProperties}
+                  className={`stagger-item card-interactive ease-spring min-w-[210px] max-w-[240px] shrink-0 snap-start p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
+                >
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <span className="shrink-0 flex items-center justify-center">
+                      <Icon icon={award.icon} className="w-6 h-6" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-bold text-[#64748B] truncate">
+                        {award.recipientName.split(' ')[0]}
+                      </div>
+                      <div className="text-xs font-heading font-black text-[#1F2430] truncate">
+                        {award.title}
+                      </div>
                     </div>
                   </div>
+                  <p className="text-[11px] font-medium text-[#475569] line-clamp-2 leading-tight">
+                    {award.reason}
+                  </p>
                 </div>
-                <p className="text-[11px] font-medium text-[#475569] line-clamp-2 leading-tight">
-                  {award.reason}
-                </p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
+      )}
+
+      {/* Roomie Wrapped Story Pill Trigger */}
+      {isRoomieWrappedEnabled && onOpenWrapped && (
+        <button
+          type="button"
+          onClick={() => {
+            sound.playTap();
+            haptics.tokenClink();
+            onOpenWrapped();
+          }}
+          className="btn-tactile ease-spring w-full p-2.5 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border-2 border-b-3 border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer shadow-2xs select-none"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-xl bg-white border border-[#FFD3C9] flex items-center justify-center shrink-0">
+              <Icon icon="fluent-emoji-flat:wrapped-gift" className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-xs font-black text-[#1F2430] truncate block">
+                Semester Flat Wrapped (Beta Labs)
+              </span>
+              <span className="text-[10px] text-[#64748B] truncate block">
+                View flat recap & share story card
+              </span>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-[11px] font-black shrink-0">
+            Open Story
+          </span>
+        </button>
       )}
     </div>
   );

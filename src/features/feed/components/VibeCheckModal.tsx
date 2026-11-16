@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Modal } from '../../../components/common/Modal';
 import { VibeRating } from '../../../types';
 import { VIBE_DEFINITIONS, VIBE_RATINGS_LIST, getCurrentWeekKey } from '../../../utils/vibe';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
-import { useBackHandler } from '../../../utils/useBackHandler';
-import { X, ShieldCheck, Heart, Check, Sparkle } from '@phosphor-icons/react';
+import { ShieldCheck, Heart, Check } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 
 interface VibeCheckModalProps {
@@ -12,8 +12,6 @@ interface VibeCheckModalProps {
   onClose: () => void;
   onSubmit: (rating: VibeRating) => Promise<void>;
 }
-
-const DRAG_DISMISS_THRESHOLD_PX = 90;
 
 export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
   isOpen,
@@ -24,9 +22,6 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
   const [selectedRating, setSelectedRating] = useState<VibeRating | null>(null);
   const [hasVotedThisWeek, setHasVotedThisWeek] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const dragStartYRef = useRef<number | null>(null);
-  const [dragOffsetY, setDragOffsetY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
 
   // Check previous submission receipt
   useEffect(() => {
@@ -38,19 +33,6 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
       }
     }
   }, [currentWeekKey]);
-
-  // Android back button and Escape key dismiss
-  useBackHandler(isOpen, 100, onClose);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -64,8 +46,6 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
     if (!selectedRating || submitting) return;
     setSubmitting(true);
     try {
-      // Distinct Vibe Check signature: warm F-Major dyad swell for high/neutral moods,
-      // soft empathetic descending tone for low/stressed moods, paired with single heartbeat pulse
       haptics.vibeSubmit();
       sound.vibeSubmit(selectedRating);
 
@@ -81,80 +61,39 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="vibe-modal-title"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 animate-fade-in"
-    >
-      <div
-        className="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-3xl border-2 border-b-6 border-[#E6E8EE] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 will-change-transform animate-pop-in"
-        style={{
-          transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,
-          transition: isDragging
-            ? 'none'
-            : 'transform 0.28s var(--ease-spring), opacity 0.2s ease',
-        }}
-      >
-        {/* Mobile drag handle */}
-        <div
-          onTouchStart={(e) => {
-            if (e.touches.length === 1) {
-              dragStartYRef.current = e.touches[0].clientY;
-              setIsDragging(true);
-            }
-          }}
-          onTouchMove={(e) => {
-            if (dragStartYRef.current !== null && e.touches.length === 1) {
-              setDragOffsetY(Math.max(0, e.touches[0].clientY - dragStartYRef.current));
-            }
-          }}
-          onTouchEnd={() => {
-            if (dragStartYRef.current !== null) {
-              dragStartYRef.current = null;
-              setIsDragging(false);
-              if (dragOffsetY >= DRAG_DISMISS_THRESHOLD_PX) {
-                setDragOffsetY(0);
-                onClose();
-              } else {
-                setDragOffsetY(0);
-              }
-            }
-          }}
-          className="w-full flex justify-center pb-1 sm:hidden touch-none cursor-grab active:cursor-grabbing"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Weekly Vibe Check"
+      subtitle={
+        hasVotedThisWeek
+          ? 'You voted this week · Tap to update'
+          : 'How are you feeling in the flat this week?'
+      }
+      maxWidth="md"
+      footer={
+        <button
+          type="button"
+          disabled={!selectedRating || submitting}
+          onClick={handleConfirm}
+          className={`w-full py-3.5 px-4 rounded-2xl font-heading font-black text-sm text-white border-2 border-b-4 transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            selectedRating && !submitting
+              ? 'bg-[#FF6B4A] border-[#D94E30] hover:bg-[#F55B39] active:translate-y-[2px] active:border-b-2 shadow-sm'
+              : 'bg-[#CBD5E1] border-[#94A3B8] opacity-60 cursor-not-allowed'
+          }`}
         >
-          <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1]" />
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFF5F2] border-2 border-[#FFD3C9] flex items-center justify-center shadow-xs shrink-0">
-              <Sparkle weight="fill" className="w-5 h-5 text-[#FF6B4A]" />
-            </div>
-            <div className="min-w-0">
-              <h3 id="vibe-modal-title" className="text-lg sm:text-xl font-heading font-black text-[#1F2430] truncate">
-                Weekly Vibe Check
-              </h3>
-              <p className="text-xs font-semibold text-[#64748B] truncate">
-                {hasVotedThisWeek ? 'You voted this week · Tap to update' : 'How are you feeling in the flat this week?'}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close modal"
-            className="btn-tactile ease-spring w-9 h-9 rounded-full bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2430] flex items-center justify-center cursor-pointer transition-colors shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
+          <Heart weight="fill" className="w-4 h-4" />
+          <span>
+            {submitting
+              ? 'Sharing Anonymously...'
+              : hasVotedThisWeek
+              ? 'Update My Vibe'
+              : 'Share Anonymously'}
+          </span>
+        </button>
+      }
+    >
+      <div className="space-y-4 py-1">
         {/* 5 Vibe Emotion Cards */}
         <div className="space-y-2">
           {VIBE_RATINGS_LIST.map((rating, idx) => {
@@ -209,30 +148,7 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
             name or user ID. Apartment average reveals once 3 or more roommates have submitted.
           </p>
         </div>
-
-        {/* Action Button */}
-        <div className="pt-1">
-          <button
-            type="button"
-            disabled={!selectedRating || submitting}
-            onClick={handleConfirm}
-            className={`w-full py-3.5 px-4 rounded-2xl font-heading font-black text-sm text-white border-2 border-b-4 transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              selectedRating && !submitting
-                ? 'bg-[#FF6B4A] border-[#D94E30] hover:bg-[#F55B39] active:translate-y-[2px] active:border-b-2 shadow-sm'
-                : 'bg-[#CBD5E1] border-[#94A3B8] opacity-60 cursor-not-allowed'
-            }`}
-          >
-            <Heart weight="fill" className="w-4 h-4" />
-            <span>
-              {submitting
-                ? 'Sharing Anonymously...'
-                : hasVotedThisWeek
-                ? 'Update My Vibe'
-                : 'Share Anonymously'}
-            </span>
-          </button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 };
