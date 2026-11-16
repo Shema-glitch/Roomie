@@ -52,8 +52,8 @@
   - Visual category spending analytics chart via lightweight zero-dependency custom SVG donut chart (`SpendingBreakdownChart.tsx`). Recharts removed.
 - **Partial**:
   - Personal expense tracking (private log) data structure exists in domain types, but lacks a dedicated personal-only UI view separate from household expenses.
-- **Missing**:
-  - Client-side image compression before upload (currently uses object URLs / sample URLs).
+- **Done**:
+  - Client-side image compression pipeline (`src/utils/photoPipeline.ts`) auto-compresses receipts and chore proof to web-ready JPEG under 150-300 KB before uploading to Supabase Storage.
 
 ---
 
@@ -124,8 +124,8 @@
   - Offline banner and manual synchronization status indicator (`OfflineBanner.tsx`, `SyncStatusPanel.tsx`).
   - Audio synthesizer with zero external assets (`sound.ts`), user toggleable.
   - Accessibility: `reducedMotion` toggle and full RTL layout support for Arabic (`ar`).
-- **Partial**:
-  - Web Push Notifications / Service Worker background push (simulated in-app).
+- **Done**:
+  - Service worker background push listener & notification click focus (`public/sw.js`) and PWA installation prompt (`window.deferredPrompt`).
 
 ---
 
