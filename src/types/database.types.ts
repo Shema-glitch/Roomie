@@ -973,6 +973,7 @@ export type Database = {
           country_code: string | null
           created_at: string | null
           deleted_at: string | null
+          dietary_tags: string[] | null
           email: string
           flag: string | null
           id: string
@@ -991,6 +992,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          dietary_tags?: string[] | null
           email: string
           flag?: string | null
           id: string
@@ -1009,6 +1011,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          dietary_tags?: string[] | null
           email?: string
           flag?: string | null
           id?: string
@@ -1333,6 +1336,69 @@ export type Database = {
           },
         ]
       }
+      cultural_dinners: {
+        Row: {
+          created_at: string
+          cuisine_tag: string
+          deleted_at: string | null
+          dietary_tags: string[]
+          dish_title: string
+          host_user_id: string
+          household_id: string
+          id: string
+          rsvp_user_ids: string[]
+          scheduled_date: string
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          cuisine_tag: string
+          deleted_at?: string | null
+          dietary_tags?: string[]
+          dish_title: string
+          host_user_id: string
+          household_id: string
+          id?: string
+          rsvp_user_ids?: string[]
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          cuisine_tag?: string
+          deleted_at?: string | null
+          dietary_tags?: string[]
+          dish_title?: string
+          host_user_id?: string
+          household_id?: string
+          id?: string
+          rsvp_user_ids?: string[]
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cultural_dinners_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_dinners_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1345,6 +1411,10 @@ export type Database = {
       }
       resolve_chore_swap: {
         Args: { p_request_id: string; p_action: string }
+        Returns: Json
+      }
+      toggle_cultural_dinner_rsvp: {
+        Args: { p_dinner_id: string; p_household_id: string }
         Returns: Json
       }
     }

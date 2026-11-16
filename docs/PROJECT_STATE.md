@@ -330,3 +330,34 @@ Baseline Tag: `v1.0.0-phase1`
   - Initial JS bundle: **145.28 kB gzipped** (well below the 200 kB budget).
   - Zero temporary scripts, zero phase-numbered files/types, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
   - 67 / 67 unit tests pass across 9 test suites. TypeScript compilation (`tsc --noEmit`) passes with 0 errors.
+
+---
+
+## 12. Interactive Cultural Dinners & Live Roomie Wrapped (Branch `feature/interactive-dinners-and-wrapped`)
+
+- **Interactive Cultural Dinners & Dietary Profile Sync**:
+  - **Database Migration** (`supabase/migrations/20261116090000_cultural_dinners.sql`):
+    - Created `cultural_dinners` table (`id`, `household_id`, `host_user_id`, `dish_title`, `cuisine_tag`, `scheduled_date`, `dietary_tags text[]`, `rsvp_user_ids uuid[]`, `status`, `created_at`, `updated_at`) with composite index `(household_id, scheduled_date DESC)`, `CHECK` length caps (`dish_title <= 100`, `cuisine_tag <= 40`), and multi-tenant RLS (`is_household_member(household_id)`).
+    - Added `dietary_tags text[]` to `public.profiles` for persistent user dietary badge preferences.
+    - Added atomic `toggle_cultural_dinner_rsvp` RPC with row locking. Applied cleanly to remote Supabase (`ebiyvhodxrliiwdzonzu`).
+  - **Data Layer & Offline Outbox** (`src/services/api/social.api.ts`, `outbox.ts`, `localCache.ts`):
+    - Added windowed queries (`getCulturalDinners` fetching latest 15 dinners with explicit column selection and delta merging).
+    - Idempotent mutations (`scheduleCulturalDinner`, `toggleDinnerRsvp`, `updateUserDietaryPreferences`) routed through `outbox.ts` with instant `localCache.ts` snapshot updates.
+  - **Interactive UI** ([`CulturalDinnerCard.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/feed/components/CulturalDinnerCard.tsx) & [`CulturalDinnerModal.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/feed/components/CulturalDinnerModal.tsx)):
+    - Complete roommate hosting flow: dish title, cuisine origin, date picker, and dietary badge toggles (`Halal`, `Vegetarian`, `Vegan`, `Nut-Free`, `Gluten-Free`, `Dairy-Free`).
+    - Flatmates dietary needs overview: hosts view all flatmates' dietary badges before cooking to prevent food allergies or non-halal preparation.
+    - Instant 1-tap **"I'm In" (RSVP)** with distinct audio/haptic feedback (`tokenClink`, `swapAccept`, `awardCelebrate`) and mascot live reactions (`cheering`).
+- **Live Roomie Wrapped & Zero-Financial Canvas Share Card**:
+  - **Metrics Engine** ([`src/utils/wrappedMetrics.ts`](file:///c:/Users/HP/Documents/github/Roomie/src/utils/wrappedMetrics.ts) & [`src/utils/wrappedMetrics.test.ts`](file:///c:/Users/HP/Documents/github/Roomie/src/utils/wrappedMetrics.test.ts)):
+    - Computes monthly and semester recap metrics strictly from existing state (`chore_logs`, `expenses`, `kudos`, `cultural_dinners`, `awards`) with **strictly zero monetary figures, balances, or private IDs**.
+    - Measures team chores completed together, longest dispute-free streak in days, most-appreciated flatmate via kudos, top dinner chef, and flat harmony score (0-100%).
+  - **Zero-Dependency HTML5 `<canvas>` Story Exporter** ([`src/utils/shareCardCanvas.ts`](file:///c:/Users/HP/Documents/github/Roomie/src/utils/shareCardCanvas.ts)):
+    - Offscreen `<canvas>` generating a crisp 1080x1920 (9:16 story aspect ratio) branded card in Roomie's warm coral, fresh teal, gold, and slate palette.
+    - Integrates native Web Share API (`navigator.share({ files })` on Android WebView/Capacitor) with automatic PNG download fallback.
+  - **Interactive Recap Deck** ([`src/features/feed/components/RoomieWrappedModal.tsx`](file:///c:/Users/HP/Documents/github/Roomie/src/features/feed/components/RoomieWrappedModal.tsx)):
+    - 4-slide swipeable story deck with progress segments, spring physics transitions, and 1-tap **"Share Story Card"** button.
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **147.67 kB gzipped** (well below the 200 KB budget).
+  - Lazy modal chunks: `CulturalDinnerModal` is **2.72 kB gzipped**, `RoomieWrappedModal` is **4.59 kB gzipped**.
+  - 74 / 74 unit tests pass across 9 test suites. `tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX: all badges render via pre-registered `fluent-emoji-flat` icons and `@phosphor-icons/react`.

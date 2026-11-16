@@ -24,6 +24,8 @@ import {
   WeeklyVibeCheck,
   FavorTokenTransaction,
   ChoreSwapRequest,
+  CulturalDinner,
+  DietaryTag,
 } from '../../types';
 import { getChoreDraftState, getChoreStateEvent } from '../../utils/stateTable';
 import { evaluateWeeklyAwards } from '../../utils/awards';
@@ -61,6 +63,7 @@ export interface AppStore {
   favorTokens?: Record<string, number>;
   favorTransactions?: Record<string, FavorTokenTransaction[]>;
   swapRequests?: Record<string, ChoreSwapRequest[]>;
+  culturalDinners?: Record<string, CulturalDinner[]>;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
   localAccounts?: Record<
@@ -120,6 +123,7 @@ export function getInitialStore(): AppStore {
     streakDays: 7,
     points: 140,
     awayUntil: null,
+    dietaryTags: ['halal'],
   };
 
   const users: User[] = [
@@ -136,6 +140,7 @@ export function getInitialStore(): AppStore {
       streakDays: 14,
       points: 230,
       awayUntil: null,
+      dietaryTags: ['halal', 'dairy_free'],
     },
     {
       id: 'u_lucas',
@@ -149,6 +154,7 @@ export function getInitialStore(): AppStore {
       streakDays: 5,
       points: 95,
       awayUntil: null,
+      dietaryTags: ['nut_free'],
     },
     {
       id: 'u_yasmin',
@@ -162,6 +168,7 @@ export function getInitialStore(): AppStore {
       streakDays: 9,
       points: 180,
       awayUntil: null,
+      dietaryTags: ['vegetarian'],
     },
   ];
 
@@ -726,6 +733,24 @@ export function getInitialStore(): AppStore {
     ],
   };
 
+  const culturalDinners: Record<string, CulturalDinner[]> = {
+    h_main: [
+      {
+        id: 'cd_seed_1',
+        householdId: 'h_main',
+        hostUserId: 'u_curr',
+        dishTitle: 'Authentic Japanese Katsu Curry',
+        cuisineTag: 'Japanese',
+        scheduledDate: '2026-11-20',
+        dietaryTags: ['halal'],
+        rsvpUserIds: ['u_curr', 'u_amina', 'u_yasmin'],
+        status: 'scheduled',
+        createdAt: '2026-11-15T12:00:00Z',
+        updatedAt: '2026-11-15T12:00:00Z',
+      },
+    ],
+  };
+
   return {
     currentUser,
     users,
@@ -749,6 +774,7 @@ export function getInitialStore(): AppStore {
     favorTokens,
     favorTransactions: { h_main: [] },
     swapRequests,
+    culturalDinners,
   };
 }
 
@@ -764,6 +790,7 @@ export interface RawProfileRow {
   streak_days?: number | null;
   points?: number | null;
   away_until?: string | null;
+  dietary_tags?: string[] | null;
 }
 
 export function mapProfileToUser(p: RawProfileRow): User {
@@ -779,6 +806,7 @@ export function mapProfileToUser(p: RawProfileRow): User {
     streakDays: p.streak_days || 0,
     points: p.points || 0,
     awayUntil: p.away_until || null,
+    dietaryTags: (p.dietary_tags as DietaryTag[]) || [],
   };
 }
 
@@ -1063,6 +1091,9 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
     type === 'submit_vibe_pulse' ||
     type === 'propose_chore_swap' ||
     type === 'resolve_chore_swap' ||
+    type === 'schedule_cultural_dinner' ||
+    type === 'toggle_dinner_rsvp' ||
+    type === 'update_dietary_preferences' ||
     type === 'swap_chore'
   ) {
     return 'social';

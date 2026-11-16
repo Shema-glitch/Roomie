@@ -30,6 +30,7 @@ export interface User {
   points: number;
   favorTokens?: number;
   awayUntil: string | null; // "I'm away" mode date ISO or null
+  dietaryTags?: DietaryTag[];
 }
 
 export interface Household {
@@ -328,4 +329,59 @@ export interface ChoreSwapRequest {
   note?: string;
   createdAt: string;
 }
+
+// -------------------------------------------------------------
+// Beta Labs Domain Types (Cultural Dinners & Roomie Wrapped)
+// -------------------------------------------------------------
+
+export type DietaryTag =
+  | 'halal'
+  | 'vegetarian'
+  | 'vegan'
+  | 'nut_free'
+  | 'gluten_free'
+  | 'dairy_free';
+
+export interface DietaryBadgeInfo {
+  id: DietaryTag;
+  label: string;
+  color: string;
+}
+
+export const DIETARY_BADGES: readonly DietaryBadgeInfo[] = [
+  { id: 'halal', label: 'Halal', color: '#10B981' },
+  { id: 'vegetarian', label: 'Vegetarian', color: '#34D399' },
+  { id: 'vegan', label: 'Vegan', color: '#059669' },
+  { id: 'nut_free', label: 'Nut-Free', color: '#F59E0B' },
+  { id: 'gluten_free', label: 'Gluten-Free', color: '#6366F1' },
+  { id: 'dairy_free', label: 'Dairy-Free', color: '#3B82F6' },
+];
+
+export interface CulturalDinner {
+  id: string;
+  householdId: string;
+  hostUserId: string;
+  dishTitle: string;
+  cuisineTag: string;
+  scheduledDate: string; // YYYY-MM-DD
+  dietaryTags: DietaryTag[];
+  rsvpUserIds: string[];
+  status: 'scheduled' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoomieWrappedMetrics {
+  totalChoresTogether: number;
+  disputeFreeStreakDays: number;
+  mostAppreciatedFlatmateId?: string;
+  mostAppreciatedFlatmateName?: string;
+  totalKudosExchanged: number;
+  topChefUserId?: string;
+  topChefName?: string;
+  culturalDinnersHosted: number;
+  flatHarmonyScore: number;
+  topAwardTitle?: string;
+}
+
 

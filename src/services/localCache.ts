@@ -24,6 +24,7 @@ import {
   WeeklyAward,
   HouseholdVibeSummary,
   ChoreSwapRequest,
+  CulturalDinner,
 } from '../types';
 import { NetBalance, calculateBalances } from '../utils/balances';
 import { evaluateWeeklyAwards } from '../utils/awards';
@@ -61,6 +62,7 @@ export interface HouseholdSnapshot {
   weeklyAwards: WeeklyAward[];
   vibeSummary: HouseholdVibeSummary;
   pendingSwaps: ChoreSwapRequest[];
+  culturalDinners?: CulturalDinner[];
 }
 
 class LocalSnapshotCacheService {
@@ -237,6 +239,7 @@ class LocalSnapshotCacheService {
       weeklyAwards,
       vibeSummary,
       pendingSwaps,
+      culturalDinners: store.culturalDinners?.[hId] || [],
     };
 
     return this.saveSnapshot(hId, snapshot);

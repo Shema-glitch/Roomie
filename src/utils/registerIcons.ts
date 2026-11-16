@@ -124,6 +124,34 @@ export function registerOfflineIcons(): void {
     body: "<path fill=\"#f9c23c\" d=\"M10.52 7.052a1.17 1.17 0 0 1-.639-.636L8.93 4.257c-.178-.343-.69-.343-.858 0l-.952 2.16a1.28 1.28 0 0 1-.638.635l-1.214.524a.462.462 0 0 0 0 .838l1.214.524c.293.121.523.353.638.636l.952 2.169c.178.343.69.343.858 0l.952-2.17c.126-.282.356-.504.638-.635l1.214-.524a.462.462 0 0 0 0-.838zm15.054 6.503a3.73 3.73 0 0 1-1.922-1.977L20.79 4.81a1.432 1.432 0 0 0-2.58 0l-2.863 6.768a3.8 3.8 0 0 1-1.921 1.977l-3.622 1.64c-1.072.53-1.072 2.08 0 2.61l3.622 1.64a3.74 3.74 0 0 1 1.922 1.977l2.862 6.768a1.432 1.432 0 0 0 2.58 0l2.863-6.768a3.8 3.8 0 0 1 1.921-1.977l3.622-1.64c1.072-.53 1.072-2.08 0-2.61zM8.281 20.33c.16.392.454.696.822.872l1.55.725a.646.646 0 0 1 0 1.146l-1.55.725c-.368.176-.661.49-.822.872l-1.228 2.977a.61.61 0 0 1-1.106 0L4.72 24.67a1.66 1.66 0 0 0-.822-.872l-1.55-.725a.646.646 0 0 1 0-1.146l1.55-.725c.368-.176.661-.49.822-.872l1.228-2.977a.61.61 0 0 1 1.106 0z\"/>",
   });
 
+  // fluent-emoji-flat:pot-of-food (32x32 viewBox)
+  addIcon('fluent-emoji-flat:pot-of-food', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#402a32\" d=\"M26 12H6a4 4 0 0 0-4 4v2c0 6.627 5.373 12 12 12s12-5.373 12-12v-2a4 4 0 0 0-4-4\"/><path fill=\"#e39d89\" d=\"M16 11c-5.523 0-10 1.343-10 3s4.477 3 10 3s10-1.343 10-3s-4.477-3-10-3\"/><path fill=\"#ff6723\" d=\"M12 13a2 2 0 1 0 0-4a2 2 0 0 0 0 4m8 1a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3\"/></g>",
+  });
+
+  // fluent-emoji-flat:wrapped-gift (32x32 viewBox)
+  addIcon('fluent-emoji-flat:wrapped-gift', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ff5e59\" d=\"M4 14h24v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z\"/><path fill=\"#ff822d\" d=\"M3 8h26a1 1 0 0 1 1 1v5H2V9a1 1 0 0 1 1-1\"/><path fill=\"#ffcf30\" d=\"M14 8h4v22h-4z\"/><path fill=\"#f9c23c\" d=\"M13.5 8c-1.5 0-4.5-.5-4.5-3.5S12.5 1 14 3.5c.5.833 1.5 3 2 4.5z\"/><path fill=\"#f9c23c\" d=\"M18.5 8c1.5 0 4.5-.5 4.5-3.5S19.5 1 18 3.5c-.5.833-1.5 3-2 4.5z\"/></g>",
+  });
+
+  // fluent-emoji-flat:glowing-star (32x32 viewBox)
+  addIcon('fluent-emoji-flat:glowing-star', {
+    width: 32,
+    height: 32,
+    body: "<path fill=\"#f9c23c\" d=\"M16 2l3.7 8.5L29 11.8l-7 6.1l2.1 9.1L16 22.3L7.9 27l2.1-9.1l-7-6.1l9.3-1.3z\"/>",
+  });
+
+  // fluent-emoji-flat:clinking-glasses (32x32 viewBox)
+  addIcon('fluent-emoji-flat:clinking-glasses', {
+    width: 32,
+    height: 32,
+    body: "<g fill=\"none\"><path fill=\"#ffb02e\" d=\"M8 5h6v7c0 3.3-2.7 6-6 6H7c-.6 0-1-.4-1-1v-6c0-3.3 2.7-6 6-6\"/><path fill=\"#ff9f2e\" d=\"M24 5h-6v7c0 3.3 2.7 6 6 6h1c.6 0 1-.4 1-1v-6c0-3.3-2.7-6-6-6\"/><path fill=\"#aeddff\" d=\"M10 18v8h2v-8zm10 0v8h2v-8z\"/><path fill=\"#46a4fb\" d=\"M7 26h8v2H7zm10 0h8v2h-8z\"/></g>",
+  });
+
 }
 
 registerOfflineIcons();

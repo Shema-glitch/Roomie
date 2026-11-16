@@ -33,7 +33,10 @@ export type OutboxActionType =
   | 'mark_all_notifications_read'
   | 'submit_vibe_pulse'
   | 'propose_chore_swap'
-  | 'resolve_chore_swap';
+  | 'resolve_chore_swap'
+  | 'schedule_cultural_dinner'
+  | 'toggle_dinner_rsvp'
+  | 'update_dietary_preferences';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 

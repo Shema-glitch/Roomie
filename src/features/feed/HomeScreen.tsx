@@ -22,6 +22,8 @@ import {
   VibeRating,
   ChoreSwapRequest,
   MascotState,
+  CulturalDinner,
+  DietaryTag,
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
@@ -53,6 +55,9 @@ const VibeCheckModal = React.lazy(() =>
 );
 const RoomieWrappedModal = React.lazy(() =>
   import('./components/RoomieWrappedModal').then((m) => ({ default: m.RoomieWrappedModal }))
+);
+const CulturalDinnerModal = React.lazy(() =>
+  import('./components/CulturalDinnerModal').then((m) => ({ default: m.CulturalDinnerModal }))
 );
 
 interface HomeScreenProps {
@@ -116,8 +121,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>(
     () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
   );
+  const [culturalDinners, setCulturalDinners] = useState<CulturalDinner[]>(
+    () => localCache.getSnapshot(household?.id)?.culturalDinners || []
+  );
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
   const [isWrappedModalOpen, setIsWrappedModalOpen] = useState(false);
+  const [isDinnerModalOpen, setIsDinnerModalOpen] = useState(false);
   const isCulturalDinnersEnabled = useFeatureFlag('culturalDinnersBeta');
   const isRoomieWrappedEnabled = useFeatureFlag('roomieWrappedBeta');
   const [mascotReaction, setMascotReaction] = useState<{
@@ -144,9 +153,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         setVibeSummary(snap.vibeSummary);
         setAwards(snap.weeklyAwards);
         setPendingSwaps(snap.pendingSwaps);
+        if (snap.culturalDinners) {
+          setCulturalDinners(snap.culturalDinners);
+        }
       }
       api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
       api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
+      api.social.getCulturalDinners(household.id).then(setCulturalDinners).catch(() => {});
       api.getSwapRequests(household.id).then((reqs) => {
         const incoming = reqs.filter(
           (r) => r.targetUserId === currentUser.id && r.status === 'pending'
@@ -176,6 +189,46 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     } catch {
       showToast('Could not record vibe check', 'error');
     }
+  };
+
+  const handleToggleDinnerRsvp = async (dinnerId: string) => {
+    try {
+      const res = await api.social.toggleDinnerRsvp(dinnerId, household.id);
+      if (res.success) {
+        setCulturalDinners((prev) =>
+          prev.map((d) => (d.id === dinnerId ? { ...d, rsvpUserIds: res.rsvpUserIds } : d))
+        );
+        triggerMascotReaction('cheering', res.isAttending ? "You're in for dinner! 🍲" : 'RSVP updated!');
+        showToast(res.isAttending ? "You're attending dinner! 🍲" : 'RSVP updated', 'success');
+      }
+    } catch {
+      showToast('Failed to update dinner RSVP', 'error');
+    }
+  };
+
+  const handleScheduleDinner = async (params: {
+    dishTitle: string;
+    cuisineTag: string;
+    scheduledDate: string;
+    dietaryTags: DietaryTag[];
+  }) => {
+    const res = await api.social.scheduleCulturalDinner({
+      ...params,
+      householdId: household.id,
+    });
+    if (res.success && res.dinner) {
+      setCulturalDinners((prev) => [res.dinner!, ...prev]);
+      triggerMascotReaction('celebrating', 'Dinner announced! Smells delicious! 🍲');
+      showToast(`Cultural dinner scheduled: ${res.dinner.dishTitle}!`, 'success');
+    } else {
+      showToast(res.error || 'Failed to schedule dinner', 'error');
+    }
+  };
+
+  const handleUpdateDietaryPreferences = async (tags: DietaryTag[]) => {
+    await api.social.updateUserDietaryPreferences(tags);
+    triggerMascotReaction('calm', 'Dietary preferences updated!');
+    showToast('Dietary preferences updated!', 'success');
   };
 
   const sym = getCurrencySymbol(household?.currency);
@@ -278,18 +331,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               className="w-full p-3 rounded-2xl bg-linear-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border-2 border-b-4 border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer btn-tactile ease-spring shadow-xs"
             >
               <div className="flex items-center gap-2.5">
-                <span className="text-xl">🎁</span>
+                <Icon icon="fluent-emoji-flat:wrapped-gift" className="w-6 h-6 shrink-0" />
                 <div>
                   <span className="text-xs font-black text-[#1F2430] block">
-                    Monthly Flat Wrapped is Ready! (Beta Labs)
+                    Semester Flat Wrapped is Ready! (Beta Labs)
                   </span>
                   <span className="text-[11px] text-[#64748B]">
-                    Tap to see your flat's monthly highlights, streaks, and harmony recap
+                    Tap to view your flat milestones, harmony rating, and share story card
                   </span>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-xs font-black shrink-0">
-                Open Recap →
+                Open Recap
               </span>
             </button>
           )}
@@ -297,13 +350,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Phase 2B Beta: Cultural Dinner Shared Meal Rotation */}
           {isCulturalDinnersEnabled && (
             <CulturalDinnerCard
+              dinner={culturalDinners[0] || null}
               hostName={roommates[0]?.name.split(' ')[0] || 'Roomie'}
               cuisine="Mediterranean"
               dishTitle="Mezze & Kofta Night"
               scheduledDay="This Friday"
               scheduledTime="20:00"
-              dietaryTags={['halal', 'vegetarian', 'nut-free']}
+              dietaryTags={['halal', 'vegetarian', 'nut_free']}
               attendeesCount={Math.max(1, roommates.length - 1)}
+              currentUserId={currentUser.id}
+              roommates={roommates}
+              onToggleRsvp={handleToggleDinnerRsvp}
+              onOpenHostModal={() => setIsDinnerModalOpen(true)}
             />
           )}
 
@@ -541,17 +599,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           />
         )}
 
+        {isCulturalDinnersEnabled && isDinnerModalOpen && (
+          <CulturalDinnerModal
+            isOpen={isDinnerModalOpen}
+            onClose={() => setIsDinnerModalOpen(false)}
+            currentUser={currentUser}
+            roommates={roommates}
+            onScheduleDinner={handleScheduleDinner}
+            onUpdateDietaryPreferences={handleUpdateDietaryPreferences}
+          />
+        )}
+
         {isRoomieWrappedEnabled && isWrappedModalOpen && (
           <RoomieWrappedModal
             isOpen={isWrappedModalOpen}
             onClose={() => setIsWrappedModalOpen(false)}
             householdName={household?.name}
-            totalChoresCompleted={assignments.filter((a) => a.completedToday).length + 35}
-            totalExpensesSettled={
-              expenses.filter((e) => e.status === 'agreed').reduce((acc: number, e) => acc + e.amount, 0) || 1850
-            }
-            streakDays={currentUser.streakDays || 14}
-            currencySymbol={sym}
+            semesterLabel="Fall Semester 2026"
+            roommates={roommates}
+            assignments={assignments}
+            chores={chores}
+            expenses={expenses}
+            awards={awards}
+            culturalDinners={culturalDinners}
+            vibeSummary={vibeSummary}
           />
         )}
       </React.Suspense>

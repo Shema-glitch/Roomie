@@ -5,10 +5,14 @@
  */
 
 import {
+  User,
   WeeklyAward,
+  WeeklyVibeCheck,
   HouseholdVibeSummary,
   VibeRating,
   ChoreSwapRequest,
+  CulturalDinner,
+  DietaryTag,
 } from '../../types';
 import {
   AppStore,
@@ -95,7 +99,7 @@ export class SocialApi {
 
   private dispatchSocialOutbox<T>(
     householdId: string,
-    outboxType: 'submit_vibe_pulse' | 'propose_chore_swap' | 'resolve_chore_swap',
+    outboxType: OutboxActionType,
     payload: T,
     summary: string,
     remoteExec: () => Promise<{ error: { message: string; code?: string } | null } | void>
@@ -611,5 +615,244 @@ export class SocialApi {
     action: 'accept' | 'decline'
   ): Promise<{ success: boolean; request?: ChoreSwapRequest }> {
     return this.resolveChoreSwap(requestId, action);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cultural Dinners & Dietary Profile Sync (Phase 2B Beta)
+  // ---------------------------------------------------------------------------
+
+  public async getCulturalDinners(householdId?: string): Promise<CulturalDinner[]> {
+    const store = this.getStore();
+    const hId = householdId || store.activeHouseholdId;
+    if (!store.culturalDinners) store.culturalDinners = {};
+    const localList = store.culturalDinners[hId] || [];
+
+    if (this.isDemoMode() || !supabase || !isUuid(hId)) {
+      return localList;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('cultural_dinners')
+        .select(
+          'id, household_id, host_user_id, dish_title, cuisine_tag, scheduled_date, dietary_tags, rsvp_user_ids, status, created_at, updated_at'
+        )
+        .eq('household_id', hId)
+        .is('deleted_at', null)
+        .order('scheduled_date', { ascending: false })
+        .limit(15);
+
+      if (error) {
+        logger.warn('get_cultural_dinners', `Failed remote fetch: ${error.message}`, { error });
+        return localList;
+      }
+
+      if (data && data.length > 0) {
+        const remoteMapped: CulturalDinner[] = data.map((d) => ({
+          id: d.id,
+          householdId: d.household_id,
+          hostUserId: d.host_user_id,
+          dishTitle: d.dish_title,
+          cuisineTag: d.cuisine_tag,
+          scheduledDate: d.scheduled_date,
+          dietaryTags: (d.dietary_tags as DietaryTag[]) || [],
+          rsvpUserIds: (d.rsvp_user_ids as string[]) || [],
+          status: d.status as CulturalDinner['status'],
+          createdAt: d.created_at,
+          updatedAt: d.updated_at,
+        }));
+
+        const remoteIds = new Set(remoteMapped.map((r) => r.id));
+        const pendingOptimistic = localList.filter((l) => !remoteIds.has(l.id));
+        const merged = [...pendingOptimistic, ...remoteMapped];
+        store.culturalDinners[hId] = merged;
+        this.save(store);
+        return merged;
+      }
+    } catch (err: unknown) {
+      logger.warn('get_cultural_dinners', 'Exception fetching dinners', {
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    return localList;
+  }
+
+  public async scheduleCulturalDinner(params: {
+    dishTitle: string;
+    cuisineTag: string;
+    scheduledDate: string;
+    dietaryTags?: DietaryTag[];
+    householdId?: string;
+  }): Promise<{ success: boolean; dinner?: CulturalDinner; error?: string }> {
+    const store = this.getStore();
+    const hId = params.householdId || store.activeHouseholdId;
+    const hostId = store.currentUser.id;
+
+    const trimmedDish = params.dishTitle.trim();
+    const trimmedCuisine = params.cuisineTag.trim();
+    if (!trimmedDish) {
+      return { success: false, error: 'Dish title cannot be empty.' };
+    }
+    if (trimmedDish.length > 100) {
+      return { success: false, error: 'Dish title cannot exceed 100 characters.' };
+    }
+    if (trimmedCuisine.length > 40) {
+      return { success: false, error: 'Cuisine tag cannot exceed 40 characters.' };
+    }
+
+    const dinner: CulturalDinner = {
+      id: !this.isDemoMode() && isUuid(hId) ? makeEntityId('dinner', true) : `dinner_${Date.now()}`,
+      householdId: hId,
+      hostUserId: hostId,
+      dishTitle: trimmedDish,
+      cuisineTag: trimmedCuisine || 'Home-cooked',
+      scheduledDate: params.scheduledDate,
+      dietaryTags: params.dietaryTags || [],
+      rsvpUserIds: [hostId],
+      status: 'scheduled',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (!store.culturalDinners) store.culturalDinners = {};
+    if (!store.culturalDinners[hId]) store.culturalDinners[hId] = [];
+    store.culturalDinners[hId].unshift(dinner);
+
+    if (store.messages && store.messages[hId]) {
+      const hostName = store.currentUser.name.split(' ')[0] || 'Roomie';
+      store.messages[hId].push({
+        id: `msg_dinner_${Date.now()}`,
+        householdId: hId,
+        senderId: null,
+        type: 'activity',
+        body: `${hostName} scheduled a Cultural Dinner: ${dinner.dishTitle} (${dinner.cuisineTag}) on ${dinner.scheduledDate}! 🍲 Tap to RSVP.`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    this.save(store);
+    logger.info('schedule_cultural_dinner', `Scheduled dinner: ${dinner.dishTitle}`, {
+      dinnerId: dinner.id,
+      cuisine: dinner.cuisineTag,
+      scheduledDate: dinner.scheduledDate,
+    });
+
+    this.dispatchSocialOutbox(
+      hId,
+      'schedule_cultural_dinner',
+      dinner,
+      `Scheduled Cultural Dinner: ${dinner.dishTitle}`,
+      async () => {
+        if (!supabase) return;
+        const { error } = await supabase.from('cultural_dinners').insert({
+          id: dinner.id,
+          household_id: dinner.householdId,
+          host_user_id: dinner.hostUserId,
+          dish_title: dinner.dishTitle,
+          cuisine_tag: dinner.cuisineTag,
+          scheduled_date: dinner.scheduledDate,
+          dietary_tags: dinner.dietaryTags,
+          rsvp_user_ids: dinner.rsvpUserIds,
+          status: dinner.status,
+        });
+        return { error: error ? { message: error.message, code: error.code } : null };
+      }
+    );
+
+    return { success: true, dinner };
+  }
+
+  public async toggleDinnerRsvp(
+    dinnerId: string,
+    householdId?: string
+  ): Promise<{ success: boolean; isAttending: boolean; rsvpUserIds: string[] }> {
+    const store = this.getStore();
+    const hId = householdId || store.activeHouseholdId;
+    const userId = store.currentUser.id;
+
+    if (!store.culturalDinners) store.culturalDinners = {};
+    if (!store.culturalDinners[hId]) store.culturalDinners[hId] = [];
+
+    const targetDinner = store.culturalDinners[hId].find((d) => d.id === dinnerId);
+    if (!targetDinner) {
+      return { success: false, isAttending: false, rsvpUserIds: [] };
+    }
+
+    const currentRsvps = targetDinner.rsvpUserIds || [];
+    const isCurrentlyAttending = currentRsvps.includes(userId);
+    let nextRsvps: string[];
+    let nextAttending: boolean;
+
+    if (isCurrentlyAttending) {
+      nextRsvps = currentRsvps.filter((id) => id !== userId);
+      nextAttending = false;
+    } else {
+      nextRsvps = [...currentRsvps, userId];
+      nextAttending = true;
+    }
+
+    targetDinner.rsvpUserIds = nextRsvps;
+    targetDinner.updatedAt = new Date().toISOString();
+    this.save(store);
+
+    logger.info('toggle_dinner_rsvp', `Toggled RSVP for dinner ${dinnerId}`, {
+      dinnerId,
+      userId,
+      isAttending: nextAttending,
+      rsvpCount: nextRsvps.length,
+    });
+
+    this.dispatchSocialOutbox(
+      hId,
+      'toggle_dinner_rsvp',
+      { dinnerId, householdId: hId, userId, isAttending: nextAttending },
+      `Toggled dinner RSVP (${nextAttending ? 'attending' : 'declined'})`,
+      async () => {
+        if (!supabase) return;
+        const { error } = await supabase.rpc('toggle_cultural_dinner_rsvp', {
+          p_dinner_id: dinnerId,
+          p_household_id: hId,
+        });
+        return { error: error ? { message: error.message, code: error.code } : null };
+      }
+    );
+
+    return { success: true, isAttending: nextAttending, rsvpUserIds: nextRsvps };
+  }
+
+  public async updateUserDietaryPreferences(dietaryTags: DietaryTag[]): Promise<User> {
+    const store = this.getStore();
+    const hId = store.activeHouseholdId;
+    const user = store.currentUser;
+
+    user.dietaryTags = dietaryTags;
+    const foundInList = store.users.find((u) => u.id === user.id);
+    if (foundInList) {
+      foundInList.dietaryTags = dietaryTags;
+    }
+
+    this.save(store);
+    logger.info('update_dietary_preferences', `Updated dietary preferences for ${user.id}`, {
+      userId: user.id,
+      dietaryTags,
+    });
+
+    this.dispatchSocialOutbox(
+      hId,
+      'update_dietary_preferences',
+      { userId: user.id, dietaryTags },
+      'Updated dietary preferences',
+      async () => {
+        if (!supabase) return;
+        const { error } = await supabase
+          .from('profiles')
+          .update({ dietary_tags: dietaryTags })
+          .eq('id', user.id);
+        return { error: error ? { message: error.message, code: error.code } : null };
+      }
+    );
+
+    return user;
   }
 }

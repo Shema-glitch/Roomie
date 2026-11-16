@@ -96,12 +96,12 @@ flowchart TD
    - Distinct tactile audio & haptic signatures (`tokenClink`, `swapAccept`, `softReject`) and idempotent offline outbox integration (`submit_vibe_pulse`, `propose_chore_swap`, `resolve_chore_swap`).
 - [x] **4. Roomie Wrapped (Monthly & Semester Recap) - Phase 2B Beta**:
    - Gated behind `roomieWrappedBeta` feature flag (`src/config/featureFlags.ts`).
-   - Modal summarizing household milestones: chores completed, total settled, streaks, and standout accolades (`src/features/feed/components/RoomieWrappedModal.tsx`).
+   - 4-slide interactive story deck summarizing flat milestones: team chores, dispute-free streaks, culinary highlights, appreciation kudos, and harmony rating (`src/features/feed/components/RoomieWrappedModal.tsx`).
 - [x] **5. Apartment Challenges & Cultural Dinners - Phase 2B Beta**:
    - Gated behind `culturalDinnersBeta` feature flag (`src/config/featureFlags.ts`).
-   - Cultural dinner rotation schedule card with host assignments, dietary badges (halal, vegetarian, allergy notes), and cuisine themes (`src/features/feed/components/CulturalDinnerCard.tsx`).
-- [ ] **6. Shareable Cards**:
-   - Client-side canvas image generator exporting positive milestone cards to WhatsApp or Instagram stories (strictly zero financial or private data).
+   - Cultural dinner hosting flow, RSVP management, dietary preference profiles (Halal, Vegetarian, Vegan, Nut-Free, Gluten-Free, Dairy-Free), and flatmates dietary overview (`src/features/feed/components/CulturalDinnerCard.tsx` & `CulturalDinnerModal.tsx`).
+- [x] **6. Shareable Cards (Zero Financial Figures)**:
+   - High-definition 1080x1920 (9:16 story aspect ratio) HTML5 `<canvas>` story exporter (`src/utils/shareCardCanvas.ts`) with native Web Share API and PNG download fallback (strictly zero monetary numbers, debts, or private IDs).
 
 ---
 

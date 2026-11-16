@@ -6,48 +6,77 @@ import { Chip } from '../../../components/common/Chip';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { Icon } from '@iconify/react';
-import { UsersThree, Check, ForkKnife } from '@phosphor-icons/react';
-
-export type DietaryTag = 'halal' | 'vegetarian' | 'vegan' | 'nut-free' | 'gluten-free';
+import { UsersThree, Check, ForkKnife, Plus } from '@phosphor-icons/react';
+import { CulturalDinner, DietaryTag, User } from '../../../types';
 
 export interface CulturalDinnerCardProps {
-  hostName: string;
-  cuisine: string;
-  dishTitle: string;
-  scheduledDay: string;
-  scheduledTime: string;
-  dietaryTags: DietaryTag[];
+  dinner?: CulturalDinner | null;
+  hostName?: string;
+  cuisine?: string;
+  dishTitle?: string;
+  scheduledDay?: string;
+  scheduledTime?: string;
+  dietaryTags?: DietaryTag[];
   attendeesCount?: number;
   initialAttending?: boolean;
+  currentUserId?: string;
+  roommates?: User[];
+  onToggleRsvp?: (dinnerId: string) => Promise<void>;
   onRsvpChange?: (attending: boolean) => void;
+  onOpenHostModal?: () => void;
 }
 
-const DIETARY_LABELS: Record<DietaryTag, { label: string; icon: string }> = {
-  halal: { label: 'Halal Certified', icon: 'fluent-emoji-flat:crescent-moon' },
-  vegetarian: { label: 'Vegetarian', icon: 'fluent-emoji-flat:herb' },
-  vegan: { label: '100% Vegan', icon: 'fluent-emoji-flat:seedling' },
-  'nut-free': { label: 'Nut-Free', icon: 'fluent-emoji-flat:peanuts' },
-  'gluten-free': { label: 'Gluten-Free', icon: 'fluent-emoji-flat:sheaf-of-rice' },
+const DIETARY_LABELS: Record<string, string> = {
+  halal: 'Halal Certified',
+  vegetarian: 'Vegetarian',
+  vegan: '100% Vegan',
+  nut_free: 'Nut-Free',
+  'nut-free': 'Nut-Free',
+  gluten_free: 'Gluten-Free',
+  'gluten-free': 'Gluten-Free',
+  dairy_free: 'Dairy-Free',
+  'dairy-free': 'Dairy-Free',
 };
 
 export const CulturalDinnerCard: React.FC<CulturalDinnerCardProps> = ({
-  hostName,
-  cuisine,
-  dishTitle,
-  scheduledDay,
-  scheduledTime,
-  dietaryTags,
-  attendeesCount = 3,
-  initialAttending = false,
+  dinner,
+  hostName = 'Amina',
+  cuisine = 'Moroccan',
+  dishTitle = 'Friday Night Tagine & Couscous',
+  scheduledDay = 'Friday',
+  scheduledTime = '19:30',
+  dietaryTags = ['halal', 'dairy_free'],
+  attendeesCount,
+  initialAttending,
+  currentUserId,
+  roommates = [],
+  onToggleRsvp,
   onRsvpChange,
+  onOpenHostModal,
 }) => {
-  const [attending, setAttending] = useState(initialAttending);
-  const [count, setCount] = useState(attendeesCount);
+  const activeDish = dinner ? dinner.dishTitle : dishTitle;
+  const activeCuisine = dinner ? dinner.cuisineTag : cuisine;
+  const activeDate = dinner ? dinner.scheduledDate : scheduledDay;
+  const activeTags: DietaryTag[] = dinner ? dinner.dietaryTags : dietaryTags;
 
-  const handleToggleRsvp = () => {
+  const resolvedHost = dinner && roommates.length > 0
+    ? roommates.find((r) => r.id === dinner.hostUserId)?.name.split(' ')[0] || hostName
+    : hostName;
+
+  const isUserAttending = dinner && currentUserId
+    ? dinner.rsvpUserIds?.includes(currentUserId)
+    : (initialAttending ?? false);
+
+  const [attending, setAttending] = useState(isUserAttending);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const rsvpCount = dinner
+    ? (dinner.rsvpUserIds?.length || 0)
+    : (attendeesCount ?? 3);
+
+  const handleToggleRsvp = async () => {
     const nextState = !attending;
     setAttending(nextState);
-    setCount((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
 
     if (nextState) {
       sound.playSuccess();
@@ -58,6 +87,15 @@ export const CulturalDinnerCard: React.FC<CulturalDinnerCardProps> = ({
     }
 
     onRsvpChange?.(nextState);
+
+    if (dinner && onToggleRsvp) {
+      setIsUpdating(true);
+      try {
+        await onToggleRsvp(dinner.id);
+      } finally {
+        setIsUpdating(false);
+      }
+    }
   };
 
   return (
@@ -74,52 +112,62 @@ export const CulturalDinnerCard: React.FC<CulturalDinnerCardProps> = ({
       title={
         <div className="flex items-center gap-2 flex-wrap">
           <span className="type-card-title text-[#1F2430]">
-            Cultural Dinner: {dishTitle}
+            Cultural Dinner: {activeDish}
           </span>
           <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] text-[11px] font-black uppercase tracking-wider">
             Beta Labs
           </span>
         </div>
       }
-      subtitle={`Hosted by ${hostName} (${cuisine}) • ${scheduledDay} at ${scheduledTime}`}
+      subtitle={`Hosted by ${resolvedHost} (${activeCuisine}) • ${activeDate} ${dinner ? '' : `at ${scheduledTime}`}`}
       detail={
         <div className="space-y-2 pt-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {dietaryTags.map((tag) => (
+            {activeTags.map((tag) => (
               <Chip
                 key={tag}
-                label={DIETARY_LABELS[tag]?.label || tag}
+                label={DIETARY_LABELS[tag] || tag}
                 status="agreed"
                 size="xs"
               />
             ))}
           </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B]">
-            <UsersThree weight="duotone" className="w-4 h-4 text-[#D97706]" />
-            <span>
-              {count} roommate{count === 1 ? '' : 's'} attending
-            </span>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B]">
+              <UsersThree weight="duotone" className="w-4 h-4 text-[#D97706]" />
+              <span>
+                {rsvpCount} roommate{rsvpCount === 1 ? '' : 's'} attending
+              </span>
+            </div>
+
+            {onOpenHostModal && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  sound.playTap();
+                  haptics.tokenClink();
+                  onOpenHostModal();
+                }}
+                className="text-[11px] font-bold text-[#D97706] hover:text-[#B45309] flex items-center gap-1 transition-colors"
+              >
+                <Plus weight="bold" className="w-3 h-3" />
+                <span>Host Another</span>
+              </button>
+            )}
           </div>
         </div>
       }
       actions={
-        <div className="w-full flex items-center justify-between gap-3 pt-1">
-          <span className="text-xs text-[#64748B] font-medium">
-            Shared meal rotation • dietary tags enforced
-          </span>
+        <div className="flex items-center gap-2">
           <Button
-            variant={attending ? 'teal' : 'reward'}
-            size="md"
+            variant={attending ? 'green' : 'reward'}
+            size="sm"
             onClick={handleToggleRsvp}
-            icon={
-              attending ? (
-                <Check weight="bold" className="w-4 h-4" />
-              ) : (
-                <ForkKnife weight="duotone" className="w-4 h-4" />
-              )
-            }
+            loading={isUpdating}
+            icon={attending ? <Check weight="bold" className="w-4 h-4" /> : <ForkKnife weight="duotone" className="w-4 h-4" />}
           >
-            {attending ? "I'm In! ✓" : "RSVP / I'm In"}
+            {attending ? 'Attending' : "I'm In"}
           </Button>
         </div>
       }
