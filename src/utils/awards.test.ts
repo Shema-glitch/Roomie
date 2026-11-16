@@ -91,7 +91,6 @@ describe('weekly awards engine ("everyone wins")', () => {
     assert.strictEqual(aminaAward?.badgeId, 'kitchen_hero');
     assert.strictEqual(lucasAward?.badgeId, 'bin_boss');
 
-    // All awards have valid non-empty reasons and emojis
     for (const award of awards) {
       assert.ok(award.reason.length > 5);
       assert.ok(award.icon.length > 0);
@@ -105,5 +104,56 @@ describe('weekly awards engine ("everyone wins")', () => {
       users: [],
     });
     assert.deepStrictEqual(awards, []);
+  });
+
+  // Edge-Case QA: 0 Chores
+  it('handles edge case: 0 chores in flat gracefully without crashing', () => {
+    const awards = evaluateWeeklyAwards({
+      householdId: 'h1',
+      users: mockUsers,
+      assignments: [],
+      kudos: [],
+      expenses: [],
+    });
+
+    assert.strictEqual(awards.length, 3);
+    for (const award of awards) {
+      assert.ok(award.title.length > 0);
+      assert.ok(award.recipientUserId);
+    }
+  });
+
+  // Edge-Case QA: 1 Roommate flat
+  it('handles edge case: 1 roommate flat properly', () => {
+    const singleUser: User = {
+      ...mockUsers[0],
+      streakDays: 0,
+      points: 0,
+    };
+    const awards = evaluateWeeklyAwards({
+      householdId: 'h_single',
+      users: [singleUser],
+      assignments: [],
+    });
+
+    assert.strictEqual(awards.length, 1);
+    assert.strictEqual(awards[0].recipientUserId, singleUser.id);
+    assert.strictEqual(awards[0].badgeId, 'peacemaker'); // fallback to positive badge
+  });
+
+  // Edge-Case QA: 2 Roommate flat with exact tie
+  it('handles edge case: 2 roommates with exact tie without duplicate badge collision', () => {
+    const userA: User = { ...mockUsers[0], id: 'ua', streakDays: 7, points: 50 };
+    const userB: User = { ...mockUsers[1], id: 'ub', streakDays: 7, points: 50 };
+
+    const awards = evaluateWeeklyAwards({
+      householdId: 'h_duo',
+      users: [userA, userB],
+      assignments: [],
+    });
+
+    assert.strictEqual(awards.length, 2);
+    // User A and User B should receive distinct positive badges
+    assert.notStrictEqual(awards[0].badgeId, awards[1].badgeId);
   });
 });

@@ -164,6 +164,19 @@ export class SocialApi {
     if (reqIdx === -1) return { success: false };
 
     const originalReq = store.swapRequests[hId][reqIdx];
+    // Guard against repeated resolutions / double spend
+    if (originalReq.status !== 'pending') {
+      return { success: false, request: originalReq };
+    }
+
+    if (action === 'accept') {
+      if (!store.favorTokens) store.favorTokens = {};
+      const reqBalance = store.favorTokens[originalReq.requesterUserId] ?? INITIAL_FAVOR_TOKENS;
+      if (reqBalance < originalReq.tokenCost) {
+        return { success: false, request: originalReq };
+      }
+    }
+
     const resolution = resolveChoreSwapRequest(originalReq, action);
     store.swapRequests[hId][reqIdx] = resolution.updatedRequest;
 

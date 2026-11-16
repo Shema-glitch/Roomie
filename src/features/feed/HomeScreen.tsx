@@ -228,9 +228,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     className="flex-1"
                     onClick={async () => {
                       sound.playTap();
-                      await api.resolveSwapRequest(pendingSwaps[0].id, 'decline');
-                      setPendingSwaps((prev) => prev.slice(1));
-                      showToast('Chore swap offer declined', 'info');
+                      try {
+                        const res = await api.resolveSwapRequest(pendingSwaps[0].id, 'decline');
+                        if (res.success) {
+                          setPendingSwaps((prev) => prev.slice(1));
+                          showToast('Chore swap offer declined', 'info');
+                        } else {
+                          showToast('Failed to decline swap offer', 'error');
+                        }
+                      } catch {
+                        showToast('Failed to decline swap offer', 'error');
+                      }
                     }}
                   >
                     Decline
@@ -240,14 +248,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     size="md"
                     className="flex-1"
                     onClick={async () => {
-                      haptics.celebration();
-                      sound.playCelebration();
-                      await api.resolveSwapRequest(pendingSwaps[0].id, 'accept');
-                      setPendingSwaps((prev) => prev.slice(1));
-                      showToast(
-                        `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token 🪙`,
-                        'success'
-                      );
+                      try {
+                        const res = await api.resolveSwapRequest(pendingSwaps[0].id, 'accept');
+                        if (res.success) {
+                          haptics.celebration();
+                          sound.playCelebration();
+                          setPendingSwaps((prev) => prev.slice(1));
+                          showToast(
+                            `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token 🪙`,
+                            'success'
+                          );
+                        } else {
+                          showToast('Could not accept swap: Requester no longer has enough tokens', 'error');
+                        }
+                      } catch {
+                        showToast('Could not accept swap request', 'error');
+                      }
                     }}
                   >
                     Accept (+{pendingSwaps[0].tokenCost} 🪙)

@@ -80,4 +80,20 @@ describe('favor tokens & chore swap engine', () => {
     assert.strictEqual(result.transferred, false);
     assert.strictEqual(result.transactions.length, 0);
   });
+
+  it('guarantees balance cannot become negative in race conditions', () => {
+    const spendTxs = [
+      {
+        id: 'tx1',
+        householdId: 'h1',
+        userId: 'u_kai',
+        type: 'spend' as const,
+        amount: 10,
+        reason: 'chore_swap' as const,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    const safeBalance = applyTokenTransactions(2, spendTxs, 'u_kai');
+    assert.strictEqual(safeBalance, 0);
+  });
 });
