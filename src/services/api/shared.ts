@@ -28,6 +28,10 @@ import {
   DietaryTag,
   ShoppingItem,
   HouseholdInfoCard,
+  RecurringBill,
+  MoveInSnapshot,
+  LandlordProfile,
+  MaintenanceIssue,
 } from '../../types';
 import { getChoreDraftState, getChoreStateEvent } from '../../utils/stateTable';
 import { evaluateWeeklyAwards } from '../../utils/awards';
@@ -68,6 +72,10 @@ export interface AppStore {
   culturalDinners?: Record<string, CulturalDinner[]>;
   shoppingItems?: Record<string, ShoppingItem[]>;
   infoCards?: Record<string, HouseholdInfoCard>;
+  recurringBills?: Record<string, RecurringBill[]>;
+  moveInSnapshots?: Record<string, MoveInSnapshot[]>;
+  landlordProfiles?: Record<string, LandlordProfile>;
+  maintenanceIssues?: Record<string, MaintenanceIssue[]>;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
   localAccounts?: Record<
@@ -822,6 +830,122 @@ export function getInitialStore(): AppStore {
     },
   };
 
+  const recurringBills: Record<string, RecurringBill[]> = {
+    h_main: [
+      {
+        id: 'rec_bill_rent',
+        householdId: 'h_main',
+        title: 'Monthly Flat Rent',
+        category: 'rent',
+        amount: 12000,
+        currency: 'TRY',
+        dueDay: 1,
+        splitRule: 'equal',
+        paidByUserId: 'u_curr',
+        active: true,
+        lastGeneratedCycle: '2026-10',
+        createdAt: '2026-09-01T08:00:00Z',
+        updatedAt: '2026-10-01T08:00:00Z',
+        version: 1,
+      },
+      {
+        id: 'rec_bill_wifi',
+        householdId: 'h_main',
+        title: 'High-Speed Fiber Wi-Fi (Superonline)',
+        category: 'wifi',
+        amount: 480,
+        currency: 'TRY',
+        dueDay: 5,
+        splitRule: 'equal',
+        paidByUserId: 'u_amina',
+        active: true,
+        lastGeneratedCycle: '2026-10',
+        createdAt: '2026-09-01T08:00:00Z',
+        updatedAt: '2026-10-05T08:00:00Z',
+        version: 1,
+      },
+      {
+        id: 'rec_bill_electricity',
+        householdId: 'h_main',
+        title: 'Electricity & Mains Power (KIB-TEK)',
+        category: 'utilities',
+        amount: 950,
+        currency: 'TRY',
+        dueDay: 15,
+        splitRule: 'equal',
+        paidByUserId: 'u_lucas',
+        active: true,
+        lastGeneratedCycle: '2026-10',
+        createdAt: '2026-09-01T08:00:00Z',
+        updatedAt: '2026-10-15T08:00:00Z',
+        version: 1,
+      },
+    ],
+  };
+
+  const moveInSnapshots: Record<string, MoveInSnapshot[]> = {
+    h_main: [
+      {
+        id: 'snap_living_room',
+        householdId: 'h_main',
+        roomName: 'Living Room',
+        conditionNote: 'Sofa and dining table in excellent condition. Small scuff mark on lower baseboard near balcony door.',
+        photoUrls: [
+          'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80',
+        ],
+        createdBy: 'u_curr',
+        confirmedByUserIds: ['u_curr', 'u_amina', 'u_lucas'],
+        createdAt: '2026-09-01T10:00:00Z',
+        updatedAt: '2026-09-02T11:00:00Z',
+        version: 1,
+      },
+      {
+        id: 'snap_kitchen',
+        householdId: 'h_main',
+        roomName: 'Kitchen',
+        conditionNote: 'All burners working, oven clean. Refrigerator crisper drawer has minor crack on side handle.',
+        photoUrls: [
+          'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=600&auto=format&fit=crop&q=80',
+        ],
+        createdBy: 'u_amina',
+        confirmedByUserIds: ['u_curr', 'u_amina'],
+        createdAt: '2026-09-01T10:30:00Z',
+        updatedAt: '2026-09-01T10:30:00Z',
+        version: 1,
+      },
+    ],
+  };
+
+  const landlordProfiles: Record<string, LandlordProfile> = {
+    h_main: {
+      householdId: 'h_main',
+      landlordName: 'Kemal Özkan',
+      roleLabel: 'Property Owner / Landlord',
+      phoneOrWhatsapp: '+90 533 855 4321',
+      emergencyNote: 'For urgent plumbing or power emergencies, call Kemal directly or contact building superintendent Hasan (+90 533 800 1234).',
+      updatedBy: 'u_amina',
+      updatedAt: '2026-09-05T09:00:00Z',
+      version: 1,
+    },
+  };
+
+  const maintenanceIssues: Record<string, MaintenanceIssue[]> = {
+    h_main: [
+      {
+        id: 'maint_balcony_latch',
+        householdId: 'h_main',
+        title: 'Balcony sliding door latch loose',
+        description: 'The latch catches but requires extra jiggle to lock securely. Need landlord to send maintenance technician.',
+        status: 'notified_landlord',
+        photoUrls: [],
+        reportedBy: 'u_lucas',
+        createdAt: '2026-11-10T14:00:00Z',
+        updatedAt: '2026-11-12T10:00:00Z',
+        version: 1,
+      },
+    ],
+  };
+
   return {
     currentUser,
     users,
@@ -848,6 +972,10 @@ export function getInitialStore(): AppStore {
     culturalDinners,
     shoppingItems,
     infoCards,
+    recurringBills,
+    moveInSnapshots,
+    landlordProfiles,
+    maintenanceIssues,
   };
 }
 
@@ -1176,6 +1304,24 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
     return 'social';
   }
   if (type === 'update_apartment_info') return 'auth';
+  if (
+    type === 'add_recurring_bill' ||
+    type === 'update_recurring_bill' ||
+    type === 'delete_recurring_bill' ||
+    type === 'log_recurring_bill_expense'
+  ) {
+    return 'expenses';
+  }
+  if (type === 'add_move_in_snapshot' || type === 'confirm_move_in_snapshot') {
+    return 'governance';
+  }
+  if (
+    type === 'update_landlord_profile' ||
+    type === 'report_maintenance_issue' ||
+    type === 'update_maintenance_issue_status'
+  ) {
+    return 'auth';
+  }
   if (type.includes('expense')) return 'expenses';
   if (type.includes('settlement')) return 'settlements';
   if (type.includes('draft') || type.includes('chore') || type.includes('kudos') || type.includes('assignment')) {

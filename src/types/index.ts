@@ -422,5 +422,78 @@ export interface HouseholdInfoCard {
   updatedAt: string;
 }
 
+// -------------------------------------------------------------
+// Phase 3 Real-Life Flat Tools (Bills, Snapshots, Maintenance)
+// -------------------------------------------------------------
+
+export type RecurringBillCategory = 'rent' | 'wifi' | 'utilities' | 'other';
+export type RecurringBillSplitRule = 'equal' | 'percentage' | 'custom';
+
+export interface CustomBillSplit {
+  userId: string;
+  percentage?: number;
+  amount?: number;
+}
+
+export interface RecurringBill {
+  id: string;
+  householdId: string;
+  title: string;
+  category: RecurringBillCategory;
+  amount: number;
+  currency: string;
+  dueDay: number;
+  splitRule: RecurringBillSplitRule;
+  customSplits?: CustomBillSplit[];
+  paidByUserId: string;
+  active: boolean;
+  lastGeneratedCycle?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  version?: number;
+}
+
+export interface MoveInSnapshot {
+  id: string;
+  householdId: string;
+  roomName: string;
+  conditionNote: string;
+  photoUrls: string[];
+  createdBy?: string | null;
+  confirmedByUserIds: string[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  version?: number;
+}
+
+export interface LandlordProfile {
+  householdId: string;
+  landlordName: string;
+  roleLabel: string;
+  phoneOrWhatsapp: string;
+  emergencyNote?: string;
+  updatedBy?: string | null;
+  updatedAt: string;
+  version?: number;
+}
+
+export type MaintenanceIssueStatus = 'reported' | 'notified_landlord' | 'fixed';
+
+export interface MaintenanceIssue {
+  id: string;
+  householdId: string;
+  title: string;
+  description: string;
+  status: MaintenanceIssueStatus;
+  photoUrls: string[];
+  reportedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  version?: number;
+}
+
 
 

@@ -20,11 +20,12 @@ import {
   Check,
 } from '@phosphor-icons/react';
 
-export const IDENTITY_DOCUMENT_REGEX = /(passport|national[ _-]?id|visa[ _-]?num|ssn|social\s+security)/i;
+import {
+  IDENTITY_DOCUMENT_REGEX,
+  containsIdentityDocument,
+} from '../../../utils/privacyGuards';
 
-export function containsIdentityDocument(text: string): boolean {
-  return IDENTITY_DOCUMENT_REGEX.test(text);
-}
+export { IDENTITY_DOCUMENT_REGEX, containsIdentityDocument };
 
 export interface ApartmentInfoCardProps {
   infoCard?: HouseholdInfoCard | null;

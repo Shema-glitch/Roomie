@@ -401,3 +401,31 @@ Baseline Tag: `v1.0.0-phase1`
   - 80 / 80 unit tests pass across 9 test suites (`npm test`). `tsc --noEmit` passes with 0 errors.
   - Zero raw Unicode emojis in JSX, zero temporary files, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
   - Git boundary maintained: branched off `feature/interactive-dinners-and-wrapped` into `feature/flat-utilities-and-shopping`. Remote push restricted strictly to feature branch.
+
+---
+
+## 14. Phase 3 Real-Life Flat Tools: Recurring Bills, Snapshots, Landlord Hub & PDF Exporter (Branch `feature/flat-bills-snapshot-landlord`)
+
+- **Database Migration (`supabase/migrations/20261116150000_recurring_bills_snapshots_and_landlord.sql`)**:
+  - `recurring_bills` (`id`, `household_id`, `title <= 80`, `category`, `amount > 0`, `currency`, `due_day [1-31]`, `split_rule`, `custom_splits`, `paid_by_user_id`, `active`, `last_generated_cycle`, `version`, `created_at`, `updated_at`, `deleted_at`).
+  - `move_in_snapshots` (`id`, `household_id`, `room_name <= 60`, `condition_note <= 400`, `photo_urls text[]`, `created_by`, `confirmed_by_user_ids uuid[]`, `version`, `created_at`, `updated_at`, `deleted_at`, `CONSTRAINT no_identity_documents`).
+  - `landlord_profiles` (`household_id` PK, `landlord_name <= 80`, `role_label <= 40`, `phone_or_whatsapp <= 50`, `emergency_note <= 300`, `updated_by`, `updated_at`, `version`, `CONSTRAINT no_identity_documents`).
+  - `maintenance_issues` (`id`, `household_id`, `title <= 100`, `description <= 500`, `status`, `photo_urls text[]`, `reported_by`, `version`, `created_at`, `updated_at`, `deleted_at`, `CONSTRAINT no_identity_documents`).
+  - Multi-tenant RLS policies and composite indexes `idx_recurring_bills_household_active`, `idx_move_in_snapshots_household`, `idx_maintenance_issues_household_status`. Applied cleanly to remote Supabase (`ebiyvhodxrliiwdzonzu`).
+- **Data Layer & Outbox Synchronization (`src/services/api/flatUtilities.api.ts`, `outbox.ts`, `localCache.ts`)**:
+  - Full windowed queries with explicit projections, delta merging, and offline outbox queuing for all mutations (`add_recurring_bill`, `update_recurring_bill`, `delete_recurring_bill`, `log_recurring_bill_expense`, `add_move_in_snapshot`, `confirm_move_in_snapshot`, `update_landlord_profile`, `report_maintenance_issue`, `update_maintenance_issue_status`).
+  - 1-tap "Log for Current Month" converts recurring bills into active shared expenses with automatic split allocations across flatmates.
+- **Privacy Guardrails (`src/utils/privacyGuards.ts`)**:
+  - Client-side validation enforcing `assertNoIdentityDocument` across all forms (notes, room names, landlord notes, maintenance descriptions) before any network or database payload dispatch.
+- **Zero-Dependency PDF & Agreement Exporter (`src/utils/pdfExporter.ts`)**:
+  - Lightweight (< 4 KB) CSS `@media print` styled document generator for House Agreements and Move-In Condition Snapshots with `window.print()`, HTML Blob download, and Web Share API fallback.
+- **Tactile UI & Modal Polish**:
+  - `RecurringBillsSection.tsx` & `AddRecurringBillModal.tsx` embedded in `ExpensesScreen.tsx`.
+  - `LandlordHubCard.tsx`, `MoveInSnapshotModal.tsx`, `MaintenanceIssueModal.tsx`, and `ExportAgreementPdfModal.tsx` embedded in `ApartmentScreen.tsx`.
+  - `document.execCommand('copy')` clipboard fallbacks ensuring 100% Android WebView reliability.
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **156.29 kB gzipped** (well under 200 KB threshold).
+  - Test Suite: **102 / 102 unit tests passing** across 15 suites. `tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX, zero root scratch scripts, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - Physical device verification: Installed and verified on Tecno Camon 30S (`TECNO_CLA5`).
+

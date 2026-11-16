@@ -41,7 +41,16 @@ export type OutboxActionType =
   | 'toggle_shopping_item'
   | 'delete_shopping_item'
   | 'trigger_supermarket_ping'
-  | 'update_apartment_info';
+  | 'update_apartment_info'
+  | 'add_recurring_bill'
+  | 'update_recurring_bill'
+  | 'delete_recurring_bill'
+  | 'log_recurring_bill_expense'
+  | 'add_move_in_snapshot'
+  | 'confirm_move_in_snapshot'
+  | 'update_landlord_profile'
+  | 'report_maintenance_issue'
+  | 'update_maintenance_issue_status';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 

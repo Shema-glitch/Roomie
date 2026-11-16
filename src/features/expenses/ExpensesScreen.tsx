@@ -6,21 +6,25 @@ import { SettleUpFlowModal } from './SettleUpFlowModal';
 import { EditSplitModal } from './EditSplitModal';
 import { DisputeReasonModal } from './DisputeReasonModal';
 import { EmptyState } from '../../components/common/EmptyState';
-import { Expense, Settlement, User, ExpenseCategory } from '../../types';
+import { Expense, Settlement, User, ExpenseCategory, RecurringBill, RecurringBillCategory } from '../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../utils/balances';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
+import { api } from '../../services/api';
+import { localCache } from '../../services/localCache';
 import { PlusCircle, Bell, Receipt } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { ExpenseCard, ExpenseCardMode } from './components/ExpenseCard';
 import { SettlementItemCard } from './components/SettlementItemCard';
 import { BalanceOverviewSection } from './components/BalanceOverviewSection';
+import { RecurringBillsSection } from './components/RecurringBillsSection';
 
 interface ExpensesScreenProps {
   expenses: Expense[];
   settlements: Settlement[];
   roommates: User[];
   currentUser: User;
+  householdId?: string;
   currency?: string;
   initialExpenseId?: string | null;
   onClearInitialExpense?: () => void;
@@ -59,6 +63,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   settlements,
   roommates,
   currentUser,
+  householdId,
   currency = 'TRY',
   initialExpenseId,
   onClearInitialExpense,
@@ -74,6 +79,59 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 }) => {
   const { showToast } = useToast();
   const sym = getCurrencySymbol(currency);
+
+  const effectiveHouseholdId =
+    householdId || expenses[0]?.householdId || api.store.activeHouseholdId || 'h_main';
+
+  const [recurringBillsList, setRecurringBillsList] = useState<RecurringBill[]>(() => {
+    return (
+      localCache.getSnapshot(effectiveHouseholdId)?.recurringBills ||
+      api.store.recurringBills?.[effectiveHouseholdId] ||
+      []
+    );
+  });
+
+  useEffect(() => {
+    if (effectiveHouseholdId) {
+      api.flatUtilities
+        .getRecurringBills(effectiveHouseholdId)
+        .then((bills) => {
+          if (bills) setRecurringBillsList(bills);
+        })
+        .catch(() => {});
+    }
+  }, [effectiveHouseholdId]);
+
+  const handleAddRecurringBill = async (params: {
+    householdId: string;
+    title: string;
+    category: RecurringBillCategory;
+    amount: number;
+    currency?: string;
+    dueDay: number;
+    paidByUserId: string;
+  }) => {
+    const bill = await api.flatUtilities.addRecurringBill(params);
+    setRecurringBillsList((prev) => [...prev.filter((b) => b.id !== bill.id), bill]);
+    return bill;
+  };
+
+  const handleLogRecurringBill = async (billId: string) => {
+    const createdExp = await api.flatUtilities.logRecurringBillExpense(billId);
+    if (createdExp) {
+      const updatedBills = await api.flatUtilities.getRecurringBills(effectiveHouseholdId);
+      setRecurringBillsList(updatedBills);
+    }
+    return createdExp;
+  };
+
+  const handleDeleteRecurringBill = async (billId: string) => {
+    const ok = await api.flatUtilities.deleteRecurringBill(billId);
+    if (ok) {
+      setRecurringBillsList((prev) => prev.filter((b) => b.id !== billId));
+    }
+    return ok;
+  };
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
@@ -189,6 +247,17 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="w-full lg:col-span-7 space-y-6">
+          <RecurringBillsSection
+            bills={recurringBillsList}
+            roommates={roommates}
+            currentUser={currentUser}
+            householdId={effectiveHouseholdId}
+            currency={currency}
+            onAddBill={handleAddRecurringBill}
+            onLogBill={handleLogRecurringBill}
+            onDeleteBill={handleDeleteRecurringBill}
+          />
+
           {/* Sliding Segmented Filter Control */}
           <div className="relative grid grid-cols-3 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
             <div

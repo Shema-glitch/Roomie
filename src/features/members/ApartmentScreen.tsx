@@ -7,6 +7,10 @@ import {
   HouseAgreement,
   JoinRequest,
   HouseholdInfoCard,
+  LandlordProfile,
+  MaintenanceIssue,
+  MoveInSnapshot,
+  MaintenanceIssueStatus,
 } from '../../types';
 import { sound } from '../../services/sound';
 import { api } from '../../services/api';
@@ -17,6 +21,10 @@ import { ApartmentHeaderCard } from './components/ApartmentHeaderCard';
 import { RoomiesRoster } from './components/RoomiesRoster';
 import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules';
 import { ApartmentInfoCard } from './components/ApartmentInfoCard';
+import { LandlordHubCard } from './components/LandlordHubCard';
+import { MoveInSnapshotModal } from './components/MoveInSnapshotModal';
+import { MaintenanceIssueModal } from './components/MaintenanceIssueModal';
+import { ExportAgreementPdfModal } from './components/ExportAgreementPdfModal';
 import {
   ProposeTopicModal,
   AddAgreementModal,
@@ -91,6 +99,35 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
     () => infoCard || localCache.getSnapshot(household?.id)?.infoCard || null
   );
 
+  const [landlordProfile, setLandlordProfile] = useState<LandlordProfile | null>(() => {
+    return (
+      localCache.getSnapshot(household?.id)?.landlordProfile ||
+      api.store.landlordProfiles?.[household?.id] ||
+      null
+    );
+  });
+
+  const [maintenanceIssues, setMaintenanceIssues] = useState<MaintenanceIssue[]>(() => {
+    return (
+      localCache.getSnapshot(household?.id)?.maintenanceIssues ||
+      api.store.maintenanceIssues?.[household?.id] ||
+      []
+    );
+  });
+
+  const [snapshots, setSnapshots] = useState<MoveInSnapshot[]>(() => {
+    return (
+      localCache.getSnapshot(household?.id)?.moveInSnapshots ||
+      api.store.moveInSnapshots?.[household?.id] ||
+      []
+    );
+  });
+
+  const [moveInModalOpen, setMoveInModalOpen] = useState(false);
+  const [maintModalOpen, setMaintModalOpen] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<MaintenanceIssue | null>(null);
+  const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
+
   useEffect(() => {
     if (infoCard !== undefined) {
       setActiveInfoCard(infoCard);
@@ -106,7 +143,87 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         })
         .catch(() => {});
     }
+
+    if (household?.id) {
+      api.flatUtilities
+        .getLandlordProfile(household.id)
+        .then((prof) => {
+          if (prof) setLandlordProfile(prof);
+        })
+        .catch(() => {});
+
+      api.flatUtilities
+        .getMaintenanceIssues(household.id)
+        .then((issues) => {
+          if (issues) setMaintenanceIssues(issues);
+        })
+        .catch(() => {});
+
+      api.flatUtilities
+        .getMoveInSnapshots(household.id)
+        .then((snaps) => {
+          if (snaps) setSnapshots(snaps);
+        })
+        .catch(() => {});
+    }
   }, [household?.id, infoCard]);
+
+  const handleUpdateLandlordProfile = async (params: {
+    householdId: string;
+    landlordName: string;
+    roleLabel: string;
+    phoneOrWhatsapp: string;
+    emergencyNote?: string;
+  }) => {
+    const updated = await api.flatUtilities.updateLandlordProfile(params);
+    setLandlordProfile(updated);
+    return updated;
+  };
+
+  const handleReportIssue = async (params: {
+    householdId: string;
+    title: string;
+    description: string;
+    photoUrls?: string[];
+  }) => {
+    const issue = await api.flatUtilities.reportMaintenanceIssue(params);
+    setMaintenanceIssues((prev) => [issue, ...prev]);
+    return issue;
+  };
+
+  const handleUpdateIssueStatus = async (
+    issueId: string,
+    status: MaintenanceIssueStatus
+  ) => {
+    const updated = await api.flatUtilities.updateMaintenanceIssueStatus(issueId, status);
+    if (updated) {
+      setMaintenanceIssues((prev) =>
+        prev.map((i) => (i.id === updated.id ? updated : i))
+      );
+    }
+    return updated;
+  };
+
+  const handleAddSnapshot = async (params: {
+    householdId: string;
+    roomName: string;
+    conditionNote: string;
+    photoUrls?: string[];
+  }) => {
+    const snap = await api.flatUtilities.addMoveInSnapshot(params);
+    setSnapshots((prev) => [snap, ...prev]);
+    return snap;
+  };
+
+  const handleConfirmSnapshot = async (snapshotId: string, userId: string) => {
+    const updated = await api.flatUtilities.confirmMoveInSnapshot(snapshotId, userId);
+    if (updated) {
+      setSnapshots((prev) =>
+        prev.map((s) => (s.id === updated.id ? updated : s))
+      );
+    }
+    return updated;
+  };
 
   const handleUpdateInfoCard = async (params: {
     wifiSsid?: string;
@@ -215,6 +332,22 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             infoCard={activeInfoCard}
             onUpdateInfoCard={handleUpdateInfoCard}
           />
+          <LandlordHubCard
+            landlordProfile={landlordProfile}
+            maintenanceIssues={maintenanceIssues}
+            householdId={household?.id || 'h_main'}
+            onUpdateProfile={handleUpdateLandlordProfile}
+            onOpenReportIssue={() => {
+              setSelectedIssue(null);
+              setMaintModalOpen(true);
+            }}
+            onSelectIssue={(issue) => {
+              setSelectedIssue(issue);
+              setMaintModalOpen(true);
+            }}
+            onOpenMoveInSnapshot={() => setMoveInModalOpen(true)}
+            onOpenExportPdf={() => setExportPdfModalOpen(true)}
+          />
           <HouseDiscussionsAndRules
             topics={topics}
             agreements={agreements}
@@ -261,6 +394,46 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         onClose={() => setRemoveTargetUser(null)}
         onRemoveMember={onRemoveMember}
       />
+
+      {moveInModalOpen && (
+        <MoveInSnapshotModal
+          isOpen={moveInModalOpen}
+          onClose={() => setMoveInModalOpen(false)}
+          household={household}
+          snapshots={snapshots}
+          roommates={roommates}
+          currentUser={currentUser}
+          onAddSnapshot={handleAddSnapshot}
+          onConfirmSnapshot={handleConfirmSnapshot}
+          onOpenExport={() => setExportPdfModalOpen(true)}
+        />
+      )}
+
+      {maintModalOpen && (
+        <MaintenanceIssueModal
+          isOpen={maintModalOpen}
+          onClose={() => {
+            setMaintModalOpen(false);
+            setSelectedIssue(null);
+          }}
+          householdId={household?.id || 'h_main'}
+          currentUser={currentUser}
+          existingIssue={selectedIssue}
+          onReportIssue={handleReportIssue}
+          onUpdateStatus={handleUpdateIssueStatus}
+        />
+      )}
+
+      {exportPdfModalOpen && (
+        <ExportAgreementPdfModal
+          isOpen={exportPdfModalOpen}
+          onClose={() => setExportPdfModalOpen(false)}
+          household={household}
+          agreements={agreements}
+          snapshots={snapshots}
+          members={roommates}
+        />
+      )}
     </div>
   );
 };

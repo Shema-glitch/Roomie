@@ -105,26 +105,26 @@ flowchart TD
 
 ---
 
-### Phase 3: Real-Life Flat Tools
+### Phase 3: Real-Life Flat Tools (Completed & Verified ✅)
 *Objective: Eliminate day-to-day flat administration headaches.*
 
-1. **Rent & Recurring Bills**:
-   - Templates for recurring rent, Wi-Fi, and utilities with customizable split rules (equal, room-size, or percentage-based).
-   - Reminders sent to payers; collectors confirm receipt.
-- [x] **2. Shared Shopping List with Live Pings** (Completed ✅):
+- [x] **1. Rent & Recurring Bills**:
+   - Templates for recurring rent, Wi-Fi, and utilities with customizable split rules (equal, room-size, or percentage-based) (`RecurringBillsSection.tsx` & `AddRecurringBillModal.tsx`).
+   - 1-tap "Log for Current Month" converts template into an agreed shared expense with automatic cycle tracking.
+- [x] **2. Shared Shopping List with Live Pings**:
    - Collaborative checklist with running-low tags, category filter chips (`groceries`, `household`, `cleaning`, `pantry`), and 1-tap *"I'm going to the supermarket"* broadcast button (`ShoppingListCard.tsx` & `ShoppingListModal.tsx`).
    - Batch conversion of in-cart items into an agreed shared expense with automatic status update to `purchased`.
-3. **Move-in Condition Snapshot**:
-   - Room-by-room dated photo inventory verified and confirmed by all tenants upon move-in.
-   - Exportable as a deposit-protecting PDF.
-4. **Maintenance & Landlord Hub**:
-   - Landlord/superintendent contact card and issue tracker (`reported` → `notified landlord` → `fixed`).
-   - Warning banner prohibiting identity documents (passports, visas).
-- [x] **5. Apartment Info Card & Wi-Fi Card** (Completed ✅):
+- [x] **3. Move-in Condition Snapshot**:
+   - Room-by-room dated photo inventory verified and confirmed by all tenants upon move-in (`MoveInSnapshotModal.tsx`).
+   - Camera upload, client-side photo pipeline compression (< 300 KB), co-signing flatmates, and exportable as a deposit-protecting PDF.
+- [x] **4. Maintenance & Landlord Hub**:
+   - Landlord/superintendent contact card and issue tracker (`reported` → `notified landlord` → `fixed`) (`LandlordHubCard.tsx` & `MaintenanceIssueModal.tsx`).
+   - Direct Call, WhatsApp deep-link with copy fallback, emergency shutoff notes, and privacy constraint (`no_identity_documents`).
+- [x] **5. Apartment Info Card & Wi-Fi Card**:
    - Visible to active members only: Wi-Fi credentials with 1-tap masked/reveal toggle and clipboard copy button, trash collection schedule, emergency shutoff notes, and street address with delivery driver instructions (`ApartmentInfoCard.tsx` embedded in `ApartmentScreen.tsx`).
    - Client-side and database-level RLS with strict identity document prohibition constraint (`no_identity_documents`).
-6. **Apartment Agreement PDF**:
-   - Compiled PDF export of all agreed house rules and meeting outcomes with tenant sign-off timestamps.
+- [x] **6. Apartment Agreement & Snapshot PDF Export**:
+   - Zero-dependency lightweight HTML5 print engine (`pdfExporter.ts` & `ExportAgreementPdfModal.tsx`) exporting branded House Agreements and Move-In Snapshots via `window.print()`, HTML download, and Web Share API.
 
 ---
 

@@ -694,45 +694,89 @@ export type Database = {
           },
         ]
       }
+      landlord_profiles: {
+        Row: {
+          created_at: string
+          emergency_note: string
+          household_id: string
+          landlord_name: string
+          phone_or_whatsapp: string
+          role_label: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          emergency_note?: string
+          household_id: string
+          landlord_name: string
+          phone_or_whatsapp?: string
+          role_label?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          emergency_note?: string
+          household_id?: string
+          landlord_name?: string
+          phone_or_whatsapp?: string
+          role_label?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landlord_profiles_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: true
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_issues: {
         Row: {
-          created_at: string | null
+          created_at: string
           deleted_at: string | null
-          description: string | null
+          description: string
           household_id: string
           id: string
-          photos: string[] | null
+          photo_urls: string[]
           reported_by: string
           status: string
           title: string
-          updated_at: string | null
-          version: number | null
+          updated_at: string
+          version: number
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           deleted_at?: string | null
-          description?: string | null
+          description?: string
           household_id: string
           id?: string
-          photos?: string[] | null
+          photo_urls?: string[]
           reported_by: string
           status?: string
           title: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           deleted_at?: string | null
-          description?: string | null
+          description?: string
           household_id?: string
           id?: string
-          photos?: string[] | null
+          photo_urls?: string[]
           reported_by?: string
           status?: string
           title?: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -870,40 +914,43 @@ export type Database = {
       }
       move_in_snapshots: {
         Row: {
-          condition_notes: string | null
-          confirmed_by: Json | null
-          created_at: string | null
+          condition_note: string
+          confirmed_by_user_ids: string[]
+          created_at: string
+          created_by: string | null
           deleted_at: string | null
           household_id: string
           id: string
-          photos: string[] | null
+          photo_urls: string[]
           room_name: string
-          updated_at: string | null
-          version: number | null
+          updated_at: string
+          version: number
         }
         Insert: {
-          condition_notes?: string | null
-          confirmed_by?: Json | null
-          created_at?: string | null
+          condition_note?: string
+          confirmed_by_user_ids?: string[]
+          created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           household_id: string
           id?: string
-          photos?: string[] | null
+          photo_urls?: string[]
           room_name: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Update: {
-          condition_notes?: string | null
-          confirmed_by?: Json | null
-          created_at?: string | null
+          condition_note?: string
+          confirmed_by_user_ids?: string[]
+          created_at?: string
+          created_by?: string | null
           deleted_at?: string | null
           household_id?: string
           id?: string
-          photos?: string[] | null
+          photo_urls?: string[]
           room_name?: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1029,47 +1076,56 @@ export type Database = {
         Row: {
           active: boolean
           amount: number
-          category: Database["public"]["Enums"]["expense_category"]
-          created_at: string | null
+          category: string
+          created_at: string
+          currency: string
+          custom_splits: Json
           deleted_at: string | null
           due_day: number
           household_id: string
           id: string
-          payer_id: string | null
-          split_rule: Json
+          last_generated_cycle: string | null
+          paid_by_user_id: string | null
+          split_rule: string
           title: string
-          updated_at: string | null
-          version: number | null
+          updated_at: string
+          version: number
         }
         Insert: {
           active?: boolean
           amount: number
-          category?: Database["public"]["Enums"]["expense_category"]
-          created_at?: string | null
+          category?: string
+          created_at?: string
+          currency?: string
+          custom_splits?: Json
           deleted_at?: string | null
           due_day: number
           household_id: string
           id?: string
-          payer_id?: string | null
-          split_rule?: Json
+          last_generated_cycle?: string | null
+          paid_by_user_id?: string | null
+          split_rule?: string
           title: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Update: {
           active?: boolean
           amount?: number
-          category?: Database["public"]["Enums"]["expense_category"]
-          created_at?: string | null
+          category?: string
+          created_at?: string
+          currency?: string
+          custom_splits?: Json
           deleted_at?: string | null
           due_day?: number
           household_id?: string
           id?: string
-          payer_id?: string | null
-          split_rule?: Json
+          last_generated_cycle?: string | null
+          paid_by_user_id?: string | null
+          split_rule?: string
           title?: string
-          updated_at?: string | null
-          version?: number | null
+          updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -1077,13 +1133,6 @@ export type Database = {
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recurring_bills_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

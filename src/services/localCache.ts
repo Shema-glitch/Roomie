@@ -27,6 +27,10 @@ import {
   CulturalDinner,
   ShoppingItem,
   HouseholdInfoCard,
+  RecurringBill,
+  MoveInSnapshot,
+  LandlordProfile,
+  MaintenanceIssue,
 } from '../types';
 import { NetBalance, calculateBalances } from '../utils/balances';
 import { evaluateWeeklyAwards } from '../utils/awards';
@@ -67,6 +71,10 @@ export interface HouseholdSnapshot {
   culturalDinners?: CulturalDinner[];
   shoppingItems?: ShoppingItem[];
   infoCard?: HouseholdInfoCard | null;
+  recurringBills?: RecurringBill[];
+  moveInSnapshots?: MoveInSnapshot[];
+  landlordProfile?: LandlordProfile | null;
+  maintenanceIssues?: MaintenanceIssue[];
 }
 
 class LocalSnapshotCacheService {
@@ -246,6 +254,10 @@ class LocalSnapshotCacheService {
       culturalDinners: store.culturalDinners?.[hId] || [],
       shoppingItems: store.shoppingItems?.[hId] || [],
       infoCard: store.infoCards?.[hId] || null,
+      recurringBills: store.recurringBills?.[hId] || [],
+      moveInSnapshots: store.moveInSnapshots?.[hId] || [],
+      landlordProfile: store.landlordProfiles?.[hId] || null,
+      maintenanceIssues: store.maintenanceIssues?.[hId] || [],
     };
 
     return this.saveSnapshot(hId, snapshot);

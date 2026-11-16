@@ -51,6 +51,7 @@ import { NotificationsApi } from './notifications.api';
 import { SystemApi } from './system.api';
 import { SocialApi } from './social.api';
 import { ShoppingApi } from './shopping.api';
+import { FlatUtilitiesApi } from './flatUtilities.api';
 
 export class ApiService {
   private _store: AppStore;
@@ -65,6 +66,7 @@ export class ApiService {
   public system: SystemApi;
   public social: SocialApi;
   public shopping: ShoppingApi;
+  public flatUtilities: FlatUtilitiesApi;
 
   constructor() {
     this._store = loadStore();
@@ -127,6 +129,7 @@ export class ApiService {
     this.notifications = new NotificationsApi(baseContext);
     this.social = new SocialApi(baseContext);
     this.shopping = new ShoppingApi(baseContext);
+    this.flatUtilities = new FlatUtilitiesApi(baseContext);
     this.system = new SystemApi({
       store: this._store,
       setStore: (s: AppStore) => {
@@ -519,6 +522,166 @@ export class ApiService {
           error = res.error;
           break;
         }
+        case 'add_recurring_bill': {
+          const b = p as unknown as import('../../types').RecurringBill;
+          const res = await sb.from('recurring_bills').upsert(
+            {
+              ...(isUuid(b.id) ? { id: b.id } : {}),
+              household_id: b.householdId,
+              title: b.title,
+              category: b.category,
+              amount: b.amount,
+              currency: b.currency,
+              due_day: b.dueDay,
+              split_rule: b.splitRule,
+              custom_splits: (b.customSplits as unknown as Json) || null,
+              paid_by_user_id: b.paidByUserId,
+              active: b.active,
+              version: b.version,
+              created_at: b.createdAt,
+              updated_at: b.updatedAt,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'update_recurring_bill': {
+          const b = p as unknown as import('../../types').RecurringBill;
+          const res = await sb
+            .from('recurring_bills')
+            .update({
+              title: b.title,
+              category: b.category,
+              amount: b.amount,
+              currency: b.currency,
+              due_day: b.dueDay,
+              split_rule: b.splitRule,
+              custom_splits: (b.customSplits as unknown as Json) || null,
+              paid_by_user_id: b.paidByUserId,
+              active: b.active,
+              last_generated_cycle: b.lastGeneratedCycle,
+              version: b.version,
+              updated_at: b.updatedAt,
+            })
+            .eq('id', b.id);
+          error = res.error;
+          break;
+        }
+        case 'delete_recurring_bill': {
+          const res = await sb
+            .from('recurring_bills')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', String(p.id || ''));
+          error = res.error;
+          break;
+        }
+        case 'log_recurring_bill_expense': {
+          const billId = String(p.billId || '');
+          const cycle = String(p.cycle || '');
+          if (billId && cycle) {
+            const res = await sb
+              .from('recurring_bills')
+              .update({
+                last_generated_cycle: cycle,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', billId);
+            error = res.error;
+          }
+          break;
+        }
+        case 'add_move_in_snapshot': {
+          const snap = p as unknown as import('../../types').MoveInSnapshot;
+          const res = await sb.from('move_in_snapshots').upsert(
+            {
+              ...(isUuid(snap.id) ? { id: snap.id } : {}),
+              household_id: snap.householdId,
+              room_name: snap.roomName,
+              condition_note: snap.conditionNote,
+              photo_urls: snap.photoUrls,
+              created_by: snap.createdBy,
+              confirmed_by_user_ids: snap.confirmedByUserIds,
+              created_at: snap.createdAt,
+              updated_at: snap.updatedAt,
+              version: snap.version,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'confirm_move_in_snapshot': {
+          const snapshotId = String(p.snapshotId || '');
+          const userId = String(p.userId || '');
+          if (snapshotId && userId) {
+            const { data: cur } = await sb
+              .from('move_in_snapshots')
+              .select('confirmed_by_user_ids')
+              .eq('id', snapshotId)
+              .maybeSingle();
+            const existing = Array.isArray(cur?.confirmed_by_user_ids)
+              ? (cur.confirmed_by_user_ids as string[])
+              : [];
+            if (!existing.includes(userId)) {
+              existing.push(userId);
+              const res = await sb
+                .from('move_in_snapshots')
+                .update({ confirmed_by_user_ids: existing, updated_at: new Date().toISOString() })
+                .eq('id', snapshotId);
+              error = res.error;
+            }
+          }
+          break;
+        }
+        case 'update_landlord_profile': {
+          const prof = p as unknown as import('../../types').LandlordProfile;
+          const res = await sb.from('landlord_profiles').upsert(
+            {
+              household_id: prof.householdId,
+              landlord_name: prof.landlordName,
+              role_label: prof.roleLabel,
+              phone_or_whatsapp: prof.phoneOrWhatsapp,
+              emergency_note: prof.emergencyNote || '',
+              updated_by: prof.updatedBy || null,
+              updated_at: prof.updatedAt,
+              version: prof.version,
+            },
+            { onConflict: 'household_id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'report_maintenance_issue': {
+          const issue = p as unknown as import('../../types').MaintenanceIssue;
+          const res = await sb.from('maintenance_issues').upsert(
+            {
+              ...(isUuid(issue.id) ? { id: issue.id } : {}),
+              household_id: issue.householdId,
+              title: issue.title,
+              description: issue.description,
+              status: issue.status,
+              photo_urls: issue.photoUrls,
+              reported_by: issue.reportedBy,
+              created_at: issue.createdAt,
+              updated_at: issue.updatedAt,
+              version: issue.version,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'update_maintenance_issue_status': {
+          const issueId = String(p.issueId || '');
+          const status = String(p.status || 'reported');
+          const res = await sb
+            .from('maintenance_issues')
+            .update({ status, updated_at: new Date().toISOString() })
+            .eq('id', issueId);
+          error = res.error;
+          break;
+        }
         default:
           return true;
       }
@@ -717,6 +880,31 @@ export class ApiService {
   public resolveSwapRequest = (requestId: string, action: 'accept' | 'decline') =>
     this.social.resolveChoreSwap(requestId, action);
 
+  // --- Flat Utilities Facade (Recurring Bills, Move-In Snapshots, Landlord Hub) ---
+  public getRecurringBills = (householdId: string) => this.flatUtilities.getRecurringBills(householdId);
+  public addRecurringBill = (params: Parameters<FlatUtilitiesApi['addRecurringBill']>[0]) =>
+    this.flatUtilities.addRecurringBill(params);
+  public updateRecurringBill = (id: string, updates: Parameters<FlatUtilitiesApi['updateRecurringBill']>[1]) =>
+    this.flatUtilities.updateRecurringBill(id, updates);
+  public deleteRecurringBill = (id: string) => this.flatUtilities.deleteRecurringBill(id);
+  public logRecurringBillExpense = (billId: string, options?: { note?: string }) =>
+    this.flatUtilities.logRecurringBillExpense(billId, options);
+
+  public getMoveInSnapshots = (householdId: string) => this.flatUtilities.getMoveInSnapshots(householdId);
+  public addMoveInSnapshot = (params: Parameters<FlatUtilitiesApi['addMoveInSnapshot']>[0]) =>
+    this.flatUtilities.addMoveInSnapshot(params);
+  public confirmMoveInSnapshot = (snapshotId: string, userId: string) =>
+    this.flatUtilities.confirmMoveInSnapshot(snapshotId, userId);
+
+  public getLandlordProfile = (householdId: string) => this.flatUtilities.getLandlordProfile(householdId);
+  public updateLandlordProfile = (params: Parameters<FlatUtilitiesApi['updateLandlordProfile']>[0]) =>
+    this.flatUtilities.updateLandlordProfile(params);
+  public getMaintenanceIssues = (householdId: string) => this.flatUtilities.getMaintenanceIssues(householdId);
+  public reportMaintenanceIssue = (params: Parameters<FlatUtilitiesApi['reportMaintenanceIssue']>[0]) =>
+    this.flatUtilities.reportMaintenanceIssue(params);
+  public updateMaintenanceIssueStatus = (issueId: string, status: Parameters<FlatUtilitiesApi['updateMaintenanceIssueStatus']>[1]) =>
+    this.flatUtilities.updateMaintenanceIssueStatus(issueId, status);
+
   // --- Diagnostics Facade ---
   public pingSupabaseHealth = () => this.system.pingSupabaseHealth();
   public exportData = () => this.system.exportData();
@@ -735,3 +923,5 @@ export * from './governance.api';
 export * from './notifications.api';
 export * from './system.api';
 export * from './social.api';
+export * from './shopping.api';
+export * from './flatUtilities.api';

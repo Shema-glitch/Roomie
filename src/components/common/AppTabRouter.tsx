@@ -344,6 +344,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             settlements={settlements}
             roommates={roommatesList}
             currentUser={currentUser}
+            householdId={activeHousehold.id}
             currency={activeHousehold.currency}
             initialExpenseId={selectedExpenseId}
             onClearInitialExpense={handleClearInitialExpense}
