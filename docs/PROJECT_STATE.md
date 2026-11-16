@@ -489,5 +489,34 @@ Baseline Tag: `v1.0.0-phase1`
   - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
   - Git boundary maintained: on `feature/ui-bento-and-modal-discipline`. Untouched `main`.
 
+---
+
+## 17. Tomorrow's Sprint Blueprint & Strategic Architecture Plan
+
+> **State Checkpoint**: Physical device update confirmed on Tecno Camon 30S (`TECNO_CLA5`). All UI responsiveness, bottom-sheet discipline, Beta Labs Bento polish, and native `@capacitor/haptics` vibration signatures are live and verified.
+
+### Strategic Priorities for Next Session ("What We're Cooking Tomorrow")
+
+1. **Sprint Track 1 — Tenant Transition & Deposit Protection Loop (Phase 4A)**:
+   - **Move-Out Condition Comparison**:
+     - Build `MoveOutSnapshotModal.tsx` that renders a side-by-side room comparison of move-in condition photos against current move-out condition photos.
+     - Prevents landlord/deposit disputes by generating an automated before/after condition delta report.
+   - **Deposit Return & Balance Clearance Calculator**:
+     - Calculates bilateral deposit deductions, remaining utility obligations, and settlement status before member departure.
+     - Links into `leave_household_self` Postgres RPC to ensure zero stranded balances.
+   - **Portable Flatmate Reputation**:
+     - Allows departing tenants to export/carry forward their chore streak, honorary badges (Kitchen Hero, Streak Master), and positive karma to their next flat without losing identity.
+
+2. **Sprint Track 2 — Real Cloud Supabase Auth & Live Multi-Device Sync (Phase 4B)**:
+   - Upgrade from local seeded user switching to real Supabase Auth (Email OTP / Magic Link).
+   - Verify real-time Postgres subscription updates across two physical phones simultaneously in the same apartment room.
+
+3. **Sprint Track 3 — Complete i18n Dictionary & Arabic RTL Typography (Phase 4C)**:
+   - Centralize remaining hardcoded strings into lightweight locale dictionaries (`en`, `tr`, `fr`, `ar`).
+   - Audit Arabic RTL text layout, icon flipping, and font line-heights on Android WebViews.
+
+---
+
+
 
 
