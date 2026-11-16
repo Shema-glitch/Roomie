@@ -1,5 +1,6 @@
 import React, { startTransition } from 'react';
 import { Avatar } from './Avatar';
+import { AnimatedNumber } from './AnimatedNumber';
 import { SyncStatusType } from './SyncStatusPanel';
 import { User, Household } from '../../types';
 import { sound } from '../../services/sound';
@@ -282,7 +283,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
             >
               <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
-              <span>{currentUser.favorTokens ?? 5}</span>
+              <AnimatedNumber value={currentUser.favorTokens ?? 5} />
             </button>
 
             <button

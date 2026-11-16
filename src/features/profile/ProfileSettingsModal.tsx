@@ -3,6 +3,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
+import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
 import { sound, isSoundEnabled, setSoundEnabled } from '../../services/sound';
@@ -245,17 +246,26 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
         subtitle="Manage your identity, roomie habits and account"
       >
         <div className="space-y-4">
-          {/* Segmented Pill Navigation */}
-          <div className="flex p-1 bg-[#EEF0F6] rounded-2xl border-2 border-[#E2E5EC] gap-1">
+          {/* Segmented Pill Navigation with Sliding Indicator */}
+          <div className="relative grid grid-cols-3 p-1 bg-[#EEF0F6] rounded-2xl border-2 border-[#E2E5EC]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.67px)] rounded-xl bg-white shadow-2xs border border-[#CBD5E1] transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+              style={{
+                transform: `translate3d(${
+                  activeTab === 'profile' ? 0 : activeTab === 'preferences' ? 100 : 200
+                }%, 0, 0)`,
+              }}
+            />
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 setActiveTab('profile');
               }}
-              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
                 activeTab === 'profile'
-                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  ? 'text-[#1F2430]'
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
@@ -267,9 +277,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 sound.playTap();
                 setActiveTab('preferences');
               }}
-              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
                 activeTab === 'preferences'
-                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  ? 'text-[#1F2430]'
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
@@ -281,9 +291,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 sound.playTap();
                 setActiveTab('account');
               }}
-              className={`flex-1 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-all cursor-pointer ${
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
                 activeTab === 'account'
-                  ? 'bg-white text-[#1F2430] shadow-2xs border border-[#CBD5E1]'
+                  ? 'text-[#1F2430]'
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
@@ -310,7 +320,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430] flex-wrap">
                     <span className="truncate">{currentUser.country} {currentUser.flag}</span>
                     <span className="shrink-0">•</span>
-                    <span className="text-[#FF6B4A] font-bold shrink-0">{currentUser.points} pts</span>
+                    <span className="text-[#FF6B4A] font-bold shrink-0">
+                      <AnimatedNumber value={currentUser.points} suffix=" pts" />
+                    </span>
                     <span className="shrink-0">•</span>
                     <button
                       type="button"
@@ -321,7 +333,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                       className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A] inline-flex items-center gap-1 active:scale-95 transition-transform cursor-pointer"
                     >
                       <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0" />
-                      <span>{currentUser.favorTokens ?? 5} tokens</span>
+                      <span>
+                        <AnimatedNumber value={currentUser.favorTokens ?? 5} suffix=" tokens" />
+                      </span>
                     </button>
                   </div>
                 </div>

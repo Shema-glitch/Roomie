@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { VibeRating } from '../../../types';
 import { VIBE_DEFINITIONS, VIBE_RATINGS_LIST, getCurrentWeekKey } from '../../../utils/vibe';
 import { sound } from '../../../services/sound';
@@ -13,6 +13,8 @@ interface VibeCheckModalProps {
   onSubmit: (rating: VibeRating) => Promise<void>;
 }
 
+const DRAG_DISMISS_THRESHOLD_PX = 90;
+
 export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
   isOpen,
   onClose,
@@ -22,6 +24,9 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
   const [selectedRating, setSelectedRating] = useState<VibeRating | null>(null);
   const [hasVotedThisWeek, setHasVotedThisWeek] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const dragStartYRef = useRef<number | null>(null);
+  const [dragOffsetY, setDragOffsetY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Check previous submission receipt
   useEffect(() => {
@@ -83,9 +88,47 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 animate-fade-in"
     >
-      <div className="w-full max-w-md bg-white rounded-3xl border-2 border-b-6 border-[#E6E8EE] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 will-change-transform animate-pop-in">
+      <div
+        className="w-full max-w-md bg-white rounded-t-[32px] sm:rounded-3xl border-2 border-b-6 border-[#E6E8EE] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 will-change-transform animate-pop-in"
+        style={{
+          transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,
+          transition: isDragging
+            ? 'none'
+            : 'transform 0.28s var(--ease-spring), opacity 0.2s ease',
+        }}
+      >
+        {/* Mobile drag handle */}
+        <div
+          onTouchStart={(e) => {
+            if (e.touches.length === 1) {
+              dragStartYRef.current = e.touches[0].clientY;
+              setIsDragging(true);
+            }
+          }}
+          onTouchMove={(e) => {
+            if (dragStartYRef.current !== null && e.touches.length === 1) {
+              setDragOffsetY(Math.max(0, e.touches[0].clientY - dragStartYRef.current));
+            }
+          }}
+          onTouchEnd={() => {
+            if (dragStartYRef.current !== null) {
+              dragStartYRef.current = null;
+              setIsDragging(false);
+              if (dragOffsetY >= DRAG_DISMISS_THRESHOLD_PX) {
+                setDragOffsetY(0);
+                onClose();
+              } else {
+                setDragOffsetY(0);
+              }
+            }
+          }}
+          className="w-full flex justify-center pb-1 sm:hidden touch-none cursor-grab active:cursor-grabbing"
+        >
+          <div className="w-10 h-1.5 rounded-full bg-[#CBD5E1]" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -106,7 +149,7 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="w-9 h-9 rounded-full bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2430] flex items-center justify-center cursor-pointer transition-colors shrink-0"
+            className="btn-tactile ease-spring w-9 h-9 rounded-full bg-[#F1F5F9] text-[#64748B] hover:text-[#1F2430] flex items-center justify-center cursor-pointer transition-colors shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
@@ -114,7 +157,7 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
 
         {/* 5 Vibe Emotion Cards */}
         <div className="space-y-2">
-          {VIBE_RATINGS_LIST.map((rating) => {
+          {VIBE_RATINGS_LIST.map((rating, idx) => {
             const meta = VIBE_DEFINITIONS[rating];
             const isSelected = selectedRating === rating;
 
@@ -123,7 +166,8 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
                 key={rating}
                 type="button"
                 onClick={() => handleSelect(rating)}
-                className={`w-full p-3 sm:p-3.5 rounded-2xl border-2 text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                style={{ '--stagger-index': idx } as React.CSSProperties}
+                className={`stagger-item btn-tactile ease-spring w-full p-3 sm:p-3.5 rounded-2xl border-2 text-left cursor-pointer flex items-center justify-between gap-3 ${
                   isSelected
                     ? 'bg-[#FFF8E6] border-[#F59E0B] border-b-4 translate-y-[-1px] shadow-sm'
                     : 'bg-[#F8FAFC] border-[#E6E8EE] border-b-3 hover:bg-[#F1F5F9]'

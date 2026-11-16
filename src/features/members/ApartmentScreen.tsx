@@ -84,16 +84,26 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
       />
 
       <div className="lg:hidden mb-5">
-        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
+        <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+            style={{
+              transform:
+                mobileTab === 'roomies'
+                  ? 'translate3d(0%, 0, 0)'
+                  : 'translate3d(100%, 0, 0)',
+            }}
+          />
           <button
             type="button"
             onClick={() => {
               sound.playTap();
               setMobileTab('roomies');
             }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer ${
               mobileTab === 'roomies'
-                ? 'bg-white text-[#1F2430] shadow-sm'
+                ? 'text-[#1F2430]'
                 : 'text-[#475569] hover:text-[#1F2430]'
             }`}
           >
@@ -106,9 +116,9 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               sound.playTap();
               setMobileTab('meetings');
             }}
-            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-all cursor-pointer ${
+            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer ${
               mobileTab === 'meetings'
-                ? 'bg-white text-[#1F2430] shadow-sm'
+                ? 'text-[#1F2430]'
                 : 'text-[#475569] hover:text-[#1F2430]'
             }`}
           >

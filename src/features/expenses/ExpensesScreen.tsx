@@ -137,21 +137,29 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
     };
   }, [expenses, currentUser.id]);
 
-  const renderCard = (exp: Expense, mode: ExpenseCardMode) => (
-    <ExpenseCard
+  const [expenseFilter, setExpenseFilter] = useState<'all' | 'pending' | 'agreed'>('all');
+  const filterIndex = expenseFilter === 'all' ? 0 : expenseFilter === 'pending' ? 1 : 2;
+
+  const renderCard = (exp: Expense, mode: ExpenseCardMode, idx = 0) => (
+    <div
       key={exp.id}
-      expense={exp}
-      mode={mode}
-      roommates={roommates}
-      currentUser={currentUser}
-      currencySymbol={sym}
-      onSelect={setSelectedExpense}
-      onRespondExpense={onRespondExpense}
-      onSelectDisputeTarget={setCardDisputeTarget}
-      onSelectEditSplitTarget={setEditSplitTarget}
-      onOpenChat={onOpenChat}
-      onCancelExpense={onCancelExpense}
-    />
+      className="stagger-item"
+      style={{ '--stagger-index': idx } as React.CSSProperties}
+    >
+      <ExpenseCard
+        expense={exp}
+        mode={mode}
+        roommates={roommates}
+        currentUser={currentUser}
+        currencySymbol={sym}
+        onSelect={setSelectedExpense}
+        onRespondExpense={onRespondExpense}
+        onSelectDisputeTarget={setCardDisputeTarget}
+        onSelectEditSplitTarget={setEditSplitTarget}
+        onOpenChat={onOpenChat}
+        onCancelExpense={onCancelExpense}
+      />
+    </div>
   );
 
   return (
@@ -181,7 +189,54 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="w-full lg:col-span-7 space-y-6">
-          {needsMyAgreementExpenses.length > 0 && (
+          {/* Sliding Segmented Filter Control */}
+          <div className="relative grid grid-cols-3 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(33.333%-4px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+              style={{
+                transform: `translate3d(${filterIndex * 100}%, 0, 0)`,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setExpenseFilter('all');
+              }}
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                expenseFilter === 'all' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
+              }`}
+            >
+              All ({expenses.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setExpenseFilter('pending');
+              }}
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                expenseFilter === 'pending' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
+              }`}
+            >
+              Pending ({needsMyAgreementExpenses.length + waitingForRoomiesExpenses.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setExpenseFilter('agreed');
+              }}
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                expenseFilter === 'agreed' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
+              }`}
+            >
+              Agreed ({agreedExpenses.length})
+            </button>
+          </div>
+
+          {expenseFilter !== 'agreed' && needsMyAgreementExpenses.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <span className="type-section-heading text-[#FF6B4A]">
@@ -192,11 +247,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 </span>
               </div>
 
-              {needsMyAgreementExpenses.map((exp) => renderCard(exp, 'needs-my-answer'))}
+              {needsMyAgreementExpenses.map((exp, idx) => renderCard(exp, 'needs-my-answer', idx))}
             </div>
           )}
 
-          {waitingForRoomiesExpenses.length > 0 && (
+          {expenseFilter !== 'agreed' && waitingForRoomiesExpenses.length > 0 && (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <span className="type-section-heading">
@@ -219,10 +274,11 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 )}
               </div>
 
-              {waitingForRoomiesExpenses.map((exp) => renderCard(exp, 'waiting-roomies'))}
+              {waitingForRoomiesExpenses.map((exp, idx) => renderCard(exp, 'waiting-roomies', idx))}
             </div>
           )}
 
+          {expenseFilter !== 'pending' && (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
               <span className="type-section-heading">
@@ -256,9 +312,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 </div>
               </div>
             ) : (
-              agreedExpenses.map((exp) => renderCard(exp, 'agreed'))
+              agreedExpenses.map((exp, idx) => renderCard(exp, 'agreed', idx))
             )}
           </div>
+          )}
 
           {settlements.length > 0 && (
             <div className="space-y-3">

@@ -3,6 +3,7 @@ import { ActionCard } from '../../../components/common/ActionCard';
 import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
+import { AnimatedNumber } from '../../../components/common/AnimatedNumber';
 import { Expense, User } from '../../../types';
 import { NetBalance, UserCalculationBreakdown } from '../../../utils/balances';
 import { sound } from '../../../services/sound';
@@ -83,13 +84,19 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
             <span className="type-big-number">
               {myNet > 0.05 ? (
                 <span className="text-[#2CA358]">
-                  +{sym}
-                  {formatCurrency(myNet)}
+                  <AnimatedNumber
+                    value={myNet}
+                    prefix={`+${sym}`}
+                    formatFn={(v) => formatCurrency(v)}
+                  />
                 </span>
               ) : myNet < -0.05 ? (
                 <span className="text-[#E5484D]">
-                  -{sym}
-                  {formatCurrency(Math.abs(myNet))}
+                  <AnimatedNumber
+                    value={Math.abs(myNet)}
+                    prefix={`-${sym}`}
+                    formatFn={(v) => formatCurrency(v)}
+                  />
                 </span>
               ) : (
                 <span className="text-[#1F2430]">{sym}0.00</span>

@@ -32,6 +32,7 @@ interface DueChoreRowProps {
   isOptimisticDone: boolean;
   isSaving: boolean;
   hasQuickComplete: boolean;
+  staggerIndex: number;
   onQuickComplete: (chore: Chore) => void;
   onSelectDoneChore: (chore: Chore) => void;
   onSelectSwapChore: (chore: Chore) => void;
@@ -46,6 +47,7 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
     isOptimisticDone,
     isSaving,
     hasQuickComplete,
+    staggerIndex,
     onQuickComplete,
     onSelectDoneChore,
     onSelectSwapChore,
@@ -56,114 +58,141 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
         : `Weekly (${a.scheduledDays.join(', ')})`;
     const effortLabel = formatEffortLabel(chore.effortLevel);
     const assigneeLabel = isMe ? 'You' : assignedUser?.name.split(' ')[0] || 'Roomie';
+    const points = getEffortPoints(chore.effortLevel);
 
     return (
-      <ActionCard
-        tint={isOptimisticDone ? 'green' : 'teal'}
-        className={`contain-content transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isOptimisticDone ? 'opacity-85' : ''
-        }`}
-        iconTile={
-          <IconTile
-            icon={
-              isOptimisticDone ? (
-                <CheckCircle className="w-6 h-6" weight="fill" />
-              ) : (
-                <Icon icon="fluent-emoji-flat:broom" className="w-6 h-6" />
-              )
-            }
-            color={isOptimisticDone ? 'green' : 'teal'}
-            size="md"
-          />
-        }
-        title={
-          <span
-            className={`type-card-title font-semibold transition-colors duration-150 ${
-              isOptimisticDone ? 'line-through text-[#475569]' : 'text-[#1F2430]'
-            }`}
+      <div
+        className="relative stagger-item"
+        style={{ '--stagger-index': staggerIndex } as React.CSSProperties}
+      >
+        {isOptimisticDone && (
+          <div
+            aria-hidden="true"
+            className="animate-float-badge pointer-events-none absolute -top-2.5 right-4 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2CA358] text-white text-xs font-extrabold shadow-md border border-white/40"
           >
-            {chore.name}
-          </span>
-        }
-        subtitle={
-          isOptimisticDone
-            ? `Completed by You · +${getEffortPoints(chore.effortLevel)} pts`
-            : `${freqLabel} · ${effortLabel} · ${a.scheduledTime} · Assigned to ${assigneeLabel}`
-        }
-        badge={
-          <Chip
-            status={isOptimisticDone ? 'agreed' : 'pending'}
-            label={isOptimisticDone ? 'Done' : 'Due Today'}
-            size="xs"
-          />
-        }
-        detail={
-          <p
-            className={`text-[14px] transition-opacity duration-150 ${
-              isOptimisticDone ? 'line-through opacity-70 text-[#64748B]' : 'text-[#475569]'
-            }`}
-          >
-            {chore.description}
-          </p>
-        }
-        actions={
-          isMe ? (
-            <div className="flex flex-wrap items-center gap-2.5 w-full">
-              {hasQuickComplete && !isOptimisticDone && (
+            <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
+            <span>+1 Streak · +{points} pts</span>
+          </div>
+        )}
+        <ActionCard
+          tint={isOptimisticDone ? 'green' : 'teal'}
+          className={`contain-content transition-[transform,opacity] duration-200 ease-spring ${
+            isOptimisticDone
+              ? 'ring-2 ring-[#3DBE6D]/60 bg-[#EBF9F0] scale-[1.005]'
+              : ''
+          }`}
+          iconTile={
+            <IconTile
+              icon={
+                isOptimisticDone ? (
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-6 h-6 text-[#2CA358]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 13l4 4L19 7" className="animate-check-draw" />
+                  </svg>
+                ) : (
+                  <Icon icon="fluent-emoji-flat:broom" className="w-6 h-6" />
+                )
+              }
+              color={isOptimisticDone ? 'green' : 'teal'}
+              size="md"
+            />
+          }
+          title={
+            <span
+              className={`type-card-title font-semibold transition-colors duration-150 ${
+                isOptimisticDone ? 'line-through text-[#475569]' : 'text-[#1F2430]'
+              }`}
+            >
+              {chore.name}
+            </span>
+          }
+          subtitle={
+            isOptimisticDone
+              ? `Completed by You · +${points} pts`
+              : `${freqLabel} · ${effortLabel} · ${a.scheduledTime} · Assigned to ${assigneeLabel}`
+          }
+          badge={
+            <Chip
+              status={isOptimisticDone ? 'agreed' : 'pending'}
+              label={isOptimisticDone ? 'Done' : 'Due Today'}
+              size="xs"
+            />
+          }
+          detail={
+            <p
+              className={`text-[14px] transition-opacity duration-150 ${
+                isOptimisticDone ? 'line-through opacity-70 text-[#64748B]' : 'text-[#475569]'
+              }`}
+            >
+              {chore.description}
+            </p>
+          }
+          actions={
+            isMe ? (
+              <div className="flex flex-wrap items-center gap-2.5 w-full">
+                {hasQuickComplete && !isOptimisticDone && (
+                  <Button
+                    variant="teal"
+                    size="md"
+                    loading={isSaving}
+                    onClick={() => onQuickComplete(chore)}
+                    icon={<CheckCircle className="w-4 h-4" weight="fill" />}
+                    className="flex-1"
+                  >
+                    {isSaving ? 'Completing...' : 'Mark done'}
+                  </Button>
+                )}
+                {!isOptimisticDone && (
+                  <Button
+                    variant={hasQuickComplete ? 'secondary' : 'teal'}
+                    size="md"
+                    onClick={() => onSelectDoneChore(chore)}
+                    icon={
+                      hasQuickComplete ? (
+                        <Camera className="w-4 h-4 text-[#475569]" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4" weight="fill" />
+                      )
+                    }
+                    className={hasQuickComplete ? '' : 'flex-1'}
+                  >
+                    {hasQuickComplete ? 'With photo' : 'Done'}
+                  </Button>
+                )}
                 <Button
-                  variant="teal"
+                  variant="secondary"
                   size="md"
-                  loading={isSaving}
-                  onClick={() => onQuickComplete(chore)}
-                  icon={<CheckCircle className="w-4 h-4" weight="fill" />}
-                  className="flex-1"
+                  disabled={isSaving}
+                  onClick={() => onSelectSwapChore(chore)}
+                  icon={<ArrowsLeftRight className="w-4 h-4 text-[#475569]" />}
                 >
-                  {isSaving ? 'Completing...' : 'Mark done'}
+                  Swap
                 </Button>
-              )}
-              {!isOptimisticDone && (
+              </div>
+            ) : (
+              <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
+                <span className="type-secondary text-[14px] font-medium">
+                  Pending {assignedUser?.name.split(' ')[0]}'s completion
+                </span>
                 <Button
-                  variant={hasQuickComplete ? 'secondary' : 'teal'}
-                  size="md"
-                  onClick={() => onSelectDoneChore(chore)}
-                  icon={
-                    hasQuickComplete ? (
-                      <Camera className="w-4 h-4 text-[#475569]" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4" weight="fill" />
-                    )
-                  }
-                  className={hasQuickComplete ? '' : 'flex-1'}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onSelectSwapChore(chore)}
                 >
-                  {hasQuickComplete ? 'With photo' : 'Done'}
+                  Reassign
                 </Button>
-              )}
-              <Button
-                variant="secondary"
-                size="md"
-                disabled={isSaving}
-                onClick={() => onSelectSwapChore(chore)}
-                icon={<ArrowsLeftRight className="w-4 h-4 text-[#475569]" />}
-              >
-                Swap
-              </Button>
-            </div>
-          ) : (
-            <div className="w-full flex flex-wrap items-center justify-between gap-2.5">
-              <span className="type-secondary text-[14px] font-medium">
-                Pending {assignedUser?.name.split(' ')[0]}'s completion
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => onSelectSwapChore(chore)}
-              >
-                Reassign
-              </Button>
-            </div>
-          )
-        }
-      />
+              </div>
+            )
+          }
+        />
+      </div>
     );
   }
 );
@@ -368,7 +397,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
               )}
             </div>
           ) : (
-            todayDueAssignments.map((a) => {
+            todayDueAssignments.map((a, idx) => {
               const chore = choreMap.get(a.choreId);
               if (!chore) return null;
               const assignedUser = roommateMap.get(a.userId);
@@ -382,6 +411,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
                   isOptimisticDone={optimisticCompletedIds.has(chore.id)}
                   isSaving={pendingIds.has(chore.id)}
                   hasQuickComplete={Boolean(onQuickCompleteChore)}
+                  staggerIndex={idx}
                   onQuickComplete={handleQuickComplete}
                   onSelectDoneChore={onSelectDoneChore}
                   onSelectSwapChore={onSelectSwapChore}

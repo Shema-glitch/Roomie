@@ -3,6 +3,7 @@ import { ActionCard } from '../../../components/common/ActionCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { SectionTitle } from '../../../components/common/SectionTitle';
+import { AnimatedNumber } from '../../../components/common/AnimatedNumber';
 import { ChoreDueCountdownBadge } from '../../../components/common/ChoreDueCountdownBadge';
 import { Chore, ChoreAssignment } from '../../../types';
 import { sound } from '../../../services/sound';
@@ -125,25 +126,36 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
 
         <ActionCard
           tint="green"
+          className="contain-content"
           iconTile={<IconTile icon={<Wallet className="w-6 h-6" />} color="green" size="md" />}
           title={
             <div className="flex items-baseline gap-2">
               <span className="type-big-number">
                 {netBalance > 0.05 ? (
                   <span className="text-[#2CA358]">
-                    +{sym}
-                    {netBalance.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    <AnimatedNumber
+                      value={netBalance}
+                      prefix={`+${sym}`}
+                      formatFn={(v) =>
+                        v.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      }
+                    />
                   </span>
                 ) : netBalance < -0.05 ? (
                   <span className="text-[#E5484D]">
-                    -{sym}
-                    {Math.abs(netBalance).toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    <AnimatedNumber
+                      value={Math.abs(netBalance)}
+                      prefix={`-${sym}`}
+                      formatFn={(v) =>
+                        v.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      }
+                    />
                   </span>
                 ) : (
                   <span className="text-[#1F2430]">{sym}0.00</span>

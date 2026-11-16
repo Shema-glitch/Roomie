@@ -4,6 +4,7 @@ import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
 import { MascotView } from '../../components/common/MascotView';
+import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import {
   User,
   Household,
@@ -20,6 +21,7 @@ import {
   HouseholdVibeSummary,
   VibeRating,
   ChoreSwapRequest,
+  MascotState,
 } from '../../types';
 import { DutyTodayBanner } from '../chores/DutyTodayBanner';
 import { sound } from '../../services/sound';
@@ -109,6 +111,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
   );
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
+  const [mascotReaction, setMascotReaction] = useState<{
+    state: MascotState;
+    bubbleText: string;
+  } | null>(null);
+
+  const triggerMascotReaction = (state: MascotState, bubbleText: string) => {
+    setMascotReaction({ state, bubbleText });
+  };
+
+  useEffect(() => {
+    if (!mascotReaction) return;
+    const timer = window.setTimeout(() => {
+      setMascotReaction(null);
+    }, 3400);
+    return () => window.clearTimeout(timer);
+  }, [mascotReaction]);
 
   useEffect(() => {
     if (household?.id) {
@@ -130,6 +148,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   }, [household?.id, currentUser.id]);
 
   const handleVibeSubmit = async (rating: VibeRating) => {
+    if (rating === 'stressed' || rating === 'down') {
+      triggerMascotReaction('calm', 'Taking it easy today — we got you!');
+    } else if (rating === 'fire' || rating === 'chill') {
+      triggerMascotReaction('celebrating', 'Love that energy! Vibe recorded!');
+    } else {
+      triggerMascotReaction('cheering', 'Thanks for checking in with the flat!');
+    }
     try {
       const updated = await api.submitVibeCheck(rating, household.id);
       setVibeSummary(updated);
@@ -175,11 +200,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
                   <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
                     <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
-                    {currentUser.streakDays} day streak
+                    <AnimatedNumber value={currentUser.streakDays} /> day streak
                   </span>
                   <span aria-hidden="true">·</span>
                   <span className="font-medium whitespace-nowrap">
-                    {currentUser.points} pts
+                    <AnimatedNumber value={currentUser.points} /> pts
                   </span>
                   <span aria-hidden="true">·</span>
                   {/* 1-Tap Quick Presence Toggle */}
@@ -188,9 +213,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     onClick={() => {
                       sound.playPop();
                       onToggleHomeStatus();
+                      triggerMascotReaction(
+                        currentUser.isHome ? 'calm' : 'cheering',
+                        currentUser.isHome ? 'Catch you later!' : 'Welcome back home!'
+                      );
                       showToast(currentUser.isHome ? 'Status: Out of the flat' : 'Status: You are Home 🏠', 'info');
                     }}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer active:scale-95 border-2 ${
+                    className={`btn-tactile ease-spring inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer border-2 ${
                       currentUser.isHome
                         ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
                         : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
@@ -203,8 +232,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 </div>
               </div>
 
-              <div className="shrink-0 hidden sm:block">
-                <MascotView state="idle" size="lg" bubbleText="Good day, roomie!" />
+              <div className="shrink-0">
+                <MascotView
+                  state={mascotReaction?.state || 'idle'}
+                  size="md"
+                  bubbleText={mascotReaction?.bubbleText || 'Good day, roomie!'}
+                />
               </div>
             </div>
           </InfoCard>
@@ -278,6 +311,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         if (res.success) {
                           haptics.swapAccept();
                           sound.swapAccept();
+                          triggerMascotReaction('cheering', 'Teamwork makes the flat shine!');
                           setPendingSwaps((prev) => prev.slice(1));
                           showToast(
                             `Chore swap accepted! You earned ${pendingSwaps[0].tokenCost} Favor Token`,
@@ -442,6 +476,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               if (onCompleteChore) {
                 await onCompleteChore(choreId, photoUrl);
               }
+              triggerMascotReaction('celebrating', 'Sparkling clean! Streak +1!');
               setDoneChoreModalTarget(null);
               showToast('Chore marked as complete! Streak updated.', 'success');
             }}

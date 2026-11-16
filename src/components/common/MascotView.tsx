@@ -182,10 +182,10 @@ export const MascotView: React.FC<MascotViewProps> = ({
       case 'sleepy':
         return 'opacity-90';
       case 'calm':
-        return '';
+        return 'animate-calm-nod will-change-transform';
       case 'idle':
       default:
-        return 'hover:scale-105 transition-transform duration-300 will-change-transform';
+        return 'hover:scale-105 transition-transform duration-300 ease-spring will-change-transform';
     }
   };
 

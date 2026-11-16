@@ -74,6 +74,37 @@ export const SignInForm: React.FC<SignInFormProps> = ({
 
         <div className="animate-fade-up delay-150">
           <Card padding="lg" className="bg-white border-2 border-[#E6E8EE] shadow-sm rounded-3xl space-y-4">
+            {/* Sliding Segmented Control: Password vs Magic Link */}
+            <div className="relative grid grid-cols-2 p-1 rounded-2xl bg-[#EEF0F6] border border-[#E2E5EC]">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-xl bg-white shadow-2xs transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+                style={{
+                  transform: useMagicLink
+                    ? 'translate3d(100%, 0, 0)'
+                    : 'translate3d(0%, 0, 0)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => onToggleMagicLink(false)}
+                className={`relative z-10 py-1.5 rounded-xl text-xs font-heading font-black transition-colors duration-150 cursor-pointer ${
+                  !useMagicLink ? 'text-[#1F2430]' : 'text-[#64748B] hover:text-[#1F2430]'
+                }`}
+              >
+                Password
+              </button>
+              <button
+                type="button"
+                onClick={() => onToggleMagicLink(true)}
+                className={`relative z-10 py-1.5 rounded-xl text-xs font-heading font-black transition-colors duration-150 cursor-pointer ${
+                  useMagicLink ? 'text-[#1F2430]' : 'text-[#64748B] hover:text-[#1F2430]'
+                }`}
+              >
+                Magic Link
+              </button>
+            </div>
+
             <form
               onSubmit={(e) => {
                 setEmailTouched(true);

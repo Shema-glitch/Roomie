@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
+import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { Chore, User, ChoreSwapRequest } from '../../types';
 import { ArrowsLeftRight, Check } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
@@ -125,7 +126,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                 Your Favor Tokens
               </div>
               <div className="text-sm font-heading font-black text-[#1F2430]">
-                {userTokens} {userTokens === 1 ? 'Token' : 'Tokens'} available
+                <AnimatedNumber value={userTokens} /> {userTokens === 1 ? 'Token' : 'Tokens'} available
               </div>
             </div>
           </div>

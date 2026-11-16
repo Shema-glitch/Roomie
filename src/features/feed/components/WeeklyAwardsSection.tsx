@@ -87,7 +87,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
         <button
           type="button"
           onClick={handleCelebrate}
-          className={`px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 transition-[transform,opacity] duration-150 will-change-transform cursor-pointer flex items-center gap-1.5 active:translate-y-[2px] shrink-0 ${
+          className={`btn-tactile ease-spring px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
             celebrated
               ? 'bg-[#19B5A5] text-white border-[#138E82]'
               : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
@@ -143,12 +143,13 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             ? 'grid-cols-1 sm:grid-cols-2'
             : 'grid-cols-1 sm:grid-cols-3'
         }`}>
-          {otherAwards.map((award) => {
+          {otherAwards.map((award, idx) => {
             const style = colorStyles[award.colorScheme];
             return (
               <div
                 key={award.id}
-                className={`p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
+                style={{ '--stagger-index': idx + 1 } as React.CSSProperties}
+                className={`stagger-item card-interactive ease-spring p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
               >
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <span className="shrink-0 flex items-center justify-center">

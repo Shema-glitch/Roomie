@@ -74,7 +74,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
   const todayActivities = filteredActivities.filter((act) => isSameDay(act.createdAt));
   const earlierActivities = filteredActivities.filter((act) => !isSameDay(act.createdAt));
 
-  const renderActivityCard = (act: ChatMessage) => {
+  const renderActivityCard = (act: ChatMessage, idx = 0) => {
     const { text, isDraft, isChore, isExpense } = classifyActivity(act.body);
     const tileColor = isDraft ? 'indigo' : isChore ? 'teal' : isExpense ? 'coral' : 'indigo';
     const icon = isDraft ? (
@@ -114,7 +114,8 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     return (
       <div
         key={act.id}
-        className="p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] hover:-translate-y-0.5 transition-[transform,border-color] duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs contain-content"
+        style={{ '--stagger-index': idx } as React.CSSProperties}
+        className="stagger-item card-interactive ease-spring p-3.5 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs contain-content"
       >
         <div className="flex items-center gap-3 min-w-0">
           <IconTile icon={icon} color={tileColor} size="sm" />
@@ -206,7 +207,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
               sound.playTap();
               setFeedFilter(f.id);
             }}
-            className={`min-h-[40px] px-3.5 py-1.5 rounded-2xl text-[14px] font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
+            className={`btn-tactile ease-spring min-h-[40px] px-3.5 py-1.5 rounded-2xl text-[14px] font-bold whitespace-nowrap shrink-0 cursor-pointer ${
               feedFilter === f.id
                 ? 'bg-[#1F2430] text-white shadow-xs'
                 : 'bg-white text-[#475569] border border-[#E6E8EE] hover:bg-[#F1F3F9]'

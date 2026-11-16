@@ -208,16 +208,26 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
               </Button>
             </div>
 
-            <div className="flex gap-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
+            <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+                style={{
+                  transform:
+                    scheduleFilter === 'my'
+                      ? 'translate3d(0%, 0, 0)'
+                      : 'translate3d(100%, 0, 0)',
+                }}
+              />
               <button
                 type="button"
                 onClick={() => {
                   sound.playTap();
                   startTransition(() => setScheduleFilter('my'));
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-[transform,background-color,color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
+                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
                   scheduleFilter === 'my'
-                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    ? 'text-[#1F2430]'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
@@ -229,9 +239,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   startTransition(() => setScheduleFilter('all'));
                 }}
-                className={`flex-1 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-[transform,background-color,color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer ${
+                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
                   scheduleFilter === 'all'
-                    ? 'bg-white text-[#1F2430] shadow-sm'
+                    ? 'text-[#1F2430]'
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >

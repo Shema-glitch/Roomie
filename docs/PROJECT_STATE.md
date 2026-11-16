@@ -253,9 +253,9 @@ Baseline Tag: `v1.0.0-phase1`
   - Unit tests: `src/utils/haptics.test.ts` (3 tests).
 
 - **Quality, Bundle Budget & Zero-Slop Verification**:
-  - **59 / 59 unit tests passing** (`npm test` across 7 suites).
+  - **63 / 63 unit tests passing** (`npm test` across 8 suites).
   - **0 TypeScript errors** (`npm run lint`), zero `as any`, zero `@ts-ignore`, zero `console.log`.
-  - **Initial JS Bundle**: **141.01 kB gzipped** (`dist/assets/index-*.js`), strictly under the `< 200 KB` gzipped budget with `React.lazy` code-splitting across all secondary screens and modals.
+  - **Initial JS Bundle**: **142.17 kB gzipped** (`dist/assets/index-*.js`), strictly under the `< 200 KB` gzipped budget with `React.lazy` code-splitting across all secondary screens and modals and zero external animation libraries.
   - Standalone Android APK built and stream-installed onto device (`TECNO_CLA5`).
 
 ---
@@ -273,6 +273,23 @@ Baseline Tag: `v1.0.0-phase1`
   - Removed all `backdrop-blur-*` overlays across `AppHeaderAndNav.tsx`, `Modal.tsx`, `AppModals.tsx`, `VibeCheckModal.tsx`, `SecretDraftScreen.tsx`, and `SplashScreen.tsx`, replacing them with lightweight GPU-friendly tinted surfaces (`bg-slate-900/60` and `bg-[#F7F8FB]/95`).
   - Upgraded tactile button presses (`.btn-tactile`), mascot animations (`MascotView.tsx`), and celebration confetti particles (`WeeklyAwardsSection.tsx`) to animate exclusively via GPU-composited `transform` (`translate3d` / `scale`) and `opacity`.
   - Added `.contain-content` (`contain: content;`) layout/paint isolation to repeating feed (`ActivityTimelineSection.tsx`, `DailyFocusSection.tsx`, `WeeklyAwardsSection.tsx`), chore (`ChoreAssignmentList.tsx`), notification (`NotificationsModal.tsx`), and chat (`ChatScreen.tsx`) list cards.
+
+---
+
+## 10. Visual Motion & Micro-Interactions (60fps Spring Physics & Living Action Arcs)
+
+- **Spring Physics & Stagger Tokens** (`src/index.css`, `Button.tsx`, `ActionCard.tsx`):
+  - Added `--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1)` and `--stagger-step: 40ms` tokens.
+  - Upgraded `.btn-tactile` (`0.05s` active press-down compression `translate3d(0, 2px, 0) scale(0.975)` + `0.24s var(--ease-spring)` rebound) and `.card-interactive` (hover lift + active compression + spring rebound).
+  - Added `.stagger-item` (`animation-delay: calc(var(--stagger-index, 0) * 40ms)`) across chore rows (`ChoreAssignmentList.tsx`), expense cards (`ExpensesScreen.tsx`), feed activity cards (`ActivityTimelineSection.tsx`), weekly honors (`WeeklyAwardsSection.tsx`), and vibe emotion cards (`VibeCheckModal.tsx`).
+- **Living Action Arcs (3-Beat Feedback)**:
+  - **Chore Completion** (`ChoreAssignmentList.tsx` & `DoneFlowModal.tsx`): Renders an animated SVG checkmark draw (`stroke-dashoffset` via `.animate-check-draw`), a celebration highlight pulse on the card (`ring-2 ring-[#3DBE6D]/60 bg-[#EBF9F0]`), and a floating `+1 Streak · +20 pts` / `+1 Token` badge (`.animate-float-badge`) before settling into completed state.
+  - **Animated Counters** (`src/components/common/AnimatedNumber.tsx`): Smoothly rolls Favor Token balances (`AppHeaderAndNav.tsx`, `ChoreSwapModal.tsx`, `ProfileSettingsModal.tsx`), streak days/points (`HomeScreen.tsx`, `DoneFlowModal.tsx`), and currency totals (`DailyFocusSection.tsx`, `BalanceOverviewSection.tsx`) over `300ms` via `requestAnimationFrame` cubic ease-out interpolation with a `.animate-number-pop` scale-pop pulse. Verified by `src/components/common/AnimatedNumber.test.ts` (4 tests).
+  - **Mascot Live Reactions** (`MascotView.tsx` & `HomeScreen.tsx`): Triggers reactive mascot expressions (`celebrating`, `cheering`, `calm` with `.animate-calm-nod`) in direct response to Vibe Check submissions, chore completions, presence toggles, and swap resolutions.
+- **Spatial Continuity & Sliding Indicators**:
+  - Animated segmented control active pills with smooth GPU `translate3d(X%, 0, 0)` spring glides across Auth (`SignInForm.tsx` Password vs Magic Link), Chores (`ChoresScreen.tsx` My tasks vs All chores), Apartment (`ApartmentScreen.tsx` Roomies vs Rules & Meetings), Expenses (`ExpensesScreen.tsx` All vs Pending vs Agreed), and Profile Settings (`ProfileSettingsModal.tsx` Profile vs Preferences vs Account).
+  - Added touch-drag dismissal (`onTouchStart`/`onTouchMove`/`onTouchEnd` driving `translate3d(0, Ypx, 0)` with `90px` dismiss threshold and `--ease-spring` snap-back) to mobile bottom-sheet modals (`Modal.tsx` and `VibeCheckModal.tsx`).
+  - Strictly respects `reducedMotion` (`document.documentElement.classList.contains('reduce-motion')` and `@media (prefers-reduced-motion: reduce)`) across all new keyframes, counters, and transitions.
 
 ### Multi-Agent UI & UX Audit Resolutions (Commit `e1864b9`):
 - **Deferred Chore Reassignment Until Consent**: Eliminated premature task transfer from the offer action; chore duty is now only reassigned when the recipient explicitly accepts the swap.
