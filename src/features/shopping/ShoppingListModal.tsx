@@ -103,6 +103,19 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
       onClose={onClose}
       title="Shared Shopping List"
       subtitle="Collaborative apartment essentials, low-stock tags & expense conversion"
+      footer={
+        cartItems.length > 0 && onConvertCartToExpense ? (
+          <Button
+            variant="reward"
+            size="md"
+            fullWidth
+            onClick={handleConvertExpense}
+            icon={<Receipt weight="bold" className="w-4 h-4" />}
+          >
+            Convert Cart to Expense ({cartItems.length} {cartItems.length === 1 ? 'item' : 'items'})
+          </Button>
+        ) : undefined
+      }
     >
       <div className="space-y-4 py-1">
         {/* Add Item Form */}
@@ -206,17 +219,6 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               In Cart ({cartItems.length})
             </button>
           </div>
-
-          {cartItems.length > 0 && onConvertCartToExpense && (
-            <Button
-              variant="reward"
-              size="sm"
-              onClick={handleConvertExpense}
-              icon={<Receipt weight="bold" className="w-4 h-4" />}
-            >
-              Convert to Expense ({cartItems.length})
-            </Button>
-          )}
         </div>
 
         {/* Items Checklist List */}

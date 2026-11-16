@@ -95,7 +95,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`fixed inset-x-0 bottom-0 sm:static w-full ${maxWidthClass} rounded-t-[28px] sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden max-h-[88dvh] sm:max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform animate-fade-up motion-reduce:animate-none`}
+        className={`fixed inset-x-0 bottom-0 sm:static w-full ${maxWidthClass} rounded-t-[28px] rounded-b-none sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden max-h-[88dvh] sm:max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform animate-fade-up motion-reduce:animate-none`}
         style={{
           backgroundColor: THEME.colors.surface,
           transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,

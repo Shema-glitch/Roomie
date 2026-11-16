@@ -115,6 +115,30 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
       onClose={onClose}
       title="Favor Tokens & Chore Swap"
       subtitle={`Find someone to take "${chore.name}"`}
+      footer={
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" size="md" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            disabled={!selectedRoommateId || loading || userTokens < tokenCost}
+            onClick={handleConfirm}
+            icon={<ArrowsLeftRight className="w-4 h-4" />}
+          >
+            {loading ? (
+              'Offering...'
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                <span>Offer (-{tokenCost}</span>
+                <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline" />
+                <span>)</span>
+              </span>
+            )}
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-4">
         {/* Token Balance Header */}
@@ -273,29 +297,6 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
             </span>
           </p>
         )}
-
-        <div className="pt-2 grid grid-cols-2 gap-2">
-          <Button variant="outline" size="md" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            disabled={!selectedRoommateId || loading || userTokens < tokenCost}
-            onClick={handleConfirm}
-            icon={<ArrowsLeftRight className="w-4 h-4" />}
-          >
-            {loading ? (
-              'Offering...'
-            ) : (
-              <span className="inline-flex items-center gap-1">
-                <span>Offer (-{tokenCost}</span>
-                <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 inline" />
-                <span>)</span>
-              </span>
-            )}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

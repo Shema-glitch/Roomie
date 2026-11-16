@@ -145,7 +145,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       }
       if (nextUnlocked) {
         sound.playCelebration();
-        showToast('🛠️ Developer & Debug mode unlocked!', 'reward');
+        showToast('Developer & Debug mode unlocked!', 'reward');
       } else {
         showToast('Developer mode hidden', 'info');
       }
@@ -243,7 +243,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
         window.deferredPrompt = null;
       });
     } else {
-      showToast('Tap Share in Safari / Menu in Chrome and choose "Add to Home Screen" 📱', 'info');
+      showToast('Tap Share in Safari / Menu in Chrome and choose "Add to Home Screen"', 'info');
     }
   };
 
@@ -481,7 +481,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     {currentUser.streakDays} Day Chore Streak • {currentUser.points} Roomie Points
                   </span>
                 </div>
-                <div className="text-2xl">🔥</div>
+                <Icon icon="fluent-emoji-flat:fire" className="w-7 h-7 shrink-0" />
               </div>
             </div>
           )}
@@ -695,7 +695,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     setFeatureFlag('culturalDinnersBeta', next);
                     sound.playTap();
                     haptics.tokenClink();
-                    showToast(next ? 'Cultural Dinners Beta enabled 🍲' : 'Cultural Dinners Beta disabled', 'info');
+                    showToast(next ? 'Cultural Dinners Beta enabled' : 'Cultural Dinners Beta disabled', 'info');
                   }}
                   className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
                     culturalDinnersBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
@@ -733,7 +733,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     setFeatureFlag('roomieWrappedBeta', next);
                     sound.playTap();
                     haptics.tokenClink();
-                    showToast(next ? 'Roomie Wrapped Beta enabled 🎁' : 'Roomie Wrapped Beta disabled', 'info');
+                    showToast(next ? 'Roomie Wrapped Beta enabled' : 'Roomie Wrapped Beta disabled', 'info');
                   }}
                   className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
                     roomieWrappedBeta ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
@@ -803,7 +803,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     icon={<Bug className="w-3.5 h-3.5 text-[#5B5BD6]" />}
                     className="border-dashed border-[#5B5BD6] text-[#5B5BD6]"
                   >
-                    Debug Layer 🛠️
+                    Debug Layer
                   </Button>
                 )}
               </div>
@@ -938,7 +938,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               onClick={handleVersionTap}
               className="text-[12px] font-bold text-[#94A3B8] hover:text-[#64748B] active:scale-95 transition-all cursor-pointer select-none"
             >
-              Roomie v1.0.0-phase1 {devModeUnlocked ? '• 🛠️ Dev Mode Active' : ''}
+              Roomie v2.1.0-beta {devModeUnlocked ? '• Dev Mode Active' : ''}
             </button>
           </div>
         </div>

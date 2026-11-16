@@ -118,6 +118,31 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
       onClose={onClose}
       title={`${householdName} Wrapped`}
       subtitle={`Semester living celebration · ${semesterLabel} recap`}
+      footer={
+        <div className="flex items-center justify-between w-full">
+          {slide > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrev}
+              icon={<ArrowLeft weight="bold" className="w-4 h-4" />}
+            >
+              Back
+            </Button>
+          ) : (
+            <div />
+          )}
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleNext}
+            icon={slide === totalSlides - 1 ? <Sparkle weight="fill" className="w-4 h-4" /> : <ArrowRight weight="bold" className="w-4 h-4" />}
+          >
+            {slide === totalSlides - 1 ? 'Finish & Celebrate' : 'Next Milestone'}
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-5 py-1">
         {/* Progress Segments */}
@@ -285,31 +310,6 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
             </Button>
           </div>
         )}
-
-        {/* Navigation Controls */}
-        <div className="flex items-center justify-between pt-2">
-          {slide > 0 ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrev}
-              icon={<ArrowLeft weight="bold" className="w-4 h-4" />}
-            >
-              Back
-            </Button>
-          ) : (
-            <div />
-          )}
-
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleNext}
-            icon={slide === totalSlides - 1 ? <Sparkle weight="fill" className="w-4 h-4" /> : <ArrowRight weight="bold" className="w-4 h-4" />}
-          >
-            {slide === totalSlides - 1 ? 'Finish & Celebrate' : 'Next Milestone'}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

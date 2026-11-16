@@ -457,4 +457,28 @@ Baseline Tag: `v1.0.0-phase1`
   - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
   - Git boundary maintained: branched off `feature/flat-bills-snapshot-landlord` into `feature/home-bento-and-modal-polish`. Untouched `main`.
 
+---
+
+## 16. UI Bento & Modal Bottom-Sheet Discipline Sprint (Branch `feature/ui-bento-and-modal-discipline`)
+
+- **Native Bottom-Sheet Geometric Discipline (`src/components/common/Modal.tsx`)**:
+  - Enforced docked native mobile bottom sheet geometry: `fixed inset-x-0 bottom-0 sm:static w-full ${maxWidthClass} rounded-t-[28px] rounded-b-none sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden max-h-[88dvh] sm:max-h-[90dvh] pb-safe sm:pb-0`.
+  - Added explicit `rounded-b-none` so viewport-anchored bottom sheets never clip or reveal unpainted corners on curved mobile displays.
+  - Retained tactile drag-to-dismiss handle (`w-10 h-1.5 rounded-full bg-[#CBD5E1]`), spring physics dismiss, automatic `document.body` scroll lock (`overflow: hidden`), and Escape / native Android back button handling via `useBackHandler`.
+- **Unified Canonical Modal Layer Across All Features**:
+  - Standardized `ShoppingListModal.tsx`, `ChoreSwapModal.tsx`, `RoomieWrappedModal.tsx`, and `VibeCheckModal.tsx` on the canonical `Modal.tsx` component hierarchy with sticky bottom CTA footers via `footer={...}` prop.
+  - `ShoppingListModal.tsx`: Extracted "Convert Cart to Expense" into a full-width sticky footer CTA when cart items are present, keeping item checklist tall and scrollable.
+  - `ChoreSwapModal.tsx`: Moved `Cancel` and `Offer (-X Tokens)` actions into sticky footer prop for consistent thumb reach.
+  - `RoomieWrappedModal.tsx`: Moved `Back` and `Next Milestone` navigation into sticky footer prop.
+- **Header, Version Bump & Emoji Purge**:
+  - `AppHeaderAndNav.tsx`: Apartment switcher text container widened to `max-w-[215px] sm:max-w-[260px] md:max-w-none`, resolving premature ellipsis truncation for multiline apartment titles (`Selin Court B Blok`).
+  - `ProfileSettingsModal.tsx`: Updated footer version string from `Roomie v1.0.0-phase1` to `Roomie v2.1.0-beta`.
+  - Purged remaining raw Unicode emojis from copy strings and JSX across `ProfileSettingsModal.tsx` (`🔥` replaced with registered `fluent-emoji-flat:fire` vector icon, raw toast/button emojis sanitized).
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **154.79 kB gzipped** (well below the 200 KB threshold).
+  - Test Suite: **102 / 102 unit tests passing** across 15 suites. `tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - Git boundary maintained: branched off `feature/home-bento-and-modal-polish` into `feature/ui-bento-and-modal-discipline`. Untouched `main`.
+
+
 
