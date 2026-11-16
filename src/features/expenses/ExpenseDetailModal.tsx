@@ -10,6 +10,7 @@ import { Expense, User } from '../../types';
 import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning, ShareNetwork } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getCurrencySymbol } from '../../utils/stateTable';
+import { copyTextToClipboard } from '../../utils/clipboard';
 
 interface ExpenseDetailModalProps {
   isOpen: boolean;
@@ -74,13 +75,11 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
     }
   };
 
-  const handleShareSummary = () => {
+  const handleShareSummary = async () => {
     sound.playTap();
     const summary = `Shared Expense: "${expense.title}" (${sym}${expense.amount.toFixed(2)})\nPaid by: ${payer?.name || 'Roomie'}\nCategory: ${expense.category}\nView details on Roomie: ${window.location.origin}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summary)}`;
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(summary).catch(() => {});
-    }
+    await copyTextToClipboard(summary);
     const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     if (!win) {
       showToast('Copied expense summary to clipboard!', 'info');

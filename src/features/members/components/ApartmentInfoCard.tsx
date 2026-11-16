@@ -5,6 +5,7 @@ import { Modal } from '../../../components/common/Modal';
 import { HouseholdInfoCard } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
+import { copyTextToClipboard } from '../../../utils/clipboard';
 import { useToast } from '../../../components/common/Toast';
 import {
   WifiHigh,
@@ -18,6 +19,12 @@ import {
   ShieldWarning,
   Check,
 } from '@phosphor-icons/react';
+
+export const IDENTITY_DOCUMENT_REGEX = /(passport|national[ _-]?id|visa[ _-]?num|ssn|social\s+security)/i;
+
+export function containsIdentityDocument(text: string): boolean {
+  return IDENTITY_DOCUMENT_REGEX.test(text);
+}
 
 export interface ApartmentInfoCardProps {
   infoCard?: HouseholdInfoCard | null;
@@ -53,12 +60,20 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
   const activeAddress = infoCard?.deliveryAddress || address;
   const activeEmergency = infoCard?.emergencyNote || emergency;
 
-  const handleCopy = (text: string, label: string) => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(text);
+  // Real-time client-side sensitive document pattern detection
+  const detectedInAddress = containsIdentityDocument(address);
+  const detectedInEmergency = containsIdentityDocument(emergency);
+  const detectedInTrash = containsIdentityDocument(trash);
+  const detectedInNotes = detectedInAddress || detectedInEmergency || detectedInTrash;
+
+  const handleCopy = async (text: string, label: string) => {
+    const success = await copyTextToClipboard(text);
+    if (success) {
       sound.tokenClink();
       haptics.tokenClink();
       showToast(`${label} copied to clipboard!`, 'success');
+    } else {
+      showToast(`Unable to copy ${label}. Please copy manually.`, 'error');
     }
   };
 
@@ -66,13 +81,12 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
     e.preventDefault();
     setEditError(null);
 
-    const combinedText = `${address} ${emergency}`.toLowerCase();
-    if (
-      combinedText.includes('passport') ||
-      combinedText.includes('national id') ||
-      combinedText.includes('ssn')
-    ) {
-      setEditError('For security, identity document numbers (passports, national IDs) are strictly prohibited.');
+    if (detectedInNotes) {
+      sound.softReject();
+      haptics.softReject();
+      setEditError(
+        'For flat security and privacy, identity documents (passports, national IDs, visas) are strictly prohibited. Please remove them before saving.'
+      );
       return;
     }
 
@@ -232,6 +246,24 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
           subtitle="Update Wi-Fi credentials, delivery address, and schedules"
         >
           <form onSubmit={handleSaveEdit} className="space-y-3.5 py-1">
+            {/* Live Friendly Warning Banner for Sensitive Identity Documents */}
+            {detectedInNotes && (
+              <div
+                role="alert"
+                className="p-3.5 rounded-2xl bg-[#FFFBEB] border-2 border-[#FDE68A] text-[#92400E] flex items-start gap-3 shadow-xs transition-all duration-200"
+              >
+                <ShieldWarning weight="fill" className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <p className="font-heading font-black text-[#78350F]">
+                    Sensitive Document Number Detected
+                  </p>
+                  <p className="leading-relaxed text-[#92400E]">
+                    For your apartment&apos;s privacy and security, passport numbers, national IDs, and visa numbers must never be stored in apartment notes. Please remove sensitive document numbers before saving.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {editError && (
               <div className="p-2.5 rounded-xl bg-[#FFF5F5] border border-[#FEB2B2] text-xs text-[#E53E3E] font-bold">
                 {editError}
@@ -307,12 +339,13 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
               </Button>
               <Button
                 type="submit"
-                variant="primary"
+                variant={detectedInNotes ? 'outline' : 'primary'}
                 size="sm"
                 loading={isSubmitting}
+                disabled={detectedInNotes || isSubmitting}
                 icon={<Check weight="bold" className="w-4 h-4" />}
               >
-                Save Details
+                {detectedInNotes ? 'Remove ID to Save' : 'Save Details'}
               </Button>
             </div>
           </form>

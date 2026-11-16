@@ -5,6 +5,7 @@ import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
 import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
+import { copyTextToClipboard } from '../../../utils/clipboard';
 import { useToast } from '../../../components/common/Toast';
 import {
   Buildings,
@@ -40,10 +41,10 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
 }) => {
   const { showToast } = useToast();
 
-  const copyCode = () => {
+  const copyCode = async () => {
     sound.playTap();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(household.inviteCode);
+    const copied = await copyTextToClipboard(household.inviteCode);
+    if (copied) {
       showToast(`Copied code ${household.inviteCode} to clipboard!`, 'success');
     } else {
       showToast(`Apartment code: ${household.inviteCode}`, 'info');

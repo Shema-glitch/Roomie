@@ -8,6 +8,7 @@ import { CurrencyCode, Household } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { buildInviteUrl } from '../../utils/inviteLink';
+import { copyTextToClipboard } from '../../utils/clipboard';
 import { debugLog } from '../../utils/debugLog';
 import {
   Check,
@@ -138,18 +139,18 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
     }
   };
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (!createdHousehold) return;
-    navigator.clipboard.writeText(createdHousehold.inviteCode).catch(() => {});
+    await copyTextToClipboard(createdHousehold.inviteCode);
     setCopied(true);
     showToast(`Invite code ${createdHousehold.inviteCode} copied!`, 'reward');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     if (!createdHousehold) return;
     const url = buildInviteUrl(createdHousehold.inviteCode);
-    navigator.clipboard.writeText(url).catch(() => {});
+    await copyTextToClipboard(url);
     setCopiedLink(true);
     showToast('Invite link copied!', 'reward');
     setTimeout(() => setCopiedLink(false), 2000);

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ShoppingApi } from './shopping.api';
 import { getInitialStore, AppStore } from './shared';
+import { containsIdentityDocument } from '../../features/members/components/ApartmentInfoCard';
 
 function createMockShoppingApi() {
   const store: AppStore = getInitialStore();
@@ -170,4 +171,20 @@ test('apartment info card: rejects identity documents and updates flat utilities
   const card = await api.getHouseholdInfoCard(householdId);
   assert.ok(card);
   assert.equal(card.wifiSsid, 'RoomieFlat_Fast');
+});
+
+test('apartment info card: containsIdentityDocument detects sensitive document patterns client-side', () => {
+  // Positive detections (prohibited patterns matching Postgres check constraint)
+  assert.equal(containsIdentityDocument('My passport number is U1234567'), true);
+  assert.equal(containsIdentityDocument('National ID: 99482710'), true);
+  assert.equal(containsIdentityDocument('national_id 12345'), true);
+  assert.equal(containsIdentityDocument('Student visa num: TRNC-2026'), true);
+  assert.equal(containsIdentityDocument('SSN 000-12-3456'), true);
+  assert.equal(containsIdentityDocument('Social security card in desk'), true);
+
+  // Negative detections (safe standard apartment notes & addresses)
+  assert.equal(containsIdentityDocument('Bedreddin Demirel Cad. No 44, Daire 4B'), false);
+  assert.equal(containsIdentityDocument('Tuesdays & Fridays 08:00 at front gate'), false);
+  assert.equal(containsIdentityDocument('Main water shutoff valve behind kitchen sink'), false);
+  assert.equal(containsIdentityDocument('Superintendent Mehmet: +90 533 888 1234'), false);
 });

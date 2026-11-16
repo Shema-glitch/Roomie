@@ -16,6 +16,7 @@ import {
 import { DEBUG_MODULES, DebugEntry, DebugLevel, DebugModule, debugLog } from '../../utils/debugLog';
 import { outbox } from '../../services/outbox';
 import { api } from '../../services/api';
+import { copyTextToClipboard } from '../../utils/clipboard';
 import { useToast } from './Toast';
 
 interface DebugInspectorModalProps {
@@ -85,14 +86,14 @@ export const DebugInspectorModal: React.FC<DebugInspectorModalProps> = ({ isOpen
     }
   };
 
-  const handleCopyReport = () => {
+  const handleCopyReport = async () => {
     const report = debugLog.exportReport({
       demoMode: isDemo,
       pendingOutbox: pendingCount,
       outboxItems: outboxItems.map((i) => ({ id: i.id, type: i.type, status: i.status, retryCount: i.retryCount })),
       probe,
     });
-    navigator.clipboard?.writeText(report).catch(() => {});
+    await copyTextToClipboard(report);
     showToast('Debug report copied to clipboard', 'success');
   };
 

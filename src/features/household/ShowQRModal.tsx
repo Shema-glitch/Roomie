@@ -8,6 +8,7 @@ import { Copy, Check, ArrowsClockwise, ChatCircleDots, Power, Link } from '@phos
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 import { buildInviteUrl } from '../../utils/inviteLink';
+import { copyTextToClipboard } from '../../utils/clipboard';
 import { debugLog } from '../../utils/debugLog';
 
 interface ShowQRModalProps {
@@ -69,17 +70,17 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
     };
   }, [isOpen, household.inviteCode, inviteUrl]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     sound.playTap();
-    navigator.clipboard.writeText(household.inviteCode).catch(() => {});
+    await copyTextToClipboard(household.inviteCode);
     setCopied(true);
     showToast(`Invite code ${household.inviteCode} copied!`, 'info');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     sound.playTap();
-    navigator.clipboard.writeText(inviteUrl).catch(() => {});
+    await copyTextToClipboard(inviteUrl);
     setCopiedLink(true);
     showToast('Invite link copied!', 'info');
     setTimeout(() => setCopiedLink(false), 2000);
@@ -119,9 +120,9 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
   const shareText = `Join our apartment "${household.name}" on Roomie!\nOpen: ${inviteUrl}\nOr use invite code: ${household.inviteCode}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
 
-  const handleShareWhatsApp = () => {
+  const handleShareWhatsApp = async () => {
     sound.playTap();
-    navigator.clipboard.writeText(shareText).catch(() => {});
+    await copyTextToClipboard(shareText);
     showToast('Invite link copied. Opening WhatsApp...', 'info');
     const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     if (!win) {
