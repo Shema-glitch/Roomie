@@ -83,9 +83,9 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 animate-fade-in"
     >
-      <div className="w-full max-w-md bg-white rounded-3xl border-2 border-b-6 border-[#E6E8EE] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-md bg-white rounded-3xl border-2 border-b-6 border-[#E6E8EE] shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-5 will-change-transform animate-pop-in">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">

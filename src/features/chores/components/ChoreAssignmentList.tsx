@@ -60,7 +60,7 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
     return (
       <ActionCard
         tint={isOptimisticDone ? 'green' : 'teal'}
-        className={`transition-[transform,opacity,background-color,border-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`contain-content transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isOptimisticDone ? 'opacity-85' : ''
         }`}
         iconTile={
@@ -194,6 +194,7 @@ const CompletedChoreRow: React.FC<CompletedChoreRowProps> = React.memo(
     return (
       <ActionCard
         tint="green"
+        className="contain-content"
         iconTile={
           <IconTile
             icon={<CheckCircle className="w-6 h-6" weight="fill" />}

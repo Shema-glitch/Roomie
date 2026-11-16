@@ -162,7 +162,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
               return (
                 <div
                   key={n.id}
-                  className={`p-3 rounded-2xl border-2 border-b-4 transition-[transform,background-color,border-color] duration-150 ${
+                  className={`p-3 rounded-2xl border-2 border-b-4 transition-[transform,opacity] duration-150 contain-content ${
                     !n.read
                       ? n.type === 'privacy_alert'
                         ? 'bg-amber-50/80 border-amber-300 shadow-2xs'

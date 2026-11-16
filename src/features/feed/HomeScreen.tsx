@@ -26,6 +26,7 @@ import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
 import { useToast } from '../../components/common/Toast';
 import { api } from '../../services/api';
+import { localCache } from '../../services/localCache';
 import { Icon } from '@iconify/react';
 import {
   CheckCircle,
@@ -98,13 +99,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 }) => {
   const { showToast } = useToast();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
-  const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(undefined);
-  const [awards, setAwards] = useState<WeeklyAward[]>([]);
-  const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>([]);
+  const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(
+    () => localCache.getSnapshot(household?.id)?.vibeSummary
+  );
+  const [awards, setAwards] = useState<WeeklyAward[]>(
+    () => localCache.getSnapshot(household?.id)?.weeklyAwards || []
+  );
+  const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>(
+    () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
+  );
   const [isVibeModalOpen, setIsVibeModalOpen] = useState(false);
 
   useEffect(() => {
     if (household?.id) {
+      const snap = localCache.getSnapshot(household.id);
+      if (snap) {
+        setVibeSummary(snap.vibeSummary);
+        setAwards(snap.weeklyAwards);
+        setPendingSwaps(snap.pendingSwaps);
+      }
       api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
       api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
       api.getSwapRequests(household.id).then((reqs) => {

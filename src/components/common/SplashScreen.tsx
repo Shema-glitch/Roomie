@@ -85,7 +85,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, onRevealSt
 
         {/* Simulated Loading Bar */}
         <div className="w-full space-y-2 pt-2">
-          <div className="w-full h-3.5 bg-black/20 rounded-full p-0.5 overflow-hidden backdrop-blur-xs border border-white/20 shadow-inner">
+          <div className="w-full h-3.5 bg-black/20 rounded-full p-0.5 overflow-hidden border border-white/20 shadow-inner">
             <div
               className="h-full bg-white rounded-full transition-all duration-75 ease-out shadow-sm"
               style={{ width: `${progress}%` }}

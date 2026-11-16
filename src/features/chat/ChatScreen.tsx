@@ -173,7 +173,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             });
 
             return (
-              <div key={msg.id} className="py-1 flex justify-center w-full">
+              <div key={msg.id} className="py-1 flex justify-center w-full contain-content">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F1F3F9] text-[#475569] text-[14px] font-semibold border border-[#E2E5EC] max-w-full shadow-2xs">
                   {isChore ? (
                     <CheckCircle weight="duotone" className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
@@ -208,7 +208,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           return (
             <div
               key={msg.id}
-              className={`flex items-end gap-2.5 relative ${isMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-end gap-2.5 relative contain-content ${isMe ? 'justify-end' : 'justify-start'}`}
             >
               {!isMe && (
                 <Avatar

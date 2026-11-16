@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-[#1F2430]/60 backdrop-blur-sm animate-fade-in motion-reduce:animate-none"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-slate-900/60 animate-fade-in motion-reduce:animate-none"
       onClick={onClose}
     >
       <div

@@ -170,22 +170,22 @@ export const MascotView: React.FC<MascotViewProps> = ({
     }
   };
 
-  // Bounce class depending on state (calm has none)
+  // GPU-composited motion class (strictly transform & opacity)
   const getMotionClass = () => {
     switch (state) {
       case 'cheering':
-        return 'animate-bounce';
+        return 'animate-bounce-soft will-change-transform';
       case 'celebrating':
-        return 'animate-bounce';
+        return 'animate-bounce-soft will-change-transform';
       case 'thinking':
-        return 'animate-pulse';
+        return 'animate-pulse will-change-[opacity]';
       case 'sleepy':
         return 'opacity-90';
       case 'calm':
         return '';
       case 'idle':
       default:
-        return 'hover:scale-105 transition-transform duration-300';
+        return 'hover:scale-105 transition-transform duration-300 will-change-transform';
     }
   };
 
@@ -217,7 +217,7 @@ export const MascotView: React.FC<MascotViewProps> = ({
           width={dim}
           height={dim}
           viewBox="0 0 100 100"
-          className="drop-shadow-sm overflow-visible"
+          className="overflow-visible"
         >
           {renderMascotBody()}
         </svg>

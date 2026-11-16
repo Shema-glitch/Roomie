@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useToast } from './Toast';
 import { AppTab } from './AppHeaderAndNav';
@@ -21,22 +21,48 @@ import {
 } from '../../types';
 import { NetBalance } from '../../utils/balances';
 import { ScreenSkeleton } from './PageSkeletons';
+import { HomeScreen } from '../../features/feed/HomeScreen';
 
-const HomeScreen = React.lazy(() =>
-  import('../../features/feed/HomeScreen').then((m) => ({ default: m.HomeScreen }))
-);
-const ChoresScreen = React.lazy(() =>
-  import('../../features/chores/ChoresScreen').then((m) => ({ default: m.ChoresScreen }))
-);
-const ExpensesScreen = React.lazy(() =>
-  import('../../features/expenses/ExpensesScreen').then((m) => ({ default: m.ExpensesScreen }))
-);
-const ChatScreen = React.lazy(() =>
-  import('../../features/chat/ChatScreen').then((m) => ({ default: m.ChatScreen }))
-);
-const ApartmentScreen = React.lazy(() =>
-  import('../../features/members/ApartmentScreen').then((m) => ({ default: m.ApartmentScreen }))
-);
+const loadChoresScreen = () =>
+  import('../../features/chores/ChoresScreen').then((m) => ({ default: m.ChoresScreen }));
+const loadExpensesScreen = () =>
+  import('../../features/expenses/ExpensesScreen').then((m) => ({ default: m.ExpensesScreen }));
+const loadChatScreen = () =>
+  import('../../features/chat/ChatScreen').then((m) => ({ default: m.ChatScreen }));
+const loadApartmentScreen = () =>
+  import('../../features/members/ApartmentScreen').then((m) => ({ default: m.ApartmentScreen }));
+
+const ChoresScreen = React.lazy(loadChoresScreen);
+const ExpensesScreen = React.lazy(loadExpensesScreen);
+const ChatScreen = React.lazy(loadChatScreen);
+const ApartmentScreen = React.lazy(loadApartmentScreen);
+
+/**
+ * Prefetches secondary tab chunks during browser idle time (`requestIdleCallback`
+ * with a 1000ms `setTimeout` fallback) after HomeScreen mounts so tab switches
+ * complete in a single frame (<16ms).
+ */
+export function prefetchSecondaryTabChunks(): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const runPrefetch = () => {
+    void loadChoresScreen();
+    void loadExpensesScreen();
+    void loadApartmentScreen();
+    void loadChatScreen();
+  };
+
+  if ('requestIdleCallback' in window && typeof window.requestIdleCallback === 'function') {
+    const idleId = window.requestIdleCallback(runPrefetch, { timeout: 1500 });
+    return () => {
+      if ('cancelIdleCallback' in window && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+    };
+  }
+
+  const timerId = window.setTimeout(runPrefetch, 1000);
+  return () => window.clearTimeout(timerId);
+}
 
 interface AppTabRouterProps {
   activeTab: AppTab;
@@ -103,6 +129,10 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
   }) => {
     const { showToast } = useToast();
     const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
+
+    useEffect(() => {
+      return prefetchSecondaryTabChunks();
+    }, []);
     const pendingJoinRequests = useMemo(
       () => joinRequests.filter((r) => r.status === 'pending'),
       [joinRequests]

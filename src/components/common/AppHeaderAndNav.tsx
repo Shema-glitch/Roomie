@@ -151,7 +151,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
 
     return (
       <header
-        className={`sticky top-0 z-30 bg-[#F7F8FB]/95 backdrop-blur-md border-b border-[#E6E8EE] w-full ${
+        className={`sticky top-0 z-30 bg-[#F7F8FB]/95 border-b border-[#E6E8EE] w-full ${
           isOffline || syncStatus === 'offline' || isDemoMode ? '' : 'pt-safe'
         }`}
       >
@@ -339,7 +339,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
     return (
       <nav
         aria-label="Main Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white/95 backdrop-blur-md border-t border-[#E6E8EE] px-2 pt-2 pb-[calc(0.5rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] flex items-center justify-around z-30 shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-[#F7F8FB]/95 border-t border-[#E6E8EE] px-2 pt-2 pb-[calc(0.5rem+var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))] flex items-center justify-around z-30 shadow-lg"
       >
         {BOTTOM_NAV_ITEMS.map((tabItem) => {
           const isActive = activeTab === tabItem.id;

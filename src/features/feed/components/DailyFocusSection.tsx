@@ -47,6 +47,7 @@ export const DailyFocusSection: React.FC<DailyFocusSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ActionCard
           tint="teal"
+          className="contain-content"
           iconTile={
             <IconTile
               icon={

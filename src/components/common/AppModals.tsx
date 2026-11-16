@@ -69,7 +69,7 @@ const DutyTimetableModal = React.lazy(() =>
 );
 
 const ModalSkeleton: React.FC = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-xs">
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
     <div className="bg-white rounded-3xl p-6 w-full max-w-md space-y-4 animate-pulse">
       <div className="h-6 bg-[#E6E8EE] rounded-xl w-1/2" />
       <div className="h-20 bg-[#E6E8EE]/60 rounded-2xl" />

@@ -269,7 +269,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
 
       {/* Suggest for Roommate Dialog */}
       {suggestModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
           <Card padding="lg" className="w-full max-w-xs bg-white space-y-3">
             <h4 className="type-section-heading">
               Suggest for roomie

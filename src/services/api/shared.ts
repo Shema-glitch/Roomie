@@ -31,6 +31,7 @@ import { getCurrentWeekKey } from '../../utils/vibe';
 import { outbox, OutboxActionType } from '../outbox';
 import { debugLog, DebugModule } from '../../utils/debugLog';
 import { supabase } from '../supabase';
+import { localCache } from '../localCache';
 import { Json } from '../../types/database.types';
 
 export type RemoteMutationError = { message: string; code?: string } | null;
@@ -1054,6 +1055,7 @@ export function saveStore(store: AppStore): void {
       // quota limit
     }
   }
+  localCache.syncSnapshotFromStore(store);
 }
 
 export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api } from '../services/api';
+import { localCache } from '../services/localCache';
 import { sound } from '../services/sound';
 import { haptics } from '../utils/haptics';
 import { useToast } from '../components/common/Toast';
@@ -58,31 +59,57 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('Just now');
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [households, setHouseholds] = useState<Household[]>([]);
-  const [activeHousehold, setActiveHousehold] = useState<Household | null>(null);
-  const [members, setMembers] = useState<{ user: User; membership: Membership }[]>([]);
-  const [chores, setChores] = useState<Chore[]>([]);
-  const [draftRound, setDraftRound] = useState<DraftRound | null>(null);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [settlements, setSettlements] = useState<Settlement[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [topics, setTopics] = useState<MeetingTopic[]>([]);
-  const [agreements, setAgreements] = useState<HouseAgreement[]>([]);
-  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
-  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
-  const [dutySchedule, setDutySchedule] = useState<DutySchedule | null>(null);
-  const [settings, setSettings] = useState<UserSettings>({
-    language: 'en',
-    soundEnabled: false,
-    reducedMotion: false,
-    pushNotifications: true,
-    reminderEarly30Min: true,
-  });
+  // Synchronous 0ms hydration from cached household snapshot
+  const initialSnapshot = useMemo(() => localCache.hydrateOnBoot(api.store), []);
+
+  const [currentUser, setCurrentUser] = useState<User | null>(
+    () => initialSnapshot?.currentUser || null
+  );
+  const [households, setHouseholds] = useState<Household[]>(
+    () => initialSnapshot?.households || []
+  );
+  const [activeHousehold, setActiveHousehold] = useState<Household | null>(
+    () => initialSnapshot?.activeHousehold || null
+  );
+  const [members, setMembers] = useState<{ user: User; membership: Membership }[]>(
+    () => initialSnapshot?.members || []
+  );
+  const [chores, setChores] = useState<Chore[]>(() => initialSnapshot?.chores || []);
+  const [draftRound, setDraftRound] = useState<DraftRound | null>(
+    () => initialSnapshot?.draftRound || null
+  );
+  const [expenses, setExpenses] = useState<Expense[]>(() => initialSnapshot?.expenses || []);
+  const [settlements, setSettlements] = useState<Settlement[]>(
+    () => initialSnapshot?.settlements || []
+  );
+  const [messages, setMessages] = useState<ChatMessage[]>(() => initialSnapshot?.messages || []);
+  const [topics, setTopics] = useState<MeetingTopic[]>(() => initialSnapshot?.topics || []);
+  const [agreements, setAgreements] = useState<HouseAgreement[]>(
+    () => initialSnapshot?.agreements || []
+  );
+  const [notifications, setNotifications] = useState<InAppNotification[]>(
+    () => initialSnapshot?.notifications || []
+  );
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(
+    () => initialSnapshot?.joinRequests || []
+  );
+  const [dutySchedule, setDutySchedule] = useState<DutySchedule | null>(
+    () => initialSnapshot?.dutySchedule || null
+  );
+  const [settings, setSettings] = useState<UserSettings>(
+    () =>
+      initialSnapshot?.settings || {
+        language: 'en',
+        soundEnabled: false,
+        reducedMotion: false,
+        pushNotifications: true,
+        reminderEarly30Min: true,
+      }
+  );
   const [balances, setBalances] = useState<{
     userSummaries: Record<string, number>;
     simplifiedDebts: NetBalance[];
-  }>({ userSummaries: {}, simplifiedDebts: [] });
+  }>(() => initialSnapshot?.balances || { userSummaries: {}, simplifiedDebts: [] });
 
   const loadData = useCallback(async () => {
     setLoadError(null);
@@ -120,6 +147,22 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
         setBalances({ userSummaries: {}, simplifiedDebts: [] });
         setNeedsHouseholdSetup(true);
         return;
+      }
+
+      // If switching to another household that already has a cached snapshot, hydrate it immediately
+      const cachedForTarget = localCache.getSnapshot(activeH.id);
+      if (cachedForTarget) {
+        setMembers(cachedForTarget.members);
+        setChores(cachedForTarget.chores);
+        setDraftRound(cachedForTarget.draftRound);
+        setExpenses(cachedForTarget.expenses);
+        setSettlements(cachedForTarget.settlements);
+        setMessages(cachedForTarget.messages);
+        setTopics(cachedForTarget.topics);
+        setAgreements(cachedForTarget.agreements);
+        setJoinRequests(cachedForTarget.joinRequests);
+        setBalances(cachedForTarget.balances);
+        setDutySchedule(cachedForTarget.dutySchedule);
       }
 
       const [
@@ -160,6 +203,7 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       setBalances(balOverview);
       setDutySchedule(dSchedule);
 
+      localCache.syncSnapshotFromStore(api.store, activeH.id);
       await api.checkDutyDayReminder();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Could not load apartment data.';
