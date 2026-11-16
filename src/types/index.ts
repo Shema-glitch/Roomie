@@ -4,7 +4,7 @@
  */
 
 export type UserRole = 'admin' | 'member';
-export type MembershipStatus = 'pending' | 'active' | 'left';
+export type MembershipStatus = 'pending' | 'active' | 'left' | 'removed';
 export type CurrencyCode = 'TRY' | 'USD' | 'EUR';
 export type EffortLevel = 'light' | 'medium' | 'heavy';
 export type ChoreFrequency = 'daily' | 'weekly';
@@ -28,6 +28,7 @@ export interface User {
   isHome: boolean;
   streakDays: number;
   points: number;
+  favorTokens?: number;
   awayUntil: string | null; // "I'm away" mode date ISO or null
 }
 
@@ -206,7 +207,7 @@ export interface HouseAgreement {
 export interface InAppNotification {
   id: string;
   userId: string;
-  type: 'chore' | 'expense' | 'household' | 'chat';
+  type: 'chore' | 'expense' | 'household' | 'chat' | 'privacy_alert';
   title: string;
   body: string;
   read: boolean;
@@ -220,7 +221,111 @@ export interface InAppNotification {
 export interface UserSettings {
   language: 'en' | 'tr' | 'fr' | 'ar';
   soundEnabled: boolean;
+  hapticsEnabled?: boolean;
   reducedMotion: boolean;
   pushNotifications: boolean;
   reminderEarly30Min: boolean;
 }
+
+export type DayOfWeek =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
+
+export interface DutyDayEntry {
+  day: DayOfWeek;
+  assignedUserId: string;
+  choreIds: string[];
+  notes?: string;
+  completed?: boolean;
+}
+
+export interface DutySchedule {
+  householdId: string;
+  weekStartDate: string;
+  entries: DutyDayEntry[];
+}
+
+// -------------------------------------------------------------
+// Social & Rituals Domain Types (Weekly Awards, Vibe Pulse, Favor Tokens)
+// -------------------------------------------------------------
+
+export type AwardBadgeId =
+  | 'kitchen_hero'
+  | 'bin_boss'
+  | 'night_chef'
+  | 'peacemaker'
+  | 'streak_master'
+  | 'early_bird'
+  | 'the_dependable'
+  | 'cheerleader';
+
+export interface WeeklyAward {
+  id: string;
+  householdId: string;
+  weekLabel: string;
+  badgeId: AwardBadgeId;
+  title: string;
+  icon: string;
+  recipientUserId: string;
+  recipientName: string;
+  reason: string;
+  colorScheme: 'amber' | 'emerald' | 'purple' | 'sky' | 'rose' | 'indigo';
+  awardedAt: string;
+}
+
+export type VibeRating = 'fire' | 'chill' | 'meh' | 'stressed' | 'down';
+
+export interface WeeklyVibeCheck {
+  id: string;
+  householdId: string;
+  weekKey: string;
+  score: number; // 1 (down) to 5 (fire)
+  rating: VibeRating;
+  createdAt: string;
+}
+
+export interface HouseholdVibeSummary {
+  householdId: string;
+  weekKey: string;
+  submissionCount: number;
+  revealed: boolean; // strictly requires >= 3 submissions to protect roommate privacy
+  minRequired: number;
+  averageScore?: number;
+  dominantMood?: VibeRating;
+}
+
+export interface FavorTokenTransaction {
+  id: string;
+  householdId: string;
+  userId: string;
+  type: 'earn' | 'spend';
+  amount: number;
+  reason:
+    | 'streak_milestone'
+    | 'weekly_award'
+    | 'chore_pickup'
+    | 'chore_swap'
+    | 'roommate_favor'
+    | 'gift';
+  note?: string;
+  createdAt: string;
+}
+
+export interface ChoreSwapRequest {
+  id: string;
+  householdId: string;
+  requesterUserId: string;
+  targetUserId: string;
+  requesterChoreName: string;
+  targetChoreName: string;
+  tokenCost: number;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled';
+  note?: string;
+  createdAt: string;
+}
+

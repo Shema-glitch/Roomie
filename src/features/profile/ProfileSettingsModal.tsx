@@ -3,26 +3,37 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
+import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { IconTile } from '../../components/common/IconTile';
 import { User, UserSettings } from '../../types';
-import { sound } from '../../services/sound';
+import { sound, isSoundEnabled, setSoundEnabled } from '../../services/sound';
+import { haptics, isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics';
 import {
-  Volume2,
-  VolumeX,
+  Camera,
+  UploadSimple,
+  SpeakerHigh,
+  SpeakerSlash,
+  Vibrate,
   Eye,
   Bell,
   Globe,
-  Download,
-  Trash2,
-  MessageSquareHeart,
-  Pencil,
-  LogOut,
-  AlertTriangle,
+  DownloadSimple,
+  Trash,
+  ChatCircleText,
+  PencilSimple,
+  SignOut,
+  Warning,
   Check,
   X,
-  AlertCircle,
-} from 'lucide-react';
+  WarningCircle,
+  DeviceMobile,
+  Lightning,
+  Bug,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { Icon } from '@iconify/react';
+import { processPhoto } from '../../utils/photoPipeline';
+import { uploadPhotoToStorage } from '../../services/supabase';
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -33,8 +44,14 @@ interface ProfileSettingsModalProps {
   onUpdateProfile?: (updates: Partial<User>) => Promise<User>;
   onExportData: () => void;
   onDeleteAccount: () => void;
-  onSignOut?: () => void;
+  onSignOut?: (options?: { keepSavedLogin?: boolean }) => void;
+  isLoginSaved?: boolean;
+  onToggleSaveLogin?: (save: boolean) => Promise<boolean>;
   onOpenFeedback: () => void;
+  onOpenHowItWorks?: () => void;
+  onOpenShowcase?: () => void;
+  onOpenHouseholdSetup?: () => void;
+  onOpenDebugInspector?: () => void;
 }
 
 const PRESET_AVATARS = [
@@ -55,11 +72,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onExportData,
   onDeleteAccount,
   onSignOut,
+  isLoginSaved = false,
+  onToggleSaveLogin,
   onOpenFeedback,
+  onOpenHowItWorks,
+  onOpenShowcase,
+  onOpenHouseholdSetup,
+  onOpenDebugInspector,
 }) => {
   const { showToast } = useToast();
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+  const [signOutPromptOpen, setSignOutPromptOpen] = useState(false);
+  const [loginSaved, setLoginSaved] = useState(Boolean(isLoginSaved));
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   // Edit profile form state
@@ -68,13 +93,76 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [editFlag, setEditFlag] = useState(currentUser.flag);
   const [editAvatar, setEditAvatar] = useState(currentUser.avatar);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'account'>('profile');
+  const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingAvatar(true);
+      sound.playPop();
+      const processed = await processPhoto(file);
+      const fileName = `avatar_${currentUser.id}_${Date.now()}.jpg`;
+      const finalUrl = await uploadPhotoToStorage('avatars', fileName, processed.fullBlob, processed.fullDataUrl);
+      setEditAvatar(finalUrl);
+      sound.playSuccess();
+      showToast('Custom photo avatar attached!', 'reward');
+    } catch {
+      showToast('Could not process avatar photo', 'error');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+  const [devModeUnlocked, setDevModeUnlocked] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('roomie_dev_mode') === 'true';
+    }
+    return false;
+  });
+  const [versionTapCount, setVersionTapCount] = useState(0);
+
+  const handleVersionTap = () => {
+    sound.playPop();
+    const nextCount = versionTapCount + 1;
+    if (nextCount >= 5) {
+      const nextUnlocked = !devModeUnlocked;
+      setDevModeUnlocked(nextUnlocked);
+      setVersionTapCount(0);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('roomie_dev_mode', String(nextUnlocked));
+      }
+      if (nextUnlocked) {
+        sound.playCelebration();
+        showToast('🛠️ Developer & Debug mode unlocked!', 'reward');
+      } else {
+        showToast('Developer mode hidden', 'info');
+      }
+    } else {
+      setVersionTapCount(nextCount);
+      if (nextCount >= 2) {
+        showToast(`${5 - nextCount} more taps to ${devModeUnlocked ? 'hide' : 'unlock'} Developer tools`, 'info');
+      }
+    }
+  };
 
   const toggleSound = async () => {
-    const next = !settings.soundEnabled;
-    sound.setEnabled(next);
-    if (next) sound.playSuccess();
+    const current = settings.soundEnabled ?? isSoundEnabled();
+    const next = !current;
+    setSoundEnabled(next);
+    if (next) sound.awardCelebrate();
     await onUpdateSettings({ soundEnabled: next });
     showToast(next ? 'Sound effects enabled' : 'Sound effects muted', 'info');
+  };
+
+  const toggleHaptics = async () => {
+    const currentHaptics = settings.hapticsEnabled ?? isHapticsEnabled();
+    const next = !currentHaptics;
+    setHapticsEnabled(next);
+    if (next) haptics.awardCelebrate();
+    await onUpdateSettings({ hapticsEnabled: next });
+    showToast(next ? 'Haptic vibration enabled' : 'Haptic vibration muted', 'info');
   };
 
   const toggleReducedMotion = async () => {
@@ -137,40 +225,125 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     }
   };
 
+  const handleInstallApp = () => {
+    sound.playTap();
+    if (typeof window !== 'undefined' && window.deferredPrompt) {
+      window.deferredPrompt.prompt();
+      window.deferredPrompt.userChoice.then(() => {
+        window.deferredPrompt = null;
+      });
+    } else {
+      showToast('Tap Share in Safari / Menu in Chrome and choose "Add to Home Screen" 📱', 'info');
+    }
+  };
+
   return (
     <>
       <Modal
         isOpen={isOpen}
         onClose={onClose}
         title="Profile & Settings"
-        subtitle="Customise your Roomie experience"
+        subtitle="Manage your identity, roomie habits and account"
       >
         <div className="space-y-4">
-          {/* User Profile Card or Edit Form */}
-          {!isEditingProfile ? (
+          {/* Segmented Pill Navigation with Sliding Indicator */}
+          <div className="relative grid grid-cols-3 p-1 bg-[#EEF0F6] rounded-2xl border-2 border-[#E2E5EC]">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.67px)] rounded-xl bg-white shadow-2xs border border-[#CBD5E1] transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+              style={{
+                transform: `translate3d(${
+                  activeTab === 'profile' ? 0 : activeTab === 'preferences' ? 100 : 200
+                }%, 0, 0)`,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('profile');
+              }}
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
+                activeTab === 'profile'
+                  ? 'text-[#1F2430]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Profile
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('preferences');
+              }}
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
+                activeTab === 'preferences'
+                  ? 'text-[#1F2430]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Preferences
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setActiveTab('account');
+              }}
+              className={`relative z-10 py-2 rounded-xl text-[13px] sm:text-[14px] font-heading font-black transition-colors duration-150 cursor-pointer ${
+                activeTab === 'account'
+                  ? 'text-[#1F2430]'
+                  : 'text-[#64748B] hover:text-[#1F2430]'
+              }`}
+            >
+              Account
+            </button>
+          </div>
+          {/* TAB 1: PROFILE */}
+          {activeTab === 'profile' && (
+            <div className="space-y-4">
+              {!isEditingProfile ? (
             <Card padding="md" variant="calm" className="flex items-center justify-between gap-3 bg-[#F7F8FB]">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Avatar
                   src={currentUser.avatar}
                   name={currentUser.name}
                   flag={currentUser.flag}
                   size="lg"
                 />
-                <div>
-                  <h4 className="type-section-heading">
+                <div className="min-w-0 flex-1">
+                  <h4 className="type-section-heading truncate">
                     {currentUser.name}
                   </h4>
-                  <p className="type-secondary">{currentUser.email}</p>
-                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430]">
-                    <span>{currentUser.country} {currentUser.flag}</span>
-                    <span>•</span>
-                    <span className="text-[#FF6B4A] font-bold">{currentUser.points} points</span>
+                  <p className="type-secondary truncate" title={currentUser.email}>{currentUser.email}</p>
+                  <div className="flex items-center gap-1.5 mt-1 type-secondary text-[#1F2430] flex-wrap">
+                    <span className="truncate">{currentUser.country} {currentUser.flag}</span>
+                    <span className="shrink-0">•</span>
+                    <span className="text-[#FF6B4A] font-bold shrink-0">
+                      <AnimatedNumber value={currentUser.points} suffix=" pts" />
+                    </span>
+                    <span className="shrink-0">•</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        haptics.tokenClink();
+                        sound.tokenClink();
+                      }}
+                      className="text-[#B45309] font-black text-xs shrink-0 bg-[#FEF3C7] px-2 py-0.5 rounded-full border border-[#FDE68A] inline-flex items-center gap-1 active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <Icon icon="fluent-emoji-flat:coin" className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        <AnimatedNumber value={currentUser.favorTokens ?? 5} suffix=" tokens" />
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
+                className="shrink-0"
                 onClick={() => {
                   sound.playTap();
                   setEditName(currentUser.name);
@@ -179,9 +352,9 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   setEditAvatar(currentUser.avatar);
                   setIsEditingProfile(true);
                 }}
-                icon={<Pencil className="w-3.5 h-3.5" />}
+                icon={<PencilSimple className="w-3.5 h-3.5" />}
               >
-                Edit profile
+                Edit
               </Button>
             </Card>
           ) : (
@@ -230,18 +403,44 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
 
               <div>
-                <label className="type-label block mb-1">Avatar Preset</label>
-                <div className="flex items-center gap-2 overflow-x-auto py-1">
+                <label className="type-label block mb-1.5">Your Photo or Avatar</label>
+                <input
+                  ref={avatarFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarFileChange}
+                />
+                <div className="flex items-center gap-2.5 overflow-x-auto py-1.5">
+                  {/* Custom Photo Button */}
+                  <button
+                    type="button"
+                    disabled={uploadingAvatar}
+                    onClick={() => avatarFileInputRef.current?.click()}
+                    className="w-12 h-12 rounded-full border-2 border-dashed border-[#FF6B4A] bg-[#FFF5F2] hover:bg-[#FFEAE4] flex flex-col items-center justify-center text-[#FF6B4A] shrink-0 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                    title="Upload custom photo or selfie"
+                  >
+                    {uploadingAvatar ? (
+                      <UploadSimple className="w-5 h-5 animate-bounce" />
+                    ) : (
+                      <Camera className="w-5 h-5" weight="bold" />
+                    )}
+                  </button>
+
+                  {/* Preset Avatars */}
                   {PRESET_AVATARS.map((p) => (
                     <button
                       type="button"
                       key={p.label}
-                      onClick={() => setEditAvatar(p.url)}
-                      className={`relative rounded-full p-0.5 transition-all cursor-pointer ${
-                        editAvatar === p.url ? 'ring-2 ring-[#FF6B4A]' : 'opacity-70 hover:opacity-100'
+                      onClick={() => {
+                        sound.playPop();
+                        setEditAvatar(p.url);
+                      }}
+                      className={`relative rounded-full p-0.5 transition-all cursor-pointer shrink-0 ${
+                        editAvatar === p.url ? 'ring-2 ring-[#FF6B4A] scale-105 shadow-2xs' : 'opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={p.url} alt={p.label} className="w-9 h-9 rounded-full object-cover" />
+                      <img src={p.url} alt={p.label} className="w-11 h-11 rounded-full object-cover border border-[#E6E8EE]" />
                     </button>
                   ))}
                 </div>
@@ -264,31 +463,48 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </form>
           )}
 
-          {/* Preferences */}
-          <div className="space-y-2">
+              {/* Roomie Stats Highlight */}
+              <div className="p-3.5 rounded-2xl bg-[#FFF8E6] border-2 border-[#FFE8A3] flex items-center justify-between">
+                <div>
+                  <span className="type-label block text-[#8A6200]">Streaks & Contribution</span>
+                  <span className="text-sm font-bold text-[#1F2430]">
+                    {currentUser.streakDays} Day Chore Streak • {currentUser.points} Roomie Points
+                  </span>
+                </div>
+                <div className="text-2xl">🔥</div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PREFERENCES */}
+          {activeTab === 'preferences' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
             <span className="type-label block">
               Preferences
             </span>
 
             {/* Language */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Globe className="w-4 h-4" />} color="indigo" size="sm" />
                 <span className="text-[14px] font-bold text-[#1F2430]">Language</span>
               </div>
               <div className="flex gap-1">
-                {[
-                  { id: 'en', label: 'EN' },
-                  { id: 'tr', label: 'TR' },
-                  { id: 'fr', label: 'FR' },
-                  { id: 'ar', label: 'العربية' },
-                ].map((l) => (
+                {(
+                  [
+                    { id: 'en', label: 'EN' },
+                    { id: 'tr', label: 'TR' },
+                    { id: 'fr', label: 'FR' },
+                    { id: 'ar', label: 'العربية' },
+                  ] satisfies Array<{ id: UserSettings['language']; label: string }>
+                ).map((l) => (
                   <button
                     key={l.id}
-                    onClick={() => handleLanguageChange(l.id as any)}
-                    className={`px-2.5 py-1 rounded-lg text-[14px] font-bold cursor-pointer transition-colors ${
+                    onClick={() => handleLanguageChange(l.id)}
+                    className={`px-2.5 py-1.5 rounded-xl text-[14px] font-bold cursor-pointer transition-[transform,background-color] duration-150 active:translate-y-[1px] min-h-[38px] flex items-center justify-center ${
                       settings.language === l.id
-                        ? 'bg-[#FF6B4A] text-white'
+                        ? 'bg-[#FF6B4A] text-white shadow-2xs'
                         : 'bg-[#F7F8FB] text-[#64748B] hover:text-[#1F2430]'
                     }`}
                   >
@@ -299,10 +515,16 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
 
             {/* Sound Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile
-                  icon={settings.soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  icon={
+                    settings.soundEnabled ? (
+                      <SpeakerHigh weight="duotone" className="w-4 h-4" />
+                    ) : (
+                      <SpeakerSlash weight="duotone" className="w-4 h-4" />
+                    )
+                  }
                   color="coral"
                   size="sm"
                 />
@@ -317,21 +539,59 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </div>
               <button
                 type="button"
+                role="switch"
+                aria-checked={settings.soundEnabled}
+                aria-label="Toggle sound effects"
                 onClick={toggleSound}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  settings.soundEnabled ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
+                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                  settings.soundEnabled
+                    ? 'bg-[#FF6B4A] border-[#D94E30]'
+                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
-                    settings.soundEnabled ? 'right-1' : 'left-1'
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+                    settings.soundEnabled ? 'right-0.5' : 'left-0.5'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Haptics Toggle */}
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-3">
+                <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
+                <div>
+                  <span className="text-[14px] font-bold text-[#1F2430] block">
+                    Haptic feedback
+                  </span>
+                  <span className="type-secondary text-[14px]">
+                    Tactile micro-vibrations for awards, vibe & swaps
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={settings.hapticsEnabled ?? isHapticsEnabled()}
+                aria-label="Toggle haptic feedback"
+                onClick={toggleHaptics}
+                className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative cursor-pointer active:translate-y-[1px] ${
+                  (settings.hapticsEnabled ?? isHapticsEnabled())
+                    ? 'bg-[#FF6B4A] border-[#D94E30]'
+                    : 'bg-[#E6E8EE] border-[#CBD5E1]'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+                    (settings.hapticsEnabled ?? isHapticsEnabled()) ? 'right-0.5' : 'left-0.5'
                   }`}
                 />
               </button>
             </div>
 
             {/* Reduced Motion Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Eye className="w-4 h-4" />} color="teal" size="sm" />
                 <div>
@@ -346,12 +606,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <button
                 type="button"
                 onClick={toggleReducedMotion}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
                   settings.reducedMotion ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.reducedMotion ? 'right-1' : 'left-1'
                   }`}
                 />
@@ -359,7 +619,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
 
             {/* Push Notifications Toggle */}
-            <div className="p-3 rounded-2xl border border-[#E6E8EE] bg-white flex items-center justify-between">
+            <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between shadow-2xs">
               <div className="flex items-center gap-3">
                 <IconTile icon={<Bell className="w-4 h-4" />} color="amber" size="sm" />
                 <div>
@@ -374,12 +634,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               <button
                 type="button"
                 onClick={togglePush}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                className={`w-12 h-7 rounded-full border-2 border-[#CBD5E1] transition-colors relative cursor-pointer active:scale-95 ${
                   settings.pushNotifications ? 'bg-[#FF6B4A]' : 'bg-[#E6E8EE]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
                     settings.pushNotifications ? 'right-1' : 'left-1'
                   }`}
                 />
@@ -387,12 +647,86 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Account & Data */}
-          <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">
+          {/* Walkthrough & Flat Setup */}
+          {(onOpenShowcase || onOpenHowItWorks || onOpenHouseholdSetup) && (
+            <div className="space-y-2 pt-1 border-t border-[#E6E8EE]">
+              <span className="type-label block">
+                Setup & Walkthrough
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {onOpenHouseholdSetup && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenHouseholdSetup();
+                    }}
+                  >
+                    Flat setup
+                  </Button>
+                )}
+                {onOpenShowcase && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenShowcase();
+                    }}
+                  >
+                    Presentation
+                  </Button>
+                )}
+                {onOpenHowItWorks && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenHowItWorks();
+                    }}
+                  >
+                    How it works
+                  </Button>
+                )}
+                {devModeUnlocked && onOpenDebugInspector && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      onOpenDebugInspector();
+                    }}
+                    icon={<Bug className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                    className="border-dashed border-[#5B5BD6] text-[#5B5BD6]"
+                  >
+                    Debug Layer 🛠️
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+            </div>
+          )}
+
+          {/* TAB 3: ACCOUNT & DATA */}
+          {activeTab === 'account' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
             <span className="type-label block">
               Account & Feedback
             </span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleInstallApp}
+                icon={<DeviceMobile className="w-3.5 h-3.5 text-[#19B5A5]" />}
+              >
+                Install app
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -400,16 +734,54 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   onClose();
                   onOpenFeedback();
                 }}
-                icon={<MessageSquareHeart className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                icon={<ChatCircleText className="w-3.5 h-3.5 text-[#FF6B4A]" />}
               >
                 Feedback
               </Button>
+            </div>
 
+            {onToggleSaveLogin && (
+              <Card
+                padding="sm"
+                className="flex items-center justify-between gap-3 bg-[#F7F8FB] border border-[#E6E8EE] rounded-2xl"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
+                    <Lightning className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold text-[#1F2430] truncate">Save login info</p>
+                    <p className="text-[11px] text-[#64748B] truncate">1-tap quick sign-in on this device</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    sound.playTap();
+                    const next = await onToggleSaveLogin(!loginSaved);
+                    setLoginSaved(next);
+                    showToast(
+                      next ? 'Saved login for 1-tap sign-in' : 'Removed saved login from this device',
+                      'info'
+                    );
+                  }}
+                  className={`px-3 py-1 rounded-full text-xs font-black transition-colors cursor-pointer shrink-0 ${
+                    loginSaved
+                      ? 'bg-[#19B5A5] text-white'
+                      : 'bg-white border border-[#CBD5E1] text-[#475569]'
+                  }`}
+                >
+                  {loginSaved ? 'Saved' : 'Off'}
+                </button>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onExportData}
-                icon={<Download className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                icon={<DownloadSimple className="w-3.5 h-3.5 text-[#5B5BD6]" />}
               >
                 Export data
               </Button>
@@ -418,10 +790,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 variant="secondary"
                 size="sm"
                 onClick={() => {
-                  onClose();
-                  if (onSignOut) onSignOut();
+                  if (!onSignOut) return;
+                  if (loginSaved || !onToggleSaveLogin) {
+                    onClose();
+                    onSignOut({ keepSavedLogin: loginSaved });
+                  } else {
+                    setSignOutPromptOpen(true);
+                  }
                 }}
-                icon={<LogOut className="w-3.5 h-3.5 text-[#64748B]" />}
+                icon={<SignOut className="w-3.5 h-3.5 text-[#64748B]" />}
               >
                 Sign out
               </Button>
@@ -431,7 +808,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           {/* Danger Zone: Separate distinct area with confirmation step */}
           <div className="mt-4 pt-3 border-2 border-[#FFD7CF] rounded-2xl p-4 bg-[#FFF0ED]/40 space-y-2.5">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#E5484D]" />
+              <Warning className="w-4 h-4 text-[#E5484D]" />
               <span className="type-label text-[#E5484D] font-bold">Danger zone</span>
             </div>
             <p className="type-secondary text-[#7F1D1D] text-[14px] leading-relaxed">
@@ -444,9 +821,66 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 setDeleteConfirmInput('');
                 setDeleteConfirmOpen(true);
               }}
-              icon={<Trash2 className="w-3.5 h-3.5" />}
+              icon={<Trash className="w-3.5 h-3.5" />}
             >
               Delete account
+            </Button>
+          </div>
+            </div>
+          )}
+
+          {/* App Version & Secret Dev Mode Trigger */}
+          <div className="pt-3 pb-1 text-center border-t border-[#E6E8EE]/60">
+            <button
+              type="button"
+              onClick={handleVersionTap}
+              className="text-[12px] font-bold text-[#94A3B8] hover:text-[#64748B] active:scale-95 transition-all cursor-pointer select-none"
+            >
+              Roomie v1.0.0-phase1 {devModeUnlocked ? '• 🛠️ Dev Mode Active' : ''}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Instagram/Facebook-style Save Login prompt before signing out */}
+      <Modal
+        isOpen={signOutPromptOpen}
+        onClose={() => setSignOutPromptOpen(false)}
+        title="Save your login info?"
+        subtitle="You can sign right back in with 1 tap next time"
+      >
+        <div className="space-y-4 text-center">
+          <div className="flex flex-col items-center gap-2 py-2">
+            <Avatar src={currentUser.avatar} name={currentUser.name} size="lg" />
+            <div>
+              <p className="font-heading font-black text-base text-[#1F2430]">{currentUser.name}</p>
+              <p className="type-secondary text-xs text-[#64748B]">{currentUser.email}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={() => {
+                setSignOutPromptOpen(false);
+                onClose();
+                onSignOut?.({ keepSavedLogin: true });
+              }}
+            >
+              Save Info & Sign Out
+            </Button>
+            <Button
+              variant="outline"
+              size="md"
+              fullWidth
+              onClick={() => {
+                setSignOutPromptOpen(false);
+                onClose();
+                onSignOut?.({ keepSavedLogin: false });
+              }}
+            >
+              Not Now (Sign Out)
             </Button>
           </div>
         </div>
@@ -461,7 +895,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       >
         <div className="space-y-4">
           <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-[#E5484D] mx-auto mb-2" />
+            <WarningCircle className="w-12 h-12 text-[#E5484D] mx-auto mb-2" />
             <p className="type-secondary leading-relaxed">
               Deleting your account will erase your roomie profile, streak data, and preferences. Shared ledger records will remain to keep apartment math consistent for your roomies.
             </p>

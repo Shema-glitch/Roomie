@@ -170,22 +170,22 @@ export const MascotView: React.FC<MascotViewProps> = ({
     }
   };
 
-  // Bounce class depending on state (calm has none)
+  // GPU-composited motion class (strictly transform & opacity)
   const getMotionClass = () => {
     switch (state) {
       case 'cheering':
-        return 'animate-bounce';
+        return 'animate-bounce-soft will-change-transform';
       case 'celebrating':
-        return 'animate-bounce';
+        return 'animate-bounce-soft will-change-transform';
       case 'thinking':
-        return 'animate-pulse';
+        return 'animate-pulse will-change-[opacity]';
       case 'sleepy':
         return 'opacity-90';
       case 'calm':
-        return '';
+        return 'animate-calm-nod will-change-transform';
       case 'idle':
       default:
-        return 'hover:scale-105 transition-transform duration-300';
+        return 'hover:scale-105 transition-transform duration-300 ease-spring will-change-transform';
     }
   };
 
@@ -193,7 +193,9 @@ export const MascotView: React.FC<MascotViewProps> = ({
     <div className={`inline-flex flex-col items-center select-none ${className}`}>
       {bubbleText && (
         <div
-          className="mb-2 px-3 py-1.5 rounded-2xl text-[14px] font-bold shadow-sm max-w-[220px] text-center border relative"
+          className={`px-3 py-1.5 rounded-2xl text-[14px] font-bold shadow-sm max-w-[220px] text-center border relative ${
+            state === 'celebrating' ? 'mb-7' : 'mb-2'
+          }`}
           style={{
             backgroundColor: THEME.colors.surface,
             borderColor: THEME.colors.line,
@@ -215,7 +217,7 @@ export const MascotView: React.FC<MascotViewProps> = ({
           width={dim}
           height={dim}
           viewBox="0 0 100 100"
-          className="drop-shadow-sm overflow-visible"
+          className="overflow-visible"
         >
           {renderMascotBody()}
         </svg>

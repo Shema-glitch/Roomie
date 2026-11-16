@@ -1,0 +1,134 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+import {
+  canAffordSwap,
+  createChoreSwapRequest,
+  resolveChoreSwapRequest,
+  applyTokenTransactions,
+  awardFavorTokensWithCap,
+  INITIAL_FAVOR_TOKENS,
+  MAX_FAVOR_TOKENS,
+} from './tokens';
+
+describe('favor tokens & chore swap engine', () => {
+  it('correctly checks affordability against token balance', () => {
+    assert.strictEqual(canAffordSwap(5, 1), true);
+    assert.strictEqual(canAffordSwap(1, 1), true);
+    assert.strictEqual(canAffordSwap(0, 1), false);
+    assert.strictEqual(canAffordSwap(1, 2), false);
+  });
+
+  it('creates a well-formed pending swap request', () => {
+    const swap = createChoreSwapRequest({
+      householdId: 'h1',
+      requesterUserId: 'u_kai',
+      targetUserId: 'u_lucas',
+      requesterChoreName: 'Clean Bathroom',
+      targetChoreName: 'Take Out Trash',
+      tokenCost: 2,
+      note: 'Need to study for midterms tonight!',
+    });
+
+    assert.strictEqual(swap.status, 'pending');
+    assert.strictEqual(swap.requesterUserId, 'u_kai');
+    assert.strictEqual(swap.targetUserId, 'u_lucas');
+    assert.strictEqual(swap.tokenCost, 2);
+    assert.strictEqual(swap.note, 'Need to study for midterms tonight!');
+  });
+
+  it('accepting swap transfers tokens from requester to target via transactions', () => {
+    const swap = createChoreSwapRequest({
+      householdId: 'h1',
+      requesterUserId: 'u_kai',
+      targetUserId: 'u_lucas',
+      requesterChoreName: 'Kitchen Counters',
+      targetChoreName: 'Dishwasher',
+      tokenCost: 1,
+    });
+
+    const result = resolveChoreSwapRequest(swap, 'accept');
+    assert.strictEqual(result.updatedRequest.status, 'accepted');
+    assert.strictEqual(result.transferred, true);
+    assert.strictEqual(result.transactions.length, 2);
+
+    const spendTx = result.transactions.find((tx) => tx.type === 'spend');
+    const earnTx = result.transactions.find((tx) => tx.type === 'earn');
+
+    assert.strictEqual(spendTx?.userId, 'u_kai');
+    assert.strictEqual(spendTx?.amount, 1);
+    assert.strictEqual(earnTx?.userId, 'u_lucas');
+    assert.strictEqual(earnTx?.amount, 1);
+
+    // Apply transactions to user balances
+    const kaiNewBalance = applyTokenTransactions(INITIAL_FAVOR_TOKENS, result.transactions, 'u_kai');
+    const lucasNewBalance = applyTokenTransactions(INITIAL_FAVOR_TOKENS, result.transactions, 'u_lucas');
+
+    assert.strictEqual(kaiNewBalance, INITIAL_FAVOR_TOKENS - 1);
+    assert.strictEqual(lucasNewBalance, INITIAL_FAVOR_TOKENS + 1);
+  });
+
+  it('declining swap moves zero tokens', () => {
+    const swap = createChoreSwapRequest({
+      householdId: 'h1',
+      requesterUserId: 'u_kai',
+      targetUserId: 'u_lucas',
+      requesterChoreName: 'Mop Living Room',
+      targetChoreName: 'Take Out Trash',
+      tokenCost: 1,
+    });
+
+    const result = resolveChoreSwapRequest(swap, 'decline');
+    assert.strictEqual(result.updatedRequest.status, 'declined');
+    assert.strictEqual(result.transferred, false);
+    assert.strictEqual(result.transactions.length, 0);
+  });
+
+  it('guarantees balance cannot become negative in race conditions', () => {
+    const spendTxs = [
+      {
+        id: 'tx1',
+        householdId: 'h1',
+        userId: 'u_kai',
+        type: 'spend' as const,
+        amount: 10,
+        reason: 'chore_swap' as const,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+    const safeBalance = applyTokenTransactions(2, spendTxs, 'u_kai');
+    assert.strictEqual(safeBalance, 0);
+  });
+
+  it('enforces MAX_FAVOR_TOKENS = 10 anti-hoarding cap and converts excess streak/award tokens into celebratory kudos', () => {
+    const outcome = awardFavorTokensWithCap({
+      currentBalance: 9,
+      amount: 3,
+      householdId: 'h1',
+      userId: 'u_kai',
+      reason: 'streak_milestone',
+      fromUserId: 'u_amina',
+    });
+
+    assert.strictEqual(outcome.newBalance, MAX_FAVOR_TOKENS);
+    assert.strictEqual(outcome.tokensAdded, 1);
+    assert.strictEqual(outcome.overflowConvertedToKudos, 2);
+    assert.strictEqual(outcome.celebratoryKudos.length, 2);
+    assert.strictEqual(outcome.celebratoryKudos[0].type, 'great_job');
+    assert.ok(outcome.transaction);
+    assert.strictEqual(outcome.transaction?.amount, 1);
+
+    // Also verify swap resolution at cap converts overflow to celebratory kudos
+    const swapAtCap = createChoreSwapRequest({
+      householdId: 'h1',
+      requesterUserId: 'u_amina',
+      targetUserId: 'u_kai',
+      requesterChoreName: 'Vacuum Hallway',
+      targetChoreName: 'Take Out Trash',
+      tokenCost: 2,
+    });
+    const resolvedAtCap = resolveChoreSwapRequest(swapAtCap, 'accept', 9);
+    assert.strictEqual(resolvedAtCap.celebratoryKudos.length, 1);
+    const clampedBalance = applyTokenTransactions(9, resolvedAtCap.transactions, 'u_kai');
+    assert.strictEqual(clampedBalance, MAX_FAVOR_TOKENS);
+  });
+});

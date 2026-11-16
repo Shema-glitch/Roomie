@@ -2,15 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { EmptyState } from '../../components/common/EmptyState';
-import { ChatMessage, User } from '../../types';
+import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
-import { Send, Receipt, ClipboardCheck, Shuffle, MessageSquare } from 'lucide-react';
+import { PaperPlaneRight, Receipt, CheckCircle, ArrowsClockwise, ChatCircleDots } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { getChoreDraftState } from '../../utils/stateTable';
 
 interface ChatScreenProps {
   messages: ChatMessage[];
   roommates: User[];
   currentUser: User;
+  draftRound?: DraftRound | null;
+  householdName?: string;
   onSendMessage: (text: string) => Promise<ChatMessage>;
   onAddReaction: (messageId: string, emoji: string) => Promise<void>;
   onNavigateAction: (target: { screen: string; id?: string }) => void;
@@ -20,6 +23,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   messages,
   roommates,
   currentUser,
+  draftRound,
+  householdName,
   onSendMessage,
   onAddReaction,
   onNavigateAction,
@@ -30,6 +35,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   const [activeReactionMsgId, setActiveReactionMsgId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const draftState = getChoreDraftState(draftRound, currentUser.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,14 +90,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col h-[calc(100vh-160px)] w-full max-w-5xl mx-auto pb-6 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
+      className="flex flex-col h-full w-full max-w-5xl mx-auto pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
       onClick={() => setActiveReactionMsgId(null)}
     >
       {/* Header Info */}
       <div className="py-2.5 px-1 flex items-center justify-between border-b border-[#E6E8EE] mb-2 shrink-0">
         <div>
           <h3 className="font-heading font-black text-xl text-[#1F2430]">
-            Apartment 4B Chat
+            {householdName ? `${householdName} Chat` : 'Flat Chat'}
           </h3>
           <p className="text-sm font-semibold text-[#475569]">
             {roommates.length} roomies in this group
@@ -104,7 +111,36 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       </div>
 
       {/* Messages Scroll Area with right padding so bubbles never touch scrollbar */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3.5 px-1 pr-4 sm:pr-6">
+        {/* Single-Source Chore Draft State Pill */}
+        {draftState.state !== 'reveal_done' && (
+          <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {draftState.state === 'reveal_ready' ? (
+                <CheckCircle weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+              ) : (
+                <ArrowsClockwise weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+              )}
+              <div className="truncate">
+                <p className="text-[13px] font-bold text-[#1F2430] truncate">{draftState.bannerTitle}</p>
+                <p className="text-[12px] text-[#475569] truncate">{draftState.bannerSubtitle}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                onNavigateAction({
+                  screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft',
+                });
+              }}
+              className="shrink-0 px-2.5 py-1 rounded-xl bg-[#5B5BD6] text-white text-[12px] font-bold hover:bg-[#4747B8] transition-colors cursor-pointer"
+            >
+              {draftState.actionLabel}
+            </button>
+          </div>
+        )}
+
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center p-6 text-center">
             <EmptyState
@@ -125,7 +161,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
               msg.body.toLowerCase().includes('bathroom');
             const isExpense =
               msg.body.toLowerCase().includes('expense') ||
-              msg.body.toLowerCase().includes('₺') ||
+              msg.body.includes('₺') || msg.body.includes('$') || msg.body.includes('€') ||
               msg.body.toLowerCase().includes('paid');
             const isDraft =
               msg.body.toLowerCase().includes('draft') ||
@@ -137,16 +173,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             });
 
             return (
-              <div key={msg.id} className="py-1 flex justify-center w-full">
+              <div key={msg.id} className="py-1 flex justify-center w-full contain-content">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F1F3F9] text-[#475569] text-[14px] font-semibold border border-[#E2E5EC] max-w-full shadow-2xs">
                   {isChore ? (
-                    <ClipboardCheck className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
+                    <CheckCircle weight="duotone" className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
                   ) : isExpense ? (
-                    <Receipt className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
+                    <Receipt weight="duotone" className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
                   ) : isDraft ? (
-                    <Shuffle className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                    <ArrowsClockwise weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   ) : (
-                    <MessageSquare className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
+                    <ChatCircleDots weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
                   )}
                   <span className="truncate">{msg.body}</span>
                   <span className="text-[#475569] shrink-0">• {timeStr}</span>
@@ -172,7 +208,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           return (
             <div
               key={msg.id}
-              className={`flex items-end gap-2.5 relative ${isMe ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-end gap-2.5 relative contain-content ${isMe ? 'justify-end' : 'justify-start'}`}
             >
               {!isMe && (
                 <Avatar
@@ -290,7 +326,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           disabled={!inputText.trim() || sending}
           className="shrink-0 min-h-[48px] min-w-[48px] px-4"
           aria-label="Send message"
-          icon={<Send className="w-5 h-5" />}
+          icon={<PaperPlaneRight weight="fill" className="w-5 h-5" />}
         >
           Send
         </Button>

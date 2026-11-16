@@ -1,166 +1,307 @@
 import React, { useState } from 'react';
-import { Button } from '../../components/common/Button';
-import { Card } from '../../components/common/Card';
-import { MascotView } from '../../components/common/MascotView';
-import { THEME } from '../../theme/tokens';
-import { Shuffle, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { CaretLeft, EnvelopeOpen } from '@phosphor-icons/react';
+import { sound } from '../../services/sound';
+import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
+import { validateEmail, validatePassword } from '../../utils/authValidation';
+import { SavedLoginAccount } from '../../utils/savedAccounts';
+import { WelcomeLanding } from './WelcomeLanding';
+import { SignUpFlow, SignUpStep } from './SignUpFlow';
+import { SignInForm } from './SignInForm';
+
+const AppShowcase = React.lazy(() =>
+  import('./AppShowcase').then((m) => ({ default: m.AppShowcase }))
+);
 
 interface WelcomeScreenProps {
-  onSignIn: (email: string) => void;
-  onSignUp: (name: string, email: string) => void;
+  onSignIn: (
+    email: string,
+    password?: string,
+    rememberMe?: boolean
+  ) => Promise<{ success: boolean; message?: string }>;
+  onSignUp: (
+    name: string,
+    email: string,
+    password?: string,
+    rememberMe?: boolean
+  ) => Promise<{ success: boolean; message?: string; requiresEmailVerification?: boolean }>;
+  onQuickSignIn?: (
+    email: string
+  ) => Promise<{ success: boolean; message?: string; requiresPassword?: boolean; email?: string }>;
+  onRemoveSavedAccount?: (email: string) => void;
+  savedAccounts?: SavedLoginAccount[];
   onQuickStart: () => void;
+  pendingInviteCode?: string | null;
+  onDismissInvite?: () => void;
+  isRevealed?: boolean;
+}
+
+type ScreenStage = 'showcase' | 'welcome' | 'signup' | 'signin';
+
+const SIGNUP_PROGRESS: Record<SignUpStep, number> = {
+  name: 34,
+  email: 68,
+  password: 100,
+};
+
+function markWalkthroughSeen() {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('roomie_walkthrough_seen', '1');
+  }
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onSignIn,
   onSignUp,
+  onQuickSignIn,
+  onRemoveSavedAccount,
+  savedAccounts = [],
   onQuickStart,
+  pendingInviteCode,
+  onDismissInvite,
+  isRevealed = true,
 }) => {
-  const [mode, setMode] = useState<'welcome' | 'signin' | 'signup'>('welcome');
-  const [email, setEmail] = useState('kai.tanaka@student.emu.edu.tr');
-  const [name, setName] = useState('Kai Tanaka');
+  const { showToast } = useToast();
+
+  const [stage, setStage] = useState<ScreenStage>(() => {
+    if (pendingInviteCode || savedAccounts.length > 0) {
+      return 'welcome';
+    }
+    if (typeof window !== 'undefined' && !localStorage.getItem('roomie_walkthrough_seen')) {
+      return 'showcase';
+    }
+    return 'welcome';
+  });
+
+  const [signUpStep, setSignUpStep] = useState<SignUpStep>('name');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [useMagicLink, setUseMagicLink] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [verificationSentTo, setVerificationSentTo] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const exitShowcaseTo = (nextStage: Exclude<ScreenStage, 'showcase'>) => {
+    markWalkthroughSeen();
+    if (nextStage === 'signup') setSignUpStep('name');
+    setStage(nextStage);
+  };
+
+  const handleBack = () => {
+    sound.playTap();
+    if (stage === 'signup') {
+      if (signUpStep === 'password') {
+        setSignUpStep('email');
+        return;
+      }
+      if (signUpStep === 'email') {
+        setSignUpStep('name');
+        return;
+      }
+    }
+    setStage('welcome');
+  };
+
+  useBackHandler(isRevealed && stage === 'showcase', 50, () => exitShowcaseTo('welcome'));
+  useBackHandler(isRevealed && stage !== 'welcome' && stage !== 'showcase', 50, handleBack);
+
+  const handleSignInSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      showToast(emailCheck.error || 'Please enter a valid email address.', 'error');
+      return;
+    }
+    if (!useMagicLink && !password) {
+      showToast('Please enter your password (or switch to magic link).', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await onSignIn(
+        email.trim().toLowerCase(),
+        useMagicLink ? undefined : password,
+        rememberMe
+      );
+      if (res && !res.success) {
+        showToast(res.message || 'Could not log in. Check your details.', 'error');
+      } else if (useMagicLink) {
+        showToast('Magic link check sent for your account.', 'success');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickSignIn = async (acctEmail: string) => {
+    if (!onQuickSignIn) return;
+    setLoading(true);
+    try {
+      const res = await onQuickSignIn(acctEmail);
+      if (res && !res.success) {
+        if (res.requiresPassword) {
+          setEmail(res.email || acctEmail);
+          setPassword('');
+          setUseMagicLink(false);
+          setRememberMe(true);
+          setStage('signin');
+          showToast(res.message || 'Enter your password to refresh quick login.', 'info');
+        } else {
+          showToast(res.message || 'Could not sign in cleanly.', 'error');
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUpSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (name.trim().length < 2) {
+      showToast('Please enter your full name.', 'error');
+      return;
+    }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) {
+      showToast(emailCheck.error || 'Please enter a valid email address.', 'error');
+      return;
+    }
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      showToast(passwordCheck.error || 'Please meet all password rules.', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await onSignUp(name.trim(), cleanEmail, password, rememberMe);
+      if (res && !res.success) {
+        showToast(res.message || 'Could not create account.', 'error');
+      } else if (res?.requiresEmailVerification) {
+        setVerificationSentTo(cleanEmail);
+        showToast(res.message || 'Check your email to confirm your account.', 'success');
+        setStage('signin');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (stage === 'showcase') {
+    if (!isRevealed) {
+      return <div className="min-h-[100dvh] bg-white" />;
+    }
+
+    return (
+      <React.Suspense fallback={<div className="min-h-[100dvh] bg-white" />}>
+        <AppShowcase
+          isActive={isRevealed}
+          onComplete={() => exitShowcaseTo('welcome')}
+          onSkip={() => exitShowcaseTo('welcome')}
+          onSignIn={() => exitShowcaseTo('signin')}
+        />
+      </React.Suspense>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-6 max-w-md mx-auto">
-      {/* Top Section */}
-      <div className="pt-8 flex flex-col items-center text-center">
-        <MascotView state="celebrating" size="xl" bubbleText="Welcome to the apartment!" />
-        <h1 className="type-big-number mt-4 tracking-tight">
-          Roomie
-        </h1>
-        <p className="type-body max-w-xs mt-2">
-          Fair chores, peaceful splits, and happy roomies living in harmony.
-        </p>
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-5 sm:p-7 pt-safe pb-safe max-w-md mx-auto">
+      {stage !== 'welcome' && (
+        <div className="pt-2 pb-4 flex items-center gap-2 w-full">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="p-1.5 -ml-2 text-[#475569] hover:text-[#1F2430] active:scale-90 transition-transform cursor-pointer shrink-0 focus:outline-none"
+            aria-label="Go back"
+          >
+            <CaretLeft weight="bold" className="w-7 h-7" />
+          </button>
 
-        {/* Feature badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] text-[#FF6B4A] text-[14px] font-bold border border-[#FFD7CF]">
-            <HeartHandshake className="w-3.5 h-3.5" /> Fair by design
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6FAF8] text-[#19B5A5] text-[14px] font-bold border border-[#BBEFEA]">
-            <Shuffle className="w-3.5 h-3.5" /> Secret chore draft
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF0FD] text-[#5B5BD6] text-[14px] font-bold border border-[#D3D5F9]">
-            <ShieldCheck className="w-3.5 h-3.5" /> TRNC student friendly
-          </span>
+          {stage === 'signup' && (
+            <div className="flex-1 h-3.5 bg-[#E6E8EE] rounded-full overflow-hidden p-0.5">
+              <div
+                className="h-full bg-[#FF6B4A] rounded-full transition-all duration-300"
+                style={{ width: `${SIGNUP_PROGRESS[signUpStep]}%` }}
+              />
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Middle Form / Action Container */}
-      <div className="my-8">
-        {mode === 'welcome' && (
-          <div className="space-y-3">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => setMode('signup')}
-              icon={<ArrowRight className="w-5 h-5" />}
-            >
-              Get started
-            </Button>
-            <Button
-              variant="outline"
-              size="md"
-              fullWidth
-              onClick={() => setMode('signin')}
-            >
-              I have an account
-            </Button>
-            <div className="text-center pt-2">
-              <button
-                onClick={onQuickStart}
-                className="type-secondary font-bold text-[#FF6B4A] hover:underline cursor-pointer"
-              >
-                Explore Apartment 4B Demo
-              </button>
-            </div>
-          </div>
-        )}
+      {stage === 'welcome' && (
+        <WelcomeLanding
+          isRevealed={isRevealed}
+          pendingInviteCode={pendingInviteCode}
+          savedAccounts={savedAccounts}
+          onDismissInvite={onDismissInvite}
+          onQuickSignIn={handleQuickSignIn}
+          onRemoveSavedAccount={onRemoveSavedAccount}
+          onGetStarted={() => {
+            setVerificationSentTo(null);
+            setSignUpStep('name');
+            setStage('signup');
+          }}
+          onSignIn={() => setStage('signin')}
+          onReplayShowcase={() => setStage('showcase')}
+          onDemoFlat={onQuickStart}
+        />
+      )}
 
-        {mode === 'signin' && (
-          <Card padding="lg" className="space-y-4">
-            <div className="text-center">
-              <h2 className="type-title">Sign in</h2>
-              <p className="type-secondary">Enter your student or personal email</p>
-            </div>
-            <div>
-              <label className="type-label block mb-1">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@university.edu"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
-              />
-            </div>
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              onClick={() => onSignIn(email)}
-            >
-              Sign in
-            </Button>
-            <button
-              onClick={() => setMode('welcome')}
-              className="w-full text-center type-secondary font-bold hover:text-[#1F2430] pt-2 cursor-pointer"
-            >
-              Back
-            </button>
-          </Card>
-        )}
+      {stage === 'signup' && (
+        <SignUpFlow
+          step={signUpStep}
+          name={name}
+          email={email}
+          password={password}
+          rememberMe={rememberMe}
+          loading={loading}
+          onNameChange={setName}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onToggleRememberMe={setRememberMe}
+          onStepChange={setSignUpStep}
+          onSubmit={handleSignUpSubmit}
+          onSwitchToSignIn={() => setStage('signin')}
+        />
+      )}
 
-        {mode === 'signup' && (
-          <Card padding="lg" className="space-y-4">
-            <div className="text-center">
-              <h2 className="type-title">Create account</h2>
-              <p className="type-secondary">Join your apartment in seconds</p>
+      {stage === 'signin' && (
+        <div className="flex-1 flex flex-col">
+          {verificationSentTo && (
+            <div className="mb-4 p-3.5 rounded-2xl bg-[#EEF2FF] border border-[#C7D2FE] flex items-start gap-2.5">
+              <EnvelopeOpen weight="duotone" className="w-5 h-5 text-[#4F46E5] shrink-0 mt-0.5" />
+              <div className="text-left text-xs leading-relaxed text-[#3730A3]">
+                <p className="font-black">Confirm your email to continue</p>
+                <p className="mt-0.5 text-[#4338CA]">
+                  We sent a verification link to <span className="font-bold">{verificationSentTo}</span>. Once confirmed, sign in below.
+                </p>
+              </div>
             </div>
-            <div>
-              <label className="type-label block mb-1">Full name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Kai Tanaka"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
-              />
-            </div>
-            <div>
-              <label className="type-label block mb-1">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@university.edu"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
-              />
-            </div>
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              onClick={() => onSignUp(name, email)}
-            >
-              Create account
-            </Button>
-            <button
-              onClick={() => setMode('welcome')}
-              className="w-full text-center type-secondary font-bold hover:text-[#1F2430] pt-2 cursor-pointer"
-            >
-              Back
-            </button>
-          </Card>
-        )}
-      </div>
-
-      {/* Footer Disclaimer */}
-      <div className="text-center pb-2">
-        <p className="type-secondary leading-relaxed">
-          Roomie does not process banking payments. Roomies track balances & settle directly in cash or transfer.
-        </p>
-      </div>
+          )}
+          <SignInForm
+            email={email}
+            password={password}
+            useMagicLink={useMagicLink}
+            rememberMe={rememberMe}
+            savedAccounts={savedAccounts}
+            loading={loading}
+            onEmailChange={setEmail}
+            onPasswordChange={setPassword}
+            onToggleMagicLink={setUseMagicLink}
+            onToggleRememberMe={setRememberMe}
+            onQuickSignIn={handleQuickSignIn}
+            onSubmit={handleSignInSubmit}
+            onSwitchToSignUp={() => {
+              setVerificationSentTo(null);
+              setSignUpStep('name');
+              setStage('signup');
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

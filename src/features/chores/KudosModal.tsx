@@ -7,7 +7,8 @@ import { MascotView } from '../../components/common/MascotView';
 import { IconTile } from '../../components/common/IconTile';
 import { User, Chore, KudosType } from '../../types';
 import { sound } from '../../services/sound';
-import { Heart, AlertCircle, Send, Flame } from 'lucide-react';
+import { Heart, WarningCircle, PaperPlaneRight } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 
 interface KudosModalProps {
@@ -70,7 +71,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
     >
       <div className="space-y-4">
         {/* Recipient Profile */}
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]">
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE]">
           <Avatar src={targetUser.avatar} name={targetUser.name} flag={targetUser.flag} size="md" />
           <div>
             <h4 className="type-section-heading">
@@ -78,7 +79,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             </h4>
             <p className="type-secondary flex items-center gap-1.5 mt-0.5">
               <span className="inline-flex items-center gap-1 font-bold text-[#FF6B4A]">
-                <Flame className="w-3.5 h-3.5 fill-[#FF6B4A]" />
+                <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                 {targetUser.streakDays} days
               </span>
               <span>•</span>
@@ -99,13 +100,13 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('thanks');
               sound.playPop();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'thanks'
-                ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
-            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="coral" size="sm" />
+            <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="coral" size="sm" />
             <div>
               <p className="type-body font-bold">Thanks!</p>
               <p className="type-secondary">Warm appreciation (+10 pts)</p>
@@ -118,13 +119,13 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('great_job');
               sound.playPop();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'great_job'
-                ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#FFC93C] bg-[#FFF8E6] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
-            <IconTile icon={<Heart className="w-5 h-5 fill-white" />} color="amber" size="sm" />
+            <IconTile icon={<Heart className="w-5 h-5" weight="fill" />} color="amber" size="sm" />
             <div>
               <p className="type-body font-bold">Great job!</p>
               <p className="type-secondary">Super clean result (+10 pts)</p>
@@ -137,13 +138,13 @@ export const KudosModal: React.FC<KudosModalProps> = ({
               setSelectedType('needs_look');
               sound.playTap();
             }}
-            className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left cursor-pointer transition-all ${
+            className={`w-full p-3 rounded-2xl border-2 border-b-4 flex items-center gap-3 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] ${
               selectedType === 'needs_look'
-                ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#1F2430]'
-                : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                ? 'border-[#5B5BD6] bg-[#EEF0FD] text-[#1F2430] shadow-2xs'
+                : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
             }`}
           >
-            <IconTile icon={<AlertCircle className="w-5 h-5" />} color="indigo" size="sm" />
+            <IconTile icon={<WarningCircle className="w-5 h-5" />} color="indigo" size="sm" />
             <div>
               <p className="type-body font-bold">Needs another look</p>
               <p className="type-secondary">
@@ -167,7 +168,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
                 ? 'e.g. Could you wipe the mirror too? Thanks!'
                 : 'e.g. The kitchen smells amazing!'
             }
-            className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
+            className="w-full px-4 py-2.5 rounded-2xl border-2 border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
           />
         </div>
 
@@ -178,7 +179,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
             fullWidth
             disabled={loading}
             onClick={handleSubmit}
-            icon={<Send className="w-4 h-4" />}
+            icon={<PaperPlaneRight className="w-4 h-4" weight="fill" />}
           >
             {loading ? 'Sending...' : 'Send kudos'}
           </Button>

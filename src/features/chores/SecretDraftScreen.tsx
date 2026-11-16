@@ -9,8 +9,10 @@ import { IconTile } from '../../components/common/IconTile';
 import { Chore, DraftPick, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
-import { Heart, Ban, Users, ArrowLeft, ArrowRight, Check, Shuffle, ClipboardCheck } from 'lucide-react';
+import { Heart, Prohibit, UsersThree, ArrowLeft, ArrowRight, Check, Shuffle } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface SecretDraftScreenProps {
   chores: Chore[];
@@ -32,6 +34,16 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
   const [picks, setPicks] = useState<DraftPick[]>([]);
   const [suggestModalOpen, setSuggestModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useBackHandler(currentIndex > 0 && !suggestModalOpen, 55, () => {
+    sound.playTap();
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  });
+
+  useBackHandler(currentIndex === 0 && !suggestModalOpen, 50, () => {
+    sound.playTap();
+    onCancel();
+  });
 
   const activeChores = chores.filter((c) => c.active);
   const currentChore = activeChores[currentIndex];
@@ -95,7 +107,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
   const progressPercent = ((currentIndex + 1) / activeChores.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto select-none">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe max-w-md mx-auto select-none">
       {/* Top Header */}
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -145,7 +157,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
 
           <div className="py-4">
             <IconTile
-              icon={<ClipboardCheck className="w-8 h-8" />}
+              icon={<Icon icon="fluent-emoji-flat:broom" className="w-8 h-8" />}
               color="teal"
               size="lg"
               className="mx-auto mb-3"
@@ -196,7 +208,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
                   : 'border-[#E6E8EE] bg-white hover:border-[#E5484D] text-[#1F2430]'
               }`}
             >
-              <Ban className="w-5 h-5 text-[#E5484D]" />
+              <Prohibit className="w-5 h-5 text-[#E5484D]" />
               <span>Rather avoid this</span>
             </button>
 
@@ -209,7 +221,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
                   : 'border-[#E6E8EE] bg-white hover:border-[#5B5BD6] text-[#1F2430]'
               }`}
             >
-              <Users className="w-5 h-5 text-[#5B5BD6]" />
+              <UsersThree className="w-5 h-5 text-[#5B5BD6]" />
               <span>Suggest for roomie</span>
             </button>
           </div>
@@ -257,7 +269,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
 
       {/* Suggest for Roommate Dialog */}
       {suggestModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
           <Card padding="lg" className="w-full max-w-xs bg-white space-y-3">
             <h4 className="type-section-heading">
               Suggest for roomie

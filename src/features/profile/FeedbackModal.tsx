@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
-import { Star, MessageSquare, Bug, Lightbulb, Check, Heart } from 'lucide-react';
+import { Star, Bug, Lightbulb, Heart } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface FeedbackModalProps {
@@ -80,10 +80,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     sound.playTap();
                     setCategory(c.id as any);
                   }}
-                  className={`py-2 px-1 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                  className={`py-2 px-1 rounded-2xl border-2 border-b-4 text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                     category === c.id
-                      ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                      : 'border-[#E6E8EE] bg-white text-[#64748B]'
+                      ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A] shadow-2xs'
+                      : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
                   }`}
                 >
                   {c.icon}
@@ -111,9 +111,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                     className="p-1 cursor-pointer hover:scale-110 transition-transform"
                   >
                     <Star
+                      weight={star <= rating ? 'fill' : 'duotone'}
                       className={`w-8 h-8 ${
                         star <= rating
-                          ? 'text-[#FFC93C] fill-[#FFC93C]'
+                          ? 'text-[#FFC93C]'
                           : 'text-[#E6E8EE]'
                       }`}
                     />
@@ -149,7 +150,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   ? 'What feature would make living together even easier?'
                   : 'What do you love most about Roomie?'
               }
-              className="w-full px-4 py-2.5 rounded-2xl border border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A]"
+              className="w-full px-4 py-2.5 rounded-2xl border-2 border-[#E6E8EE] bg-white type-body focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
             />
           </div>
 

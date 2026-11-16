@@ -1,45 +1,209 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
-import { QrCode, Camera, ArrowRight, Clock, CheckCircle2, Building2, UserPlus } from 'lucide-react';
+import { QrCode, ArrowRight, Buildings, UserPlus, X } from '@phosphor-icons/react';
 import { IconTile } from '../../components/common/IconTile';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
+import { useBackHandler } from '../../utils/useBackHandler';
+import { extractInviteCodeFromInput } from '../../utils/inviteLink';
+import { debugLog } from '../../utils/debugLog';
 
 interface JoinHouseholdFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onJoin: (code: string) => Promise<{ success: boolean; message: string }>;
+  onJoin: (code: string) => Promise<{ success: boolean; household?: { name: string }; message: string }>;
+  onCompleted?: (status: 'joined' | 'requested', info: { code: string; householdName?: string }) => void;
+  initialCode?: string | null;
 }
 
 export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   isOpen,
   onClose,
   onJoin,
+  onCompleted,
+  initialCode,
 }) => {
   const { showToast } = useToast();
   // 1: Choose Method -> 2: Camera or Code Entry -> 3: Apartment Preview -> 4: Waiting Approval
   const [step, setStep] = useState<number>(1);
   const [code, setCode] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [hasCamera, setHasCamera] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [joinedDirectly, setJoinedDirectly] = useState<boolean>(false);
+  const [matchedHouseholdName, setMatchedHouseholdName] = useState<string | undefined>(undefined);
 
-  const handleSimulateScan = () => {
-    setIsScanning(true);
+  useEffect(() => {
+    if (!isOpen) return;
+    const normalized = extractInviteCodeFromInput(initialCode);
+    if (normalized) {
+      setCode(normalized);
+      setStep(3);
+    }
+  }, [isOpen, initialCode]);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanLoopRef = useRef<number | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
+
+  // Stop camera tracks helper
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
+    if (scanTimerRef.current) {
+      window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  useBackHandler(isOpen && step > 1 && step < 4, 110, () => {
     sound.playTap();
-    setTimeout(() => {
+    stopCamera();
+    setIsScanning(false);
+    setStep((s) => Math.max(1, s - 1));
+  });
+
+  const handleDetectedQrPayload = (rawVal: string, engine: 'BarcodeDetector' | 'jsQR', startedAt: number) => {
+    const detectedCode = extractInviteCodeFromInput(rawVal) || rawVal.trim().toUpperCase();
+    const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+    stopCamera();
+    setIsScanning(false);
+    setCode(detectedCode);
+    sound.playSuccess();
+    debugLog.info(
+      'qr_scanner',
+      'scan_decode',
+      `Decoded invite ${detectedCode} via ${engine}`,
+      { engine, extractedCode: detectedCode, payloadLength: rawVal.length },
+      durationMs
+    );
+    showToast(`Scanned: ${detectedCode}`, 'reward');
+    setStep(3);
+  };
+
+  const startLiveCamera = async () => {
+    sound.playTap();
+    setIsScanning(true);
+    setHasCamera(true);
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setHasCamera(false);
       setIsScanning(false);
-      setCode('CYP-7492');
-      sound.playSuccess();
-      showToast('QR Scanned: CYP-7492!', 'reward');
-      setStep(3); // Preview apartment
-    }, 1800);
+      debugLog.warn('qr_scanner', 'camera_init', 'navigator.mediaDevices unavailable');
+      showToast('Camera unavailable — enter the invite code or paste link below.', 'info');
+      setStep(2);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+
+      // Prefer native BarcodeDetector when available; fall back cleanly to lazy-loaded jsQR canvas decoder
+      if ('BarcodeDetector' in window) {
+        debugLog.info('qr_scanner', 'camera_init', 'Camera active using native BarcodeDetector');
+        const barcodeDetector = new (window as any).BarcodeDetector({
+          formats: ['qr_code'],
+        });
+
+        const scanFrame = async () => {
+          if (!videoRef.current || !streamRef.current) return;
+          try {
+            const barcodes = await barcodeDetector.detect(videoRef.current);
+            if (barcodes.length > 0 && barcodes[0].rawValue) {
+              handleDetectedQrPayload(barcodes[0].rawValue, 'BarcodeDetector', startedAt);
+              return;
+            }
+          } catch {
+            // Keep scanning frame
+          }
+          scanLoopRef.current = requestAnimationFrame(scanFrame);
+        };
+
+        scanLoopRef.current = requestAnimationFrame(scanFrame);
+      } else {
+        debugLog.info('qr_scanner', 'camera_init', 'BarcodeDetector absent; loading jsQR fallback');
+        const { default: jsQR } = await import('jsqr');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        if (!ctx) {
+          stopCamera();
+          setIsScanning(false);
+          setHasCamera(false);
+          debugLog.error('qr_scanner', 'camera_init', '2D canvas context unavailable for jsQR fallback');
+          showToast('Live QR decoding is unavailable — enter or paste the invite link below.', 'info');
+          setStep(2);
+          return;
+        }
+
+        const scanJsQrFrame = () => {
+          const video = videoRef.current;
+          if (!video || !streamRef.current) return;
+          if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const decoded = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'dontInvert',
+            });
+            if (decoded?.data) {
+              handleDetectedQrPayload(decoded.data, 'jsQR', startedAt);
+              return;
+            }
+          }
+          scanTimerRef.current = window.setTimeout(scanJsQrFrame, 120);
+        };
+
+        scanTimerRef.current = window.setTimeout(scanJsQrFrame, 120);
+      }
+    } catch (err: any) {
+      setHasCamera(false);
+      stopCamera();
+      setIsScanning(false);
+      debugLog.warn('qr_scanner', 'camera_error', err?.message || 'Camera permission denied or unavailable');
+      showToast('Camera unavailable — enter the invite code or link manually.', 'info');
+      setStep(2);
+    }
   };
 
   const handleCodeSubmit = () => {
-    if (!code.trim()) return;
+    const extracted = extractInviteCodeFromInput(code);
+    if (!extracted) {
+      debugLog.warn('qr_scanner', 'manual_code_invalid', 'Rejected malformed invite input', {
+        inputLength: code.length,
+      });
+      showToast('Please enter a valid invite code or paste the invite link.', 'error');
+      return;
+    }
+    setCode(extracted);
+    debugLog.info('qr_scanner', 'manual_code_parse', `Normalized invite input -> ${extracted}`, {
+      extractedCode: extracted,
+    });
     sound.playTap();
     setStep(3); // Preview apartment
   };
@@ -50,7 +214,10 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
       const res = await onJoin(code);
       if (res.success) {
         sound.playSuccess();
-        setStep(4); // Waiting for approval
+        const isDirect = res.message?.toLowerCase().includes('welcome') || res.message?.toLowerCase().includes('joined');
+        setJoinedDirectly(Boolean(isDirect));
+        setMatchedHouseholdName(res.household?.name);
+        setStep(4);
       } else {
         showToast(res.message, 'error');
       }
@@ -62,10 +229,19 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
   };
 
   const handleClose = () => {
+    const completedStep = step === 4;
+    const status = joinedDirectly ? 'joined' : 'requested';
+    const snapshotCode = code;
+    const snapshotName = matchedHouseholdName;
+    stopCamera();
     setStep(1);
     setCode('');
+    setMatchedHouseholdName(undefined);
     setIsScanning(false);
     onClose();
+    if (completedStep) {
+      onCompleted?.(status, { code: snapshotCode, householdName: snapshotName });
+    }
   };
 
   return (
@@ -99,11 +275,8 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
             <div className="grid grid-cols-1 gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  sound.playTap();
-                  handleSimulateScan();
-                }}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
+                onClick={startLiveCamera}
+                className="p-4 rounded-2xl border-2 border-b-4 border-[#E6E8EE] hover:border-[#FF6B4A] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <IconTile icon={<QrCode className="w-6 h-6" />} color="coral" size="md" />
                 <div>
@@ -122,7 +295,7 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
                   sound.playTap();
                   setStep(2);
                 }}
-                className="p-4 rounded-2xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-all active:scale-[0.98] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
+                className="p-4 rounded-2xl border-2 border-b-4 border-[#E6E8EE] hover:border-[#19B5A5] bg-white flex items-center gap-3.5 text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
               >
                 <IconTile icon={<UserPlus className="w-6 h-6" />} color="indigo" size="md" />
                 <div>
@@ -154,12 +327,12 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
               <input
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="e.g. CYP-7492"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white type-title tracking-widest focus:outline-none focus:border-[#FF6B4A] uppercase text-center"
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="e.g. CYP-7492 or invite link"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white type-title tracking-wide focus:outline-none focus:border-[#FF6B4A] text-center min-h-[48px]"
               />
-              <p className="type-secondary mt-1 text-center">
-                Try code <strong>CYP-7492</strong> to join Apartment 4B.
+              <p className="type-secondary mt-1.5 text-center text-xs text-[#6B7280]">
+                Enter the 8-character code or paste a Roomie invite link from your flatmate.
               </p>
             </div>
 
@@ -182,14 +355,37 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
         {/* CAMERA SCANNING OVERLAY */}
         {isScanning && (
-          <div className="p-6 flex flex-col items-center text-center space-y-4">
-            <div className="relative w-48 h-48 rounded-3xl bg-black overflow-hidden flex items-center justify-center border-4 border-[#FF6B4A]">
-              <Camera className="w-12 h-12 text-white/50" />
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_12px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-24" />
+          <div className="p-4 flex flex-col items-center text-center space-y-4">
+            <div className="relative w-56 h-56 rounded-3xl bg-black overflow-hidden flex items-center justify-center border-4 border-[#FF6B4A] shadow-lg">
+              <video
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#FF6B4A] shadow-[0_0_16px_#FF6B4A] animate-pulse transition-all duration-1000 transform translate-y-28 pointer-events-none" />
+              <div className="absolute inset-4 border-2 border-dashed border-white/50 rounded-2xl pointer-events-none" />
             </div>
-            <p className="type-body font-bold text-[#1F2430]">
-              Scanning for QR code...
-            </p>
+            <div>
+              <p className="type-body font-bold text-[#1F2430]">
+                {hasCamera ? 'Point camera at your roomie’s QR code' : 'Simulating QR scan...'}
+              </p>
+              <p className="type-secondary mt-0.5">
+                Keep the code centered in the frame
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                stopCamera();
+                setIsScanning(false);
+              }}
+              icon={<X className="w-3.5 h-3.5" />}
+            >
+              Cancel scan
+            </Button>
           </div>
         )}
 
@@ -207,19 +403,19 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
 
             <Card padding="md" variant="calm" className="bg-[#F7F8FB] space-y-3">
               <div className="flex items-center gap-3">
-                <IconTile icon={<Building2 className="w-5 h-5" />} color="coral" size="sm" />
+                <IconTile icon={<Buildings className="w-5 h-5" />} color="coral" size="sm" />
                 <div>
                   <h4 className="type-section-heading">
-                    Apartment 4B Lefkoşa
+                    Apartment Invite Code
                   </h4>
-                  <p className="type-secondary">
-                    Code: {code} • 4 roomies active
+                  <p className="type-secondary font-mono font-bold text-sm text-[#FF6B4A]">
+                    {code}
                   </p>
                 </div>
               </div>
 
-              <div className="type-secondary bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
-                Your request will be shared with the roomies. Every member sees your request and votes OK or Not sure, then the admin approves.
+              <div className="type-secondary bg-white p-3 rounded-2xl border-2 border-[#E6E8EE] leading-relaxed text-xs">
+                You are connecting to this apartment. Once joined, your chores, balances, and flat chat will automatically synchronize.
               </div>
             </Card>
 
@@ -240,27 +436,29 @@ export const JoinHouseholdFlowModal: React.FC<JoinHouseholdFlowModalProps> = ({
           </div>
         )}
 
-        {/* STEP 4: WAITING FOR APPROVAL */}
+        {/* STEP 4: WAITING FOR APPROVAL OR JOINED */}
         {step === 4 && (
           <div className="flex flex-col items-center text-center space-y-4 py-3">
             <MascotView
-              state="calm"
+              state={joinedDirectly ? 'celebrating' : 'calm'}
               size="lg"
-              bubbleText="Hold tight! The apartment is reviewing."
+              bubbleText={joinedDirectly ? "You're in! Welcome to the flat!" : 'Hold tight! The flat is reviewing.'}
             />
 
             <div className="space-y-1 max-w-xs">
               <h3 className="type-title">
-                Request Sent!
+                {joinedDirectly ? 'Joined Flat! 🎉' : 'Request Sent!'}
               </h3>
               <p className="type-secondary leading-relaxed">
-                Your request to join Apartment 4B Lefkoşa has been delivered. Roomies will review and vote.
+                {joinedDirectly
+                  ? `You are now an active member! Chores, expenses, and chats are all ready for you.`
+                  : `Your request to join has been delivered. Roomies will review and vote.`}
               </p>
             </div>
 
             <div className="w-full pt-2">
               <Button variant="primary" size="md" fullWidth onClick={handleClose}>
-                Done
+                {joinedDirectly ? 'Enter Apartment' : 'Done'}
               </Button>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { ActionCard } from '../../components/common/ActionCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Household } from '../../types';
-import { Building2, Plus, UserPlus, Check } from 'lucide-react';
+import { Buildings, PlusCircle, UserPlus, Check } from '@phosphor-icons/react';
 
 interface HouseholdSwitcherModalProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
               tint={isActive ? 'coral' : 'neutral'}
               iconTile={
                 <IconTile
-                  icon={<Building2 className="w-6 h-6" />}
+                  icon={<Buildings className="w-6 h-6" />}
                   color={isActive ? 'coral' : 'slate'}
                   size="md"
                 />
@@ -74,7 +74,7 @@ export const HouseholdSwitcherModal: React.FC<HouseholdSwitcherModalProps> = ({
               onClose();
               onCreateNew();
             }}
-            icon={<Plus className="w-4 h-4 text-[#FF6B4A]" />}
+            icon={<PlusCircle className="w-4 h-4 text-[#FF6B4A]" weight="fill" />}
           >
             Create New Apartment
           </Button>

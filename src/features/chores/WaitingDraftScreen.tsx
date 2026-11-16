@@ -1,16 +1,19 @@
 import React from 'react';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
+import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { MascotView } from '../../components/common/MascotView';
 import { User, DraftRound } from '../../types';
-import { Sparkles, Check, Clock, ArrowRight } from 'lucide-react';
+import { ArrowsClockwise, Check, Clock, ArrowLeft } from '@phosphor-icons/react';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface WaitingDraftScreenProps {
   draftRound: DraftRound;
   roommates: User[];
   onStartReveal: () => void;
   onEditPicks: () => void;
+  onClose?: () => void;
 }
 
 export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
@@ -18,15 +21,32 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
   roommates,
   onStartReveal,
   onEditPicks,
+  onClose,
 }) => {
   // Determine who has submitted picks
+  useBackHandler(Boolean(onClose), 50, () => {
+    onClose?.();
+  });
+
   const submittedUserIds = new Set(draftRound.picks.map((p) => p.userId));
   const isReady = draftRound.status === 'ready_to_reveal' || submittedUserIds.size >= roommates.length - 1;
 
   return (
-    <div className="min-h-screen bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto text-center select-none">
+    <div className="min-h-[100dvh] bg-[#F7F8FB] flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe max-w-md mx-auto text-center select-none">
       {/* Top Section */}
-      <div className="pt-6">
+      <div className="pt-2">
+        {onClose && (
+          <div className="flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="type-label text-[#64748B] hover:text-[#1F2430] flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded-lg hover:bg-black/5 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to apartment
+            </button>
+          </div>
+        )}
+
         <MascotView
           state={isReady ? 'cheering' : 'thinking'}
           size="xl"
@@ -59,22 +79,28 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
               return (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]"
+                  className="flex items-center justify-between gap-2.5 p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE]"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <Avatar src={r.avatar} name={r.name} flag={r.flag} size="sm" />
-                    <span className="type-section-heading">
+                    <span className="type-section-heading truncate">
                       {r.name}
                     </span>
                   </div>
                   {hasSubmitted ? (
-                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#3DBE6D] bg-[#EBF9F0] px-2.5 py-1 rounded-full border border-[#B8ECC8]">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" /> Ready
-                    </span>
+                    <Chip
+                      status="agreed"
+                      size="sm"
+                      label="Ready"
+                      icon={<Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    />
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[14px] font-bold text-[#64748B] bg-[#E6E8EE] px-2.5 py-1 rounded-full">
-                      <Clock className="w-3.5 h-3.5" /> Picking...
-                    </span>
+                    <Chip
+                      variant="neutral"
+                      size="sm"
+                      label="Picking..."
+                      icon={<Clock className="w-3.5 h-3.5" />}
+                    />
                   )}
                 </div>
               );
@@ -90,13 +116,20 @@ export const WaitingDraftScreen: React.FC<WaitingDraftScreenProps> = ({
           size="lg"
           fullWidth
           onClick={onStartReveal}
-          icon={<Sparkles className="w-5 h-5 text-yellow-200" />}
+          icon={<ArrowsClockwise className="w-5 h-5" weight="bold" />}
         >
           {isReady ? 'Start reveal' : 'Reveal now'}
         </Button>
-        <Button variant="ghost" size="sm" fullWidth onClick={onEditPicks}>
-          Edit picks
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" size="sm" fullWidth onClick={onEditPicks}>
+            Edit picks
+          </Button>
+          {onClose && (
+            <Button variant="secondary" size="sm" fullWidth onClick={onClose}>
+              Back to flat
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

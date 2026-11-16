@@ -5,13 +5,15 @@ import { Avatar } from '../../components/common/Avatar';
 import { Expense, User } from '../../types';
 import { sound } from '../../services/sound';
 import { useToast } from '../../components/common/Toast';
-import { CheckCircle2, Split } from 'lucide-react';
+import { CheckCircle, GitFork, ArrowCounterClockwise } from '@phosphor-icons/react';
+import { getCurrencySymbol } from '../../utils/stateTable';
 
 interface EditSplitModalProps {
   isOpen: boolean;
   onClose: () => void;
   expense: Expense | null;
   roommates: User[];
+  currency?: string;
   onSaveSplit: (
     expenseId: string,
     adjustedShares: { userId: string; shareAmount: number }[]
@@ -23,10 +25,13 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
   onClose,
   expense,
   roommates,
+  currency = 'TRY',
   onSaveSplit,
 }) => {
   const { showToast } = useToast();
   if (!expense) return null;
+
+  const sym = getCurrencySymbol(currency);
 
   // Initialize shares
   const [shares, setShares] = useState<Record<string, number>>(() => {
@@ -43,6 +48,9 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
   const diff = Math.round((expense.amount - totalAllocated) * 100) / 100;
   const isBalanced = Math.abs(diff) <= 0.05;
 
+  const disputedShare = expense.shares.find((s) => s.response === 'disputed' || Boolean(s.disputeReason));
+  const disputingUser = disputedShare ? roommates.find((r) => r.id === disputedShare.userId) : null;
+
   const handleShareChange = (userId: string, val: number) => {
     setShares((prev) => ({
       ...prev,
@@ -50,26 +58,40 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
     }));
   };
 
-  const handleQuickResolveLactose = () => {
+  const handleExcludeDisputingUser = () => {
     sound.playTap();
-    // Exclude Lucas (who has lactose intolerance) and split equally between Yasmin & Kai
-    const nonLucas = expense.shares.filter((s) => s.userId !== 'u_lucas');
-    const splitAmount = Math.round((expense.amount / nonLucas.length) * 100) / 100;
+    if (!disputingUser) return;
+    const remaining = expense.shares.filter((s) => s.userId !== disputingUser.id);
+    if (remaining.length === 0) return;
+    const splitAmount = Math.round((expense.amount / remaining.length) * 100) / 100;
     const newShares: Record<string, number> = {};
     expense.shares.forEach((s) => {
-      if (s.userId === 'u_lucas') {
+      if (s.userId === disputingUser.id) {
         newShares[s.userId] = 0;
       } else {
         newShares[s.userId] = splitAmount;
       }
     });
     setShares(newShares);
-    showToast('Excluded Lucas (lactose-free). Split updated between other roomies! 🧀', 'info');
+    showToast(`Excluded ${disputingUser.name.split(' ')[0]}. Split rebalanced among remaining flatmates!`, 'info');
+  };
+
+  const handleEqualSplit = () => {
+    sound.playTap();
+    const count = expense.shares.length;
+    if (count === 0) return;
+    const splitAmount = Math.round((expense.amount / count) * 100) / 100;
+    const newShares: Record<string, number> = {};
+    expense.shares.forEach((s) => {
+      newShares[s.userId] = splitAmount;
+    });
+    setShares(newShares);
+    showToast(`Split equally among all ${count} flatmates.`, 'info');
   };
 
   const handleSave = async () => {
     if (!isBalanced) {
-      showToast(`Total shares must equal ₺${expense.amount.toFixed(2)} (Diff: ₺${diff.toFixed(2)})`, 'error');
+      showToast(`Total shares must equal ${sym}${expense.amount.toFixed(2)} (Diff: ${sym}${diff.toFixed(2)})`, 'error');
       return;
     }
     setSaving(true);
@@ -93,9 +115,9 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Adjust expense split" maxWidth="lg">
       <div className="space-y-4">
         {/* Banner about the dispute */}
-        <div className="p-3.5 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] text-[#E5484D]">
+        <div className="p-3.5 rounded-2xl bg-[#FFF5F2] border-2 border-[#FFD3C9] text-[14px] text-[#E5484D]">
           <p className="font-bold text-[14px] text-[#1F2430] mb-0.5">{expense.title}</p>
-          <p className="text-[#475569]">Total Amount: <span className="font-bold text-[#1F2430]">₺{expense.amount.toFixed(2)}</span></p>
+          <p className="text-[#475569]">Total Amount: <span className="font-bold text-[#1F2430]">{sym}{expense.amount.toFixed(2)}</span></p>
           {expense.shares.some((s) => s.disputeReason) && (
             <p className="mt-1 font-semibold italic text-[#BF3337]">
               Dispute note: "{expense.shares.find((s) => s.disputeReason)?.disputeReason}"
@@ -104,16 +126,28 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
         </div>
 
         {/* Quick presets */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="type-label">Participant Shares</span>
-          <button
-            type="button"
-            onClick={handleQuickResolveLactose}
-            className="text-[14px] font-bold text-[#5B5BD6] hover:underline cursor-pointer flex items-center gap-1"
-          >
-            <Split className="w-3.5 h-3.5" />
-            Quick exclude Lucas (₺0)
-          </button>
+          <div className="flex items-center gap-3">
+            {disputingUser && (
+              <button
+                type="button"
+                onClick={handleExcludeDisputingUser}
+                className="text-[13px] font-bold text-[#5B5BD6] hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <GitFork className="w-3.5 h-3.5" />
+                Exclude {disputingUser.name.split(' ')[0]} ({sym}0)
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleEqualSplit}
+              className="text-[13px] font-bold text-[#19B5A5] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <ArrowCounterClockwise className="w-3.5 h-3.5" />
+              Equal split
+            </button>
+          </div>
         </div>
 
         {/* Roomie share inputs */}
@@ -124,7 +158,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
             return (
               <div
                 key={s.userId}
-                className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-3"
+                className="p-3 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar src={user?.avatar} name={user?.name || 'Roomie'} flag={user?.flag} size="xs" />
@@ -141,14 +175,14 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-[14px] font-bold text-[#475569]">₺</span>
+                  <span className="text-[14px] font-bold text-[#475569]">{sym}</span>
                   <input
                     type="number"
                     step="0.5"
                     min="0"
                     value={currentVal}
                     onChange={(e) => handleShareChange(s.userId, parseFloat(e.target.value) || 0)}
-                    className="w-24 px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-right font-mono font-bold text-[14px] text-[#1F2430] focus:outline-none focus:ring-2 focus:ring-[#FF6B4A]"
+                    className="w-24 px-2.5 py-2 rounded-xl border-2 border-[#CBD5E1] bg-white text-right font-mono font-bold text-[14px] text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
                   />
                 </div>
               </div>
@@ -158,14 +192,14 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
 
         {/* Balance status */}
         <div
-          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between border ${
+          className={`p-3 rounded-2xl text-[14px] font-bold flex items-center justify-between border-2 ${
             isBalanced
               ? 'bg-[#EBF9F0] text-[#2CA358] border-[#B8ECC8]'
               : 'bg-[#FFF0ED] text-[#E5484D] border-[#FFD7CF]'
           }`}
         >
-          <span>Allocated: ₺{totalAllocated.toFixed(2)} / ₺{expense.amount.toFixed(2)}</span>
-          <span>{isBalanced ? 'Balanced ✓' : `Remaining: ₺${diff.toFixed(2)}`}</span>
+          <span>Allocated: {sym}{totalAllocated.toFixed(2)} / {sym}{expense.amount.toFixed(2)}</span>
+          <span>{isBalanced ? 'Balanced ✓' : `Remaining: ${sym}${diff.toFixed(2)}`}</span>
         </div>
 
         {/* Actions */}
@@ -178,7 +212,7 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
             size="md"
             onClick={handleSave}
             disabled={!isBalanced || saving}
-            icon={<CheckCircle2 className="w-4 h-4" />}
+            icon={<CheckCircle className="w-4 h-4" weight="fill" />}
           >
             {saving ? 'Saving...' : 'Save & Resolve Dispute'}
           </Button>

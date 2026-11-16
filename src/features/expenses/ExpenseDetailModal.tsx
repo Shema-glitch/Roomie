@@ -1,3 +1,4 @@
+import { sound } from '../../services/sound';
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
@@ -6,8 +7,9 @@ import { Avatar } from '../../components/common/Avatar';
 import { Chip } from '../../components/common/Chip';
 import { DisputeReasonModal } from './DisputeReasonModal';
 import { Expense, User } from '../../types';
-import { Check, AlertCircle, Receipt, MessageSquare, Split, ShieldAlert } from 'lucide-react';
+import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning, ShareNetwork } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { getCurrencySymbol } from '../../utils/stateTable';
 
 interface ExpenseDetailModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface ExpenseDetailModalProps {
   expense: Expense | null;
   roommates: User[];
   currentUser: User;
+  currency?: string;
   onRespond: (expenseId: string, response: 'agreed' | 'disputed', reason?: string) => Promise<void>;
   onEditSplit?: () => void;
   onResolveDispute?: () => Promise<void>;
@@ -27,6 +30,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
   expense,
   roommates,
   currentUser,
+  currency = 'TRY',
   onRespond,
   onEditSplit,
   onResolveDispute,
@@ -38,6 +42,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
   if (!expense) return null;
 
+  const sym = getCurrencySymbol(currency);
   const payer = roommates.find((r) => r.id === expense.paidBy);
   const myShare = expense.shares.find((s) => s.userId === currentUser.id);
   const isPayer = expense.paidBy === currentUser.id;
@@ -69,6 +74,21 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
     }
   };
 
+  const handleShareSummary = () => {
+    sound.playTap();
+    const summary = `Shared Expense: "${expense.title}" (${sym}${expense.amount.toFixed(2)})\nPaid by: ${payer?.name || 'Roomie'}\nCategory: ${expense.category}\nView details on Roomie: ${window.location.origin}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summary)}`;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(summary).catch(() => {});
+    }
+    const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      showToast('Copied expense summary to clipboard!', 'info');
+    } else {
+      showToast('Opening WhatsApp with expense summary...', 'info');
+    }
+  };
+
   const handleResolve = async () => {
     if (!onResolveDispute) return;
     setLoading(true);
@@ -93,8 +113,8 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
       >
         <div className="space-y-4">
           {/* Header Amount */}
-          <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between">
-            <div>
+          <div className="p-4 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
               <span className="type-label block">
                 {expense.category}
               </span>
@@ -105,9 +125,9 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 Paid by {payer?.name || 'Roomie'} {isPayer ? '(You)' : ''}
               </p>
             </div>
-            <div className="text-right">
-              <span className="type-title text-[#FF6B4A]">
-                ₺{expense.amount.toFixed(2)}
+            <div className="text-right shrink-0">
+              <span className="type-title text-[#FF6B4A] whitespace-nowrap">
+                {sym}{expense.amount.toFixed(2)}
               </span>
               <div className="mt-1">
                 <Chip
@@ -119,7 +139,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       : 'pending'
                   }
                   label={expense.status}
-                  size="sm"
+                  size="xs"
                 />
               </div>
             </div>
@@ -127,9 +147,9 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
           {/* Dispute Warning Banner if disputed */}
           {isDisputed && expense.disputeReason && (
-            <div className="p-3.5 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] space-y-1.5 text-left">
+            <div className="p-3.5 rounded-2xl bg-[#FFF0ED] border-2 border-[#FFD7CF] space-y-1.5 text-left">
               <div className="flex items-center gap-1.5 text-[#E5484D] font-bold text-[14px]">
-                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <ShieldWarning className="w-4 h-4 shrink-0" />
                 <span>Disputed Item</span>
               </div>
               <p className="type-secondary text-[#7F1D1D] leading-relaxed">
@@ -157,7 +177,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
           {/* Roomie Splits Breakdown */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="type-label">
                 Roomie Splits ({expense.shares.length} people)
               </span>
@@ -168,9 +188,9 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                     onClose();
                     onEditSplit();
                   }}
-                  className="type-secondary font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="type-secondary font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
                 >
-                  <Split className="w-3.5 h-3.5" /> Edit split
+                  <GitFork className="w-3.5 h-3.5" /> Edit split
                 </button>
               )}
             </div>
@@ -182,17 +202,17 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                 return (
                   <div
                     key={s.userId}
-                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between"
+                    className="p-2.5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex items-center justify-between gap-2.5"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <Avatar
                         src={user?.avatar}
                         name={user?.name || 'User'}
                         flag={user?.flag}
                         size="xs"
                       />
-                      <div>
-                        <span className="text-[14px] font-bold text-[#1F2430]">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[14px] font-bold text-[#1F2430] block truncate">
                           {user?.name} {isMe ? '(You)' : ''}
                         </span>
                         {s.disputeReason && (
@@ -203,9 +223,9 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] font-bold text-[#1F2430]">
-                        ₺{s.shareAmount.toFixed(2)}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[14px] font-bold text-[#1F2430] whitespace-nowrap">
+                        {sym}{s.shareAmount.toFixed(2)}
                       </span>
                       <Chip
                         status={
@@ -216,7 +236,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                             : 'pending'
                         }
                         label={s.response}
-                        size="sm"
+                        size="xs"
                       />
                     </div>
                   </div>
@@ -229,14 +249,14 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           {!isPayer && myShare && myShare.response === 'pending' && (
             <div className="pt-2 border-t border-[#E6E8EE] space-y-2">
               <p className="type-secondary">
-                Your share is ₺{myShare.shareAmount.toFixed(2)}. Do you agree?
+                Your share is {sym}{myShare.shareAmount.toFixed(2)}. Do you agree?
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="danger-outline"
                   size="md"
                   onClick={() => setDisputeModalOpen(true)}
-                  icon={<AlertCircle className="w-4 h-4 text-[#E5484D]" />}
+                  icon={<WarningCircle className="w-4 h-4 text-[#E5484D]" />}
                 >
                   Dispute
                 </Button>
@@ -245,7 +265,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                   size="md"
                   disabled={loading}
                   onClick={handleAgree}
-                  icon={<Check className="w-4 h-4" />}
+                  icon={<Check className="w-4 h-4" weight="bold" />}
                 >
                   Agree
                 </Button>
@@ -266,7 +286,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
                       onClose();
                       onEditSplit();
                     }}
-                    icon={<Split className="w-4 h-4" />}
+                    icon={<GitFork className="w-4 h-4" />}
                   >
                     Edit split
                   </Button>
@@ -286,19 +306,26 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
             </div>
           )}
 
-          {/* Settle in chat helper */}
-          <div className="pt-2">
+          {/* Settle in chat & Share summary */}
+          <div className="pt-2 grid grid-cols-2 gap-2">
             <Button
               variant="secondary"
               size="md"
-              fullWidth
               onClick={() => {
                 onClose();
                 onOpenChat();
               }}
-              icon={<MessageSquare className="w-4 h-4 text-[#5B5BD6]" />}
+              icon={<ChatCircleDots className="w-4 h-4 text-[#5B5BD6]" />}
             >
-              Discuss in Chat
+              Chat
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={handleShareSummary}
+              icon={<ShareNetwork className="w-4 h-4 text-[#19B5A5]" />}
+            >
+              Share bill
             </Button>
           </div>
         </div>

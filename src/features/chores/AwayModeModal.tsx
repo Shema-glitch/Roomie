@@ -3,7 +3,7 @@ import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
-import { Plane, Calendar, Check, AlertCircle } from 'lucide-react';
+import { AirplaneTilt } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 
 interface AwayModeModalProps {
@@ -87,14 +87,14 @@ export const AwayModeModal: React.FC<AwayModeModalProps> = ({
               fullWidth
               disabled={loading}
               onClick={() => handleToggle(true)}
-              icon={<Plane className="w-4 h-4" />}
+              icon={<AirplaneTilt className="w-4 h-4" weight="fill" />}
             >
               {loading ? 'Activating...' : `Activate (${days} days)`}
             </Button>
           </div>
         ) : (
           <div className="w-full space-y-3">
-            <div className="p-3 bg-[#E6FAF8] border border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
+            <div className="p-3 bg-[#E6FAF8] border-2 border-[#BBEFEA] rounded-2xl text-[14px] font-bold text-[#138E82]">
               You are currently in Away Mode.
             </div>
             <Button

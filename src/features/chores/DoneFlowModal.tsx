@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Chip } from '../../components/common/Chip';
 import { MascotView } from '../../components/common/MascotView';
+import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { Chore, User } from '../../types';
 import { sound } from '../../services/sound';
 import { IconTile } from '../../components/common/IconTile';
-import { Camera, Check, Flame, ArrowRight, ArrowLeft } from 'lucide-react';
+import { processPhoto } from '../../utils/photoPipeline';
+import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
+import { Camera, Check, ArrowRight, UploadSimple } from '@phosphor-icons/react';
+import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
 
 interface DoneFlowModalProps {
@@ -29,17 +33,42 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
   // 1: Details & Prompt -> 2: Optional Photo Proof -> 3: Celebration
   const [step, setStep] = useState<number>(1);
   const [photoUrl, setPhotoUrl] = useState<string>('');
+  const [compressing, setCompressing] = useState<boolean>(false);
+  const [photoDetails, setPhotoDetails] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!chore) return null;
 
-  const handleSnapPhoto = () => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setCompressing(true);
+      const processed = await processPhoto(file);
+      const sizeKb = Math.round(processed.sizeBytes / 1024);
+      setPhotoDetails(`${processed.width}×${processed.height} px • ${sizeKb} KB`);
+
+      const fileName = buildScopedStoragePath(chore.householdId, `chore_${chore.id}_${Date.now()}.jpg`);
+      const finalUrl = await uploadPhotoToStorage('chore-proof', fileName, processed.fullBlob, processed.fullDataUrl);
+      setPhotoUrl(finalUrl);
+      sound.playPop();
+      showToast(`Proof compressed (${sizeKb} KB) & attached!`, 'info');
+    } catch {
+      showToast('Could not process proof photo', 'error');
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  const handleSamplePhoto = () => {
     sound.playPop();
     const photos = [
       'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&auto=format&fit=crop&q=80',
       'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&auto=format&fit=crop&q=80',
     ];
     setPhotoUrl(photos[Math.floor(Math.random() * photos.length)]);
+    setPhotoDetails('Sample preview');
     showToast('Proof photo attached', 'info');
   };
 
@@ -97,9 +126,9 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
-            <Card padding="sm" className="bg-[#FFF8E6] border border-[#FFE8A3] text-left flex items-center justify-between">
+            <Card padding="sm" className="bg-[#FFF8E6] border-2 border-[#FFE8A3] text-left flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Flame className="w-5 h-5 text-[#FF6B4A]" />
+                <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
                 <div>
                   <span className="type-label block mb-0.5">
                     Daily Streak Bonus
@@ -144,6 +173,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
             {photoUrl ? (
               <div className="space-y-2">
                 <div className="relative rounded-2xl overflow-hidden border-2 border-[#19B5A5] shadow-xs max-h-52">
@@ -153,29 +191,43 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
                     className="w-full h-44 object-cover"
                   />
                   <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 text-white text-[14px] font-bold">
-                    Proof attached
+                    {photoDetails || 'Proof attached'}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setPhotoUrl('')}
+                  onClick={() => {
+                    setPhotoUrl('');
+                    setPhotoDetails('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
                   className="min-h-[44px] px-3 py-1.5 type-secondary text-[#E5484D] font-bold hover:underline cursor-pointer"
                 >
                   Remove or Retake
                 </button>
               </div>
             ) : (
-              <div
-                onClick={handleSnapPhoto}
-                className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-all bg-[#F7F8FB] min-h-[44px]"
-              >
-                <IconTile icon={<Camera className="w-6 h-6" />} color="teal" size="md" />
-                <h4 className="type-section-heading">
-                  Snap Proof Photo
-                </h4>
-                <p className="type-secondary">
-                  Optional photo for your roomies to admire
-                </p>
+              <div className="space-y-3">
+                <div
+                  onClick={() => !compressing && fileInputRef.current?.click()}
+                  className="p-8 border-2 border-dashed border-[#CBD5E1] rounded-3xl flex flex-col items-center justify-center gap-2 hover:border-[#19B5A5] hover:bg-[#E6FAF8]/30 cursor-pointer transition-[border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] bg-[#F7F8FB] min-h-[44px]"
+                >
+                  <IconTile icon={compressing ? <UploadSimple className="w-6 h-6 animate-bounce" /> : <Camera className="w-6 h-6" />} color="teal" size="md" />
+                  <h4 className="type-section-heading">
+                    {compressing ? 'Compressing proof photo...' : 'Snap or Upload Proof'}
+                  </h4>
+                  <p className="type-secondary">
+                    {compressing ? 'Auto-optimizing under 300 KB' : 'Tap to take clean photo or choose from library'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSamplePhoto}
+                  className="type-secondary font-bold text-[#19B5A5] hover:underline cursor-pointer text-center w-full min-h-[44px] flex items-center justify-center"
+                >
+                  Or use sample proof preview
+                </button>
               </div>
             )}
 
@@ -203,12 +255,37 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
 
         {/* STEP 3: CELEBRATION & STREAK SCREEN */}
         {step === 3 && (
-          <div className="flex flex-col items-center text-center space-y-4 py-3">
-            <MascotView
-              state="celebrating"
-              size="lg"
-              bubbleText="Kitchen's sparkling! Thanks!"
-            />
+          <div className="relative flex flex-col items-center text-center space-y-4 py-3">
+            {/* Floating 3-Beat Reward Badge */}
+            <div
+              aria-hidden="true"
+              className="animate-float-badge pointer-events-none absolute top-0 right-4 z-20 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2CA358] text-white text-xs font-extrabold shadow-md"
+            >
+              <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
+              <span>+1 Streak · +1 Token</span>
+            </div>
+
+            <div className="relative">
+              <MascotView
+                state="celebrating"
+                size="lg"
+                bubbleText="Kitchen's sparkling! Thanks!"
+              />
+              {/* Animated SVG Checkmark Draw Badge */}
+              <div className="w-10 h-10 rounded-full bg-[#2CA358] text-white border-2 border-white shadow-md flex items-center justify-center absolute -bottom-1 -right-1">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 13l4 4L19 7" className="animate-check-draw" />
+                </svg>
+              </div>
+            </div>
 
             <div className="space-y-1">
               <h3 className="type-title">
@@ -219,13 +296,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
               </p>
             </div>
 
-            <Card padding="md" className="w-full bg-[#FFF8E6] border border-[#FFE8A3] space-y-1.5">
+            <Card padding="md" className="w-full bg-[#FFF8E6] border-2 border-[#FFE8A3] ring-2 ring-[#F2B100]/40 space-y-1.5 transition-transform duration-200 ease-spring">
               <div className="flex items-center justify-center gap-2 type-section-heading text-[#8A6200]">
-                <Flame className="w-5 h-5 text-[#FF6B4A]" />
-                <span>Streak: {currentUser.streakDays + 1} Days Active</span>
+                <Icon icon="fluent-emoji-flat:fire" className="w-5 h-5 shrink-0" />
+                <span>
+                  Streak: <AnimatedNumber value={currentUser.streakDays + 1} /> Days Active
+                </span>
               </div>
               <p className="type-secondary">
-                +20 reward points added to your roomie score
+                +20 reward points & +1 Favor Token added to your roomie score
               </p>
             </Card>
 

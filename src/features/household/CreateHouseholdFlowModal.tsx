@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -6,28 +7,34 @@ import { MascotView } from '../../components/common/MascotView';
 import { CurrencyCode, Household } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { buildInviteUrl } from '../../utils/inviteLink';
+import { debugLog } from '../../utils/debugLog';
 import {
-  Home,
   Check,
   Copy,
   ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  Shield,
-  Clock,
-} from 'lucide-react';
+  Link,
+  ShareNetwork,
+} from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { useBackHandler } from '../../utils/useBackHandler';
 
 interface CreateHouseholdFlowModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, currency: CurrencyCode) => Promise<Household>;
+  onCreate: (
+    name: string,
+    currency: CurrencyCode,
+    options?: { rotationInterval?: 'weekly' | 'monthly'; starterChores?: string[] }
+  ) => Promise<Household>;
+  onCompleted?: (household: Household) => void;
 }
 
 export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> = ({
   isOpen,
   onClose,
   onCreate,
+  onCompleted,
 }) => {
   const { showToast } = useToast();
   // 1: Name -> 2: Currency & Rotation -> 3: Starter Chores -> 4: Complete & QR
@@ -44,6 +51,55 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
   const [createdHousehold, setCreatedHousehold] = useState<Household | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+
+  useEffect(() => {
+    if (!createdHousehold?.inviteCode) {
+      setQrDataUrl('');
+      return;
+    }
+    let active = true;
+    const inviteUrl = buildInviteUrl(createdHousehold.inviteCode);
+
+    QRCode.toDataURL(inviteUrl, {
+      width: 240,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#1F2430',
+        light: '#FFFFFF',
+      },
+    })
+      .then((url) => {
+        if (active) {
+          setQrDataUrl(url);
+          debugLog.info('qr_scanner', 'generate_qr', `Rendered real QR for created flat ${createdHousehold.inviteCode}`, {
+            householdId: createdHousehold.id,
+            inviteCode: createdHousehold.inviteCode,
+          });
+        }
+      })
+      .catch((err: any) => {
+        if (active) {
+          setQrDataUrl('');
+          debugLog.warn('qr_scanner', 'generate_qr', err?.message || 'Failed to render QR', {
+            householdId: createdHousehold.id,
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [createdHousehold]);
+
+  useBackHandler(isOpen && step > 1 && step < 4, 110, () => {
+    sound.playTap();
+    setStep((s) => Math.max(1, s - 1));
+  });
 
   const availableStarterChores = [
     'Deep Clean Bathroom',
@@ -68,7 +124,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
     setLoading(true);
     try {
       sound.playCelebration();
-      const h = await onCreate(name.trim(), currency);
+      const h = await onCreate(name.trim(), currency, {
+        rotationInterval: rotation,
+        starterChores,
+      });
       setCreatedHousehold(h);
       setStep(4);
       showToast(`Apartment "${h.name}" created!`, 'success');
@@ -87,11 +146,38 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyLink = () => {
+    if (!createdHousehold) return;
+    const url = buildInviteUrl(createdHousehold.inviteCode);
+    navigator.clipboard.writeText(url).catch(() => {});
+    setCopiedLink(true);
+    showToast('Invite link copied!', 'reward');
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleShareInvite = async () => {
+    if (!createdHousehold) return;
+    const url = buildInviteUrl(createdHousehold.inviteCode);
+    try {
+      await navigator.share({
+        title: `Join ${createdHousehold.name} on Roomie`,
+        text: `Hey! Join our shared flat "${createdHousehold.name}" on Roomie with invite code ${createdHousehold.inviteCode}:`,
+        url,
+      });
+    } catch {
+      // User cancelled share sheet
+    }
+  };
+
   const handleClose = () => {
+    const completed = createdHousehold;
     setStep(1);
     setName('');
     setCreatedHousehold(null);
     onClose();
+    if (completed) {
+      onCompleted?.(completed);
+    }
   };
 
   return (
@@ -150,7 +236,7 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Lefkoşa Flat 12, Gönyeli Villa 4B"
-                className="w-full px-4 py-3 rounded-2xl border border-[#E6E8EE] bg-white text-[16px] focus:outline-none focus:border-[#FF6B4A]"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-semibold text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
               />
             </div>
 
@@ -198,10 +284,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setCurrency(c);
                     }}
-                    className={`py-3 px-2 rounded-2xl border text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-all ${
+                    className={`py-3 px-2 rounded-2xl border-2 border-b-4 text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       currency === c
-                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A]'
-                        : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A] shadow-2xs'
+                        : 'border-[#E6E8EE] bg-white text-[#6B7280] hover:border-[#CBD5E1]'
                     }`}
                   >
                     <span className="text-[14px] font-bold">
@@ -232,10 +318,10 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                       sound.playTap();
                       setRotation(r.id as any);
                     }}
-                    className={`p-3 rounded-2xl border text-[14px] font-bold text-left cursor-pointer transition-all ${
+                    className={`p-3 rounded-2xl border-2 border-b-4 text-[14px] font-bold text-left cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                       rotation === r.id
-                        ? 'border-[#19B5A5] bg-[#E6FAF8] text-[#138E82]'
-                        : 'border-[#E6E8EE] bg-white text-[#6B7280]'
+                        ? 'border-[#19B5A5] bg-[#E6FAF8] text-[#138E82] shadow-2xs'
+                        : 'border-[#E6E8EE] bg-white text-[#6B7280] hover:border-[#CBD5E1]'
                     }`}
                   >
                     {r.label}
@@ -331,44 +417,58 @@ export const CreateHouseholdFlowModal: React.FC<CreateHouseholdFlowModalProps> =
                 </div>
               </div>
 
-              {/* Vector QR preview */}
-              <div className="p-3 bg-white rounded-2xl border border-[#E6E8EE] inline-block mx-auto shadow-xs">
-                <svg width="120" height="120" viewBox="0 0 100 100" className="mx-auto">
-                  <rect width="100" height="100" fill="#FFFFFF" />
-                  <rect x="10" y="10" width="28" height="28" fill="#1F2430" rx="3" />
-                  <rect x="15" y="15" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="19" y="19" width="10" height="10" fill="#1F2430" rx="1" />
-                  <rect x="62" y="10" width="28" height="28" fill="#1F2430" rx="3" />
-                  <rect x="67" y="15" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="71" y="19" width="10" height="10" fill="#1F2430" rx="1" />
-                  <rect x="10" y="62" width="28" height="28" fill="#1F2430" rx="3" />
-                  <rect x="15" y="67" width="18" height="18" fill="#FFFFFF" rx="2" />
-                  <rect x="19" y="71" width="10" height="10" fill="#1F2430" rx="1" />
-                  <rect x="44" y="15" width="8" height="8" fill="#1F2430" />
-                  <rect x="44" y="27" width="8" height="8" fill="#1F2430" />
-                  <rect x="44" y="62" width="8" height="8" fill="#1F2430" />
-                  <rect x="56" y="44" width="8" height="8" fill="#1F2430" />
-                  <rect x="62" y="62" width="12" height="12" fill="#1F2430" />
-                  <rect x="78" y="78" width="12" height="12" fill="#1F2430" />
-                </svg>
-                <p className="type-secondary mt-1">
-                  Scan with camera to join
+              {/* Real scannable QR code */}
+              <div className="p-3.5 bg-white rounded-2xl border-2 border-[#E6E8EE] inline-block mx-auto shadow-xs">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt={`Invite QR code for ${createdHousehold.name}`}
+                    className="w-[180px] h-[180px] mx-auto rounded-xl object-contain"
+                  />
+                ) : (
+                  <div className="w-[180px] h-[180px] flex items-center justify-center text-xs text-[#64748B]">
+                    Generating QR code...
+                  </div>
+                )}
+                <p className="type-secondary mt-1.5 text-xs font-semibold">
+                  Scan with camera to join flat
                 </p>
               </div>
 
-              <Button
-                variant="secondary"
-                size="md"
-                fullWidth
-                onClick={handleCopyCode}
-                icon={copied ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Copy className="w-4 h-4" />}
-              >
-                {copied ? 'Copied code!' : 'Copy Code'}
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={handleCopyCode}
+                  icon={copied ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Copy className="w-4 h-4" />}
+                >
+                  {copied ? 'Copied code!' : 'Copy Code'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={handleCopyLink}
+                  icon={copiedLink ? <Check className="w-4 h-4 text-[#3DBE6D]" /> : <Link className="w-4 h-4 text-[#5B5BD6]" />}
+                >
+                  {copiedLink ? 'Copied link!' : 'Copy Link'}
+                </Button>
+              </div>
+
+              {canShare && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  fullWidth
+                  onClick={handleShareInvite}
+                  icon={<ShareNetwork className="w-4 h-4" />}
+                >
+                  Share invite to roomies
+                </Button>
+              )}
             </Card>
 
             <Button variant="primary" size="md" fullWidth onClick={handleClose}>
-              Done
+              {onCompleted ? 'Enter My Apartment' : 'Done'}
             </Button>
           </div>
         )}
