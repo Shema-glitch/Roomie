@@ -1,10 +1,8 @@
 import React from 'react';
 import { InfoCard } from '../../../components/common/InfoCard';
-import { IconTile } from '../../../components/common/IconTile';
-import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
 import { Chore, User } from '../../../types';
-import { Heart, AirplaneTilt } from '@phosphor-icons/react';
+import { Heart } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 
 interface ChoresSidebarProps {
@@ -12,7 +10,6 @@ interface ChoresSidebarProps {
   currentUser: User;
   chores: Chore[];
   onSelectKudos: (data: { chore: Chore; target: User }) => void;
-  onOpenAwayModal: () => void;
 }
 
 export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
@@ -20,7 +17,6 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
   currentUser,
   chores,
   onSelectKudos,
-  onOpenAwayModal,
 }) => {
   const maxStreak = Math.max(...roommates.map((r) => r.streakDays), 0);
 
@@ -98,36 +94,6 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
             );
           })}
         </div>
-      </InfoCard>
-
-      <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
-        <div className="flex items-start gap-3">
-          <IconTile icon={<AirplaneTilt className="w-5 h-5" />} color="slate" size="sm" />
-          <div className="flex-1 min-w-0 space-y-1">
-            <h4 className="type-card-title text-[#1F2430]">
-              {currentUser.awayUntil ? 'Away mode active' : 'Going on vacation?'}
-            </h4>
-            <p className="type-secondary text-[14px]">
-              {currentUser.awayUntil
-                ? `Your chores are paused until ${currentUser.awayUntil}. Streak is protected.`
-                : 'Protect your streak and notify roomies when traveling or during exam breaks.'}
-            </p>
-            {currentUser.awayUntil && (
-              <div className="inline-block mt-1 px-2.5 py-1 rounded-xl bg-[#F1F3F9] border border-[#E2E5EC] text-[14px] font-bold text-[#475569]">
-                Active until: {currentUser.awayUntil}
-              </div>
-            )}
-          </div>
-        </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          fullWidth
-          onClick={onOpenAwayModal}
-          icon={<AirplaneTilt className="w-4 h-4 text-[#475569]" />}
-        >
-          {currentUser.awayUntil ? 'Manage away mode' : 'Set away mode'}
-        </Button>
       </InfoCard>
     </div>
   );

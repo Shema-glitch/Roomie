@@ -103,15 +103,15 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
   const activeBills = bills.filter((b) => !b.deletedAt && b.active);
 
   return (
-    <div className="bg-surface rounded-3xl p-5 border border-border shadow-card mb-6">
+    <div className="bg-white rounded-[24px] p-5 border-2 border-[#E5E9F0] shadow-xs mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+          <div className="w-9 h-9 rounded-2xl bg-[#FFF0ED] flex items-center justify-center text-[#FF6B4A]">
             <CalendarCheck weight="duotone" className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="type-h3 text-text-primary text-[16px]">Recurring Rent & Bills</h3>
-            <p className="type-caption text-text-secondary">
+            <h3 className="font-heading font-black text-[#1F2430] text-[16px]">Recurring Rent &amp; Bills</h3>
+            <p className="type-caption text-[#64748B]">
               Monthly flat expenses with 1-tap split logging
             </p>
           </div>
@@ -122,7 +122,7 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
             sound.playTap();
             setAddModalOpen(true);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-brand-primary/10 text-brand-primary font-semibold text-[13px] hover:bg-brand-primary/20 active:scale-95 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] font-bold text-[13px] hover:bg-[#FFE4DD] active:scale-95 transition-all cursor-pointer"
         >
           <Plus weight="bold" className="w-4 h-4" />
           <span>Add Template</span>
@@ -130,8 +130,8 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
       </div>
 
       {activeBills.length === 0 ? (
-        <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border/60 text-center">
-          <p className="type-caption text-text-secondary">
+        <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center">
+          <p className="type-caption text-[#64748B]">
             No recurring bills set up yet. Add templates for monthly rent, fiber Wi-Fi, or electricity.
           </p>
         </div>
@@ -148,19 +148,19 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
             return (
               <div
                 key={bill.id}
-                className="p-4 rounded-2xl bg-surface-elevated/40 border border-border/80 flex flex-col justify-between gap-3 hover:border-brand-primary/30 transition-all"
+                className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex flex-col justify-between gap-3 hover:border-[#FF6B4A]/40 transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-surface border border-border/80 flex items-center justify-center text-text-primary">
+                      <div className="w-9 h-9 rounded-xl bg-white border border-[#E6E8EE] flex items-center justify-center text-[#1F2430] shrink-0">
                         <IconComponent weight="duotone" className="w-5 h-5" />
                       </div>
                       <div>
-                        <h4 className="type-body font-semibold text-text-primary text-[14px] line-clamp-1">
+                        <h4 className="type-body font-semibold text-[#1F2430] text-[14px] line-clamp-1">
                           {bill.title}
                         </h4>
-                        <span className="type-caption text-text-muted">
+                        <span className="type-caption text-[#64748B]">
                           Due {getOrdinalSuffix(bill.dueDay)} of month
                         </span>
                       </div>
@@ -184,30 +184,30 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
 
                   <div className="mt-3 flex items-baseline justify-between">
                     <div>
-                      <span className="text-[18px] font-bold text-text-primary">
+                      <span className="text-[18px] font-bold text-[#1F2430]">
                         {sym}
                         {bill.amount.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
                       </span>
-                      <span className="type-caption text-text-muted ml-1">/ mo</span>
+                      <span className="type-caption text-[#64748B] ml-1">/ mo</span>
                     </div>
-                    <span className="type-caption text-text-secondary bg-surface px-2 py-0.5 rounded-full border border-border/60">
+                    <span className="type-caption text-[#64748B] bg-white px-2 py-0.5 rounded-full border border-[#E6E8EE]">
                       {sym}
                       {perPersonShare.toFixed(2)}/ea
                     </span>
                   </div>
 
-                  <div className="mt-2 flex items-center gap-1.5 text-[12px] text-text-muted">
+                  <div className="mt-2 flex items-center gap-1.5 text-[12px] text-[#64748B]">
                     <span>Paid upfront by:</span>
-                    <span className="font-medium text-text-secondary">
+                    <span className="font-semibold text-[#475569]">
                       {payer.name} {payer.id === currentUser.id ? '(You)' : ''}
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-border/50">
+                <div className="pt-2 border-t border-[#E6E8EE]">
                   {isLoggedThisMonth ? (
                     <div className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-green-500/10 text-green-600 font-semibold text-[13px]">
                       <CheckCircle weight="fill" className="w-4 h-4" />

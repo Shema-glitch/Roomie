@@ -561,7 +561,7 @@ export class ChoresApi {
       hid,
       null,
       'activity',
-      `📅 Duty schedule updated: ${assignedUser?.name || 'A flatmate'} is now assigned to ${day}.`,
+      `Duty schedule updated: ${assignedUser?.name || 'A flatmate'} is now assigned to ${day}.`,
       { screen: 'chores' }
     );
 
@@ -579,7 +579,7 @@ export class ChoresApi {
       hid,
       null,
       'activity',
-      `🔄 Duty days swapped between ${day1} and ${day2}.`,
+      `Duty days swapped between ${day1} and ${day2}.`,
       { screen: 'chores' }
     );
 
@@ -597,7 +597,7 @@ export class ChoresApi {
         hid,
         null,
         'activity',
-        `✨ ${this.store.currentUser.name} completed today's apartment duty!`,
+        `${this.store.currentUser.name} completed today's apartment duty.`,
         { screen: 'chores' }
       );
       this.ctx.save();

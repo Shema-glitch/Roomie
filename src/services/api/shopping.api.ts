@@ -374,7 +374,7 @@ export class ShoppingApi {
     const userName = user.name.split(' ')[0] || 'Roommate';
 
     const messageId = `msg_ping_${Date.now()}`;
-    const activityBody = `${userName} is heading to the supermarket! 🛒 Tap to add any last-minute items to the flat shopping list.`;
+    const activityBody = `${userName} is heading to the supermarket. Tap to add any last-minute items to the flat shopping list.`;
 
     // Post to chat activity messages
     if (!store.messages) store.messages = {};
@@ -397,7 +397,7 @@ export class ShoppingApi {
             id: `notif_shop_${Date.now()}_${u.id}`,
             userId: u.id,
             type: 'household',
-            title: 'Supermarket Run! 🛒',
+            title: 'Supermarket Run',
             body: `${userName} is heading out to shop. Check the shared list!`,
             read: false,
             createdAt: new Date().toISOString(),

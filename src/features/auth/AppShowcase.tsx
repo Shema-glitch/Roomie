@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MascotView } from '../../components/common/MascotView';
 import { Button } from '../../components/common/Button';
+import { FullScreenStory } from '../../components/ui/overlays';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
 import {
@@ -263,7 +264,10 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
   const current = SLIDES[currentSlide];
 
   return (
-    <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] bg-white z-40 overflow-hidden flex flex-col items-center justify-between select-none">
+    <FullScreenStory
+      isOpen={isActive}
+      className="overflow-hidden flex flex-col items-center justify-between select-none"
+    >
       <div className="w-full max-w-md h-full flex flex-col justify-between p-4 sm:p-6 pt-safe pb-safe overflow-hidden">
         {/* TOP STORY BAR */}
         <div className="pt-2 pb-1 space-y-2 shrink-0">
@@ -409,6 +413,6 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </FullScreenStory>
   );
 };

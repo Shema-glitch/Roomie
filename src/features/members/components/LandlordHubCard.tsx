@@ -12,6 +12,10 @@ import {
   Megaphone,
   Copy,
   Check,
+  Camera,
+  ShieldCheck,
+  FilePdf,
+  CaretRight,
 } from '@phosphor-icons/react';
 import { LandlordProfile, MaintenanceIssue, MaintenanceIssueStatus } from '../../../types';
 import { copyTextToClipboard } from '../../../utils/clipboard';
@@ -127,7 +131,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
   const fixedIssues = maintenanceIssues.filter((i) => !i.deletedAt && i.status === 'fixed');
 
   return (
-    <div className="bg-surface rounded-3xl p-5 border border-border shadow-card mb-6">
+    <div className="bg-white rounded-[24px] p-5 border-2 border-[#E5E9F0] shadow-xs mb-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
@@ -135,8 +139,8 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
             <Wrench weight="duotone" className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="type-h3 text-text-primary text-[16px]">Landlord & Maintenance Hub</h3>
-            <p className="type-caption text-text-secondary">
+            <h3 className="font-heading font-black text-[#1F2430] text-[16px]">Landlord &amp; Maintenance Hub</h3>
+            <p className="type-caption text-[#64748B]">
               Direct landlord contacts, emergencies & repairs
             </p>
           </div>
@@ -149,7 +153,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 setIsEditing(true);
               }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-surface-elevated text-text-secondary font-medium text-[12px] hover:text-text-primary border border-border/80 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F7F8FB] text-[#475569] font-bold text-[12px] hover:text-[#1F2430] border border-[#E6E8EE] transition-colors cursor-pointer"
             >
               <PencilSimple weight="bold" className="w-3.5 h-3.5" />
               <span>Edit Contact</span>
@@ -160,77 +164,77 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
 
       {/* EDIT MODE */}
       {isEditing ? (
-        <form onSubmit={handleSaveProfile} className="flex flex-col gap-3 p-4 rounded-2xl bg-surface-elevated/40 border border-border mb-4">
+        <form onSubmit={handleSaveProfile} className="flex flex-col gap-3 p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] mb-4">
           {isProhibited && (
             <div
               role="alert"
-              className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-[12px]"
+              className="flex items-start gap-2 p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] text-[12px]"
             >
-              <ShieldWarning weight="fill" className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+              <ShieldWarning weight="fill" className="w-4 h-4 shrink-0 mt-0.5 text-[#D97706]" />
               <span>Prohibited: Passports, national IDs, and driver licenses are not allowed.</span>
             </div>
           )}
 
           <div>
-            <label className="type-caption text-text-secondary block mb-1">Landlord / Agent Name</label>
+            <label className="type-caption text-[#475569] block mb-1">Landlord / Agent Name</label>
             <input
               type="text"
               maxLength={80}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-[13px] text-text-primary"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E6E8EE] text-[13px] text-[#1F2430]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="type-caption text-text-secondary block mb-1">Role / Company</label>
+              <label className="type-caption text-[#475569] block mb-1">Role / Company</label>
               <input
                 type="text"
                 maxLength={40}
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-[13px] text-text-primary"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-[#E6E8EE] text-[13px] text-[#1F2430]"
               />
             </div>
             <div>
-              <label className="type-caption text-text-secondary block mb-1">Phone / WhatsApp</label>
+              <label className="type-caption text-[#475569] block mb-1">Phone / WhatsApp</label>
               <input
                 type="text"
                 maxLength={50}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-[13px] text-text-primary"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-[#E6E8EE] text-[13px] text-[#1F2430]"
               />
             </div>
           </div>
 
           <div>
-            <label className="type-caption text-text-secondary block mb-1">Emergency Instructions</label>
+            <label className="type-caption text-[#475569] block mb-1">Emergency Instructions</label>
             <textarea
               rows={2}
               maxLength={300}
               value={emergencyNote}
               onChange={(e) => setEmergencyNote(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-surface border border-border text-[13px] text-text-primary"
+              className="w-full px-3 py-2 rounded-xl bg-white border border-[#E6E8EE] text-[13px] text-[#1F2430]"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#E6E8EE]">
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-3 py-1.5 rounded-xl text-[12px] text-text-secondary hover:bg-surface"
+              className="px-3 py-1.5 rounded-xl text-[12px] text-[#475569] hover:bg-white cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || isProhibited}
-              className="px-4 py-1.5 rounded-xl bg-brand-primary text-white text-[12px] font-semibold disabled:opacity-50"
+              className="px-4 py-1.5 rounded-xl bg-[#FF6B4A] text-white text-[12px] font-bold disabled:opacity-50 cursor-pointer"
             >
               {saving ? 'Saving...' : 'Save Landlord Info'}
             </button>
@@ -238,18 +242,18 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
         </form>
       ) : (
         /* CONTACT CARD */
-        <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border/80 flex flex-col gap-3 mb-4">
+        <div className="p-4 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-[15px] text-text-primary">
+                <span className="font-semibold text-[15px] text-[#1F2430]">
                   {landlordProfile?.landlordName || name}
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] font-bold">
                   {landlordProfile?.roleLabel || role}
                 </span>
               </div>
-              <span className="type-caption text-text-secondary mt-0.5 block">
+              <span className="type-caption text-[#64748B] mt-0.5 block">
                 {landlordProfile?.phoneOrWhatsapp || phone}
               </span>
             </div>
@@ -259,18 +263,18 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               <button
                 type="button"
                 onClick={handleCall}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface border border-border text-text-primary hover:text-brand-primary text-[12px] font-semibold active:scale-95 transition-all shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] text-[#1F2430] hover:text-[#FF6B4A] text-[12px] font-semibold active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <PhoneCall weight="bold" className="w-3.5 h-3.5 text-brand-primary" />
+                <PhoneCall weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />
                 <span>Call</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleWhatsApp}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 text-[12px] font-semibold hover:bg-green-500/20 active:scale-95 transition-all shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] text-[12px] font-semibold hover:bg-[#DCFCE7] active:scale-95 transition-all shadow-xs cursor-pointer"
               >
-                <WhatsappLogo weight="fill" className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                <WhatsappLogo weight="fill" className="w-3.5 h-3.5 text-[#16A34A]" />
                 <span>WhatsApp</span>
               </button>
 
@@ -278,10 +282,10 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 type="button"
                 onClick={handleCopyPhone}
                 aria-label="Copy phone number"
-                className="p-2 rounded-xl bg-surface border border-border text-text-secondary hover:text-text-primary active:scale-95 transition-all"
+                className="p-2 rounded-xl bg-white border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] active:scale-95 transition-all cursor-pointer"
               >
                 {copiedPhone ? (
-                  <Check weight="bold" className="w-3.5 h-3.5 text-green-600" />
+                  <Check weight="bold" className="w-3.5 h-3.5 text-[#16A34A]" />
                 ) : (
                   <Copy weight="bold" className="w-3.5 h-3.5" />
                 )}
@@ -290,8 +294,8 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
           </div>
 
           {(landlordProfile?.emergencyNote || emergencyNote) && (
-            <p className="text-[12px] text-text-secondary bg-surface p-2.5 rounded-xl border border-border/60 leading-relaxed">
-              <span className="font-semibold text-text-primary">Emergency Instructions: </span>
+            <p className="text-[12px] text-[#475569] bg-white p-2.5 rounded-xl border border-[#E6E8EE] leading-relaxed">
+              <span className="font-semibold text-[#1F2430]">Emergency Instructions: </span>
               {landlordProfile?.emergencyNote || emergencyNote}
             </p>
           )}
@@ -302,7 +306,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <span className="type-caption font-semibold text-text-primary uppercase tracking-wider text-[11px]">
+            <span className="type-caption font-bold text-[#1F2430] uppercase tracking-wider text-[11px]">
               Apartment Maintenance ({activeIssues.length} Active)
             </span>
           </div>
@@ -312,7 +316,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               sound.playTap();
               onOpenReportIssue();
             }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-brand-primary/10 text-brand-primary font-semibold text-[12px] hover:bg-brand-primary/20 active:scale-95 transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#FFF0ED] text-[#FF6B4A] font-bold text-[12px] hover:bg-[#FFE4DD] active:scale-95 transition-all cursor-pointer"
           >
             <Plus weight="bold" className="w-3.5 h-3.5" />
             <span>Report Issue</span>
@@ -320,8 +324,8 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
         </div>
 
         {activeIssues.length === 0 && fixedIssues.length === 0 ? (
-          <div className="p-3.5 rounded-2xl bg-surface-elevated/30 border border-border/60 text-center">
-            <p className="type-caption text-text-muted">
+          <div className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-center">
+            <p className="type-caption text-[#64748B]">
               All flat fixtures working properly. Tap "Report Issue" if plumbing or AC needs attention.
             </p>
           </div>
@@ -334,17 +338,17 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                   sound.playTap();
                   onSelectIssue(issue);
                 }}
-                className="p-3 rounded-2xl bg-surface-elevated/50 border border-border/80 flex items-center justify-between gap-3 cursor-pointer hover:border-brand-primary/40 active:scale-99 transition-all"
+                className="p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between gap-3 cursor-pointer hover:border-[#FF6B4A]/40 active:scale-[0.99] transition-all"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-[#FFFBEB] flex items-center justify-center text-[#D97706] shrink-0">
                     <Wrench weight="duotone" className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <h5 className="type-body font-semibold text-[13px] text-text-primary truncate">
+                    <h5 className="type-body font-semibold text-[13px] text-[#1F2430] truncate">
                       {issue.title}
                     </h5>
-                    <p className="type-caption text-text-muted line-clamp-1">
+                    <p className="type-caption text-[#64748B] line-clamp-1">
                       {issue.description}
                     </p>
                   </div>
@@ -352,12 +356,12 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
 
                 <div className="shrink-0">
                   {issue.status === 'notified_landlord' ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 font-medium">
+                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] font-medium">
                       <Megaphone weight="fill" className="w-3 h-3" />
                       <span>Notified</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-medium">
+                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#FFFBEB] text-[#D97706] font-medium">
                       <Clock weight="fill" className="w-3 h-3" />
                       <span>Reported</span>
                     </span>
@@ -373,24 +377,24 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                   sound.playTap();
                   onSelectIssue(issue);
                 }}
-                className="p-2.5 rounded-2xl bg-surface border border-border/40 flex items-center justify-between opacity-60 hover:opacity-100 cursor-pointer transition-opacity"
+                className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <CheckCircle weight="fill" className="w-4 h-4 text-green-600 shrink-0" />
-                  <span className="text-[12px] text-text-secondary truncate line-through">
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#16A34A] shrink-0" />
+                  <span className="text-[12px] text-[#475569] truncate line-through">
                     {issue.title}
                   </span>
                 </div>
-                <span className="text-[11px] text-green-600 font-medium shrink-0">Fixed</span>
+                <span className="text-[11px] text-[#16A34A] font-medium shrink-0">Fixed</span>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* QUICK SHORTCUTS FOR CONDITION SNAPSHOT, MOVE-OUT & PDF EXPORT */}
+      {/* TACTILE SECONDARY ACTION ROWS: CONDITION SNAPSHOT, MOVE-OUT & PDF EXPORT */}
       {(onOpenMoveInSnapshot || onOpenMoveOutSnapshot || onOpenExportPdf) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 pt-3 border-t border-border/60">
+        <div className="space-y-2 mt-4 pt-3.5 border-t border-[#E6E8EE]">
           {onOpenMoveInSnapshot && (
             <button
               type="button"
@@ -398,9 +402,17 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 onOpenMoveInSnapshot();
               }}
-              className="py-2 px-2.5 rounded-xl bg-surface border border-border text-text-secondary hover:text-text-primary text-[11px] sm:text-[12px] font-medium text-center transition-colors"
+              className="w-full p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] hover:bg-[#EEF1F6] active:scale-[0.99] flex items-center justify-between gap-3 transition-all cursor-pointer"
             >
-              Move-In Baseline
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
+                  <Camera weight="duotone" className="w-4 h-4 text-[#5B5BD6]" />
+                </div>
+                <span className="font-heading font-bold text-xs sm:text-sm text-[#1F2430] truncate">
+                  Move-In Baseline
+                </span>
+              </div>
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
             </button>
           )}
           {onOpenMoveOutSnapshot && (
@@ -410,9 +422,17 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 onOpenMoveOutSnapshot();
               }}
-              className="py-2 px-2.5 rounded-xl bg-surface border border-sky-200 text-sky-700 hover:bg-sky-50 text-[11px] sm:text-[12px] font-semibold text-center transition-colors"
+              className="w-full p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] hover:bg-[#EEF1F6] active:scale-[0.99] flex items-center justify-between gap-3 transition-all cursor-pointer"
             >
-              Move-Out & Deposit
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
+                  <ShieldCheck weight="duotone" className="w-4 h-4 text-[#19B5A5]" />
+                </div>
+                <span className="font-heading font-bold text-xs sm:text-sm text-[#1F2430] truncate">
+                  Move-Out &amp; Deposit
+                </span>
+              </div>
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
             </button>
           )}
           {onOpenExportPdf && (
@@ -422,9 +442,17 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 onOpenExportPdf();
               }}
-              className="py-2 px-2.5 rounded-xl bg-surface border border-border text-brand-primary hover:bg-brand-primary/10 text-[11px] sm:text-[12px] font-medium text-center transition-colors"
+              className="w-full p-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] hover:bg-[#EEF1F6] active:scale-[0.99] flex items-center justify-between gap-3 transition-all cursor-pointer"
             >
-              Export Agreement
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
+                  <FilePdf weight="duotone" className="w-4 h-4 text-[#FF6B4A]" />
+                </div>
+                <span className="font-heading font-bold text-xs sm:text-sm text-[#1F2430] truncate">
+                  Export Agreement
+                </span>
+              </div>
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
             </button>
           )}
         </div>

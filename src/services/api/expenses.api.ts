@@ -258,7 +258,7 @@ export class ExpensesApi {
       exp.householdId,
       null,
       'activity',
-      `Split adjusted for "${exp.title}". All shares resolved and agreed! 🤝`,
+      `Split adjusted for "${exp.title}". All shares resolved and agreed.`,
       { screen: 'expenses', id: exp.id }
     );
     this.ctx.save();

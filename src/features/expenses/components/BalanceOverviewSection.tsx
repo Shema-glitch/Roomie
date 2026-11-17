@@ -64,7 +64,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
 }) => {
   const { showToast } = useToast();
   const [showCalculationInfo, setShowCalculationInfo] = useState(false);
-  const [breakdownExpanded, setBreakdownExpanded] = useState(true);
+  const [breakdownExpanded, setBreakdownExpanded] = useState(false);
 
   const myBreakdown = balances.calculationBreakdowns?.[currentUser.id];
 
@@ -236,7 +236,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                     sound.playTap();
                     if (onRemindRoomies) {
                       await onRemindRoomies(
-                        'Gentle reminder to settle apartment balances when you have a moment 🙏'
+                        'Gentle reminder to settle apartment balances when you have a moment.'
                       );
                       showToast('Reminder posted to flat chat!', 'success');
                     }
@@ -286,30 +286,32 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
         }
       />
 
-      <InfoCard padding="md" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconTile icon={<ChartPieSlice className="w-5 h-5" />} color="amber" size="sm" />
-            <span className="type-section-heading">Spending by category</span>
+      {expenses.length > 0 && (
+        <InfoCard padding="md" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <IconTile icon={<ChartPieSlice className="w-5 h-5" />} color="amber" size="sm" />
+              <span className="type-section-heading">Spending by category</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBreakdownExpanded(!breakdownExpanded)}
+              className="type-secondary font-bold text-[14px] text-[#FF6B4A] hover:underline cursor-pointer"
+            >
+              {breakdownExpanded ? 'Collapse' : 'Expand'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setBreakdownExpanded(!breakdownExpanded)}
-            className="type-secondary font-bold text-[14px] text-[#FF6B4A] hover:underline cursor-pointer"
-          >
-            {breakdownExpanded ? 'Collapse' : 'Expand'}
-          </button>
-        </div>
 
-        {breakdownExpanded && (
-          <React.Suspense fallback={<ChartSkeleton />}>
-            <SpendingBreakdownChart
-              expenses={agreedExpenses.length > 0 ? agreedExpenses : expenses}
-              currencySymbol={sym}
-            />
-          </React.Suspense>
-        )}
-      </InfoCard>
+          {breakdownExpanded && (
+            <React.Suspense fallback={<ChartSkeleton />}>
+              <SpendingBreakdownChart
+                expenses={agreedExpenses.length > 0 ? agreedExpenses : expenses}
+                currencySymbol={sym}
+              />
+            </React.Suspense>
+          )}
+        </InfoCard>
+      )}
     </div>
   );
 };

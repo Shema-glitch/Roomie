@@ -74,7 +74,7 @@ test('privacy alerts: approving a join request broadcasts privacy_alert notifica
 
   const bobAlert = privacyAlerts.find((n: any) => n.userId === 'u_roomie');
   assert.ok(bobAlert, 'Bob must receive privacy alert');
-  assert.equal(bobAlert.title, '🛡️ Privacy Alert: New Flatmate Joined');
+  assert.equal(bobAlert.title, 'New Flatmate Joined');
   assert.match(bobAlert.body, /Charlie Newbie has officially joined/);
   assert.deepEqual(bobAlert.linkTarget, { screen: 'apartment' });
 });
@@ -169,13 +169,13 @@ test('privacy alerts (WhatsApp style): admin removing a member posts chat announ
   // Verify Emma Mate received notification
   const emmaAlert = store.notifications.find((n: any) => n.userId === 'u_mate');
   assert.ok(emmaAlert, 'Emma Mate must receive notification about the removal');
-  assert.equal(emmaAlert.title, '🛡️ Member Removed from Flat');
+  assert.equal(emmaAlert.title, 'Member Removed from Flat');
   assert.match(emmaAlert.body, /Admin Adam removed Bad Guy/);
 
   // Verify removed user was notified that access was revoked
   const badAlert = store.notifications.find((n: any) => n.userId === 'u_bad');
   assert.ok(badAlert, 'Removed user must be notified of access revocation');
-  assert.equal(badAlert.title, '🛡️ Apartment Access Revoked');
+  assert.equal(badAlert.title, 'Apartment Access Revoked');
 });
 
 test('privacy alerts (WhatsApp style): member leaving flat posts chat announcement and alerts remaining flatmates', async () => {
@@ -221,6 +221,6 @@ test('privacy alerts (WhatsApp style): member leaving flat posts chat announceme
   // Verify Host Holly received leave notification
   const hollyAlert = store.notifications.find((n: any) => n.userId === 'u_host4');
   assert.ok(hollyAlert, 'Host Holly must receive notification of member departure');
-  assert.equal(hollyAlert.title, '👋 Member Left the Flat');
+  assert.equal(hollyAlert.title, 'Member Left the Flat');
   assert.match(hollyAlert.body, /Leo Leaver has left/);
 });

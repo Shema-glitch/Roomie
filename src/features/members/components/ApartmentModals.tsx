@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
+import { CenterDialog } from '../../../components/ui/overlays';
 import { ActionCard } from '../../../components/common/ActionCard';
 import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
@@ -327,12 +328,12 @@ export const LeaveApartmentModal: React.FC<LeaveApartmentModalProps> = ({
   };
 
   return (
-    <Modal
+    <CenterDialog
       isOpen={isOpen}
       onClose={onClose}
       title="Leave Apartment"
       subtitle="Are you sure you want to disconnect from this household?"
-      size="md"
+      maxWidth="md"
     >
       <div className="space-y-4">
         {hasUnsettledDebt ? (
@@ -381,7 +382,7 @@ export const LeaveApartmentModal: React.FC<LeaveApartmentModalProps> = ({
           </Button>
         </div>
       </div>
-    </Modal>
+    </CenterDialog>
   );
 };
 
@@ -415,12 +416,12 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
   };
 
   return (
-    <Modal
+    <CenterDialog
       isOpen={Boolean(targetUser)}
       onClose={onClose}
       title={`Remove ${targetUser.name}?`}
       subtitle="Apartment membership removal"
-      size="md"
+      maxWidth="md"
     >
       <div className="space-y-4">
         <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-2">
@@ -448,6 +449,6 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
           </Button>
         </div>
       </div>
-    </Modal>
+    </CenterDialog>
   );
 };

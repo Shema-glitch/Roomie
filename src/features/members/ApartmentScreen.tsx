@@ -323,6 +323,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         onOpenHouseholdSwitcher={onOpenHouseholdSwitcher}
         onOpenHowItWorks={onOpenHowItWorks}
         onOpenHandoverModal={() => setHandoverModalOpen(true)}
+        onOpenLeaveModal={() => setLeaveModalOpen(true)}
         onReviewJoinRequest={onReviewJoinRequest}
         onRefreshRequests={onRefreshRequests}
       />
@@ -367,7 +368,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             }`}
           >
             <ChatCircleDots className="w-4 h-4" weight={mobileTab === 'meetings' ? 'fill' : 'duotone'} />
-            <span>Rules & Meetings ({topics.length + agreements.length})</span>
+            <span>Flat Info &amp; Rules</span>
           </button>
         </div>
       </div>
@@ -384,7 +385,6 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             isAdmin={isAdmin}
             canRemoveMembers={Boolean(onRemoveMember)}
             onSelectRemoveUser={setRemoveTargetUser}
-            onOpenLeaveModal={() => setLeaveModalOpen(true)}
           />
         </div>
 

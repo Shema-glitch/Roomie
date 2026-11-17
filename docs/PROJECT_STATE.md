@@ -550,3 +550,32 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 19. UX De-Bloat, Visual Consistency & Canonical Overlay Primitives (Branch `feature/ux-debloat-and-native-polish`)
+
+- **Purged Lecture Banners & Private Shield Pill**:
+  - Removed the permanent 4-line green `Apartment Privacy Shield Active` banner and gray admin rule box from `ApartmentHeaderCard.tsx`. Replaced them with a compact tappable `Private` shield pill next to the currency badge that opens a brief `CenterDialog` on demand.
+  - Removed the permanent `Strict Privacy Rule` warning banner from the read-only `ApartmentInfoCard.tsx` view, rendering privacy notices only inside the Edit modal.
+- **Streamlined `ApartmentScreen.tsx`, `ApartmentHeaderCard.tsx`, `ShowQRModal.tsx`, and `ApartmentInfoCard.tsx`**:
+  - Collapsed 6 header buttons + bottom `Leave this apartment` button into **2 primary header buttons** (`Invite Roomie` and `Requests` with amber count badge when pending requests > 0) plus a top-right `•••` (`Apartment Settings`) `BottomSheet` housing `Handover Admin`, `Switch Flat`, `Flat Guide`, and `Leave This Apartment`.
+  - Moved the 1-tap `Copy Invite Code` button directly below the QR code in `ShowQRModal.tsx`.
+  - Renamed the second mobile tab in `ApartmentScreen.tsx` to `Flat Info & Rules`.
+  - Consolidated `ApartmentInfoCard.tsx` (Wi-Fi, Delivery Address, Trash & Recycling Schedule, Emergency & Superintendent) into a single cohesive white `Apartment Info` card (`rounded-[24px] border-2 border-[#E5E9F0] bg-white`) with clean tinted inner rows and `whitespace-nowrap` title alignment.
+- **WhatsApp-Style Whisper Chat Pills & Deduplicated Empty States**:
+  - Redesigned system activity rows in `ChatScreen.tsx` into centered WhatsApp-style micro-pills (`rounded-full bg-[#EEF1F6] text-[11px] font-medium text-[#64748B]`), removing left icons and `View` links.
+  - Deduplicated member-join activity events across `households.api.ts` and `supabase/migrations/20261117234500_clean_whisper_system_messages.sql` into one concise `[Name] joined [Apartment]` notice and purged raw Unicode emojis from system messages and alerts.
+  - Hidden the redundant `"No confirmed expenses yet"` card and `Spending by category` card in `ExpensesScreen.tsx` and `BalanceOverviewSection.tsx` when `expenses.length === 0`, and initialized `breakdownExpanded` to `false` so collapsed state clearly shows `Expand`.
+  - Condensed the tall `"Going on vacation?"` Away Mode card out of `ChoresSidebar.tsx` into a sleek 1-line utility pill row at the bottom of `ChoresScreen.tsx`.
+- **Storybook Surface & Tactile Action Row Standardization**:
+  - Replaced undefined wireframe `border-border` / `bg-surface` classes in `RecurringBillsSection.tsx` and `LandlordHubCard.tsx` with canonical soft Storybook styling (`rounded-[24px] border-2 border-[#E5E9F0] bg-white` and `#F7F8FB` / `#E6E8EE` inner containers).
+  - Styled `Move-In Baseline`, `Move-Out & Deposit`, and `Export Agreement` in `LandlordHubCard.tsx` as tactile secondary rows with Phosphor `duotone` icons (`Camera`, `ShieldCheck`, `FilePdf`) and `CaretRight` chevrons.
+  - Brand-aligned `TenantPassportModal.tsx` (`ReputationPassportModal.tsx`) `Share Passport` CTA to brand coral (`#FF6B4A`) and added a top-right amber `Chip` pill on `HomeScreen.tsx`'s Sunday Chore Draft card matching `ChoresScreen.tsx`.
+- **Canonical 3-Primitive Overlay System (`src/components/ui/overlays/`)**:
+  - Exported `BottomSheet` (`z-50`, flush docked bottom sheet), `CenterDialog` (`z-[60]`, centered spring confirmation/info card), and `FullScreenStory` (`z-[70]`, `100dvh` showcase/ceremony wrapper).
+  - Migrated `ProfileSettingsModal`, `NotificationsModal`, `TenantPassportModal` / `ReputationPassportModal`, `ShoppingListModal`, `LeaveApartmentModal`, `RemoveMemberModal`, and `AppShowcase` onto these primitives.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **110 / 110 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.92 kB gzipped** (< 200 KB threshold).
+
+---
+

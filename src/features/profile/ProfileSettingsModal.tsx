@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../../components/common/Modal';
+import { BottomSheet, CenterDialog } from '../../components/ui/overlays';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
@@ -286,7 +286,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
         await onUpdateProfile({
           name: editName.trim(),
           country: editCountry.trim(),
-          flag: editFlag.trim() || '🌍',
+          flag: editFlag.trim(),
           avatar: editAvatar,
         });
       }
@@ -313,7 +313,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
 
   return (
     <>
-      <Modal
+      <BottomSheet
         isOpen={isOpen}
         onClose={onClose}
         title="Profile & Settings"
@@ -985,10 +985,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </button>
           </div>
         </div>
-      </Modal>
+      </BottomSheet>
 
       {/* Instagram/Facebook-style Save Login prompt before signing out */}
-      <Modal
+      <CenterDialog
         isOpen={signOutPromptOpen}
         onClose={() => setSignOutPromptOpen(false)}
         title="Save your login info?"
@@ -1029,10 +1029,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </Button>
           </div>
         </div>
-      </Modal>
+      </CenterDialog>
 
-      {/* Delete Confirmation Modal with explicit typing step */}
-      <Modal
+      {/* Delete Confirmation Dialog with explicit typing step */}
+      <CenterDialog
         isOpen={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         title="Delete Account?"
@@ -1077,7 +1077,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             </Button>
           </div>
         </div>
-      </Modal>
+      </CenterDialog>
 
       {passportModalOpen && (
         <TenantPassportModal

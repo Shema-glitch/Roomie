@@ -795,21 +795,33 @@ BEGIN
       VALUES (
         v_existing_member.user_id,
         'privacy_alert',
-        '🛡️ Privacy Alert: New Flatmate Joined',
-        v_new_member_name || ' has officially joined ' || coalesce(v_household_name, 'your apartment') || '. Review the active flatmate roster in Apartment settings.',
+        'New Flatmate Joined',
+        v_new_member_name || ' joined ' || coalesce(v_household_name, 'your apartment') || '.',
         jsonb_build_object('screen', 'apartment')
       );
     END LOOP;
 
-    -- Post public activity notice in household chat
-    INSERT INTO public.chat_messages (household_id, sender_id, type, body, link_target)
-    VALUES (
-      NEW.household_id,
-      NULL,
-      'activity',
-      'Privacy Notice: ' || v_new_member_name || ' has joined the apartment roster.',
-      jsonb_build_object('screen', 'apartment', 'id', NEW.user_id)
-    );
+    -- Notify newly admitted member (skip founder admin creation)
+    IF NEW.role <> 'admin' THEN
+      INSERT INTO public.notifications (user_id, type, title, body, link_target)
+      VALUES (
+        NEW.user_id,
+        'household',
+        'Welcome to ' || coalesce(v_household_name, 'your apartment') || '!',
+        'Your join request was approved. Tap to open your new flat.',
+        jsonb_build_object('screen', 'apartment')
+      );
+
+      -- Post public whisper activity notice in household chat
+      INSERT INTO public.chat_messages (household_id, sender_id, type, body, link_target)
+      VALUES (
+        NEW.household_id,
+        NULL,
+        'activity',
+        v_new_member_name || ' joined ' || coalesce(v_household_name, 'the apartment'),
+        jsonb_build_object('screen', 'apartment', 'id', NEW.user_id)
+      );
+    END IF;
   END IF;
 
   RETURN NEW;

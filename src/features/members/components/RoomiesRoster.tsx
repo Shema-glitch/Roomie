@@ -6,7 +6,7 @@ import { Avatar } from '../../../components/common/Avatar';
 import { Chip } from '../../../components/common/Chip';
 import { User, Membership } from '../../../types';
 import { sound } from '../../../services/sound';
-import { UserMinus, SignOut } from '@phosphor-icons/react';
+import { UserMinus } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 
 interface RoomieRosterCardProps {
@@ -93,7 +93,6 @@ interface RoomiesRosterProps {
   isAdmin: boolean;
   canRemoveMembers: boolean;
   onSelectRemoveUser: (user: User) => void;
-  onOpenLeaveModal: () => void;
 }
 
 export const RoomiesRoster: React.FC<RoomiesRosterProps> = React.memo(
@@ -103,7 +102,6 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = React.memo(
     isAdmin,
     canRemoveMembers,
     onSelectRemoveUser,
-    onOpenLeaveModal,
   }) => {
     const homeCount = useMemo(
       () => members.reduce((acc, m) => (m.user.isHome ? acc + 1 : acc), 0),
@@ -131,17 +129,6 @@ export const RoomiesRoster: React.FC<RoomiesRosterProps> = React.memo(
               onSelectRemoveUser={onSelectRemoveUser}
             />
           ))}
-        </div>
-
-        <div className="pt-2 flex justify-start">
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={onOpenLeaveModal}
-            icon={<SignOut className="w-4 h-4 text-[#E5484D]" />}
-          >
-            Leave this apartment
-          </Button>
         </div>
       </div>
     );

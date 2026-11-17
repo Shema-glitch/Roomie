@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../../components/common/Modal';
+import { BottomSheet } from '../../components/ui/overlays';
 import {
   Sparkle,
   Fire,
@@ -80,13 +80,37 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
   };
 
   return (
-    <Modal
+    <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
       title="Flatmate Reputation Passport"
-      maxWidth="md"
+      size="md"
+      footer={
+        <div className="flex gap-2.5">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="flex-1 py-2.5 px-3 rounded-2xl border-2 border-b-4 border-[#CBD5E1] bg-white text-xs font-bold text-[#1F2430] hover:bg-[#F8FAFC] active:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            {copied ? (
+              <Check weight="bold" className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <Copy weight="bold" className="w-4 h-4 text-[#64748B]" />
+            )}
+            {copied ? 'Copied' : 'Copy Summary'}
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FF6B4A] border-2 border-b-4 border-[#D94E30] text-white text-xs font-extrabold hover:bg-[#E55A3A] active:translate-y-[1px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <ShareNetwork weight="bold" className="w-4 h-4" />
+            Share Passport
+          </button>
+        </div>
+      }
     >
-      <div className="p-4 sm:p-5 space-y-4">
+      <div className="space-y-4">
         {/* Passport Identity Card */}
         <div className="p-4 rounded-3xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white border-2 border-[#334155] shadow-xl relative overflow-hidden space-y-3.5">
           {/* Background watermark badge */}
@@ -96,7 +120,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           />
 
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold tracking-widest text-[#38BDF8] uppercase bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
+            <span className="text-[10px] font-extrabold tracking-widest text-[#FF9278] uppercase bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
               Verified Tenant Passport
             </span>
             <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
@@ -110,7 +134,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
             <img
               src={passport.userAvatar}
               alt={passport.userName}
-              className="w-14 h-14 rounded-2xl border-2 border-[#38BDF8] object-cover shadow-md"
+              className="w-14 h-14 rounded-2xl border-2 border-[#FF6B4A] object-cover shadow-md"
             />
             <div>
               <h3 className="text-base font-extrabold text-white flex items-center gap-1.5">
@@ -130,7 +154,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           {/* Harmony Score Banner */}
           <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-[#38BDF8] block">
+              <span className="text-[10px] uppercase font-bold text-[#FF9278] block">
                 Harmony Score
               </span>
               <span className="text-xl font-black text-white tracking-tight">
@@ -155,26 +179,26 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
 
         {/* 3 Key Reputation Metrics */}
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E2E8F0]">
+          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
             <Fire weight="fill" className="w-5 h-5 text-amber-500 mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#0F172A]">{passport.choreStreakDays}d</div>
+            <div className="text-base font-extrabold text-[#1F2430]">{passport.choreStreakDays}d</div>
             <div className="text-[10px] font-bold text-[#64748B] uppercase">Streak</div>
           </div>
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E2E8F0]">
+          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
             <CheckCircle weight="fill" className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#0F172A]">{passport.totalChoresCompleted}</div>
+            <div className="text-base font-extrabold text-[#1F2430]">{passport.totalChoresCompleted}</div>
             <div className="text-[10px] font-bold text-[#64748B] uppercase">Chores</div>
           </div>
-          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E2E8F0]">
-            <HouseLine weight="fill" className="w-5 h-5 text-sky-500 mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#0F172A]">{passport.tenancyCount}</div>
+          <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
+            <HouseLine weight="fill" className="w-5 h-5 text-[#FF6B4A] mx-auto mb-1" />
+            <div className="text-base font-extrabold text-[#1F2430]">{passport.tenancyCount}</div>
             <div className="text-[10px] font-bold text-[#64748B] uppercase">Tenancies</div>
           </div>
         </div>
 
         {/* Honorary Badges Earned */}
         <div className="space-y-2">
-          <span className="text-xs font-extrabold text-[#0F172A] flex items-center gap-1.5">
+          <span className="text-xs font-extrabold text-[#1F2430] flex items-center gap-1.5">
             <Medal weight="duotone" className="w-4 h-4 text-[#D97706]" />
             Peer-Awarded Honors
           </span>
@@ -192,34 +216,10 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
         </div>
 
         {/* Portable Explanation */}
-        <div className="p-3 rounded-2xl bg-[#F0F9FF] border border-[#BAE6FD] text-xs text-[#0369A1] leading-relaxed">
+        <div className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD7CF] text-xs text-[#9A3412] leading-relaxed">
           <strong>Portable Reputation:</strong> When moving to your next flat or study exchange, your Roomie reputation travels with you as certified proof of great flatmate etiquette.
         </div>
-
-        {/* Share & Copy CTAs */}
-        <div className="flex gap-2 pt-1">
-          <button
-            type="button"
-            onClick={handleCopyLink}
-            className="flex-1 py-2.5 px-3 rounded-2xl border-2 border-[#CBD5E1] bg-white text-xs font-bold text-[#0F172A] hover:bg-[#F8FAFC] active:scale-95 transition-all flex items-center justify-center gap-1.5"
-          >
-            {copied ? (
-              <Check weight="bold" className="w-4 h-4 text-emerald-600" />
-            ) : (
-              <Copy weight="bold" className="w-4 h-4 text-[#64748B]" />
-            )}
-            {copied ? 'Copied' : 'Copy Summary'}
-          </button>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#0284C7] text-white text-xs font-extrabold hover:bg-[#0369A1] active:scale-95 shadow-sm transition-all flex items-center justify-center gap-1.5"
-          >
-            <ShareNetwork weight="bold" className="w-4 h-4" />
-            Share Passport
-          </button>
-        </div>
       </div>
-    </Modal>
+    </BottomSheet>
   );
 };

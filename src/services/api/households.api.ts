@@ -303,7 +303,7 @@ export class HouseholdsApi {
               id: 'notif_priv_' + Date.now() + '_' + m.userId,
               userId: m.userId,
               type: 'privacy_alert',
-              title: '🛡️ Privacy Alert: New Flatmate Joined',
+              title: 'New Flatmate Joined',
               body: `${this.store.currentUser.name} has joined the apartment. Review the active roster in Apartment settings.`,
               read: false,
               createdAt: new Date().toISOString(),
@@ -603,7 +603,7 @@ export class HouseholdsApi {
             id: 'notif_priv_' + Date.now() + '_' + m.userId,
             userId: m.userId,
             type: 'privacy_alert',
-            title: '🛡️ Privacy Alert: New Flatmate Joined',
+            title: 'New Flatmate Joined',
             body: `${req.userName} has officially joined the apartment roster. Review all active members in Apartment settings.`,
             read: false,
             createdAt: new Date().toISOString(),
@@ -611,9 +611,14 @@ export class HouseholdsApi {
           });
         });
 
-        this.ctx.addMessage(req.householdId, null, 'activity', `🛡️ Privacy Notice: ${req.userName} has joined the apartment roster.`, {
-          screen: 'apartment',
-        });
+        const isRemoteApproval = Boolean(supabase && !this.isDemoMode() && isUuid(requestId));
+        if (!isRemoteApproval) {
+          const apartmentName =
+            this.store.households.find((h) => h.id === req.householdId)?.name || 'the apartment';
+          this.ctx.addMessage(req.householdId, null, 'activity', `${req.userName} joined ${apartmentName}`, {
+            screen: 'apartment',
+          });
+        }
       }
       this.ctx.save();
       logger.info('decide_join_request', `Decided request ${requestId}: approved=${approve}`);
@@ -692,7 +697,10 @@ export class HouseholdsApi {
         if (next) next.role = 'admin';
       }
 
-      this.ctx.addMessage(householdId, null, 'activity', `👋 ${this.store.currentUser.name} left the apartment.`);
+      const isRemoteLeave = Boolean(supabase && !this.isDemoMode() && isUuid(householdId));
+      if (!isRemoteLeave) {
+        this.ctx.addMessage(householdId, null, 'activity', `${this.store.currentUser.name} left the apartment.`);
+      }
       const remainingMembers = this.store.memberships.filter(
         (mb) => mb.householdId === householdId && mb.status === 'active' && mb.userId !== this.store.currentUser.id
       );
@@ -701,7 +709,7 @@ export class HouseholdsApi {
           id: 'notif_left_' + Date.now() + '_' + mb.userId,
           userId: mb.userId,
           type: 'privacy_alert',
-          title: '👋 Member Left the Flat',
+          title: 'Member Left the Flat',
           body: `${this.store.currentUser.name} has left the apartment.`,
           read: false,
           createdAt: new Date().toISOString(),
@@ -758,7 +766,10 @@ export class HouseholdsApi {
     const adminName = this.store.currentUser.name || 'Admin';
     const targetName = targetUser?.name || 'A flatmate';
 
-    this.ctx.addMessage(hid, null, 'activity', `🚪 ${adminName} removed ${targetName} from the apartment.`);
+    const isRemoteRemoval = Boolean(supabase && !this.isDemoMode() && isUuid(hid) && isUuid(targetUserId));
+    if (!isRemoteRemoval) {
+      this.ctx.addMessage(hid, null, 'activity', `${adminName} removed ${targetName} from the apartment.`);
+    }
 
     const remainingMembers = this.store.memberships.filter(
       (m) => m.householdId === hid && m.status === 'active' && m.userId !== this.store.currentUser.id && m.userId !== targetUserId
@@ -768,7 +779,7 @@ export class HouseholdsApi {
         id: 'notif_rem_' + Date.now() + '_' + m.userId,
         userId: m.userId,
         type: 'privacy_alert',
-        title: '🛡️ Member Removed from Flat',
+        title: 'Member Removed from Flat',
         body: `${adminName} removed ${targetName} from the apartment.`,
         read: false,
         createdAt: new Date().toISOString(),
@@ -780,7 +791,7 @@ export class HouseholdsApi {
       id: 'notif_revoked_' + Date.now() + '_' + targetUserId,
       userId: targetUserId,
       type: 'privacy_alert',
-      title: '🛡️ Apartment Access Revoked',
+      title: 'Apartment Access Revoked',
       body: `You were removed from the apartment by ${adminName}.`,
       read: false,
       createdAt: new Date().toISOString(),

@@ -347,7 +347,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             </div>
           )}
 
-          {expenseFilter !== 'pending' && (
+          {expenses.length > 0 && expenseFilter !== 'pending' && (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
               <span className="type-section-heading">

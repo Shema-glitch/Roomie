@@ -147,7 +147,7 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
         )}
 
         {/* Real Scannable QR Code encoding the shareable web invite URL */}
-        <div className="relative p-3 bg-white rounded-3xl border-2 border-[#1F2430] shadow-sm inline-flex items-center justify-center">
+        <div className="relative p-3 bg-white rounded-3xl border-2 border-[#E5E9F0] shadow-xs inline-flex items-center justify-center">
           {qrDataUrl ? (
             <img
               src={qrDataUrl}
@@ -160,6 +160,16 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
             <div className="w-[200px] h-[200px] rounded-xl bg-[#F7F8FB] animate-pulse" />
           )}
         </div>
+
+        <Button
+          variant="primary"
+          size="md"
+          fullWidth
+          onClick={handleCopy}
+          icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        >
+          {copied ? 'Invite Code Copied!' : 'Copy Invite Code'}
+        </Button>
 
         <p className="type-secondary text-xs text-[#64748B] max-w-[260px] leading-relaxed">
           Works with any phone camera — even without the app installed, scanning opens Roomie in their browser.
@@ -197,17 +207,6 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
             icon={<ChatCircleDots className="w-4 h-4 text-[#3DBE6D]" />}
           >
             Share on WhatsApp
-          </Button>
-
-          {/* Copy code */}
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            onClick={handleCopy}
-            icon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-          >
-            {copied ? 'Copied code!' : 'Copy Code'}
           </Button>
 
           {/* Management Row: Refresh code & Turn off/on code */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../../components/common/Modal';
+import { BottomSheet } from '../../components/ui/overlays';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Chip } from '../../components/common/Chip';
@@ -98,7 +98,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
   };
 
   return (
-    <Modal
+    <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
       title="Shared Shopping List"
@@ -300,6 +300,6 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
           )}
         </div>
       </div>
-    </Modal>
+    </BottomSheet>
   );
 };

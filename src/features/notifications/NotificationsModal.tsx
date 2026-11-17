@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal } from '../../components/common/Modal';
+import { BottomSheet } from '../../components/ui/overlays';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Chip } from '../../components/common/Chip';
@@ -77,7 +77,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   };
 
   return (
-    <Modal
+    <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
       title="Notifications"
@@ -301,6 +301,6 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           )}
         </div>
       </div>
-    </Modal>
+    </BottomSheet>
   );
 };

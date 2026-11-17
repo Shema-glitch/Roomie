@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Card } from '../../../components/common/Card';
 import { Button } from '../../../components/common/Button';
-import { Modal } from '../../../components/common/Modal';
+import { BottomSheet } from '../../../components/ui/overlays';
 import { HouseholdInfoCard } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
@@ -112,16 +111,16 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="rounded-[24px] border-2 border-[#E5E9F0] bg-white p-5 shadow-xs space-y-4">
       {/* Header with Title & Edit button */}
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h3 className="type-title text-base text-[#1F2430] flex items-center gap-2">
-            <WifiHigh weight="duotone" className="w-5 h-5 text-[#3B82F6]" />
-            <span>Apartment Utilities & Wi-Fi Card</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-heading font-black text-base text-[#1F2430] flex items-center gap-2">
+            <WifiHigh weight="duotone" className="w-5 h-5 text-[#3B82F6] shrink-0" />
+            <span className="whitespace-nowrap">Apartment Info</span>
           </h3>
-          <p className="text-xs text-[#64748B]">
-            Members-only details for flatmates and delivery drivers
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Wi-Fi, delivery pin, trash schedule &amp; emergency contact
           </p>
         </div>
 
@@ -135,44 +134,45 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
           }}
           icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
         >
-          Edit Card
+          Edit
         </Button>
       </div>
 
-      {/* Grid of Info Panels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Wi-Fi Details Card */}
-        <Card padding="md" className="bg-[#EFF6FF] border-2 border-[#BFDBFE] space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-black text-[#1E40AF]">
-              <WifiHigh weight="duotone" className="w-4 h-4 text-[#3B82F6]" />
-              <span>Apartment Wi-Fi</span>
+      {/* Cohesive Tinted Inner Rows */}
+      <div className="space-y-2.5">
+        {/* Wi-Fi Details Row */}
+        <div className="rounded-2xl bg-[#F0F7FF] border border-[#DBEAFE] p-3.5 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-black text-[#1E40AF] min-w-0">
+              <WifiHigh weight="duotone" className="w-4 h-4 text-[#3B82F6] shrink-0" />
+              <span className="whitespace-nowrap">Wi-Fi</span>
             </div>
             <button
               type="button"
               onClick={() => handleCopy(activePassword, 'Wi-Fi password')}
-              className="text-[11px] font-bold text-[#2563EB] hover:underline flex items-center gap-1"
+              className="text-[11px] font-bold text-[#2563EB] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
             >
               <Copy weight="bold" className="w-3 h-3" />
               <span>Copy Password</span>
             </button>
           </div>
 
-          <div className="space-y-1 bg-white p-2.5 rounded-xl border border-[#DBEAFE]">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#64748B] font-medium">Network (SSID):</span>
-              <span className="font-bold text-[#1F2430] font-mono">{activeSsid}</span>
+          <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-[#DBEAFE]">
+            <div className="flex items-center justify-between text-xs gap-2">
+              <span className="text-[#64748B] font-medium shrink-0">Network (SSID)</span>
+              <span className="font-bold text-[#1F2430] font-mono truncate">{activeSsid}</span>
             </div>
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-[#F1F5F9]">
-              <span className="text-[#64748B] font-medium">Password:</span>
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-[#1F2430] font-mono">
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-[#F1F5F9] gap-2">
+              <span className="text-[#64748B] font-medium shrink-0">Password</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="font-bold text-[#1F2430] font-mono truncate">
                   {showPassword ? activePassword : '••••••••••••'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-1 text-[#64748B] hover:text-[#1F2430]"
+                  className="p-1 text-[#64748B] hover:text-[#1F2430] shrink-0 cursor-pointer"
+                  aria-label={showPassword ? 'Hide Wi-Fi password' : 'Show Wi-Fi password'}
                 >
                   {showPassword ? (
                     <EyeSlash weight="duotone" className="w-4 h-4" />
@@ -183,19 +183,19 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* Delivery Address Card */}
-        <Card padding="md" className="bg-[#F0FDFA] border-2 border-[#99F6E4] space-y-2.5">
-          <div className="flex items-center justify-between">
+        {/* Delivery Address Row */}
+        <div className="rounded-2xl bg-[#F0FDFA] border border-[#CCFBF1] p-3.5 space-y-2">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-black text-[#0F766E]">
-              <MapPin weight="duotone" className="w-4 h-4 text-[#14B8A6]" />
-              <span>Delivery Address</span>
+              <MapPin weight="duotone" className="w-4 h-4 text-[#14B8A6] shrink-0" />
+              <span className="whitespace-nowrap">Delivery Address</span>
             </div>
             <button
               type="button"
               onClick={() => handleCopy(activeAddress, 'Delivery address')}
-              className="text-[11px] font-bold text-[#0D9488] hover:underline flex items-center gap-1"
+              className="text-[11px] font-bold text-[#0D9488] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
             >
               <Copy weight="bold" className="w-3 h-3" />
               <span>Copy Address</span>
@@ -205,48 +205,47 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
           <div className="bg-white p-2.5 rounded-xl border border-[#CCFBF1] text-xs font-semibold text-[#1F2430] leading-relaxed">
             {activeAddress}
           </div>
-        </Card>
+        </div>
 
-        {/* Trash & Recycling Schedule */}
-        <Card padding="md" className="bg-[#FEFCE8] border-2 border-[#FEF08A] space-y-1.5">
+        {/* Trash & Recycling Schedule Row */}
+        <div className="rounded-2xl bg-[#FEFCE8] border border-[#FEF08A] p-3.5 space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-black text-[#854D0E]">
-            <Trash weight="duotone" className="w-4 h-4 text-[#EAB308]" />
-            <span>Trash & Recycling Schedule</span>
+            <Trash weight="duotone" className="w-4 h-4 text-[#EAB308] shrink-0" />
+            <span>Trash &amp; Recycling Schedule</span>
           </div>
           <p className="text-xs text-[#713F12] leading-relaxed bg-white p-2.5 rounded-xl border border-[#FEF08A]">
             {activeTrash}
           </p>
-        </Card>
+        </div>
 
-        {/* Emergency & Maintenance */}
-        <Card padding="md" className="bg-[#FFF1F2] border-2 border-[#FECDD3] space-y-1.5">
+        {/* Emergency & Superintendent Row */}
+        <div className="rounded-2xl bg-[#FFF1F2] border border-[#FECDD3] p-3.5 space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-black text-[#9F1239]">
-            <PhoneCall weight="duotone" className="w-4 h-4 text-[#F43F5E]" />
-            <span>Emergency & Superintendent</span>
+            <PhoneCall weight="duotone" className="w-4 h-4 text-[#F43F5E] shrink-0" />
+            <span>Emergency &amp; Superintendent</span>
           </div>
           <p className="text-xs text-[#881337] leading-relaxed bg-white p-2.5 rounded-xl border border-[#FECDD3]">
             {activeEmergency}
           </p>
-        </Card>
-      </div>
-
-      {/* Safety Warning Banner */}
-      <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center gap-2 text-[11px] text-[#64748B]">
-        <ShieldWarning weight="duotone" className="w-4 h-4 text-[#F59E0B] shrink-0" />
-        <span>
-          Strict Privacy Rule: Identity documents (passports, visas, national IDs) must never be stored here.
-        </span>
+        </div>
       </div>
 
       {/* Edit Modal */}
       {isEditOpen && (
-        <Modal
+        <BottomSheet
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
           title="Edit Apartment Details"
           subtitle="Update Wi-Fi credentials, delivery address, and schedules"
         >
           <form onSubmit={handleSaveEdit} className="space-y-3.5 py-1">
+            {/* Privacy Rule Notice shown inside Edit modal */}
+            <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center gap-2 text-[11px] text-[#92400E] font-medium">
+              <ShieldWarning weight="duotone" className="w-4 h-4 text-[#D97706] shrink-0" />
+              <span>
+                Strict Privacy Rule: Identity documents (passports, visas, national IDs) must never be stored here.
+              </span>
+            </div>
             {/* Live Friendly Warning Banner for Sensitive Identity Documents */}
             {detectedInNotes && (
               <div
@@ -350,7 +349,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
               </Button>
             </div>
           </form>
-        </Modal>
+        </BottomSheet>
       )}
     </div>
   );

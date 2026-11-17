@@ -5,7 +5,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ChatMessage, User, DraftRound } from '../../types';
 import { sound } from '../../services/sound';
 import { Icon } from '@iconify/react';
-import { PaperPlaneRight, Receipt, CheckCircle, ArrowsClockwise, ChatCircleDots } from '@phosphor-icons/react';
+import { PaperPlaneRight, CheckCircle, ArrowsClockwise } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 
@@ -174,48 +174,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           </div>
         ) : (
           messages.map((msg) => {
-          // 1. SYSTEM ACTIVITY MESSAGE (Compact one-line notices with small icon per Section 17)
+          // 1. WHISPER SYSTEM PILL (Centered WhatsApp-style micro-pill)
           if (msg.type === 'activity' || !msg.senderId) {
-            const isChore =
-              msg.body.toLowerCase().includes('chore') ||
-              msg.body.toLowerCase().includes('clean') ||
-              msg.body.toLowerCase().includes('bathroom');
-            const isExpense =
-              msg.body.toLowerCase().includes('expense') ||
-              msg.body.includes('₺') || msg.body.includes('$') || msg.body.includes('€') ||
-              msg.body.toLowerCase().includes('paid');
-            const isDraft =
-              msg.body.toLowerCase().includes('draft') ||
-              msg.body.toLowerCase().includes('reveal');
-
-            const timeStr = new Date(msg.createdAt).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
+            const cleanBody = msg.body
+              .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\s]+/u, '')
+              .replace(/^Privacy Notice:\s*/i, '')
+              .trim();
 
             return (
-              <div key={msg.id} className="py-1 flex justify-center w-full contain-content">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F1F3F9] text-[#475569] text-[14px] font-semibold border border-[#E2E5EC] max-w-full shadow-2xs">
-                  {isChore ? (
-                    <CheckCircle weight="duotone" className="w-3.5 h-3.5 text-[#19B5A5] shrink-0" />
-                  ) : isExpense ? (
-                    <Receipt weight="duotone" className="w-3.5 h-3.5 text-[#FF6B4A] shrink-0" />
-                  ) : isDraft ? (
-                    <ArrowsClockwise weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
-                  ) : (
-                    <ChatCircleDots weight="duotone" className="w-3.5 h-3.5 text-[#5B5BD6] shrink-0" />
-                  )}
-                  <span className="truncate">{msg.body}</span>
-                  <span className="text-[#475569] shrink-0">• {timeStr}</span>
-                  {msg.linkTarget && (
-                    <button
-                      type="button"
-                      onClick={() => onNavigateAction(msg.linkTarget!)}
-                      className="ml-1 text-[#5B5BD6] hover:underline font-bold text-[14px] shrink-0 cursor-pointer"
-                    >
-                      View
-                    </button>
-                  )}
+              <div key={msg.id} className="contain-content">
+                <div className="mx-auto my-1.5 max-w-[82%] w-fit rounded-full bg-[#EEF1F6] px-3 py-1 text-center text-[11px] font-medium text-[#64748B]">
+                  {cleanBody}
                 </div>
               </div>
             );

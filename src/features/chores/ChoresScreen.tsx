@@ -9,7 +9,7 @@ import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayO
 import { DutyTodayBanner } from './DutyTodayBanner';
 import { getChoreDraftState, isAssignmentDueToday } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
-import { ArrowsClockwise, PlusCircle, CheckCircle } from '@phosphor-icons/react';
+import { ArrowsClockwise, PlusCircle, CheckCircle, AirplaneTilt } from '@phosphor-icons/react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
 import { ChoresSidebar } from './components/ChoresSidebar';
 
@@ -284,9 +284,29 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             currentUser={currentUser}
             chores={chores}
             onSelectKudos={setKudosModalData}
-            onOpenAwayModal={() => setAwayModalOpen(true)}
           />
         </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border-2 border-[#E5E9F0] bg-[#F7F8FB] px-4 py-2.5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <AirplaneTilt weight="duotone" className="w-4 h-4 text-[#64748B] shrink-0" />
+          <span className="text-xs font-bold text-[#475569] truncate">
+            {currentUser.awayUntil
+              ? `Away mode active until ${currentUser.awayUntil}`
+              : 'Going on vacation? Pause your chores & protect your streak'}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            sound.playTap();
+            setAwayModalOpen(true);
+          }}
+          className="shrink-0 px-3 py-1 rounded-full bg-white border border-[#E5E9F0] text-xs font-black text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 transition-all cursor-pointer"
+        >
+          {currentUser.awayUntil ? 'Manage' : 'Set away'}
+        </button>
       </div>
 
       <React.Suspense fallback={null}>

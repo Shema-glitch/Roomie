@@ -4,6 +4,7 @@ import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
 import { Button } from '../../components/common/Button';
 import { MascotView } from '../../components/common/MascotView';
+import { Chip } from '../../components/common/Chip';
 import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import {
   User,
@@ -592,10 +593,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               }
               title={choreDraftState.bannerTitle}
               subtitle={choreDraftState.bannerSubtitle}
-              detail={
-                <span className="type-secondary font-bold text-[14px] text-[#5B5BD6]">
-                  {choreDraftState.badgeLabel}
-                </span>
+              badge={
+                <Chip
+                  status="pending"
+                  label={choreDraftState.badgeLabel}
+                  size="sm"
+                />
               }
               actions={
                 <div className="w-full">
