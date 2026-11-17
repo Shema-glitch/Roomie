@@ -692,3 +692,22 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 26. In-App Update Checker & Hosted APK Distribution (Branch `feature/in-app-update-checker`)
+
+- **Supabase Releases Metadata & Storage Bucket (`supabase/migrations/20261118014500_app_releases.sql`, `supabase/schema.sql`, `src/types/database.types.ts`)**:
+  - Created `public.app_releases` table with RLS (`SELECT` readable by `anon` and `authenticated` for `is_active = true`, writes locked to service role / admin console) and created public `releases` Supabase Storage bucket for hosted APK binaries.
+  - Seeded baseline `2.1.0` (`version_code = 210`) row so users do not see false prompts until a newer release with an `https://` `download_url` is published.
+- **Version Single Source of Truth & Update Engine (`src/config/appVersion.ts`, `package.json`, `android/app/build.gradle`, `src/services/appUpdate.ts`, `src/services/appUpdate.test.ts`)**:
+  - Unified current version (`2.1.0`, build code `210`) across `package.json`, `android/app/build.gradle`, `src/config/appVersion.ts`, and `ProfileSettingsModal.tsx`.
+  - Implemented `compareSemver`, `isSafeDownloadUrl`, `isNewerRelease`, `isUpdateDismissed` / `dismissUpdateVersion` (24-hour non-mandatory cooldown), and `checkForAppUpdate`.
+- **Update Dialog & Settings Trigger (`src/components/common/AppUpdateModal.tsx`, `src/App.tsx`, `src/components/common/AppModals.tsx`, `src/features/profile/ProfileSettingsModal.tsx`, `scripts/publish-release.mjs`)**:
+  - Added startup non-blocking update check and lazy-loaded `AppUpdateModal` (`CenterDialog`) with 1-tap `Download Update` and `Later` dismissal (hidden when `isMandatory` is true).
+  - Added `"Check for updates"` button inside `ProfileSettingsModal.tsx` Account tab and added `npm run release:publish` (`scripts/publish-release.mjs`) to upload APKs to `releases` storage and activate `app_releases` rows.
+- **Verification**:
+  - `npx supabase db push`: applied `20261118014500_app_releases.sql`.
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **117 / 117 passing** across 18 suites (including `appUpdate.test.ts`).
+  - `npm run build`: succeeded, initial JS entry bundle **160.08 kB gzipped** (< 200 KB threshold).
+
+---
+

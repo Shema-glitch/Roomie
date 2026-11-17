@@ -19,9 +19,18 @@ import { api } from './services/api';
 import { sound } from './services/sound';
 import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandler';
 import { subscribeToDeviceNotificationTaps } from './utils/deviceNotifications';
+import {
+  AppReleaseInfo,
+  checkForAppUpdate,
+  dismissUpdateVersion,
+} from './services/appUpdate';
 import { useRoomieAppState } from './hooks/useRoomieAppState';
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 import { DraftPick, JoinRequest } from './types';
+
+const AppUpdateModal = React.lazy(() =>
+  import('./components/common/AppUpdateModal').then((m) => ({ default: m.AppUpdateModal }))
+);
 
 const HouseholdSetupScreen = React.lazy(() =>
   import('./features/auth/HouseholdSetupScreen').then((m) => ({ default: m.HouseholdSetupScreen }))
@@ -124,6 +133,7 @@ function MainApp() {
   >(null);
   const [showShowcase, setShowShowcase] = useState<boolean>(false);
   const [syncPanelOpen, setSyncPanelOpen] = useState<boolean>(false);
+  const [availableUpdate, setAvailableUpdate] = useState<AppReleaseInfo | null>(null);
   const [showSplash, setShowSplash] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return !sessionStorage.getItem('roomie_splash_seen');
@@ -164,6 +174,32 @@ function MainApp() {
   useEffect(() => {
     return initCapacitorNativeBridge();
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void checkForAppUpdate({ ignoreDismissed: false }).then((release) => {
+        if (release) setAvailableUpdate(release);
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleDismissUpdate = useCallback(() => {
+    if (availableUpdate && !availableUpdate.isMandatory) {
+      dismissUpdateVersion(availableUpdate.versionCode);
+      setAvailableUpdate(null);
+    }
+  }, [availableUpdate]);
+
+  const handleCheckForUpdates = useCallback(async (): Promise<boolean> => {
+    const release = await checkForAppUpdate({ ignoreDismissed: true });
+    if (release) {
+      setAvailableUpdate(release);
+      return true;
+    }
+    showToast('You are on the latest version of Roomie.', 'info');
+    return false;
+  }, [showToast]);
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -555,6 +591,7 @@ function MainApp() {
           refreshSavedAccounts={refreshSavedAccounts}
           handleManualSync={handleManualSync}
           loadData={loadData}
+          onCheckForUpdates={handleCheckForUpdates}
         />
       </div>
     );
@@ -564,6 +601,11 @@ function MainApp() {
     <>
       {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       {renderScreen()}
+      {availableUpdate && (
+        <React.Suspense fallback={null}>
+          <AppUpdateModal release={availableUpdate} onDismiss={handleDismissUpdate} />
+        </React.Suspense>
+      )}
     </>
   );
 }

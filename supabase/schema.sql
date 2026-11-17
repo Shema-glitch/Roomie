@@ -647,7 +647,8 @@ VALUES
   ('receipts', 'receipts', false),
   ('chore-proof', 'chore-proof', false),
   ('snapshots', 'snapshots', false),
-  ('avatars', 'avatars', true)
+  ('avatars', 'avatars', true),
+  ('releases', 'releases', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage RLS policies for private household media & public avatars
@@ -997,6 +998,37 @@ $$;
 
 REVOKE ALL ON FUNCTION public.remove_household_member(uuid, uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.remove_household_member(uuid, uuid) TO authenticated;
+
+-- ------------------------------------------------------------------------------
+-- 22. IN-APP RELEASE METADATA (Remote APK Update Prompts)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.app_releases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  platform TEXT NOT NULL DEFAULT 'android' CHECK (platform IN ('android', 'web')),
+  version_name TEXT NOT NULL,
+  version_code INTEGER NOT NULL CHECK (version_code > 0),
+  download_url TEXT NOT NULL DEFAULT '',
+  release_notes TEXT NOT NULL DEFAULT '',
+  is_mandatory BOOLEAN NOT NULL DEFAULT false,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_releases_platform_active
+  ON public.app_releases (platform, is_active, version_code DESC);
+
+ALTER TABLE public.app_releases ENABLE ROW LEVEL SECURITY;
+GRANT SELECT ON public.app_releases TO anon, authenticated;
+
+DROP POLICY IF EXISTS "Active app releases readable by everyone" ON public.app_releases;
+CREATE POLICY "Active app releases readable by everyone" ON public.app_releases
+  FOR SELECT TO anon, authenticated
+  USING (is_active = true);
+
+DROP POLICY IF EXISTS "Roomie releases public read" ON storage.objects;
+CREATE POLICY "Roomie releases public read" ON storage.objects
+  FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'releases');
 
 
 

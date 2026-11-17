@@ -1,7 +1,7 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -16,7 +16,8 @@
     "cap:apk:bundle": "node scripts/cap-sync-dev.mjs --bundle --build",
     "phone": "node scripts/cap-sync-dev.mjs --reverse-only --launch",
     "phone:port": "node scripts/cap-sync-dev.mjs --build --install --launch",
-    "phone:bundle": "node scripts/cap-sync-dev.mjs --bundle --build --install --launch"
+    "phone:bundle": "node scripts/cap-sync-dev.mjs --bundle --build --install --launch",
+    "release:publish": "node scripts/publish-release.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

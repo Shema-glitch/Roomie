@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_releases: {
+        Row: {
+          created_at: string
+          download_url: string
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          platform: string
+          release_notes: string
+          version_code: number
+          version_name: string
+        }
+        Insert: {
+          created_at?: string
+          download_url?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          platform?: string
+          release_notes?: string
+          version_code: number
+          version_name: string
+        }
+        Update: {
+          created_at?: string
+          download_url?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          platform?: string
+          release_notes?: string
+          version_code?: number
+          version_name?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           body: string

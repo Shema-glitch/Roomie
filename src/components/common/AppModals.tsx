@@ -133,6 +133,7 @@ interface AppModalsProps {
   refreshSavedAccounts: () => void;
   handleManualSync: () => void;
   loadData: () => Promise<void>;
+  onCheckForUpdates?: () => Promise<boolean>;
 }
 
 export const AppModals: React.FC<AppModalsProps> = React.memo(({
@@ -190,6 +191,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
   refreshSavedAccounts,
   handleManualSync,
   loadData,
+  onCheckForUpdates,
 }) => {
   const { showToast } = useToast();
   const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
@@ -401,6 +403,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
             setNeedsHouseholdSetup(true);
           }}
           onOpenDebugInspector={() => setDebugInspectorOpen(true)}
+          onCheckForUpdates={onCheckForUpdates}
         />
       )}
 

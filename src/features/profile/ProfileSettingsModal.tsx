@@ -42,6 +42,7 @@ import {
   CaretRight,
 } from '@phosphor-icons/react';
 import { TenantPassportModal } from './TenantPassportModal';
+import { CURRENT_APP_VERSION } from '../../config/appVersion';
 import { useToast } from '../../components/common/Toast';
 import { Icon } from '@iconify/react';
 import { processPhoto } from '../../utils/photoPipeline';
@@ -65,6 +66,7 @@ interface ProfileSettingsModalProps {
   onOpenShowcase?: () => void;
   onOpenHouseholdSetup?: () => void;
   onOpenDebugInspector?: () => void;
+  onCheckForUpdates?: () => Promise<boolean>;
 }
 
 const PRESET_AVATARS = [
@@ -130,8 +132,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onOpenShowcase,
   onOpenHouseholdSetup,
   onOpenDebugInspector,
+  onCheckForUpdates,
 }) => {
   const { showToast } = useToast();
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
   const [signOutPromptOpen, setSignOutPromptOpen] = useState(false);
@@ -885,6 +889,30 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </Button>
             </div>
 
+            {onCheckForUpdates && (
+              <Button
+                variant="outline"
+                size="sm"
+                fullWidth
+                disabled={checkingUpdates}
+                onClick={async () => {
+                  sound.playTap();
+                  setCheckingUpdates(true);
+                  try {
+                    const hasUpdate = await onCheckForUpdates();
+                    if (hasUpdate) {
+                      onClose();
+                    }
+                  } finally {
+                    setCheckingUpdates(false);
+                  }
+                }}
+                icon={<DownloadSimple weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+              >
+                {checkingUpdates ? 'Checking for updates...' : 'Check for updates'}
+              </Button>
+            )}
+
             {onToggleSaveLogin && (
               <Card
                 padding="sm"
@@ -981,7 +1009,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               onClick={handleVersionTap}
               className="text-[12px] font-bold text-[#94A3B8] hover:text-[#64748B] active:scale-95 transition-all cursor-pointer select-none"
             >
-              Roomie v2.1.0-beta {devModeUnlocked ? '• Dev Mode Active' : ''}
+              Roomie v{CURRENT_APP_VERSION} {devModeUnlocked ? '• Dev Mode Active' : ''}
             </button>
           </div>
         </div>
