@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { api } from '../services/api';
+import { api, isUuid } from '../services/api';
+import { supabase } from '../services/supabase';
 import { localCache } from '../services/localCache';
 import { sound } from '../services/sound';
 import { haptics } from '../utils/haptics';
+import {
+  initDeviceNotificationChannel,
+  requestDeviceNotificationPermission,
+  showDeviceNotification,
+} from '../utils/deviceNotifications';
 import { useToast } from '../components/common/Toast';
 import { SyncStatusType } from '../components/common/SyncStatusPanel';
 import {
@@ -335,6 +341,52 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       }
     };
   }, [activeHousehold?.id, loadData]);
+
+  // Native Android/Web Device Notifications via Supabase Realtime on public.notifications
+  useEffect(() => {
+    const uid = currentUser?.id;
+    if (!isAuthenticated || isDemoMode || !uid || !isUuid(uid) || !supabase) return;
+    const sb = supabase;
+
+    initDeviceNotificationChannel();
+    if (settings.pushNotifications !== false) {
+      requestDeviceNotificationPermission().catch(() => {});
+    }
+
+    const channel = sb
+      .channel(`user_notifications_${uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${uid}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            id?: string;
+            title?: string;
+            body?: string;
+            link_target?: Record<string, unknown>;
+          };
+          if (row?.title && row?.body) {
+            showDeviceNotification({
+              id: row.id,
+              title: row.title,
+              body: row.body,
+              linkTarget: row.link_target,
+            });
+          }
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
+  }, [isAuthenticated, isDemoMode, currentUser?.id, settings.pushNotifications, loadData]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

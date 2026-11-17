@@ -10,6 +10,11 @@ import { api } from '../../services/api';
 import { sound, isSoundEnabled, setSoundEnabled } from '../../services/sound';
 import { haptics, isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics';
 import {
+  requestDeviceNotificationPermission,
+  setDevicePushEnabled,
+  showDeviceNotification,
+} from '../../utils/deviceNotifications';
+import {
   Camera,
   UploadSimple,
   SpeakerHigh,
@@ -234,8 +239,23 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
 
   const togglePush = async () => {
     const next = !settings.pushNotifications;
+    if (next) {
+      const granted = await requestDeviceNotificationPermission();
+      if (!granted) {
+        showToast('Allow notification permission in phone settings to receive alerts.', 'info');
+      } else {
+        setDevicePushEnabled(true);
+        await showDeviceNotification({
+          id: `push_test_${Date.now()}`,
+          title: 'Roomie Alerts Active',
+          body: 'You will get instant banners for join requests, approvals, and flat updates.',
+        });
+      }
+    } else {
+      setDevicePushEnabled(false);
+    }
     await onUpdateSettings({ pushNotifications: next });
-    showToast(next ? 'Push notifications active' : 'Push notifications paused', 'info');
+    showToast(next ? 'Device notifications active' : 'Device notifications paused', 'info');
   };
 
   const handleLanguageChange = async (lang: 'en' | 'tr' | 'fr' | 'ar') => {

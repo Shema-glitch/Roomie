@@ -18,6 +18,7 @@ import { ScreenSkeleton, AppBootstrapSkeleton } from './components/common/PageSk
 import { api } from './services/api';
 import { sound } from './services/sound';
 import { initCapacitorNativeBridge, useBackHandler } from './utils/useBackHandler';
+import { subscribeToDeviceNotificationTaps } from './utils/deviceNotifications';
 import { useRoomieAppState } from './hooks/useRoomieAppState';
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 import { DraftPick, JoinRequest } from './types';
@@ -163,6 +164,36 @@ function MainApp() {
   useEffect(() => {
     return initCapacitorNativeBridge();
   }, []);
+
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    subscribeToDeviceNotificationTaps((target) => {
+      const screen = String(target?.screen || '');
+      if (screen === 'apartment' || screen === 'members') {
+        setActiveTab('apartment');
+        loadData();
+        if (joinRequests.length > 0) {
+          const targetId = String(target?.id || target?.requestId || '');
+          const matched = targetId
+            ? joinRequests.find((r) => r.id === targetId) || joinRequests[0]
+            : joinRequests[0];
+          if (matched) setReviewJoinRequest(matched);
+        }
+      } else if (screen === 'expenses') {
+        setActiveTab('expenses');
+        if (target?.id) setSelectedExpenseId(String(target.id));
+      } else if (screen === 'chores') {
+        setActiveTab('chores');
+      } else if (screen === 'chat') {
+        setActiveTab('chat');
+      }
+    }).then((unsub) => {
+      cleanup = unsub;
+    });
+    return () => {
+      cleanup?.();
+    };
+  }, [joinRequests, loadData, setActiveTab]);
 
   useBackHandler(showShowcase, 60, () => {
     setShowShowcase(false);

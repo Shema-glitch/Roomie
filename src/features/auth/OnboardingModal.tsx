@@ -7,6 +7,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
+import { requestDeviceNotificationPermission } from '../../utils/deviceNotifications';
 import {
   DeviceMobile,
   BellRinging,
@@ -136,9 +137,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                 variant="secondary"
                 size="sm"
                 fullWidth
-                onClick={() => {
+                onClick={async () => {
                   sound.playSuccess();
                   haptics.awardCelebrate();
+                  await requestDeviceNotificationPermission();
                   setNotificationsAllowed(true);
                 }}
                 icon={<BellRinging weight="duotone" className="w-4 h-4 text-[#5B5BD6]" />}
