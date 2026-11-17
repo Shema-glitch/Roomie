@@ -553,11 +553,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     fullWidth
                     onClick={() => {
                       sound.playTap();
+                      haptics.tokenClink();
                       onSelectJoinRequest(pendingJoinRequests[0]);
                     }}
                     icon={<UserPlus className="w-4 h-4" />}
                   >
-                    Review & Decide Request
+                    Review & Approve Request
                   </Button>
                 </div>
               }

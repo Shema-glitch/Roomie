@@ -308,10 +308,33 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     const unsubscribe = api.subscribeToHousehold(activeHousehold.id, () => {
       loadData();
     });
+
+    let lastRefreshMs = Date.now();
+    const handleForegroundRefresh = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      const now = Date.now();
+      if (now - lastRefreshMs < 3000) return;
+      lastRefreshMs = now;
+      loadData();
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleForegroundRefresh);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', handleForegroundRefresh);
+    }
+
     return () => {
       unsubscribe();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleForegroundRefresh);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', handleForegroundRefresh);
+      }
     };
-  }, [activeHousehold?.id]);
+  }, [activeHousehold?.id, loadData]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

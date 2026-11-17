@@ -108,6 +108,7 @@ interface AppHeaderProps {
   isOffline: boolean;
   isDemoMode: boolean;
   unreadNotifsCount: number;
+  pendingJoinRequestsCount?: number;
   onSelectTab: (tab: AppTab) => void;
   onOpenHouseholdSwitcher: () => void;
   onOpenShowQR: () => void;
@@ -125,6 +126,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
     isOffline,
     isDemoMode,
     unreadNotifsCount,
+    pendingJoinRequestsCount = 0,
     onSelectTab,
     onOpenHouseholdSwitcher,
     onOpenShowQR,
@@ -220,6 +222,11 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                     {tab.renderIcon(isActive)}
                   </span>
                   <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tab.label}</span>
+                  {tab.id === 'apartment' && pendingJoinRequestsCount > 0 && (
+                    <span className="ml-0.5 min-w-[18px] h-[18px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-black leading-none flex items-center justify-center shadow-2xs">
+                      {pendingJoinRequestsCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -332,11 +339,12 @@ AppHeader.displayName = 'AppHeader';
 
 interface AppBottomNavProps {
   activeTab: AppTab;
+  pendingJoinRequestsCount?: number;
   onSelectTab: (tab: AppTab) => void;
 }
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
-  ({ activeTab, onSelectTab }) => {
+  ({ activeTab, pendingJoinRequestsCount = 0, onSelectTab }) => {
     return (
       <nav
         aria-label="Main Navigation"
@@ -344,6 +352,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
       >
         {BOTTOM_NAV_ITEMS.map((tabItem) => {
           const isActive = activeTab === tabItem.id;
+          const showJoinBadge = tabItem.id === 'apartment' && pendingJoinRequestsCount > 0;
           return (
             <button
               key={tabItem.id}
@@ -362,11 +371,16 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
               aria-label={tabItem.label}
             >
               <div
-                className={`p-1 rounded-xl transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`relative p-1 rounded-xl transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                   isActive ? 'bg-[#FFF0ED] scale-105' : 'bg-transparent scale-100'
                 }`}
               >
                 {tabItem.renderIcon(isActive)}
+                {showJoinBadge && (
+                  <span className="absolute -top-1 -right-1.5 min-w-[17px] h-[17px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-black leading-none flex items-center justify-center border-2 border-white shadow-xs">
+                    {pendingJoinRequestsCount}
+                  </span>
+                )}
               </div>
               <span className="text-[14px] font-bold mt-0.5 leading-none">{tabItem.label}</span>
             </button>

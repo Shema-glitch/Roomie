@@ -395,7 +395,13 @@ function MainApp() {
           isOffline={isOffline}
           isDemoMode={isDemoMode}
           unreadNotifsCount={unreadNotifsCount}
-          onSelectTab={setActiveTab}
+          pendingJoinRequestsCount={joinRequests.length}
+          onSelectTab={(tab) => {
+            setActiveTab(tab);
+            if (tab === 'apartment') {
+              loadData();
+            }
+          }}
           onOpenHouseholdSwitcher={handleOpenHouseholdSwitcher}
           onOpenShowQR={handleOpenShowQR}
           onOpenSyncPanel={handleOpenSyncPanel}
@@ -452,7 +458,16 @@ function MainApp() {
           </div>
         </main>
 
-        <AppBottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
+        <AppBottomNav
+          activeTab={activeTab}
+          pendingJoinRequestsCount={joinRequests.length}
+          onSelectTab={(tab) => {
+            setActiveTab(tab);
+            if (tab === 'apartment') {
+              loadData();
+            }
+          }}
+        />
 
         <AppModals
           activeHousehold={activeHousehold}
@@ -461,6 +476,7 @@ function MainApp() {
           members={members}
           chores={chores}
           draftRound={draftRound}
+          joinRequests={joinRequests}
           notifications={notifications}
           settings={settings}
           dutySchedule={dutySchedule}

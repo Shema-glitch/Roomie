@@ -7,6 +7,8 @@ import { Avatar } from '../../components/common/Avatar';
 import { JoinRequest, User, Membership } from '../../types';
 import { Check, Question, ShieldWarning, ShieldCheck } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 
 interface JoinRequestReviewModalProps {
   isOpen: boolean;
@@ -31,6 +33,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
 }) => {
   const { showToast } = useToast();
   const [confirmOverride, setConfirmOverride] = useState<boolean>(false);
+  const [deciding, setDeciding] = useState<boolean>(false);
   if (!joinRequest) return null;
 
   const isAdmin = currentMembership?.role === 'admin';
@@ -43,6 +46,8 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
 
   const handleVote = async (vote: 'ok' | 'unsure') => {
     try {
+      sound.playTap();
+      haptics.light();
       await onVote(joinRequest.id, vote);
       showToast(`You voted "${vote === 'ok' ? 'OK' : 'Not sure'}"`, 'info');
     } catch {
@@ -51,12 +56,21 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
   };
 
   const handleDecide = async (approve: boolean) => {
+    if (deciding) return;
     if (approve && unsureCount > 0 && !confirmOverride) {
       setConfirmOverride(true);
       return;
     }
+    setDeciding(true);
     try {
       await onDecide(joinRequest.id, approve);
+      if (approve) {
+        sound.playSuccess();
+        haptics.awardCelebrate();
+      } else {
+        sound.playTap();
+        haptics.medium();
+      }
       showToast(
         approve
           ? `${joinRequest.userName} is now a member of your apartment!`
@@ -64,8 +78,11 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
         approve ? 'success' : 'info'
       );
       onClose();
-    } catch {
-      showToast('Action failed', 'error');
+    } catch (err: unknown) {
+      haptics.warning();
+      showToast(err instanceof Error ? err.message : 'Action failed', 'error');
+    } finally {
+      setDeciding(false);
     }
   };
 

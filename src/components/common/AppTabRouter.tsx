@@ -408,6 +408,18 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
           roommates={roommatesList}
           joinRequests={joinRequests}
           onReviewJoinRequest={setReviewJoinRequest}
+          onRefreshRequests={async () => {
+            const fresh = await api.getJoinRequests(activeHousehold.id);
+            await loadData();
+            if (fresh.length > 0) {
+              showToast(
+                `${fresh.length} pending join ${fresh.length === 1 ? 'request' : 'requests'} found!`,
+                'info'
+              );
+            } else {
+              showToast('No pending join requests right now.', 'info');
+            }
+          }}
           onShowQR={() => setShowQROpen(true)}
           onHandoverAdmin={async (toUserId) => {
             await api.handoverAdmin(toUserId);

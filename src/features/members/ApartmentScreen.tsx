@@ -45,6 +45,7 @@ interface ApartmentScreenProps {
   roommates: User[];
   joinRequests?: JoinRequest[];
   onReviewJoinRequest?: (req: JoinRequest) => void;
+  onRefreshRequests?: () => Promise<void>;
   onShowQR: () => void;
   onHandoverAdmin: (toUserId: string) => Promise<void>;
   onRemoveMember?: (userId: string) => Promise<void>;
@@ -75,6 +76,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   roommates,
   joinRequests,
   onReviewJoinRequest,
+  onRefreshRequests,
   onShowQR,
   onHandoverAdmin,
   onRemoveMember,
@@ -322,6 +324,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         onOpenHowItWorks={onOpenHowItWorks}
         onOpenHandoverModal={() => setHandoverModalOpen(true)}
         onReviewJoinRequest={onReviewJoinRequest}
+        onRefreshRequests={onRefreshRequests}
       />
 
       <div className="lg:hidden mb-5">

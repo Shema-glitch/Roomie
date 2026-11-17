@@ -85,6 +85,7 @@ interface AppModalsProps {
   members: { user: User; membership: Membership }[];
   chores: Chore[];
   draftRound: DraftRound;
+  joinRequests?: JoinRequest[];
   notifications: InAppNotification[];
   settings: UserSettings;
   dutySchedule: DutySchedule | null;
@@ -141,6 +142,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
   members,
   chores,
   draftRound,
+  joinRequests = [],
   notifications,
   settings,
   dutySchedule,
@@ -322,6 +324,17 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
             if (target.screen === 'chore-waiting') setDraftFlowState('waiting');
             if (target.screen === 'members' || target.screen === 'apartment') {
               setActiveTab('apartment');
+              if (joinRequests.length > 0) {
+                const targetId = target.id || (target as { requestId?: string }).requestId;
+                const matched = targetId
+                  ? joinRequests.find((r) => r.id === targetId) || joinRequests[0]
+                  : joinRequests[0];
+                if (matched) {
+                  setReviewJoinRequest(matched);
+                }
+              } else {
+                loadData();
+              }
             }
           }}
         />

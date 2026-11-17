@@ -2,7 +2,17 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MascotView } from '../../components/common/MascotView';
 import { Button } from '../../components/common/Button';
 import { sound } from '../../services/sound';
-import { ArrowRight, CheckCircle, Pause, Play } from '@phosphor-icons/react';
+import { haptics } from '../../utils/haptics';
+import {
+  ArrowRight,
+  CheckCircle,
+  Pause,
+  Play,
+  Sparkle,
+  Wallet,
+  ShoppingCartSimple,
+  ShieldCheck,
+} from '@phosphor-icons/react';
 import { MascotState } from '../../types';
 
 interface AppShowcaseProps {
@@ -15,31 +25,63 @@ interface AppShowcaseProps {
 interface SlideItem {
   state: MascotState;
   bubbleText: string;
+  tag: string;
+  tagBg: string;
+  tagText: string;
   title: string;
   description: string;
+  highlights: string[];
+  renderBadgeIcon: () => React.ReactNode;
 }
 
 const SLIDES: SlideItem[] = [
   {
     state: 'celebrating',
     bubbleText: 'Fair is fun!',
-    title: 'Fair chores, without the tension.',
+    tag: 'Secret Chore Draft',
+    tagBg: 'bg-[#FFF0ED] border-[#FFD7CF]',
+    tagText: 'text-[#FF6B4A]',
+    title: 'Fair chores, zero nagging.',
     description:
-      'Roomie balances household tasks based on what each flatmate actually likes and hates. No nag notes, no drama.',
+      'Every Sunday, roomies secretly pick chores they like and want to avoid. Roomie balances the effort fairly so nobody carries the flat alone.',
+    highlights: ['Secret picks', 'Balanced effort', 'Swap with Favor Tokens'],
+    renderBadgeIcon: () => <Sparkle weight="duotone" className="w-4 h-4 text-[#FF6B4A]" />,
   },
   {
     state: 'calm',
     bubbleText: 'All square!',
-    title: 'Quiet splits, minus the awkward talk.',
+    tag: 'Calm Money & Bills',
+    tagBg: 'bg-[#E6FAF8] border-[#BBEFEA]',
+    tagText: 'text-[#138E82]',
+    title: 'Split rent, Wi-Fi & groceries easily.',
     description:
-      'Track shared groceries, utilities, and household basics in seconds. Roomie simplifies debts so settling up is painless.',
+      'Log receipts and monthly bills in TRY, USD, or EUR. Everyone taps Agree before balances change, and debts simplify automatically.',
+    highlights: ['Consent-first splits', 'Recurring rent & Wi-Fi', '2-step settle up'],
+    renderBadgeIcon: () => <Wallet weight="duotone" className="w-4 h-4 text-[#19B5A5]" />,
   },
   {
     state: 'cheering',
-    bubbleText: 'Welcome home!',
-    title: 'A shared home that feels like home.',
+    bubbleText: 'At the store!',
+    tag: 'Real-Life Flat Hub',
+    tagBg: 'bg-[#FFF8E6] border-[#FFE8A3]',
+    tagText: 'text-[#8A6200]',
+    title: 'Supermarket pings & flat essentials.',
     description:
-      'No guilt trips or public loser boards. Just fair rotations, warm appreciation, and roommates who stay great friends.',
+      'Tap once when you hit the store so nobody buys double milk. Keep Wi-Fi password, trash days, landlord info, and cultural dinners in one place.',
+    highlights: ['1-tap Supermarket Ping', 'Shared Wi-Fi & info card', 'Weekly flat dinners'],
+    renderBadgeIcon: () => <ShoppingCartSimple weight="duotone" className="w-4 h-4 text-[#D97706]" />,
+  },
+  {
+    state: 'celebrating',
+    bubbleText: 'Deposit safe!',
+    tag: 'Deposit Shield & Passport',
+    tagBg: 'bg-[#F0F9FF] border-[#BAE6FD]',
+    tagText: 'text-[#0369A1]',
+    title: 'Protect your deposit. Keep your karma.',
+    description:
+      'Compare Move-In vs. Move-Out room photos side by side with printable certificates, and carry your verified Flatmate Reputation Passport to your next home.',
+    highlights: ['Before/after room photos', 'Deposit calculator & PDF', 'Portable Reputation Passport'],
+    renderBadgeIcon: () => <ShieldCheck weight="duotone" className="w-4 h-4 text-[#0284C7]" />,
   },
 ];
 
@@ -123,8 +165,10 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
   const handleNext = () => {
     sound.playTap();
     if (!isLast) {
+      haptics.light();
       goToSlide(currentSlide + 1);
     } else {
+      haptics.awardCelebrate();
       sound.playSuccess();
       onCompleteRef.current();
     }
@@ -132,6 +176,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
 
   const handlePrev = () => {
     sound.playTap();
+    haptics.light();
     if (currentSlide > 0) {
       goToSlide(currentSlide - 1);
     } else {
@@ -300,7 +345,7 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
           onPointerUp={handleCanvasPointerUp}
           onPointerCancel={handleCanvasPointerCancel}
         >
-          <div className="animate-pop-in mb-3 sm:mb-5 shrink-0">
+          <div className="animate-pop-in mb-3 sm:mb-4 shrink-0">
             <MascotView
               state={current.state}
               size="lg"
@@ -308,14 +353,33 @@ export const AppShowcase: React.FC<AppShowcaseProps> = ({
             />
           </div>
 
-          <div className="space-y-2 max-w-sm mx-auto px-1 shrink-0">
-            <h2 className="font-heading font-black text-2xl sm:text-[28px] leading-tight text-[#1F2430] tracking-tight animate-fade-up delay-150">
+          <div className="space-y-2.5 max-w-sm mx-auto px-1 shrink-0">
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-extrabold tracking-wide ${current.tagBg} ${current.tagText} animate-fade-up`}
+            >
+              {current.renderBadgeIcon()}
+              <span>{current.tag}</span>
+            </div>
+
+            <h2 className="font-heading font-black text-2xl sm:text-[27px] leading-tight text-[#1F2430] tracking-tight animate-fade-up delay-150">
               {current.title}
             </h2>
 
-            <p className="type-body text-[#6B7280] text-sm sm:text-base leading-relaxed animate-fade-up delay-250">
+            <p className="type-body text-[#6B7280] text-sm sm:text-[15px] leading-relaxed animate-fade-up delay-250">
               {current.description}
             </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1 animate-fade-up delay-250">
+              {current.highlights.map((chip) => (
+                <span
+                  key={chip}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F7F8FB] border border-[#E6E8EE] text-[11px] font-bold text-[#475569]"
+                >
+                  <CheckCircle weight="fill" className="w-3 h-3 text-[#19B5A5] shrink-0" />
+                  <span>{chip}</span>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

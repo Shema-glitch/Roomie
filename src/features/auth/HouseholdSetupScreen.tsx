@@ -5,9 +5,12 @@ import { IconTile } from '../../components/common/IconTile';
 import { MascotView } from '../../components/common/MascotView';
 import { CurrencyCode, Household, User } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
+import { api } from '../../services/api';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { CreateHouseholdFlowModal } from '../household/CreateHouseholdFlowModal';
 import { JoinHouseholdFlowModal } from '../household/JoinHouseholdFlowModal';
+import { useToast } from '../../components/common/Toast';
 import {
   CaretLeft,
   CaretRight,
@@ -15,6 +18,7 @@ import {
   House,
   QrCode,
   UserPlus,
+  ArrowsClockwise,
 } from '@phosphor-icons/react';
 
 interface HouseholdSetupScreenProps {
@@ -44,8 +48,10 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
   onExploreDemo,
   onBackToWelcome,
 }) => {
+  const { showToast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(Boolean(pendingInviteCode));
+  const [checkingApproval, setCheckingApproval] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<{
     code: string;
     householdName?: string;
@@ -56,6 +62,37 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
       setJoinOpen(true);
     }
   }, [pendingInviteCode]);
+
+  const checkApprovalStatus = async (manual = false) => {
+    if (manual) {
+      sound.playTap();
+      haptics.light();
+      setCheckingApproval(true);
+    }
+    try {
+      const flats = await api.getHouseholds();
+      if (flats.length > 0 && !api.needsHouseholdSetup()) {
+        sound.playSuccess();
+        haptics.awardCelebrate();
+        showToast(`You're in! Welcome to ${flats[0].name}`, 'success');
+        onSetupComplete();
+        return;
+      }
+      if (manual) {
+        showToast('Still waiting for your flatmate admin to tap Approve.', 'info');
+      }
+    } finally {
+      if (manual) setCheckingApproval(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!pendingRequest) return;
+    const interval = setInterval(() => {
+      checkApprovalStatus(false);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [pendingRequest]);
 
   const firstName = currentUser?.name?.trim().split(' ')[0] || 'Flatmate';
 
@@ -139,13 +176,13 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
         {pendingRequest && (
           <Card
             padding="md"
-            className="bg-[#FFF8E6] border-2 border-[#FFDDA0] rounded-3xl animate-fade-up"
+            className="bg-[#FFF8E6] border-2 border-[#FFDDA0] rounded-3xl animate-fade-up space-y-3"
           >
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-white text-[#D97706] shrink-0">
                 <Clock className="w-5 h-5" />
               </div>
-              <div className="space-y-1 text-left">
+              <div className="space-y-1 text-left flex-1 min-w-0">
                 <p className="font-heading font-black text-sm text-[#1F2430]">
                   Waiting for flatmate approval
                 </p>
@@ -154,10 +191,24 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
                   <span className="font-bold text-[#1F2430]">
                     {pendingRequest.householdName || pendingRequest.code}
                   </span>
-                  . You can create a new flat or peek at the demo flat while they review.
+                  . Ask your flat admin to tap Approve — we&apos;ll let you in automatically!
                 </p>
               </div>
             </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              fullWidth
+              disabled={checkingApproval}
+              onClick={() => checkApprovalStatus(true)}
+              icon={
+                <ArrowsClockwise
+                  className={`w-4 h-4 text-[#D97706] ${checkingApproval ? 'animate-spin' : ''}`}
+                />
+              }
+            >
+              {checkingApproval ? 'Checking approval...' : 'Check if Approved'}
+            </Button>
           </Card>
         )}
 
@@ -166,6 +217,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             type="button"
             onClick={() => {
               sound.playTap();
+              haptics.light();
               setCreateOpen(true);
             }}
             className="w-full p-4 rounded-3xl border-2 border-[#FF6B4A] bg-white hover:bg-[#FFF9F7] shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70"
@@ -188,6 +240,7 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
             type="button"
             onClick={() => {
               sound.playTap();
+              haptics.light();
               setJoinOpen(true);
             }}
             className="w-full p-4 rounded-3xl border-2 border-[#E6E8EE] hover:border-[#19B5A5] bg-white shadow-xs flex items-center justify-between gap-3 text-left cursor-pointer transition-all active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#19B5A5]/70"

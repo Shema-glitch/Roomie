@@ -319,14 +319,34 @@ export class HouseholdsApi {
           };
         }
 
-        const { data: targetH } = await (supabase.rpc as any)('lookup_household_by_invite', {
+        const { data: targetH } = await supabase.rpc('lookup_household_by_invite', {
           p_code: formattedCode,
         });
 
         if (targetH && targetH.length > 0) {
           const flat = targetH[0];
+          if (flat.invites_enabled === false) {
+            return { success: false, message: 'Invites are currently turned off for this apartment.' };
+          }
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
+            const { data: existingRemote } = await supabase
+              .from('join_requests')
+              .select('id, status')
+              .eq('household_id', flat.id)
+              .eq('user_id', user.id)
+              .eq('status', 'pending')
+              .maybeSingle();
+
+            if (existingRemote) {
+              logger.info('join_household_request_existing', `Join request already pending for ${flat.name}`);
+              return {
+                success: true,
+                household: mapHousehold(flat),
+                message: 'Your join request is already pending flatmate review.',
+              };
+            }
+
             const { error: reqErr } = await supabase.from('join_requests').insert({
               household_id: flat.id,
               user_id: user.id,
@@ -337,7 +357,7 @@ export class HouseholdsApi {
               user_avatar: this.store.currentUser.avatar,
               status: 'pending',
               votes: [],
-            } as any);
+            });
             if (!reqErr) {
               logger.info('join_household_request', `Join request submitted for ${flat.name}`);
               return {
@@ -346,6 +366,7 @@ export class HouseholdsApi {
                 message: 'Request submitted! Roomies will review before you enter.',
               };
             }
+            logger.warn('join_household_request_error', reqErr.message, { code: reqErr.code });
           }
         }
       } catch (err: any) {
@@ -434,58 +455,72 @@ export class HouseholdsApi {
 
   public async getJoinRequests(householdId?: string): Promise<JoinRequest[]> {
     const hid = householdId || this.store.activeHouseholdId;
-    if (supabase && !this.isDemoMode()) {
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
       try {
-        const { data: requests } = await supabase
+        const { data: requests, error } = await supabase
           .from('join_requests')
-          .select('*')
+          .select('id, household_id, user_name, user_email, user_country, user_flag, user_avatar, created_at, votes, status')
           .eq('household_id', hid)
-          .eq('status', 'pending');
+          .eq('status', 'pending')
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false });
 
-        if (requests && requests.length > 0) {
-          return requests.map((r: any) => ({
+        if (error) {
+          logger.warn('get_join_requests_error', error.message, { code: error.code });
+        } else if (Array.isArray(requests)) {
+          const mapped: JoinRequest[] = requests.map((r) => ({
             id: r.id,
             householdId: r.household_id,
             userName: r.user_name,
             userEmail: r.user_email,
             userCountry: r.user_country || '',
-            userFlag: r.user_flag || '🌍',
+            userFlag: r.user_flag || '',
             userAvatar: r.user_avatar || '',
             createdAt: r.created_at || new Date().toISOString(),
-            votes: (r.votes as any) || [],
-            status: r.status as any,
+            votes: Array.isArray(r.votes) ? (r.votes as unknown as JoinRequest['votes']) : [],
+            status: (r.status || 'pending') as JoinRequest['status'],
           }));
+          this.store.joinRequests = [
+            ...this.store.joinRequests.filter((r) => r.householdId !== hid),
+            ...mapped,
+          ];
+          this.ctx.save();
+          return mapped;
         }
-      } catch (err: any) {
-        logger.warn('get_join_requests_fallback', err?.message || 'Error fetching join requests');
+      } catch (err: unknown) {
+        logger.warn(
+          'get_join_requests_fallback',
+          err instanceof Error ? err.message : 'Error fetching join requests'
+        );
       }
     }
-    return this.store.joinRequests.filter(r => r.householdId === hid && r.status === 'pending');
+    return this.store.joinRequests.filter((r) => r.householdId === hid && r.status === 'pending');
   }
 
   public async voteJoinRequest(requestId: string, vote: 'ok' | 'unsure'): Promise<void> {
-    if (supabase && !this.isDemoMode()) {
+    if (supabase && !this.isDemoMode() && isUuid(requestId)) {
       try {
         const { data: req } = await supabase.from('join_requests').select('votes').eq('id', requestId).maybeSingle();
         const { data: { user } } = await supabase.auth.getUser();
         if (req && user) {
-          const votes: any[] = Array.isArray(req.votes) ? [...(req.votes as any[])] : [];
-          const existingIdx = votes.findIndex((v: any) => v && v.userId === user.id);
+          const rawVotes = Array.isArray(req.votes) ? (req.votes as unknown as JoinRequest['votes']) : [];
+          const votes = [...rawVotes];
+          const existingIdx = votes.findIndex((v) => v && v.userId === user.id);
           if (existingIdx >= 0) {
             votes[existingIdx] = { ...votes[existingIdx], vote };
           } else {
             votes.push({ userId: user.id, vote });
           }
-          await supabase.from('join_requests').update({ votes } as any).eq('id', requestId);
+          await supabase.from('join_requests').update({ votes }).eq('id', requestId);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.warn('vote_join_request_error', 'Supabase voteJoinRequest error', { err });
       }
     }
 
-    const req = this.store.joinRequests.find(r => r.id === requestId);
+    const req = this.store.joinRequests.find((r) => r.id === requestId);
     if (req) {
-      const existingVote = req.votes.find(v => v.userId === this.store.currentUser.id);
+      const existingVote = req.votes.find((v) => v.userId === this.store.currentUser.id);
       if (existingVote) {
         existingVote.vote = vote;
       } else {
@@ -496,15 +531,28 @@ export class HouseholdsApi {
   }
 
   public async decideJoinRequest(requestId: string, approve: boolean): Promise<void> {
-    if (supabase && !this.isDemoMode()) {
-      try {
-        if (approve) {
-          await (supabase.rpc as any)('approve_join_request', { p_request_id: requestId });
-        } else {
-          await supabase.from('join_requests').update({ status: 'rejected' }).eq('id', requestId);
+    if (supabase && !this.isDemoMode() && isUuid(requestId)) {
+      if (approve) {
+        const { data: rpcRes, error } = await supabase.rpc('approve_join_request', {
+          p_request_id: requestId,
+        });
+        if (error) {
+          logger.warn('decide_join_request_error', error.message, { code: error.code });
+          throw new Error(error.message || 'Could not approve join request.');
         }
-      } catch (err: any) {
-        logger.warn('decide_join_request_error', 'Supabase decideJoinRequest error', { err });
+        const parsed = rpcRes as { success?: boolean; message?: string } | null;
+        if (parsed && parsed.success === false) {
+          throw new Error(parsed.message || 'Only the apartment admin can approve join requests.');
+        }
+      } else {
+        const { error } = await supabase
+          .from('join_requests')
+          .update({ status: 'rejected' })
+          .eq('id', requestId);
+        if (error) {
+          logger.warn('decide_join_request_error', error.message, { code: error.code });
+          throw new Error(error.message || 'Could not decline join request.');
+        }
       }
     }
 

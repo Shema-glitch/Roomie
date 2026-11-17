@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Avatar } from '../../../components/common/Avatar';
 import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
+import { haptics } from '../../../utils/haptics';
 import { copyTextToClipboard } from '../../../utils/clipboard';
 import { useToast } from '../../../components/common/Toast';
 import {
@@ -14,6 +15,8 @@ import {
   House,
   Shield,
   ShieldCheck,
+  UserPlus,
+  ArrowsClockwise,
 } from '@phosphor-icons/react';
 
 interface ApartmentHeaderCardProps {
@@ -26,6 +29,7 @@ interface ApartmentHeaderCardProps {
   onOpenHowItWorks?: () => void;
   onOpenHandoverModal: () => void;
   onReviewJoinRequest?: (req: JoinRequest) => void;
+  onRefreshRequests?: () => Promise<void>;
 }
 
 export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
@@ -38,11 +42,14 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
   onOpenHowItWorks,
   onOpenHandoverModal,
   onReviewJoinRequest,
+  onRefreshRequests,
 }) => {
   const { showToast } = useToast();
+  const [checkingRequests, setCheckingRequests] = useState(false);
 
   const copyCode = async () => {
     sound.playTap();
+    haptics.light();
     const copied = await copyTextToClipboard(household.inviteCode);
     if (copied) {
       showToast(`Copied code ${household.inviteCode} to clipboard!`, 'success');
@@ -51,8 +58,73 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
     }
   };
 
+  const handleRefresh = async () => {
+    if (!onRefreshRequests || checkingRequests) return;
+    sound.playTap();
+    haptics.light();
+    setCheckingRequests(true);
+    try {
+      await onRefreshRequests();
+    } finally {
+      setCheckingRequests(false);
+    }
+  };
+
   return (
     <>
+      {joinRequests && joinRequests.length > 0 && (
+        <div className="mb-5 p-4 rounded-3xl bg-[#FFF8E6] border-2 border-b-4 border-[#FCD34D] space-y-3 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <UserPlus weight="bold" className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-heading font-black text-base text-[#1F2430] leading-tight">
+                  Pending Join Requests ({joinRequests.length})
+                </h3>
+                <p className="text-[11px] font-bold text-[#8A6200]">
+                  {isAdmin
+                    ? 'Tap Review & Approve to admit new flatmates.'
+                    : 'Flatmate consent required — cast your vote.'}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {joinRequests.map((req) => (
+              <div
+                key={req.id}
+                className="p-3.5 rounded-2xl bg-white border-2 border-[#FDE68A] flex flex-wrap items-center justify-between gap-3 shadow-2xs"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Avatar src={req.userAvatar} name={req.userName} flag={req.userFlag} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-heading font-black text-[#1F2430] text-sm truncate">
+                      {req.userName}
+                    </h4>
+                    <p className="text-xs text-[#475569] truncate">
+                      {req.userEmail} • {req.votes.length} vote{req.votes.length !== 1 ? 's' : ''} cast
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    sound.playTap();
+                    haptics.tokenClink();
+                    onReviewJoinRequest?.(req);
+                  }}
+                >
+                  {isAdmin ? 'Review & Approve' : 'Review & Vote'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3.5">
           <div className="flex items-start gap-3.5">
@@ -88,6 +160,21 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
             >
               Copy code
             </Button>
+            {onRefreshRequests && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={checkingRequests}
+                icon={
+                  <ArrowsClockwise
+                    className={`w-4 h-4 text-[#5B5BD6] ${checkingRequests ? 'animate-spin' : ''}`}
+                  />
+                }
+              >
+                {checkingRequests ? 'Checking...' : 'Check requests'}
+              </Button>
+            )}
             {onOpenHouseholdSwitcher && (
               <Button
                 variant="secondary"
@@ -131,36 +218,6 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
           </p>
         </div>
       </div>
-
-      {joinRequests && joinRequests.length > 0 && (
-        <div className="mb-5 space-y-2.5">
-          <h3 className="type-section-heading">
-            Pending Join Requests ({joinRequests.length})
-          </h3>
-          <p className="type-secondary text-xs -mt-1 mb-1">
-            Flatmate consent required. Cast your vote before new applicants are admitted.
-          </p>
-          {joinRequests.map((req) => (
-            <div
-              key={req.id}
-              className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-wrap items-center justify-between gap-3 shadow-xs"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Avatar src={req.userAvatar} name={req.userName} flag={req.userFlag} size="md" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-[#1F2430] text-sm truncate">{req.userName}</h4>
-                  <p className="text-xs text-[#475569] truncate">
-                    {req.userEmail} • {req.votes.length} vote{req.votes.length !== 1 ? 's' : ''} cast
-                  </p>
-                </div>
-              </div>
-              <Button variant="primary" size="sm" onClick={() => onReviewJoinRequest?.(req)}>
-                Review
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
     </>
   );
 };
