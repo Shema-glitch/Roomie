@@ -148,8 +148,8 @@ export class ShoppingApi {
           status: (d.status as ShoppingItemStatus) || 'needed',
           addedBy: d.added_by,
           claimedBy: d.claimed_by,
-          createdAt: d.created_at,
-          updatedAt: d.updated_at,
+          createdAt: d.created_at || new Date().toISOString(),
+          updatedAt: d.updated_at || new Date().toISOString(),
         }));
 
         const remoteIds = new Set(remoteMapped.map((r) => r.id));

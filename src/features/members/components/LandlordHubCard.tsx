@@ -34,6 +34,7 @@ export interface LandlordHubCardProps {
   onOpenReportIssue: () => void;
   onSelectIssue: (issue: MaintenanceIssue) => void;
   onOpenMoveInSnapshot?: () => void;
+  onOpenMoveOutSnapshot?: () => void;
   onOpenExportPdf?: () => void;
 }
 
@@ -45,6 +46,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
   onOpenReportIssue,
   onSelectIssue,
   onOpenMoveInSnapshot,
+  onOpenMoveOutSnapshot,
   onOpenExportPdf,
 }) => {
   const { showToast } = useToast();
@@ -386,9 +388,9 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
         )}
       </div>
 
-      {/* QUICK SHORTCUTS FOR CONDITION SNAPSHOT & PDF EXPORT */}
-      {(onOpenMoveInSnapshot || onOpenExportPdf) && (
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-border/60">
+      {/* QUICK SHORTCUTS FOR CONDITION SNAPSHOT, MOVE-OUT & PDF EXPORT */}
+      {(onOpenMoveInSnapshot || onOpenMoveOutSnapshot || onOpenExportPdf) && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 pt-3 border-t border-border/60">
           {onOpenMoveInSnapshot && (
             <button
               type="button"
@@ -396,9 +398,21 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 onOpenMoveInSnapshot();
               }}
-              className="py-2 px-3 rounded-xl bg-surface border border-border text-text-secondary hover:text-text-primary text-[12px] font-medium text-center transition-colors"
+              className="py-2 px-2.5 rounded-xl bg-surface border border-border text-text-secondary hover:text-text-primary text-[11px] sm:text-[12px] font-medium text-center transition-colors"
             >
-              Move-In Snapshots
+              Move-In Baseline
+            </button>
+          )}
+          {onOpenMoveOutSnapshot && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                onOpenMoveOutSnapshot();
+              }}
+              className="py-2 px-2.5 rounded-xl bg-surface border border-sky-200 text-sky-700 hover:bg-sky-50 text-[11px] sm:text-[12px] font-semibold text-center transition-colors"
+            >
+              Move-Out & Deposit
             </button>
           )}
           {onOpenExportPdf && (
@@ -408,9 +422,9 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 sound.playTap();
                 onOpenExportPdf();
               }}
-              className="py-2 px-3 rounded-xl bg-surface border border-border text-brand-primary hover:bg-brand-primary/10 text-[12px] font-medium text-center transition-colors"
+              className="py-2 px-2.5 rounded-xl bg-surface border border-border text-brand-primary hover:bg-brand-primary/10 text-[11px] sm:text-[12px] font-medium text-center transition-colors"
             >
-              Export Agreement PDF
+              Export Agreement
             </button>
           )}
         </div>

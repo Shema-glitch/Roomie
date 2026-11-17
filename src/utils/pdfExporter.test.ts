@@ -1,7 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateAgreementsHtml, generateConditionSnapshotHtml } from './pdfExporter';
-import { Household, User, HouseAgreement, MoveInSnapshot } from '../types';
+import {
+  generateAgreementsHtml,
+  generateConditionSnapshotHtml,
+  generateMoveOutCertificateHtml,
+} from './pdfExporter';
+import { Household, User, HouseAgreement, MoveInSnapshot, MoveOutInspection } from '../types';
 
 describe('pdfExporter', () => {
   const mockHousehold: Household = {
@@ -97,6 +101,46 @@ describe('pdfExporter', () => {
     assert.ok(html.includes('Living Room'));
     assert.ok(html.includes('Sofa and wooden table in clean state.'));
     assert.ok(html.includes('https://example.com/photo.jpg'));
+    assert.ok(html.includes('Kai Tanaka, Amina Mansour'));
+  });
+
+  it('generates valid move-out certificate HTML with deposit calculation', () => {
+    const mockInspection: MoveOutInspection = {
+      id: 'out_1',
+      householdId: 'h_test',
+      userId: 'u1',
+      moveInSnapshotId: 's1',
+      roomName: 'Living Room',
+      conditionNote: 'Leaving flat spotless, sofa in excellent shape.',
+      photoUrls: ['https://example.com/out-photo.jpg'],
+      isDamageReported: true,
+      damageDeductionAmount: 50,
+      depositPaidAmount: 300,
+      depositRefundAmount: 250,
+      confirmedByUserIds: ['u1', 'u2'],
+      status: 'agreed',
+      createdAt: '2026-11-15T10:00:00Z',
+      updatedAt: '2026-11-15T10:00:00Z',
+      version: 1,
+    };
+
+    const html = generateMoveOutCertificateHtml({
+      household: mockHousehold,
+      inspection: mockInspection,
+      moveInSnapshot: mockSnapshots[0],
+      departingTenant: mockMembers[0],
+      confirmingMembers: mockMembers,
+      allMembers: mockMembers,
+    });
+
+    assert.ok(html.includes('ROOMIE DEPOSIT PROTECTION & MOVE-OUT CERTIFICATE'));
+    assert.ok(html.includes('Departing Tenant: Kai Tanaka'));
+    assert.ok(html.includes('Initial Move-In Baseline'));
+    assert.ok(html.includes('Final Move-Out State'));
+    assert.ok(html.includes('₺300.00'));
+    assert.ok(html.includes('-₺50.00'));
+    assert.ok(html.includes('₺250.00'));
+    assert.ok(html.includes('agreed'));
     assert.ok(html.includes('Kai Tanaka, Amina Mansour'));
   });
 });

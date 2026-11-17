@@ -10,6 +10,7 @@ import {
   LandlordProfile,
   MaintenanceIssue,
   MoveInSnapshot,
+  MoveOutInspection,
   MaintenanceIssueStatus,
 } from '../../types';
 import { sound } from '../../services/sound';
@@ -23,6 +24,7 @@ import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules'
 import { ApartmentInfoCard } from './components/ApartmentInfoCard';
 import { LandlordHubCard } from './components/LandlordHubCard';
 import { MoveInSnapshotModal } from './components/MoveInSnapshotModal';
+import { MoveOutSnapshotModal } from './components/MoveOutSnapshotModal';
 import { MaintenanceIssueModal } from './components/MaintenanceIssueModal';
 import { ExportAgreementPdfModal } from './components/ExportAgreementPdfModal';
 import {
@@ -123,7 +125,15 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
     );
   });
 
+  const [moveOutInspections, setMoveOutInspections] = useState<MoveOutInspection[]>(() => {
+    return (
+      api.store.moveOutInspections?.[household?.id] ||
+      []
+    );
+  });
+
   const [moveInModalOpen, setMoveInModalOpen] = useState(false);
+  const [moveOutModalOpen, setMoveOutModalOpen] = useState(false);
   const [maintModalOpen, setMaintModalOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<MaintenanceIssue | null>(null);
   const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
@@ -163,6 +173,13 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         .getMoveInSnapshots(household.id)
         .then((snaps) => {
           if (snaps) setSnapshots(snaps);
+        })
+        .catch(() => {});
+
+      api.tenantTransition
+        .getMoveOutInspections(household.id)
+        .then((inspections) => {
+          if (inspections) setMoveOutInspections(inspections);
         })
         .catch(() => {});
     }
@@ -223,6 +240,51 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
       );
     }
     return updated;
+  };
+
+  const handleAddInspection = async (
+    params: Parameters<typeof api.tenantTransition.addMoveOutInspection>[0]
+  ) => {
+    const inspection = await api.tenantTransition.addMoveOutInspection(params);
+    setMoveOutInspections((prev) => [inspection, ...prev]);
+    return inspection;
+  };
+
+  const handleConfirmInspection = async (inspectionId: string, userId?: string) => {
+    const ok = await api.tenantTransition.confirmMoveOutInspection(inspectionId, userId);
+    if (ok) {
+      setMoveOutInspections((prev) =>
+        prev.map((i) => {
+          if (i.id !== inspectionId) return i;
+          const uId = userId || currentUser.id;
+          const newConfirmed = Array.from(new Set([...i.confirmedByUserIds, uId]));
+          return {
+            ...i,
+            confirmedByUserIds: newConfirmed,
+            status: newConfirmed.length >= 2 ? 'agreed' : i.status,
+          };
+        })
+      );
+    }
+    return ok;
+  };
+
+  const handleSettleRefund = async (inspectionId: string, adminPayerUserId?: string) => {
+    const res = await api.tenantTransition.settleDepositRefund(inspectionId, adminPayerUserId);
+    if (res.success) {
+      setMoveOutInspections((prev) =>
+        prev.map((i) =>
+          i.id === inspectionId
+            ? {
+                ...i,
+                status: 'settled',
+                settlementExpenseId: res.expenseId || i.settlementExpenseId,
+              }
+            : i
+        )
+      );
+    }
+    return res;
   };
 
   const handleUpdateInfoCard = async (params: {
@@ -346,6 +408,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               setMaintModalOpen(true);
             }}
             onOpenMoveInSnapshot={() => setMoveInModalOpen(true)}
+            onOpenMoveOutSnapshot={() => setMoveOutModalOpen(true)}
             onOpenExportPdf={() => setExportPdfModalOpen(true)}
           />
           <HouseDiscussionsAndRules
@@ -406,6 +469,21 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
           onAddSnapshot={handleAddSnapshot}
           onConfirmSnapshot={handleConfirmSnapshot}
           onOpenExport={() => setExportPdfModalOpen(true)}
+        />
+      )}
+
+      {moveOutModalOpen && (
+        <MoveOutSnapshotModal
+          isOpen={moveOutModalOpen}
+          onClose={() => setMoveOutModalOpen(false)}
+          household={household}
+          moveOutInspections={moveOutInspections}
+          moveInSnapshots={snapshots}
+          roommates={roommates}
+          currentUser={currentUser}
+          onAddInspection={handleAddInspection}
+          onConfirmInspection={handleConfirmInspection}
+          onSettleRefund={handleSettleRefund}
         />
       )}
 

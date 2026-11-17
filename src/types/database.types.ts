@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -211,6 +211,76 @@ export type Database = {
           },
         ]
       }
+      chore_swap_requests: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          household_id: string
+          id: string
+          note: string | null
+          requester_chore_name: string
+          requester_user_id: string
+          status: string
+          target_chore_name: string
+          target_user_id: string
+          token_cost: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          household_id: string
+          id?: string
+          note?: string | null
+          requester_chore_name: string
+          requester_user_id: string
+          status?: string
+          target_chore_name?: string
+          target_user_id: string
+          token_cost?: number
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          household_id?: string
+          id?: string
+          note?: string | null
+          requester_chore_name?: string
+          requester_user_id?: string
+          status?: string
+          target_chore_name?: string
+          target_user_id?: string
+          token_cost?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chore_swap_requests_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_swap_requests_requester_user_id_fkey"
+            columns: ["requester_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chore_swap_requests_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chores: {
         Row: {
           active: boolean
@@ -257,6 +327,69 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "chores_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cultural_dinners: {
+        Row: {
+          created_at: string
+          cuisine_tag: string
+          deleted_at: string | null
+          dietary_tags: string[]
+          dish_title: string
+          host_user_id: string
+          household_id: string
+          id: string
+          rsvp_user_ids: string[]
+          scheduled_date: string
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          cuisine_tag: string
+          deleted_at?: string | null
+          dietary_tags?: string[]
+          dish_title: string
+          host_user_id: string
+          household_id: string
+          id?: string
+          rsvp_user_ids?: string[]
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          cuisine_tag?: string
+          deleted_at?: string | null
+          dietary_tags?: string[]
+          dish_title?: string
+          host_user_id?: string
+          household_id?: string
+          id?: string
+          rsvp_user_ids?: string[]
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cultural_dinners_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cultural_dinners_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
@@ -588,6 +721,57 @@ export type Database = {
           },
         ]
       }
+      household_info_cards: {
+        Row: {
+          delivery_address: string
+          emergency_note: string
+          household_id: string
+          trash_schedule: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+          wifi_password: string
+          wifi_ssid: string
+        }
+        Insert: {
+          delivery_address?: string
+          emergency_note?: string
+          household_id: string
+          trash_schedule?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          wifi_password?: string
+          wifi_ssid?: string
+        }
+        Update: {
+          delivery_address?: string
+          emergency_note?: string
+          household_id?: string
+          trash_schedule?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+          wifi_password?: string
+          wifi_ssid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_info_cards_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: true
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_info_cards_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       households: {
         Row: {
           created_at: string | null
@@ -650,6 +834,7 @@ export type Database = {
           user_country: string | null
           user_email: string
           user_flag: string | null
+          user_id: string | null
           user_name: string
           version: number | null
           votes: Json | null
@@ -665,6 +850,7 @@ export type Database = {
           user_country?: string | null
           user_email: string
           user_flag?: string | null
+          user_id?: string | null
           user_name: string
           version?: number | null
           votes?: Json | null
@@ -680,6 +866,7 @@ export type Database = {
           user_country?: string | null
           user_email?: string
           user_flag?: string | null
+          user_id?: string | null
           user_name?: string
           version?: number | null
           votes?: Json | null
@@ -736,47 +923,57 @@ export type Database = {
             referencedRelation: "households"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "landlord_profiles_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       maintenance_issues: {
         Row: {
-          created_at: string
+          created_at: string | null
           deleted_at: string | null
-          description: string
+          description: string | null
           household_id: string
           id: string
           photo_urls: string[]
+          photos: string[] | null
           reported_by: string
           status: string
           title: string
-          updated_at: string
-          version: number
+          updated_at: string | null
+          version: number | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           deleted_at?: string | null
-          description?: string
+          description?: string | null
           household_id: string
           id?: string
           photo_urls?: string[]
+          photos?: string[] | null
           reported_by: string
           status?: string
           title: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           deleted_at?: string | null
-          description?: string
+          description?: string | null
           household_id?: string
           id?: string
           photo_urls?: string[]
+          photos?: string[] | null
           reported_by?: string
           status?: string
           title?: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -915,49 +1112,150 @@ export type Database = {
       move_in_snapshots: {
         Row: {
           condition_note: string
+          condition_notes: string | null
+          confirmed_by: Json | null
           confirmed_by_user_ids: string[]
-          created_at: string
+          created_at: string | null
           created_by: string | null
           deleted_at: string | null
           household_id: string
           id: string
           photo_urls: string[]
+          photos: string[] | null
           room_name: string
-          updated_at: string
-          version: number
+          updated_at: string | null
+          version: number | null
         }
         Insert: {
           condition_note?: string
+          condition_notes?: string | null
+          confirmed_by?: Json | null
           confirmed_by_user_ids?: string[]
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           household_id: string
           id?: string
           photo_urls?: string[]
+          photos?: string[] | null
           room_name: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Update: {
           condition_note?: string
+          condition_notes?: string | null
+          confirmed_by?: Json | null
           confirmed_by_user_ids?: string[]
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           deleted_at?: string | null
           household_id?: string
           id?: string
           photo_urls?: string[]
+          photos?: string[] | null
           room_name?: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "move_in_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "move_in_snapshots_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      move_out_inspections: {
+        Row: {
+          condition_note: string
+          confirmed_by_user_ids: string[] | null
+          created_at: string
+          damage_deduction_amount: number
+          deleted_at: string | null
+          deposit_paid_amount: number
+          deposit_refund_amount: number
+          household_id: string
+          id: string
+          is_damage_reported: boolean
+          move_in_snapshot_id: string | null
+          photo_urls: string[] | null
+          room_name: string
+          settlement_expense_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          condition_note: string
+          confirmed_by_user_ids?: string[] | null
+          created_at?: string
+          damage_deduction_amount?: number
+          deleted_at?: string | null
+          deposit_paid_amount?: number
+          deposit_refund_amount?: number
+          household_id: string
+          id?: string
+          is_damage_reported?: boolean
+          move_in_snapshot_id?: string | null
+          photo_urls?: string[] | null
+          room_name: string
+          settlement_expense_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          version?: number
+        }
+        Update: {
+          condition_note?: string
+          confirmed_by_user_ids?: string[] | null
+          created_at?: string
+          damage_deduction_amount?: number
+          deleted_at?: string | null
+          deposit_paid_amount?: number
+          deposit_refund_amount?: number
+          household_id?: string
+          id?: string
+          is_damage_reported?: boolean
+          move_in_snapshot_id?: string | null
+          photo_urls?: string[] | null
+          room_name?: string
+          settlement_expense_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "move_out_inspections_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "move_out_inspections_move_in_snapshot_id_fkey"
+            columns: ["move_in_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "move_in_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "move_out_inspections_settlement_expense_id_fkey"
+            columns: ["settlement_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
         ]
@@ -1020,7 +1318,7 @@ export type Database = {
           country_code: string | null
           created_at: string | null
           deleted_at: string | null
-          dietary_tags: string[] | null
+          dietary_tags: string[]
           email: string
           flag: string | null
           id: string
@@ -1039,7 +1337,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           deleted_at?: string | null
-          dietary_tags?: string[] | null
+          dietary_tags?: string[]
           email: string
           flag?: string | null
           id: string
@@ -1058,7 +1356,7 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           deleted_at?: string | null
-          dietary_tags?: string[] | null
+          dietary_tags?: string[]
           email?: string
           flag?: string | null
           id?: string
@@ -1076,8 +1374,8 @@ export type Database = {
         Row: {
           active: boolean
           amount: number
-          category: string
-          created_at: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string | null
           currency: string
           custom_splits: Json
           deleted_at: string | null
@@ -1086,16 +1384,17 @@ export type Database = {
           id: string
           last_generated_cycle: string | null
           paid_by_user_id: string | null
-          split_rule: string
+          payer_id: string | null
+          split_rule: Json
           title: string
-          updated_at: string
-          version: number
+          updated_at: string | null
+          version: number | null
         }
         Insert: {
           active?: boolean
           amount: number
-          category?: string
-          created_at?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
           currency?: string
           custom_splits?: Json
           deleted_at?: string | null
@@ -1104,16 +1403,17 @@ export type Database = {
           id?: string
           last_generated_cycle?: string | null
           paid_by_user_id?: string | null
-          split_rule?: string
+          payer_id?: string | null
+          split_rule?: Json
           title: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Update: {
           active?: boolean
           amount?: number
-          category?: string
-          created_at?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string | null
           currency?: string
           custom_splits?: Json
           deleted_at?: string | null
@@ -1122,10 +1422,11 @@ export type Database = {
           id?: string
           last_generated_cycle?: string | null
           paid_by_user_id?: string | null
-          split_rule?: string
+          payer_id?: string | null
+          split_rule?: Json
           title?: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -1133,6 +1434,20 @@ export type Database = {
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_bills_paid_by_user_id_fkey"
+            columns: ["paid_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_bills_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1206,48 +1521,68 @@ export type Database = {
           added_by: string
           category: string
           claimed_by: string | null
-          created_at: string
+          created_at: string | null
           deleted_at: string | null
           household_id: string
           id: string
           is_low: boolean
+          purchased_at: string | null
+          purchased_by: string | null
           quantity_label: string
           status: string
           title: string
-          updated_at: string
-          version: number
+          updated_at: string | null
+          version: number | null
         }
         Insert: {
           added_by: string
           category?: string
           claimed_by?: string | null
-          created_at?: string
+          created_at?: string | null
           deleted_at?: string | null
           household_id: string
           id?: string
           is_low?: boolean
+          purchased_at?: string | null
+          purchased_by?: string | null
           quantity_label?: string
           status?: string
           title: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Update: {
           added_by?: string
           category?: string
           claimed_by?: string | null
-          created_at?: string
+          created_at?: string | null
           deleted_at?: string | null
           household_id?: string
           id?: string
           is_low?: boolean
+          purchased_at?: string | null
+          purchased_by?: string | null
           quantity_label?: string
           status?: string
           title?: string
-          updated_at?: string
-          version?: number
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shopping_items_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_items_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shopping_items_household_id_fkey"
             columns: ["household_id"]
@@ -1256,78 +1591,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shopping_items_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chore_swap_requests: {
-        Row: {
-          created_at: string | null
-          deleted_at: string | null
-          household_id: string
-          id: string
-          note: string | null
-          requester_chore_name: string
-          requester_user_id: string
-          status: string
-          target_chore_name: string
-          target_user_id: string
-          token_cost: number
-          updated_at: string | null
-          version: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          deleted_at?: string | null
-          household_id: string
-          id?: string
-          note?: string | null
-          requester_chore_name: string
-          requester_user_id: string
-          status?: string
-          target_chore_name?: string
-          target_user_id: string
-          token_cost?: number
-          updated_at?: string | null
-          version?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          deleted_at?: string | null
-          household_id?: string
-          id?: string
-          note?: string | null
-          requester_chore_name?: string
-          requester_user_id?: string
-          status?: string
-          target_chore_name?: string
-          target_user_id?: string
-          token_cost?: number
-          updated_at?: string | null
-          version?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chore_swap_requests_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chore_swap_requests_requester_user_id_fkey"
-            columns: ["requester_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chore_swap_requests_target_user_id_fkey"
-            columns: ["target_user_id"]
+            foreignKeyName: "shopping_items_purchased_by_fkey"
+            columns: ["purchased_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1340,11 +1605,11 @@ export type Database = {
           deleted_at: string | null
           household_id: string
           id: string
-          rating: string | null
+          rating: string
           score: number
           updated_at: string | null
           version: number | null
-          week_key: string | null
+          week_key: string
           week_start: string
         }
         Insert: {
@@ -1352,23 +1617,23 @@ export type Database = {
           deleted_at?: string | null
           household_id: string
           id?: string
-          rating?: string | null
+          rating?: string
           score: number
           updated_at?: string | null
           version?: number | null
-          week_key?: string | null
-          week_start?: string
+          week_key?: string
+          week_start: string
         }
         Update: {
           created_at?: string | null
           deleted_at?: string | null
           household_id?: string
           id?: string
-          rating?: string | null
+          rating?: string
           score?: number
           updated_at?: string | null
           version?: number | null
-          week_key?: string | null
+          week_key?: string
           week_start?: string
         }
         Relationships: [
@@ -1381,125 +1646,41 @@ export type Database = {
           },
         ]
       }
-      cultural_dinners: {
-        Row: {
-          created_at: string
-          cuisine_tag: string
-          deleted_at: string | null
-          dietary_tags: string[]
-          dish_title: string
-          host_user_id: string
-          household_id: string
-          id: string
-          rsvp_user_ids: string[]
-          scheduled_date: string
-          status: string
-          updated_at: string
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          cuisine_tag: string
-          deleted_at?: string | null
-          dietary_tags?: string[]
-          dish_title: string
-          host_user_id: string
-          household_id: string
-          id?: string
-          rsvp_user_ids?: string[]
-          scheduled_date: string
-          status?: string
-          updated_at?: string
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          cuisine_tag?: string
-          deleted_at?: string | null
-          dietary_tags?: string[]
-          dish_title?: string
-          host_user_id?: string
-          household_id?: string
-          id?: string
-          rsvp_user_ids?: string[]
-          scheduled_date?: string
-          status?: string
-          updated_at?: string
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cultural_dinners_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: false
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cultural_dinners_host_user_id_fkey"
-            columns: ["host_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      household_info_cards: {
-        Row: {
-          delivery_address: string
-          emergency_note: string
-          household_id: string
-          trash_schedule: string
-          updated_at: string
-          updated_by: string | null
-          version: number
-          wifi_password: string
-          wifi_ssid: string
-        }
-        Insert: {
-          delivery_address?: string
-          emergency_note?: string
-          household_id: string
-          trash_schedule?: string
-          updated_at?: string
-          updated_by?: string | null
-          version?: number
-          wifi_password?: string
-          wifi_ssid?: string
-        }
-        Update: {
-          delivery_address?: string
-          emergency_note?: string
-          household_id?: string
-          trash_schedule?: string
-          updated_at?: string
-          updated_by?: string | null
-          version?: number
-          wifi_password?: string
-          wifi_ssid?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "household_info_cards_household_id_fkey"
-            columns: ["household_id"]
-            isOneToOne: true
-            referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      approve_join_request: { Args: { p_request_id: string }; Returns: Json }
+      confirm_move_out_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: boolean
+      }
       is_household_member: { Args: { h_id: string }; Returns: boolean }
-      submit_anonymous_vibe: {
-        Args: { p_household_id: string; p_week_key: string; p_rating: string }
+      join_household_by_code: { Args: { p_code: string }; Returns: Json }
+      leave_household_self: { Args: { p_household_id: string }; Returns: Json }
+      lookup_household_by_invite: {
+        Args: { p_code: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          id: string
+          invite_code: string
+          invites_enabled: boolean
+          name: string
+        }[]
+      }
+      remove_household_member: {
+        Args: { p_household_id: string; p_target_user_id: string }
         Returns: Json
       }
       resolve_chore_swap: {
-        Args: { p_request_id: string; p_action: string }
+        Args: { p_action: string; p_request_id: string }
+        Returns: Json
+      }
+      submit_anonymous_vibe: {
+        Args: { p_household_id: string; p_rating: string; p_week_key: string }
         Returns: Json
       }
       toggle_cultural_dinner_rsvp: {

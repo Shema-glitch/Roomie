@@ -50,7 +50,10 @@ export type OutboxActionType =
   | 'confirm_move_in_snapshot'
   | 'update_landlord_profile'
   | 'report_maintenance_issue'
-  | 'update_maintenance_issue_status';
+  | 'update_maintenance_issue_status'
+  | 'add_move_out_inspection'
+  | 'confirm_move_out_inspection'
+  | 'settle_deposit_refund';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 

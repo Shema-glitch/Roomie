@@ -5,7 +5,8 @@ import { Card } from '../../components/common/Card';
 import { Avatar } from '../../components/common/Avatar';
 import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { IconTile } from '../../components/common/IconTile';
-import { User, UserSettings } from '../../types';
+import { User, UserSettings, TenantReputationPassport } from '../../types';
+import { api } from '../../services/api';
 import { sound, isSoundEnabled, setSoundEnabled } from '../../services/sound';
 import { haptics, isHapticsEnabled, setHapticsEnabled } from '../../utils/haptics';
 import {
@@ -32,7 +33,10 @@ import {
   Flask,
   ForkKnife,
   Sparkle,
+  ShieldCheck,
+  CaretRight,
 } from '@phosphor-icons/react';
+import { TenantPassportModal } from './TenantPassportModal';
 import { useToast } from '../../components/common/Toast';
 import { Icon } from '@iconify/react';
 import { processPhoto } from '../../utils/photoPipeline';
@@ -137,6 +141,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'account'>('profile');
+  const [passportModalOpen, setPassportModalOpen] = useState(false);
+  const [passportData, setPassportData] = useState<TenantReputationPassport | null>(null);
   const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -520,6 +526,39 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   </span>
                 </div>
                 <Icon icon="fluent-emoji-flat:fire" className="w-7 h-7 shrink-0" />
+              </div>
+
+              {/* Flatmate Reputation Passport Trigger */}
+              <div
+                onClick={async () => {
+                  sound.playTap();
+                  haptics.tokenClink();
+                  const p = await api.tenantTransition.getTenantPassport(currentUser.id);
+                  setPassportData(p);
+                  setPassportModalOpen(true);
+                }}
+                className="p-3.5 sm:p-4 rounded-3xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white border-2 border-b-4 border-[#334155] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#38BDF8] active:translate-y-[1px] transition-all"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-[#38BDF8] shrink-0 border border-white/10">
+                    <ShieldCheck weight="duotone" className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs sm:text-sm font-extrabold text-white">Flatmate Reputation Passport</span>
+                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30">
+                        Portable
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
+                      Certified flat karma & chore credentials
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center gap-1 text-[#38BDF8] text-xs font-bold">
+                  <span>View</span>
+                  <CaretRight weight="bold" className="w-3.5 h-3.5" />
+                </div>
               </div>
             </div>
           )}
@@ -1019,6 +1058,14 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           </div>
         </div>
       </Modal>
+
+      {passportModalOpen && (
+        <TenantPassportModal
+          isOpen={passportModalOpen}
+          onClose={() => setPassportModalOpen(false)}
+          passport={passportData}
+        />
+      )}
     </>
   );
 };

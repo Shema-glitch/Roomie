@@ -5,7 +5,7 @@
  * - Zero heavy external dependencies (< 4 KB gzipped), fully offline-capable, crisp typography.
  */
 
-import { HouseAgreement, MoveInSnapshot, User, Household } from '../types';
+import { HouseAgreement, MoveInSnapshot, MoveOutInspection, User, Household } from '../types';
 
 export interface AgreementExportData {
   household: Household;
@@ -18,6 +18,16 @@ export interface ConditionSnapshotExportData {
   household: Household;
   snapshots: MoveInSnapshot[];
   members: User[];
+  generatedAt?: string;
+}
+
+export interface MoveOutCertificateExportData {
+  household: Household;
+  inspection: MoveOutInspection;
+  moveInSnapshot?: MoveInSnapshot | null;
+  departingTenant: User;
+  confirmingMembers: User[];
+  allMembers: User[];
   generatedAt?: string;
 }
 
@@ -274,6 +284,308 @@ export function generateConditionSnapshotHtml(data: ConditionSnapshotExportData)
 </body>
 </html>
   `;
+}
+
+/**
+ * Builds HTML markup for Move-Out Inspection & Deposit Settlement Certificate
+ */
+export function generateMoveOutCertificateHtml(data: MoveOutCertificateExportData): string {
+  const dateStr =
+    data.generatedAt ||
+    new Date().toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+  const inspectionDate = new Date(data.inspection.createdAt).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const currency = data.household.currency || 'TRY';
+  const formatAmt = (amt: number) =>
+    currency === 'TRY' ? `₺${amt.toFixed(2)}` : currency === 'EUR' ? `€${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
+
+  const moveInPhotosHtml =
+    data.moveInSnapshot && data.moveInSnapshot.photoUrls.length > 0
+      ? `<div class="photo-grid">${data.moveInSnapshot.photoUrls
+          .map((url) => `<div class="photo-cell"><img src="${escapeHtml(url)}" alt="Move-In Condition" /></div>`)
+          .join('')}</div>`
+      : '<p class="empty-subtext">No move-in photos attached.</p>';
+
+  const moveOutPhotosHtml =
+    data.inspection.photoUrls.length > 0
+      ? `<div class="photo-grid">${data.inspection.photoUrls
+          .map((url) => `<div class="photo-cell"><img src="${escapeHtml(url)}" alt="Move-Out Condition" /></div>`)
+          .join('')}</div>`
+      : '<p class="empty-subtext">No move-out photos attached.</p>';
+
+  const confirmingNames = data.confirmingMembers.map((m) => escapeHtml(m.name)).join(', ');
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Move-Out Certificate — ${escapeHtml(data.inspection.roomName)}</title>
+  <style>
+    ${getBasePrintStyles()}
+    .tenant-hero {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tenant-info h3 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      color: #0f172a;
+    }
+    .tenant-info p {
+      margin: 0;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .status-agreed { background: #dcfce7; color: #15803d; }
+    .status-settled { background: #dbeafe; color: #1d4ed8; }
+    .status-pending { background: #fef3c7; color: #b45309; }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media print {
+      .comparison-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .comparison-col {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      background: #ffffff;
+    }
+    .col-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      color: #0284c7;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .col-note {
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      min-height: 48px;
+    }
+    .settlement-card {
+      background: #fafafa;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+    }
+    .settlement-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+    .settlement-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+      color: #475569;
+    }
+    .settlement-row.total {
+      border-top: 2px solid #cbd5e1;
+      margin-top: 8px;
+      padding-top: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .deduction {
+      color: #dc2626;
+      font-weight: 600;
+    }
+    .refund-highlight {
+      color: #059669;
+      font-weight: 800;
+    }
+    .empty-subtext {
+      color: #94a3b8;
+      font-size: 12px;
+      font-style: italic;
+    }
+    .confirmation-alert {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #166534;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <header class="doc-header">
+      <div class="header-badge">ROOMIE DEPOSIT PROTECTION & MOVE-OUT CERTIFICATE</div>
+      <h1 class="doc-title">${escapeHtml(data.household.name)}</h1>
+      <p class="doc-subtitle">Official Move-Out Inspection, Condition Delta & Deposit Settlement</p>
+      <div class="doc-meta">
+        <span>Certified: ${escapeHtml(dateStr)}</span> • <span>Room: ${escapeHtml(data.inspection.roomName)}</span>
+      </div>
+    </header>
+
+    <div class="tenant-hero">
+      <div class="tenant-info">
+        <h3>Departing Tenant: ${escapeHtml(data.departingTenant.name)}</h3>
+        <p>Inspection Filed: ${escapeHtml(inspectionDate)} • Apartment: ${escapeHtml(data.household.name)}</p>
+      </div>
+      <div>
+        <span class="status-badge ${
+          data.inspection.status === 'settled'
+            ? 'status-settled'
+            : data.inspection.status === 'agreed'
+            ? 'status-agreed'
+            : 'status-pending'
+        }">${escapeHtml(data.inspection.status)}</span>
+      </div>
+    </div>
+
+    <section class="comparison-grid">
+      <div class="comparison-col">
+        <div class="col-title">
+          <span>Initial Move-In Baseline</span>
+          ${data.moveInSnapshot ? `<span style="font-size:11px;color:#64748b;">${new Date(data.moveInSnapshot.createdAt).toLocaleDateString()}</span>` : ''}
+        </div>
+        <p class="col-note">${data.moveInSnapshot ? escapeHtml(data.moveInSnapshot.conditionNote) : 'No baseline snapshot recorded at move-in.'}</p>
+        ${moveInPhotosHtml}
+      </div>
+
+      <div class="comparison-col">
+        <div class="col-title">
+          <span>Final Move-Out State</span>
+          <span style="font-size:11px;color:#64748b;">${inspectionDate}</span>
+        </div>
+        <p class="col-note">${escapeHtml(data.inspection.conditionNote)}</p>
+        ${moveOutPhotosHtml}
+      </div>
+    </section>
+
+    <section class="settlement-card">
+      <div class="settlement-title">Deposit Settlement & Deductions Breakdown</div>
+      <div class="settlement-row">
+        <span>Security Deposit Originally Paid:</span>
+        <span>${formatAmt(data.inspection.depositPaidAmount)}</span>
+      </div>
+      <div class="settlement-row">
+        <span>Agreed Damage / Cleaning Deductions:</span>
+        <span class="deduction">-${formatAmt(data.inspection.damageDeductionAmount)}</span>
+      </div>
+      <div class="settlement-row total">
+        <span>Net Refund Due to Departing Tenant:</span>
+        <span class="refund-highlight">${formatAmt(data.inspection.depositRefundAmount)}</span>
+      </div>
+    </section>
+
+    ${
+      confirmingNames
+        ? `<div class="confirmation-alert"><strong>Verified by Flatmates:</strong> Confirmed by ${confirmingNames} as an accurate condition assessment.</div>`
+        : ''
+    }
+
+    <footer class="doc-footer">
+      <div class="footer-signatures">
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <span class="sig-name">${escapeHtml(data.departingTenant.name)}</span>
+          <span class="sig-role">Departing Tenant</span>
+        </div>
+        ${data.confirmingMembers
+          .filter((m) => m.id !== data.departingTenant.id)
+          .map(
+            (m) => `
+          <div class="sig-block">
+            <div class="sig-line"></div>
+            <span class="sig-name">${escapeHtml(m.name)}</span>
+            <span class="sig-role">Co-Tenant Witness</span>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+      <p class="disclaimer">Official Roomie Verification Record for Deposit Return & Lease Clearance. Timestamped & Cryptographically Structured.</p>
+    </footer>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Exports Move-Out Certificate via Print, Download, or Web Share
+ */
+export async function exportMoveOutCertificate(
+  data: MoveOutCertificateExportData,
+  mode: 'print' | 'download' | 'share' = 'print'
+): Promise<boolean> {
+  const html = generateMoveOutCertificateHtml(data);
+  const filename = `roomie-moveout-${data.inspection.roomName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html`;
+
+  if (mode === 'print') {
+    openPrintDialog(html);
+    return true;
+  }
+
+  if (mode === 'share') {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        const file = new File([html], filename, { type: 'text/html' });
+        await navigator.share({
+          title: `Move-Out Certificate — ${data.inspection.roomName}`,
+          text: `Move-Out Inspection & Deposit Settlement for ${data.departingTenant.name} at ${data.household.name}`,
+          files: [file],
+        });
+        return true;
+      } catch {
+        // Fallback to download on share cancel/failure
+        downloadHtmlBlob(html, filename);
+        return true;
+      }
+    }
+  }
+
+  downloadHtmlBlob(html, filename);
+  return true;
 }
 
 /**

@@ -32,6 +32,7 @@ import {
   MoveInSnapshot,
   LandlordProfile,
   MaintenanceIssue,
+  MoveOutInspection,
 } from '../../types';
 import { getChoreDraftState, getChoreStateEvent } from '../../utils/stateTable';
 import { evaluateWeeklyAwards } from '../../utils/awards';
@@ -76,6 +77,7 @@ export interface AppStore {
   moveInSnapshots?: Record<string, MoveInSnapshot[]>;
   landlordProfiles?: Record<string, LandlordProfile>;
   maintenanceIssues?: Record<string, MaintenanceIssue[]>;
+  moveOutInspections?: Record<string, MoveOutInspection[]>;
   householdSetupMode?: 'pending' | 'configured' | 'demo';
   localSessionActive?: boolean;
   localAccounts?: Record<
@@ -946,6 +948,31 @@ export function getInitialStore(): AppStore {
     ],
   };
 
+  const moveOutInspections: Record<string, MoveOutInspection[]> = {
+    h_main: [
+      {
+        id: 'out_living_room',
+        householdId: 'h_main',
+        userId: 'u_lucas',
+        moveInSnapshotId: 'snap_living_room',
+        roomName: 'Living Room',
+        conditionNote: 'Exchange semester ending. Living room clean, sofa and table in pristine condition. Pre-existing baseboard scuff verified against move-in snapshot.',
+        photoUrls: [
+          'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80',
+        ],
+        isDamageReported: false,
+        damageDeductionAmount: 0,
+        depositPaidAmount: 300,
+        depositRefundAmount: 300,
+        confirmedByUserIds: ['u_lucas', 'u_curr'],
+        status: 'pending_review',
+        createdAt: '2026-11-15T12:00:00Z',
+        updatedAt: '2026-11-15T12:00:00Z',
+        version: 1,
+      },
+    ],
+  };
+
   return {
     currentUser,
     users,
@@ -976,6 +1003,7 @@ export function getInitialStore(): AppStore {
     moveInSnapshots,
     landlordProfiles,
     maintenanceIssues,
+    moveOutInspections,
   };
 }
 
@@ -1312,8 +1340,16 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
   ) {
     return 'expenses';
   }
-  if (type === 'add_move_in_snapshot' || type === 'confirm_move_in_snapshot') {
+  if (
+    type === 'add_move_in_snapshot' ||
+    type === 'confirm_move_in_snapshot' ||
+    type === 'add_move_out_inspection' ||
+    type === 'confirm_move_out_inspection'
+  ) {
     return 'governance';
+  }
+  if (type === 'settle_deposit_refund') {
+    return 'expenses';
   }
   if (
     type === 'update_landlord_profile' ||

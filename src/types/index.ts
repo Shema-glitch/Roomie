@@ -495,5 +495,42 @@ export interface MaintenanceIssue {
   version?: number;
 }
 
+export type MoveOutInspectionStatus = 'draft' | 'pending_review' | 'agreed' | 'settled';
+
+export interface MoveOutInspection {
+  id: string;
+  householdId: string;
+  userId: string;
+  moveInSnapshotId?: string | null;
+  roomName: string;
+  conditionNote: string;
+  photoUrls: string[];
+  isDamageReported: boolean;
+  damageDeductionAmount: number;
+  depositPaidAmount: number;
+  depositRefundAmount: number;
+  confirmedByUserIds: string[];
+  status: MoveOutInspectionStatus;
+  settlementExpenseId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+  version?: number;
+}
+
+export interface TenantReputationPassport {
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userCountry?: string;
+  totalChoresCompleted: number;
+  choreStreakDays: number;
+  weeklyAwardsCount: number;
+  topAwards: string[];
+  tenancyCount: number;
+  harmonyScore: number;
+  verifiedSince: string;
+}
+
 
 

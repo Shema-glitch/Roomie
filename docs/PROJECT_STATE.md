@@ -515,8 +515,38 @@ Baseline Tag: `v1.0.0-phase1`
    - Centralize remaining hardcoded strings into lightweight locale dictionaries (`en`, `tr`, `fr`, `ar`).
    - Audit Arabic RTL text layout, icon flipping, and font line-heights on Android WebViews.
 
+## 18. Phase 4A: Tenant Transition & Deposit Protection Loop (Branch `feature/tenant-transition-and-deposit-return`)
+
+- **Database Migration (`supabase/migrations/20261117010000_tenant_transition_and_move_out.sql`)**:
+  - Successfully applied to remote Supabase (`ebiyvhodxrliiwdzonzu`).
+  - Created `public.move_out_inspections` table with composite indexes on `(household_id, created_at DESC)` and `(user_id, created_at DESC)`.
+  - Added privacy constraint `move_out_no_id_docs` preventing passport and ID document strings.
+  - Implemented atomic `confirm_move_out_inspection` RPC with `SECURITY DEFINER` and multi-tenant RLS policies.
+- **Tenant Transition Domain API (`src/services/api/tenantTransition.api.ts`)**:
+  - `getMoveOutInspections(householdId)`: Windowed Supabase queries with explicit column projections, offline fallback, and store caching.
+  - `addMoveOutInspection(params)`: Client-side privacy guard validation (`assertNoIdentityDocument`), automatic deposit refund computation (`depositPaidAmount - damageDeductionAmount`), and outbox queued mutation.
+  - `confirmMoveOutInspection(inspectionId, userId)`: Multi-member condition sign-off, automatically transitioning status to `'agreed'` once verified.
+  - `settleDepositRefund(inspectionId, adminPayerUserId)`: Seamlessly generates an agreed flat expense for the refund amount, linking `settlement_expense_id` and setting status to `'settled'`.
+  - `getTenantPassport(userId)`: Calculates the user's portable Flatmate Reputation Passport with consecutive chore streak days, completed chores, peer honors, and a calibrated 0–100 Harmony Score.
+- **Move-Out Condition Comparison & Dispute Defense (`MoveOutSnapshotModal.tsx`)**:
+  - Rendered through canonical `<Modal>` portal (`maxWidth="xl"`) with view/file tabs.
+  - **Side-by-Side Room Comparison**: Automatically matches and displays original move-in baseline photos/notes directly opposite move-out photos/notes.
+  - **Deposit Return Calculator**: Real-time breakdown of security deposit, damage deductions, and net refund due.
+  - **Flatmate Verification & Settle Up CTAs**: One-tap co-tenant confirmation buttons and deposit refund expense logging.
+  - Integrated into `LandlordHubCard.tsx` under Apartment Condition tools.
+- **Official Print / PDF Certificate Exporter (`src/utils/pdfExporter.ts`)**:
+  - `generateMoveOutCertificateHtml()` & `exportMoveOutCertificate()`: Zero-dependency print-ready document with timestamped proof, side-by-side room condition delta, deposit breakdown table, and signature sign-off blocks.
+- **Portable Flatmate Reputation Passport (`TenantPassportModal.tsx`)**:
+  - Rendered through canonical `<Modal>` portal (`maxWidth="md"`).
+  - Displays user avatar, verified country, join tenure, Harmony Score gauge, chore streak, total chores, and peer awards.
+  - One-tap "Copy Summary" (with `navigator.clipboard` + `document.execCommand('copy')` WebView fallback) and Web Share API.
+  - Wired into `ProfileSettingsModal.tsx` in the Profile tab right under streaks.
+- **Zero-Slop Verification**:
+  - Initial JS bundle: **156.77 kB gzipped** (well below the 200 KB threshold).
+  - Test Suite: **100% unit tests passing** (including `tenantTransition.test.ts` and `pdfExporter.test.ts`).
+  - `npx tsc --noEmit` passes with 0 errors.
+  - Zero raw Unicode emojis in JSX, zero `as any`, zero `@ts-ignore`, zero raw `console.log`.
+  - Git boundary maintained: strictly on `feature/tenant-transition-and-deposit-return`, untouched `main`.
+
 ---
-
-
-
 

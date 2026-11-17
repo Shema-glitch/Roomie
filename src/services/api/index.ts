@@ -52,6 +52,7 @@ import { SystemApi } from './system.api';
 import { SocialApi } from './social.api';
 import { ShoppingApi } from './shopping.api';
 import { FlatUtilitiesApi } from './flatUtilities.api';
+import { TenantTransitionApi } from './tenantTransition.api';
 
 export class ApiService {
   private _store: AppStore;
@@ -67,6 +68,7 @@ export class ApiService {
   public social: SocialApi;
   public shopping: ShoppingApi;
   public flatUtilities: FlatUtilitiesApi;
+  public tenantTransition: TenantTransitionApi;
 
   constructor() {
     this._store = loadStore();
@@ -130,6 +132,7 @@ export class ApiService {
     this.social = new SocialApi(baseContext);
     this.shopping = new ShoppingApi(baseContext);
     this.flatUtilities = new FlatUtilitiesApi(baseContext);
+    this.tenantTransition = new TenantTransitionApi(baseContext);
     this.system = new SystemApi({
       store: this._store,
       setStore: (s: AppStore) => {
@@ -529,7 +532,7 @@ export class ApiService {
               ...(isUuid(b.id) ? { id: b.id } : {}),
               household_id: b.householdId,
               title: b.title,
-              category: b.category,
+              category: (b.category === 'wifi' || b.category === 'utilities' ? 'utilities' : b.category === 'rent' ? 'rent' : 'other'),
               amount: b.amount,
               currency: b.currency,
               due_day: b.dueDay,
@@ -552,7 +555,7 @@ export class ApiService {
             .from('recurring_bills')
             .update({
               title: b.title,
-              category: b.category,
+              category: (b.category === 'wifi' || b.category === 'utilities' ? 'utilities' : b.category === 'rent' ? 'rent' : 'other'),
               amount: b.amount,
               currency: b.currency,
               due_day: b.dueDay,
@@ -679,6 +682,55 @@ export class ApiService {
             .from('maintenance_issues')
             .update({ status, updated_at: new Date().toISOString() })
             .eq('id', issueId);
+          error = res.error;
+          break;
+        }
+        case 'add_move_out_inspection': {
+          const row = p as unknown as Record<string, unknown>;
+          const res = await sb.from('move_out_inspections').upsert({
+            ...(isUuid(String(row.id || '')) ? { id: String(row.id) } : {}),
+            household_id: String(row.householdId || ''),
+            user_id: String(row.userId || ''),
+            move_in_snapshot_id: isUuid(String(row.moveInSnapshotId || ''))
+              ? String(row.moveInSnapshotId)
+              : null,
+            room_name: String(row.roomName || ''),
+            condition_note: String(row.conditionNote || ''),
+            photo_urls: Array.isArray(row.photoUrls) ? (row.photoUrls as string[]) : [],
+            is_damage_reported: Boolean(row.isDamageReported),
+            damage_deduction_amount: Number(row.damageDeductionAmount || 0),
+            deposit_paid_amount: Number(row.depositPaidAmount || 0),
+            deposit_refund_amount: Number(row.depositRefundAmount || 0),
+            confirmed_by_user_ids: Array.isArray(row.confirmedByUserIds)
+              ? (row.confirmedByUserIds as string[])
+              : [],
+            status: String(row.status || 'pending_review'),
+            created_at: String(row.createdAt || new Date().toISOString()),
+            updated_at: String(row.updatedAt || new Date().toISOString()),
+            version: Number(row.version || 1),
+          });
+          error = res.error;
+          break;
+        }
+        case 'confirm_move_out_inspection': {
+          const inspectionId = String(p.inspectionId || '');
+          const res = await sb.rpc('confirm_move_out_inspection', {
+            p_inspection_id: inspectionId,
+          });
+          error = res.error;
+          break;
+        }
+        case 'settle_deposit_refund': {
+          const inspectionId = String(p.inspectionId || '');
+          const expenseId = p.expenseId ? String(p.expenseId) : null;
+          const res = await sb
+            .from('move_out_inspections')
+            .update({
+              status: 'settled',
+              settlement_expense_id: isUuid(expenseId || '') ? expenseId : null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', inspectionId);
           error = res.error;
           break;
         }
@@ -905,6 +957,16 @@ export class ApiService {
   public updateMaintenanceIssueStatus = (issueId: string, status: Parameters<FlatUtilitiesApi['updateMaintenanceIssueStatus']>[1]) =>
     this.flatUtilities.updateMaintenanceIssueStatus(issueId, status);
 
+  // --- Tenant Transition & Deposit Return Facade (Track 1 / Phase 4A) ---
+  public getMoveOutInspections = (householdId: string) => this.tenantTransition.getMoveOutInspections(householdId);
+  public addMoveOutInspection = (params: Parameters<TenantTransitionApi['addMoveOutInspection']>[0]) =>
+    this.tenantTransition.addMoveOutInspection(params);
+  public confirmMoveOutInspection = (inspectionId: string, userId?: string) =>
+    this.tenantTransition.confirmMoveOutInspection(inspectionId, userId);
+  public settleDepositRefund = (inspectionId: string, adminPayerUserId?: string) =>
+    this.tenantTransition.settleDepositRefund(inspectionId, adminPayerUserId);
+  public getTenantPassport = (userId: string) => this.tenantTransition.getTenantPassport(userId);
+
   // --- Diagnostics Facade ---
   public pingSupabaseHealth = () => this.system.pingSupabaseHealth();
   public exportData = () => this.system.exportData();
@@ -925,3 +987,4 @@ export * from './system.api';
 export * from './social.api';
 export * from './shopping.api';
 export * from './flatUtilities.api';
+export * from './tenantTransition.api';

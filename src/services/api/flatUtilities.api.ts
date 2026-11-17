@@ -33,6 +33,12 @@ import { Json } from '../../types/database.types';
 
 const logger = createDomainLogger('FlatUtilitiesAPI', 'expenses');
 
+function toDbExpenseCategory(cat: RecurringBillCategory): 'groceries' | 'household' | 'other' | 'rent' | 'utilities' {
+  if (cat === 'wifi' || cat === 'utilities') return 'utilities';
+  if (cat === 'rent') return 'rent';
+  return 'other';
+}
+
 export interface FlatUtilitiesContext {
   store: AppStore;
   save: (s?: AppStore) => void;
@@ -154,8 +160,8 @@ export class FlatUtilitiesApi {
           paidByUserId: row.paid_by_user_id || '',
           active: row.active ?? true,
           lastGeneratedCycle: row.last_generated_cycle || null,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
+          createdAt: row.created_at || new Date().toISOString(),
+          updatedAt: row.updated_at || new Date().toISOString(),
           deletedAt: row.deleted_at || null,
           version: Number(row.version || 1),
         }));
@@ -230,7 +236,7 @@ export class FlatUtilitiesApi {
           id: newBill.id,
           household_id: newBill.householdId,
           title: newBill.title,
-          category: newBill.category,
+          category: toDbExpenseCategory(newBill.category),
           amount: newBill.amount,
           currency: newBill.currency,
           due_day: newBill.dueDay,
@@ -307,7 +313,7 @@ export class FlatUtilitiesApi {
           .from('recurring_bills')
           .update({
             title: updated.title,
-            category: updated.category,
+            category: toDbExpenseCategory(updated.category),
             amount: updated.amount,
             currency: updated.currency,
             due_day: updated.dueDay,
@@ -540,8 +546,8 @@ export class FlatUtilitiesApi {
           confirmedByUserIds: Array.isArray(row.confirmed_by_user_ids)
             ? (row.confirmed_by_user_ids as string[])
             : [],
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
+          createdAt: row.created_at || new Date().toISOString(),
+          updatedAt: row.updated_at || new Date().toISOString(),
           deletedAt: row.deleted_at || null,
           version: Number(row.version || 1),
         }));
@@ -829,12 +835,12 @@ export class FlatUtilitiesApi {
           id: row.id,
           householdId: row.household_id,
           title: row.title,
-          description: row.description,
+          description: row.description || '',
           status: row.status as MaintenanceIssueStatus,
           photoUrls: Array.isArray(row.photo_urls) ? (row.photo_urls as string[]) : [],
           reportedBy: row.reported_by,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
+          createdAt: row.created_at || new Date().toISOString(),
+          updatedAt: row.updated_at || new Date().toISOString(),
           deletedAt: row.deleted_at || null,
           version: Number(row.version || 1),
         }));
