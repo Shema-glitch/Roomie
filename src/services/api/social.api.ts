@@ -142,17 +142,23 @@ export class SocialApi {
   public async getWeeklyAwards(householdId?: string): Promise<WeeklyAward[]> {
     const store = this.getStore();
     const hId = householdId || store.activeHouseholdId;
-    if (!store.weeklyAwards) store.weeklyAwards = {};
-    if (!store.weeklyAwards[hId] || store.weeklyAwards[hId].length === 0) {
-      return this.refreshWeeklyAwards(hId);
-    }
-    return store.weeklyAwards[hId];
+    return this.refreshWeeklyAwards(hId);
   }
 
   public async refreshWeeklyAwards(householdId?: string): Promise<WeeklyAward[]> {
     const store = this.getStore();
     const hId = householdId || store.activeHouseholdId;
-    const householdMembers = store.users;
+    const activeMemberIds = new Set(
+      (store.memberships || [])
+        .filter((m) => m.householdId === hId && m.status === 'active')
+        .map((m) => m.userId)
+    );
+    const householdMembers =
+      activeMemberIds.size > 0
+        ? store.users.filter((u) => activeMemberIds.has(u.id))
+        : store.currentUser
+        ? [store.currentUser]
+        : [];
     const assignments = store.draftRounds?.[hId]?.assignments || [];
     const kudos = assignments.flatMap((a) => a.kudos || []);
     const expenses = (store.expenses || []).filter((e) => e.householdId === hId);

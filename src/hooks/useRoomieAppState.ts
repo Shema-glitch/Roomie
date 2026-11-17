@@ -232,10 +232,23 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   }, [loadData, showToast]);
 
   const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
-  const unreadNotifsCount = useMemo(
-    () => notifications.reduce((count, n) => (n.read ? count : count + 1), 0),
-    [notifications]
-  );
+  const unreadNotifsCount = useMemo(() => {
+    const pendingIds = new Set(joinRequests.map((r) => r.id));
+    return notifications.reduce((count, n) => {
+      if (n.read) return count;
+      const titleLower = n.title.toLowerCase();
+      const isActionableJoin =
+        n.type === 'household' &&
+        titleLower.includes('join request') &&
+        !titleLower.includes('update');
+      if (isActionableJoin) {
+        if (joinRequests.length === 0) return count;
+        const linkId = n.linkTarget?.id || (n.linkTarget as { requestId?: string } | undefined)?.requestId;
+        if (linkId && !pendingIds.has(linkId)) return count;
+      }
+      return count + 1;
+    }, 0);
+  }, [notifications, joinRequests]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

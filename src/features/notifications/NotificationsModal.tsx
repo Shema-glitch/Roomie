@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
 import { Chip } from '../../components/common/Chip';
 import { IconTile } from '../../components/common/IconTile';
-import { InAppNotification, DraftRound, User } from '../../types';
+import { InAppNotification, DraftRound, User, JoinRequest } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
@@ -26,6 +26,7 @@ interface NotificationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: InAppNotification[];
+  pendingJoinRequests?: JoinRequest[];
   draftRound?: DraftRound | null;
   currentUser?: User | null;
   onMarkRead: (id: string) => Promise<void>;
@@ -37,6 +38,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isOpen,
   onClose,
   notifications,
+  pendingJoinRequests = [],
   draftRound,
   currentUser,
   onMarkRead,
@@ -48,8 +50,20 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
   const draftState = getChoreDraftState(draftRound, currentUser?.id || '');
 
+  const activePendingRequestIds = new Set(pendingJoinRequests.map((r) => r.id));
+
   const filtered = notifications
     .filter((n) => {
+      const titleLower = n.title.toLowerCase();
+      const isActionableJoinRequest =
+        n.type === 'household' &&
+        titleLower.includes('join request') &&
+        !titleLower.includes('update');
+      if (isActionableJoinRequest) {
+        if (pendingJoinRequests.length === 0) return false;
+        const linkId = n.linkTarget?.id || (n.linkTarget as { requestId?: string } | undefined)?.requestId;
+        if (linkId && !activePendingRequestIds.has(linkId)) return false;
+      }
       if (filter === 'all') return true;
       return n.type === filter;
     })

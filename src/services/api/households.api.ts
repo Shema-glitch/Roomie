@@ -585,10 +585,15 @@ export class HouseholdsApi {
           status: 'active',
           joinedAt: new Date().toISOString(),
         });
-        this.store.notifications.forEach((n) => {
-          if (n.type === 'household' && n.title.toLowerCase().includes('join request')) {
-            n.read = true;
-          }
+        this.store.notifications = this.store.notifications.filter((n) => {
+          const isJoinCard =
+            n.type === 'household' &&
+            n.title.toLowerCase().includes('join request') &&
+            !n.title.toLowerCase().includes('update');
+          if (!isJoinCard) return true;
+          const targetId = n.linkTarget?.id;
+          if (targetId && targetId !== requestId) return true;
+          return false;
         });
         const flatMembers = this.store.memberships.filter(
           (m) => m.householdId === req.householdId && m.status === 'active' && m.userId !== user.id

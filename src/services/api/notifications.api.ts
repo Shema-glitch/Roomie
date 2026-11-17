@@ -49,6 +49,7 @@ export class NotificationsApi {
           .from('notifications')
           .select('*')
           .eq('user_id', currentUserId)
+          .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(60);
 

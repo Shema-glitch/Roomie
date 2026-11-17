@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ActionCard } from '../../components/common/ActionCard';
 import { InfoCard } from '../../components/common/InfoCard';
 import { IconTile } from '../../components/common/IconTile';
@@ -42,6 +42,7 @@ import {
   ArrowsLeftRight,
 } from '@phosphor-icons/react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
+import { evaluateWeeklyAwards } from '../../utils/awards';
 import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
 import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
@@ -119,9 +120,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(
     () => localCache.getSnapshot(household?.id)?.vibeSummary
   );
-  const [awards, setAwards] = useState<WeeklyAward[]>(
-    () => localCache.getSnapshot(household?.id)?.weeklyAwards || []
-  );
+  const awards: WeeklyAward[] = useMemo(() => {
+    const activeUsers = roommates.length > 0 ? roommates : [currentUser];
+    const assignments = draftRound?.assignments || [];
+    const kudos = assignments.flatMap((a) => a.kudos || []);
+    return evaluateWeeklyAwards({
+      householdId: household?.id || '',
+      weekLabel: 'Weekly Honors',
+      users: activeUsers,
+      assignments,
+      kudos,
+      expenses: expenses || [],
+    });
+  }, [household?.id, roommates, currentUser, draftRound?.assignments, expenses]);
   const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>(
     () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
   );
@@ -159,7 +170,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       const snap = localCache.getSnapshot(household.id);
       if (snap) {
         setVibeSummary(snap.vibeSummary);
-        setAwards(snap.weeklyAwards);
         setPendingSwaps(snap.pendingSwaps);
         if (snap.culturalDinners) {
           setCulturalDinners(snap.culturalDinners);
@@ -169,7 +179,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         }
       }
       api.getVibeSummary(household.id).then(setVibeSummary).catch(() => {});
-      api.getWeeklyAwards(household.id).then(setAwards).catch(() => {});
       api.social.getCulturalDinners(household.id).then(setCulturalDinners).catch(() => {});
       api.shopping.getShoppingItems(household.id).then(setShoppingItems).catch(() => {});
       api.getSwapRequests(household.id).then((reqs) => {

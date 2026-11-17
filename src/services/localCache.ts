@@ -208,17 +208,14 @@ class LocalSnapshotCacheService {
       favorTokens: tokenBalance,
     };
 
-    const weeklyAwards =
-      store.weeklyAwards?.[hId] && store.weeklyAwards[hId].length > 0
-        ? store.weeklyAwards[hId]
-        : evaluateWeeklyAwards({
-            householdId: hId,
-            weekLabel: 'Weekly Honors',
-            users: memberUsers,
-            assignments: draftRound.assignments,
-            kudos: draftRound.assignments.flatMap((a) => a.kudos || []),
-            expenses,
-          });
+    const weeklyAwards = evaluateWeeklyAwards({
+      householdId: hId,
+      weekLabel: 'Weekly Honors',
+      users: memberUsers,
+      assignments: draftRound.assignments,
+      kudos: draftRound.assignments.flatMap((a) => a.kudos || []),
+      expenses,
+    });
 
     const weekKey = getCurrentWeekKey();
     const vibeChecks = store.vibeChecks?.[hId] || [];

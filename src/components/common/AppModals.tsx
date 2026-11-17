@@ -303,6 +303,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
           isOpen={notificationsOpen}
           onClose={() => setNotificationsOpen(false)}
           notifications={notifications}
+          pendingJoinRequests={joinRequests}
           draftRound={draftRound}
           currentUser={currentUser}
           onMarkRead={async (id) => {
