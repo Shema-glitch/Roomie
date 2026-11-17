@@ -64,7 +64,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
         <h3 className="type-section-heading">Flat Overview</h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 items-stretch">
         {/* Tile 1: Money Tile */}
         <div
           role="button"
@@ -76,7 +76,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onNavigateMoney();
           }}
-          className={`btn-tactile ease-spring p-3.5 rounded-[22px] border-2 border-b-4 flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none ${
+          className={`btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none ${
             isOwed
               ? 'bg-[#F0FDF4] border-[#86EFAC] border-b-[#4ADE80]'
               : owes
@@ -86,18 +86,18 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
         >
           <div className="flex items-center justify-between gap-2">
             <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                 isOwed
-                  ? 'bg-[#DCFCE7] text-[#16A34A]'
+                  ? 'bg-[#BBF7D0] text-[#15803D]'
                   : owes
-                  ? 'bg-[#FFE2DB] text-[#FF6B4A]'
-                  : 'bg-[#F1F5F9] text-[#64748B]'
+                  ? 'bg-[#FFD7CF] text-[#D94E30]'
+                  : 'bg-[#E2E8F0] text-[#334155]'
               }`}
             >
-              <Wallet weight="duotone" className="w-4 h-4" />
+              <Wallet weight="duotone" className="w-5 h-5" />
             </div>
             <span
-              className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
                 isOwed
                   ? 'bg-[#BBF7D0] text-[#166534]'
                   : owes
@@ -139,19 +139,15 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenShoppingList();
           }}
-          className="btn-tactile ease-spring p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF9EE] border-[#FDE047] border-b-[#EAB308] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF9EE] border-[#FDE047] border-b-[#EAB308] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
         >
           <div className="flex items-center justify-between gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FEF08A] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#FDE047] flex items-center justify-center shrink-0">
               <Icon icon="fluent-emoji-flat:shopping-cart" className="w-5 h-5" />
             </div>
-            {runningLowCount > 0 ? (
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626] border border-[#FECDD3]">
+            {runningLowCount > 0 && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626] border border-[#FECDD3] whitespace-nowrap shrink-0">
                 {runningLowCount} Low
-              </span>
-            ) : (
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FEF9C3] text-[#854D0E]">
-                Groceries
               </span>
             )}
           </div>
@@ -183,7 +179,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
         </div>
 
-        {/* Tile 3: Vibe Pulse Tile */}
+        {/* Tile 3: House Mood Tile */}
         <div
           role="button"
           tabIndex={0}
@@ -194,19 +190,16 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenVibeCheck();
           }}
-          className="btn-tactile ease-spring p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FAF5FF] border-[#E9D5FF] border-b-[#C084FC] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FAF5FF] border-[#E9D5FF] border-b-[#C084FC] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
         >
           <div className="flex items-center justify-between gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#F3E8FF] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#E9D5FF] flex items-center justify-center shrink-0">
               {vibeRevealed && vibeMood ? (
                 <Icon icon={vibeMood.icon} className="w-5 h-5" />
               ) : (
                 <Icon icon="fluent-emoji-flat:locked-with-key" className="w-5 h-5" />
               )}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#EDE9FE] text-[#6B21A8]">
-              {vibeRevealed ? 'Unlocked' : 'Anonymous'}
-            </span>
           </div>
 
           <div className="mt-2.5">
@@ -233,14 +226,14 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenCulturalDinner();
           }}
-          className="btn-tactile ease-spring p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF5F5] border-[#FECDD3] border-b-[#FB7185] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF5F5] border-[#FECDD3] border-b-[#FB7185] flex flex-col justify-between text-left cursor-pointer transition-all shadow-2xs select-none"
         >
           <div className="flex items-center justify-between gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FFE4E6] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#FECDD3] flex items-center justify-center shrink-0">
               <Icon icon="fluent-emoji-flat:pot-of-food" className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFE4E6] text-[#9F1239]">
-              BETA
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFE4E6] text-[#9F1239] whitespace-nowrap shrink-0">
+              Beta
             </span>
           </div>
 

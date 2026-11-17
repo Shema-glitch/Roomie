@@ -232,14 +232,14 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
             })}
           </nav>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenSyncPanel();
               }}
-              className={`min-h-[40px] sm:min-h-[44px] px-2 sm:px-3 py-1.5 rounded-2xl border flex items-center gap-1 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.98] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 border flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                 syncStatus === 'syncing'
                   ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
                   : syncStatus === 'offline'
@@ -254,28 +254,16 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               {syncStatus === 'syncing' ? (
                 <ArrowsClockwise
                   weight="duotone"
-                  className="w-4 h-4 shrink-0 animate-spin text-[#5B5BD6]"
+                  className="w-5 h-5 shrink-0 animate-spin text-[#5B5BD6]"
                 />
               ) : syncStatus === 'offline' ? (
-                <CloudSlash weight="duotone" className="w-4 h-4 shrink-0 text-[#E5484D]" />
+                <CloudSlash weight="duotone" className="w-5 h-5 shrink-0 text-[#E5484D]" />
               ) : syncStatus === 'needs_attention' ? (
-                <WarningCircle weight="duotone" className="w-4 h-4 shrink-0 text-[#8A6200]" />
+                <WarningCircle weight="duotone" className="w-5 h-5 shrink-0 text-[#8A6200]" />
               ) : (
-                <CloudCheck weight="duotone" className="w-4 h-4 shrink-0 text-[#19B5A5]" />
+                <CloudCheck weight="duotone" className="w-5 h-5 shrink-0 text-[#19B5A5]" />
               )}
-              <span
-                className={`type-secondary font-bold text-[12px] sm:text-[14px] whitespace-nowrap ${
-                  syncStatus === 'synced'
-                    ? 'hidden sm:inline text-[#19B5A5]'
-                    : syncStatus === 'syncing'
-                    ? 'hidden xs:inline text-[#5B5BD6]'
-                    : syncStatus === 'offline'
-                    ? 'hidden xs:inline text-[#E5484D]'
-                    : 'hidden xs:inline text-[#8A6200]'
-                }`}
-              >
-                {syncButtonLabel}
-              </span>
+              <span className="sr-only">{syncButtonLabel}</span>
             </button>
 
             {/* Phase 2: Favor Token Pill */}
@@ -285,7 +273,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 haptics.tokenClink();
                 sound.tokenClink();
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
               title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
               aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
             >
@@ -294,6 +282,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 if (unreadNotifsCount > 0) {
                   haptics.notificationPing();
@@ -303,23 +292,24 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 }
                 onOpenNotifications();
               }}
-              className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] rounded-2xl bg-white border border-[#E6E8EE] flex items-center justify-center relative text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 shrink-0"
+              className="relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#E6E8EE] flex items-center justify-center text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
               aria-label="Open notifications"
             >
-              <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-4 h-4" />
+              <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-5 h-5" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-[18px] sm:min-w-[20px] h-4.5 sm:h-5 px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] sm:text-[11px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
                   {unreadNotifsCount}
                 </span>
               )}
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenProfileSettings();
               }}
-              className="min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center rounded-2xl hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer shrink-0"
+              className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
               aria-label="Open profile settings"
             >
               <Avatar

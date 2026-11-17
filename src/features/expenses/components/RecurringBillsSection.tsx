@@ -104,12 +104,12 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
 
   return (
     <div className="bg-white rounded-[24px] p-5 border-2 border-[#E5E9F0] shadow-xs mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-[#FFF0ED] flex items-center justify-center text-[#FF6B4A]">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-2xl bg-[#FFF0ED] flex items-center justify-center text-[#FF6B4A] shrink-0">
             <CalendarCheck weight="duotone" className="w-5 h-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-heading font-black text-[#1F2430] text-[16px]">Recurring Rent &amp; Bills</h3>
             <p className="type-caption text-[#64748B]">
               Monthly flat expenses with 1-tap split logging
@@ -122,7 +122,7 @@ export const RecurringBillsSection: React.FC<RecurringBillsSectionProps> = ({
             sound.playTap();
             setAddModalOpen(true);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] font-bold text-[13px] hover:bg-[#FFE4DD] active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF0ED] text-[#FF6B4A] font-bold text-[13px] hover:bg-[#FFE4DD] active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
         >
           <Plus weight="bold" className="w-4 h-4" />
           <span>Add Template</span>

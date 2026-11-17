@@ -242,19 +242,13 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         }
                         size="sm"
                       />
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <h4 className="type-section-heading">
                           {formatNotificationCopy(n, householdName).title}
                         </h4>
                         <p className="type-secondary mt-0.5 leading-relaxed">
                           {formatNotificationCopy(n, householdName).body}
                         </p>
-                        <span className="type-secondary block mt-1">
-                          {new Date(n.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
                       </div>
                     </div>
 
@@ -263,12 +257,19 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-3 mt-2 pt-2 border-t border-[#E6E8EE]/60">
+                  {/* Footer row: timestamp on left, action CTA on right */}
+                  <div className="flex items-center justify-between gap-3 mt-2.5 pt-2.5 border-t border-[#E6E8EE]/60">
+                    <span className="type-secondary text-xs text-[#64748B] shrink-0">
+                      {new Date(n.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <div className="flex items-center gap-2.5 shrink-0 ml-auto">
                     {n.type === 'chore' && !isSwapNotif && (
                       <button
                         onClick={() => handleSnooze(n.id)}
-                        className="type-secondary font-bold text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer active:translate-y-[1px]"
+                        className="type-secondary font-bold text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer active:translate-y-[1px] whitespace-nowrap"
                       >
                         <Clock className="w-3.5 h-3.5" /> Snooze 30m
                       </button>
@@ -293,7 +294,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                           onClose();
                           onActionClick(n.linkTarget!);
                         }}
-                        className={`px-3.5 py-1.5 rounded-xl text-white text-[14px] font-bold cursor-pointer transition-all active:translate-y-[1px] ${
+                        className={`px-3.5 py-1.5 rounded-xl text-white text-[13px] font-bold cursor-pointer transition-all active:translate-y-[1px] whitespace-nowrap shrink-0 ${
                           n.type === 'privacy_alert'
                             ? 'bg-amber-600 hover:bg-amber-700'
                             : 'bg-[#FF6B4A] hover:bg-[#D94E30]'
@@ -316,6 +317,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                           : 'Review'}
                       </button>
                     )}
+                    </div>
                   </div>
                 </div>
               );

@@ -282,7 +282,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 type="button"
                 onClick={handleCopyPhone}
                 aria-label="Copy phone number"
-                className="p-2 rounded-xl bg-white border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] active:scale-95 transition-all cursor-pointer"
+                className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] active:scale-95 transition-all flex items-center justify-center cursor-pointer"
               >
                 {copiedPhone ? (
                   <Check weight="bold" className="w-3.5 h-3.5 text-[#16A34A]" />

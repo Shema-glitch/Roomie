@@ -98,7 +98,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`fixed inset-x-0 bottom-0 sm:static w-full ${maxWidthClass} rounded-t-[28px] rounded-b-none sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden max-h-[88dvh] sm:max-h-[90dvh] flex flex-col pb-safe sm:pb-0 will-change-transform animate-fade-up motion-reduce:animate-none`}
+        className={`fixed inset-x-0 bottom-0 sm:static w-full ${maxWidthClass} rounded-t-[28px] rounded-b-none sm:rounded-3xl bg-white border-2 border-[#E6E8EE] sm:border-b-4 shadow-2xl overflow-hidden h-auto max-h-[85dvh] sm:max-h-[90dvh] flex flex-col pb-6 sm:pb-0 will-change-transform animate-fade-up motion-reduce:animate-none`}
         style={{
           backgroundColor: THEME.colors.surface,
           transform: dragOffsetY > 0 ? `translate3d(0, ${dragOffsetY}px, 0)` : undefined,
@@ -136,7 +136,7 @@ export const Modal: React.FC<ModalProps> = ({
                   sound.playTap();
                   onClose();
                 }}
-                className="btn-tactile ease-spring w-10 h-10 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] motion-reduce:transition-none cursor-pointer"
+                className="btn-tactile ease-spring w-10 h-10 shrink-0 aspect-square rounded-full p-0 border-2 border-b-4 border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white hover:border-[#CBD5E1] shadow-2xs flex items-center justify-center text-[#64748B] hover:text-[#1F2430] motion-reduce:transition-none cursor-pointer"
                 aria-label="Close dialog"
               >
                 <X weight="bold" className="w-5 h-5" />
@@ -145,7 +145,7 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
 
-        <div className="p-6 sm:p-8 overflow-y-auto flex-1">{children}</div>
+        <div className="p-6 sm:p-8 overflow-y-auto min-h-0 flex-1">{children}</div>
 
         {footer && (
           <div className="px-6 py-4 sm:px-8 border-t border-[#E6E8EE] bg-white sticky bottom-0 z-10 shrink-0">

@@ -43,7 +43,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-3xl border-2 border-b-4 border-[#E6E8EE] p-4 sm:p-6 shadow-xs space-y-4 relative">
+    <div className="w-full bg-white rounded-3xl border-2 border-[#E5E9F0] p-4 sm:p-6 shadow-xs space-y-4 relative">
       {/* Celebration Confetti Burst (respects reduced motion, unclipped by parent) */}
       {!reducedMotion && celebrated && (
         <div className="absolute -top-3 inset-x-0 h-48 pointer-events-none z-30 overflow-visible">
@@ -104,7 +104,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       {/* Hero Badge for Current User */}
       {myAward && (
         <div
-          className={`p-4 rounded-2xl border-2 border-b-4 transition-transform ${
+          className={`p-4 rounded-2xl border transition-transform ${
             colorStyles[myAward.colorScheme].bg
           } ${colorStyles[myAward.colorScheme].border}`}
         >
@@ -140,7 +140,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
                 <div
                   key={award.id}
                   style={{ '--stagger-index': idx + 1 } as React.CSSProperties}
-                  className={`stagger-item card-interactive ease-spring min-w-[210px] max-w-[240px] shrink-0 snap-start p-3 rounded-2xl border-2 border-b-3 ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
+                  className={`stagger-item card-interactive ease-spring min-w-[210px] max-w-[240px] shrink-0 snap-start p-3 rounded-2xl border ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
                 >
                   <div className="flex items-center gap-2.5 mb-1.5">
                     <span className="shrink-0 flex items-center justify-center">
@@ -174,10 +174,10 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             haptics.tokenClink();
             onOpenWrapped();
           }}
-          className="btn-tactile ease-spring w-full p-2.5 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border-2 border-b-3 border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer shadow-2xs select-none"
+          className="btn-tactile ease-spring w-full p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer shadow-2xs select-none gap-2"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-xl bg-white border border-[#FFD3C9] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-white border border-[#FFD3C9] flex items-center justify-center shrink-0">
               <Icon icon="fluent-emoji-flat:wrapped-gift" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
@@ -185,8 +185,8 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
                 <span className="text-xs font-black text-[#1F2430] truncate">
                   Monthly Flat Recap
                 </span>
-                <span className="px-1.5 py-0.5 rounded-full bg-[#FFE4DD] text-[#D94E30] text-[10px] font-black uppercase tracking-wider shrink-0">
-                  BETA
+                <span className="px-2 py-0.5 rounded-full bg-[#FFE4DD] text-[#D94E30] text-[11px] font-bold shrink-0">
+                  Beta
                 </span>
               </div>
               <span className="text-[10px] text-[#64748B] truncate block">
@@ -194,7 +194,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               </span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-[11px] font-black shrink-0">
+          <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-[11px] font-black whitespace-nowrap shrink-0">
             Open Story
           </span>
         </button>

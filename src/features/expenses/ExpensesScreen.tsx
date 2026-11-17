@@ -226,7 +226,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         <div>
           <h2 className="type-title">Expenses & money</h2>
           <p className="type-secondary mt-0.5">
-            Fair shared flat ledger with consent-first splits
+            Split groceries, bills &amp; rent cleanly
           </p>
         </div>
 

@@ -1,6 +1,5 @@
 import React from 'react';
 import { InfoCard } from '../../../components/common/InfoCard';
-import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { ChatMessage } from '../../../types';
 import { sound } from '../../../services/sound';
@@ -103,16 +102,24 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
       ? 'Money'
       : 'Apartment';
 
+    const tileColors = {
+      indigo: 'bg-[#EEF0FD] text-[#5B5BD6] border-[#C7D2FE]',
+      teal: 'bg-[#E6FAF8] text-[#138E82] border-[#B6EFEA]',
+      coral: 'bg-[#FFF0ED] text-[#FF6B4A] border-[#FFD3C9]',
+    }[tileColor];
+
     return (
       <div
         key={act.id}
         style={{ '--stagger-index': idx } as React.CSSProperties}
-        className="stagger-item card-interactive ease-spring p-3 rounded-2xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs contain-content"
+        className="stagger-item p-3.5 sm:px-4 flex items-start sm:items-center justify-between gap-3 contain-content"
       >
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <IconTile icon={icon} color={tileColor} size="sm" />
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className={`w-8 h-8 rounded-xl border flex items-center justify-center shrink-0 mt-0.5 ${tileColors}`}>
+            {icon}
+          </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-bold text-[#1F2430] leading-snug truncate">
+            <p className="text-[13px] font-bold text-[#1F2430] leading-snug line-clamp-2">
               {formatActivityBody(act.body, householdName)}
             </p>
             <p className="type-secondary text-[11px] flex items-center gap-1.5 mt-0.5 text-[#64748B]">
@@ -173,7 +180,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
       <div className="flex items-center justify-between px-1">
         <div>
           <h3 className="type-section-heading">Recent Activity</h3>
-          <p className="type-secondary text-xs text-[#64748B]">Latest flat events & updates</p>
+          <p className="type-secondary text-xs text-[#64748B]">Latest flat events &amp; updates</p>
         </div>
         <button
           type="button"
@@ -181,7 +188,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
             sound.playTap();
             onNavigateTab('chat');
           }}
-          className="btn-tactile ease-spring px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] text-xs font-bold text-[#5B5BD6] flex items-center gap-1.5 shadow-2xs cursor-pointer select-none"
+          className="btn-tactile ease-spring px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] text-xs font-bold text-[#5B5BD6] flex items-center gap-1.5 shadow-2xs cursor-pointer select-none whitespace-nowrap shrink-0"
         >
           <ChatCircleDots weight="fill" className="w-3.5 h-3.5" />
           <span>Open Chat</span>
@@ -189,15 +196,15 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
         </button>
       </div>
 
-      <div className="space-y-2">
-        {recentActivities.length > 0 ? (
-          recentActivities.map(renderActivityCard)
-        ) : (
-          <InfoCard padding="md" className="text-center type-secondary bg-white text-xs">
-            No recent apartment updates yet.
-          </InfoCard>
-        )}
-      </div>
+      {recentActivities.length > 0 ? (
+        <div className="rounded-[24px] border-2 border-[#E5E9F0] bg-white divide-y divide-[#EEF1F6] shadow-2xs overflow-hidden">
+          {recentActivities.map(renderActivityCard)}
+        </div>
+      ) : (
+        <InfoCard padding="md" className="text-center type-secondary bg-white text-xs">
+          No recent apartment updates yet.
+        </InfoCard>
+      )}
     </div>
   );
 };

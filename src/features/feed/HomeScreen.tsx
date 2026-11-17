@@ -417,7 +417,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                   </div>
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 pt-2 self-center flex items-center justify-center">
                   <MascotView
                     state={mascotReaction?.state || 'idle'}
                     size="md"

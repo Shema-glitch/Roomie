@@ -121,7 +121,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 haptics.light();
                 setSettingsSheetOpen(true);
               }}
-              className="w-9 h-9 rounded-xl bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 flex items-center justify-center shrink-0 transition-all cursor-pointer"
+              className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 flex items-center justify-center transition-all cursor-pointer"
               aria-label="Apartment settings"
               title="Apartment Settings"
             >

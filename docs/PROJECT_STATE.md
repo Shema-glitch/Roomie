@@ -599,3 +599,25 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 21. Universal UI Geometry, Pill Discipline & Button Alignment (Branch `feature/universal-ui-geometry-and-copy`)
+
+- **Circular Icon Buttons & Bottom-Sheet Geometry (`AppHeaderAndNav.tsx`, `Modal.tsx`, `CenterDialog.tsx`, `ApartmentHeaderCard.tsx`, `LandlordHubCard.tsx`)**:
+  - Standardized circular icon triggers (Cloud Sync, Notifications Bell, Profile Avatar trigger, modal close buttons, Apartment `•••` overflow trigger, Landlord phone copy button) onto `w-10 h-10 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center`.
+  - Updated `Modal.tsx` bottom sheet height geometry (`h-auto max-h-[85dvh] pb-6 sm:pb-0` with `min-h-0 flex-1` scroll area) so sheets dock flush and size naturally to content without dead whitespace.
+- **Notifications & Profile Alignment (`NotificationsModal.tsx`, `ProfileSettingsModal.tsx`)**:
+  - Aligned notification timestamps on the left and action CTAs (`View Roomies`, `Snooze 30m`, etc.) on the right of a single footer row (`flex items-center justify-between`).
+  - Placed `Edit` beside the display name in `ProfileSettingsModal.tsx` so the user email spans full card width cleanly without premature truncation.
+- **Home Hero, Bento Grid, Shoutouts & Merged Recent Activity (`HomeScreen.tsx`, `ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`)**:
+  - Centered the Hero `MascotView` vertically with comfortable top clearance (`pt-2 self-center`).
+  - Upgraded Bento Grid top-left icon contrast (`w-9 h-9 rounded-xl`), enforced uniform footer baselines (`items-stretch` + `h-full`), removed noisy uppercase pills (`ANONYMOUS` / `Groceries`), and softened `Beta` tags.
+  - Flattened double-nested borders inside `WeeklyAwardsSection.tsx` and softened `Monthly Flat Recap` with a subtle `Beta` tag.
+  - Merged `ActivityTimelineSection.tsx` activity items into a single white card (`rounded-[24px] border-2 border-[#E5E9F0] bg-white divide-y divide-[#EEF1F6]`) with `32px` icons and 2-line wrapping (`line-clamp-2`).
+- **Money & Apartment Button Non-Wrapping (`ExpensesScreen.tsx`, `RecurringBillsSection.tsx`, `ApartmentInfoCard.tsx`)**:
+  - Updated `ExpensesScreen.tsx` subtitle to `"Split groceries, bills & rent cleanly"` and added `whitespace-nowrap shrink-0` to `+ Add Template` and `Edit` header action buttons.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **110 / 110 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.78 kB gzipped** (< 200 KB threshold).
+
+---
+

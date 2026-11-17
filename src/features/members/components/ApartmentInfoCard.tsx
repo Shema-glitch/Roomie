@@ -127,6 +127,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
         <Button
           variant="outline"
           size="sm"
+          className="whitespace-nowrap shrink-0"
           onClick={() => {
             sound.playTap();
             haptics.tokenClink();
