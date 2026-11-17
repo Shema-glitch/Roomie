@@ -676,3 +676,19 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 25. Chat Bubbles, Render-Time System Pill Deduplication & Composer Polish (Branch `feature/chat-page-polish`)
+
+- **Render-Time Whisper Pill Normalization & Deduplication (`ChatScreen.tsx`, `chatActivity.ts`, `chatActivity.test.ts`)**:
+  - Added `normalizeSystemActivityText` & `buildChatTimeline` to strip raw Unicode emojis (`🛒`, `👋`, `✨`, `🛡️`) and legacy `Privacy Notice:` prefixes from system activity messages and collapse back-to-back or near-identical member-join announcements into one concise `"[Name] joined the flat"` whisper pill.
+- **Native Chat Bubble Proportions & Pinned Banner (`ChatScreen.tsx`)**:
+  - Refined human message bubbles from oversized cards to compact native proportions (`px-3.5 py-2 rounded-2xl rounded-br-sm max-w-[78%]` with bottom-right `text-[10px]` timestamps).
+  - Shortened the pinned `Weekly Chore Picks` banner subtitle when open to `"Pick your chores before Sunday"` so it fits cleanly without ellipsis truncation.
+- **Circular Composer Send Button (`ChatScreen.tsx`)**:
+  - Replaced the wide text `SEND` button with a circular `w-11 h-11 shrink-0 aspect-square rounded-full` `PaperPlaneRight` icon button (vibrant coral `#FF6B4A` when active, subtle slate `#E6E8EE` when empty).
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **113 / 113 passing** across 18 suites (including `chatActivity.test.ts`).
+  - `npm run build`: succeeded, initial JS entry bundle **158.93 kB gzipped** (< 200 KB threshold).
+
+---
+
