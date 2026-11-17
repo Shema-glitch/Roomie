@@ -180,7 +180,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step < 6 ? 'Log Shared Expense' : 'Expense Logged! 🎉'}
+      title={step < 6 ? 'Log Shared Expense' : 'Expense Shared'}
       subtitle={step < 6 ? `Step ${step} of 5` : 'Awaiting roomie agreements'}
       maxWidth="md"
     >
@@ -593,15 +593,12 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
             <MascotView
               state="calm"
               size="lg"
-              bubbleText="Expense recorded peacefully!"
+              bubbleText="Sent to your flatmates!"
             />
 
             <div className="space-y-1 max-w-xs">
-              <h3 className="type-title">
-                Expense Logged
-              </h3>
               <p className="type-secondary leading-relaxed">
-                <span className="text-[#1F2430] font-bold">{sym}{amountNum.toFixed(2)}</span> for "{title}" has been shared with your roomies.
+                <span className="text-[#1F2430] font-bold">{sym}{amountNum.toFixed(2)}</span> for &quot;{title}&quot; has been shared with your roomies.
               </p>
             </div>
 

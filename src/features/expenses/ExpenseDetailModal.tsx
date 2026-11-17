@@ -25,6 +25,29 @@ interface ExpenseDetailModalProps {
   onOpenChat: () => void;
 }
 
+const formatFriendlyDate = (dateStr: string): string => {
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const d = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  }
+  const parsed = new Date(dateStr);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+  return dateStr;
+};
+
 export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
   isOpen,
   onClose,
@@ -108,7 +131,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
         isOpen={isOpen}
         onClose={onClose}
         title="Expense Details"
-        subtitle={`Logged on ${expense.date}`}
+        subtitle={`Logged ${formatFriendlyDate(expense.date)}`}
       >
         <div className="space-y-4">
           {/* Header Amount */}
@@ -178,7 +201,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="type-label">
-                Roomie Splits ({expense.shares.length} people)
+                Split with ({expense.shares.length})
               </span>
               {onEditSplit && (
                 <button

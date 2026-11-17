@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
 import {
-  X,
   Buildings,
   WifiHigh,
   Lightning,
@@ -111,7 +110,7 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-1">
           {/* Category Selector */}
           <div>
-            <label className="type-label block text-text-secondary mb-1.5">Category</label>
+            <label className="type-label block text-[#475569] mb-1.5">Category</label>
             <div className="grid grid-cols-4 gap-2">
               {CATEGORY_OPTIONS.map((opt) => {
                 const IconComponent = opt.icon;
@@ -124,10 +123,10 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
                       setCategory(opt.id);
                       sound.playTap();
                     }}
-                    className={`py-2 px-1 rounded-2xl border flex flex-col items-center gap-1 transition-all ${
+                    className={`py-2 px-1 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
-                        : 'border-border bg-surface-elevated/40 text-text-secondary hover:border-text-secondary/30'
+                        ? 'border-[#FF6B4A] bg-[#FFF0ED] text-[#FF6B4A] font-bold shadow-xs'
+                        : 'border-[#E5E9F0] bg-[#F7F8FB] text-[#475569] hover:border-[#CBD5E1]'
                     }`}
                   >
                     <IconComponent weight={isSelected ? 'fill' : 'regular'} className="w-5 h-5" />
@@ -140,7 +139,7 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
 
           {/* Title */}
           <div>
-            <label htmlFor="bill-title" className="type-label block text-text-secondary mb-1.5">
+            <label htmlFor="bill-title" className="type-label block text-[#475569] mb-1.5">
               Bill Name
             </label>
             <input
@@ -151,14 +150,14 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-2xl bg-surface-elevated/50 border border-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary text-[14px]"
+              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A] text-[14px]"
             />
           </div>
 
           {/* Amount & Due Day (2 columns) */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="bill-amount" className="type-label block text-text-secondary mb-1.5">
+              <label htmlFor="bill-amount" className="type-label block text-[#475569] mb-1.5">
                 Amount ({currency})
               </label>
               <input
@@ -170,11 +169,11 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 rounded-2xl bg-surface-elevated/50 border border-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary text-[14px]"
+                className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A] text-[14px]"
               />
             </div>
             <div>
-              <label htmlFor="bill-due-day" className="type-label block text-text-secondary mb-1.5">
+              <label htmlFor="bill-due-day" className="type-label block text-[#475569] mb-1.5">
                 Due Day of Month
               </label>
               <input
@@ -185,21 +184,21 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
                 value={dueDay}
                 onChange={(e) => setDueDay(parseInt(e.target.value, 10) || 1)}
                 required
-                className="w-full px-4 py-2.5 rounded-2xl bg-surface-elevated/50 border border-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary text-[14px]"
+                className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#FF6B4A] text-[14px]"
               />
             </div>
           </div>
 
           {/* Paid By Selector */}
           <div>
-            <label htmlFor="bill-paid-by" className="type-label block text-text-secondary mb-1.5">
+            <label htmlFor="bill-paid-by" className="type-label block text-[#475569] mb-1.5">
               Who Pays This Upfront?
             </label>
             <select
               id="bill-paid-by"
               value={paidByUserId}
               onChange={(e) => setPaidByUserId(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl bg-surface-elevated/50 border border-border text-text-primary focus:outline-none focus:border-brand-primary text-[14px]"
+              className="w-full px-4 py-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] text-[14px]"
             >
               {roommates.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -207,25 +206,25 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
                 </option>
               ))}
             </select>
-            <span className="type-caption text-text-muted block mt-1">
+            <span className="type-caption text-[#64748B] block mt-1">
               Split equally across all active flatmates when logged each month.
             </span>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-border mt-1">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E6E8EE] mt-1">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 rounded-2xl text-[14px] text-text-secondary hover:bg-surface-elevated font-medium transition-colors"
+              className="px-4 py-2 rounded-2xl text-[14px] text-[#475569] hover:bg-[#F7F8FB] font-semibold transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 rounded-2xl bg-brand-primary text-white text-[14px] font-semibold hover:bg-brand-primary/90 active:scale-95 transition-all shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-2xl bg-[#FF6B4A] hover:bg-[#E55A3A] border-2 border-b-4 border-[#D94E30] text-white text-[14px] font-bold active:translate-y-[1px] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <Plus weight="bold" className="w-4 h-4" />
               <span>{submitting ? 'Saving...' : 'Save Template'}</span>

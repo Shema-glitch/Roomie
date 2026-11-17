@@ -658,3 +658,21 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 24. Money Page, Recurring Bill Modal & Expense Detail Polish (Branch `feature/money-page-polish`)
+
+- **Add Recurring Bill Modal (`AddRecurringBillModal.tsx`)**:
+  - Replaced undefined `bg-brand-primary`, `border-border`, and `bg-surface-elevated` tokens with explicit Roomie theme hex tokens (`#FF6B4A`, `#FFF0ED`, `#E5E9F0`, `#F7F8FB`, `#1F2430`) so the `Save Template` submit button renders with high-contrast coral fill (`bg-[#FF6B4A] text-white font-bold`) instead of blending invisibly.
+- **Expenses Screen & Cards (`ExpensesScreen.tsx`, `ExpenseCard.tsx`)**:
+  - Moved `+ Log Expense` (`whitespace-nowrap shrink-0`) inline to the top-right of the `Expenses & money` header.
+  - Condensed the empty `Agreed purchases (0)` block when pending expenses exist into a single-line muted note (`"No agreed expenses yet — they'll move here once confirmed"`).
+  - Fixed singular/plural roomie formatting (`1 roomie` / `N roomies`) and `"Paid in full"` copy in `ExpenseCard.tsx`.
+- **Expense Confirmation & Detail Modals (`AddExpenseFlowModal.tsx`, `ExpenseDetailModal.tsx`)**:
+  - Updated Step 6 confirmation modal header to `"Expense Shared"` (purged raw `🎉` emoji and avoided repeating `"Expense Logged"`) with `"Sent to your flatmates!"` mascot bubble.
+  - Updated `ExpenseDetailModal.tsx` split header to `"Split with ({count})"` and formatted raw ISO dates into friendly dates (e.g. `"Logged 17 Nov 2026"`).
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **111 / 111 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.94 kB gzipped** (< 200 KB threshold).
+
+---
+

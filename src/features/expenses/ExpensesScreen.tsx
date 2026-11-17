@@ -12,7 +12,7 @@ import { getCurrencySymbol } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
 import { api } from '../../services/api';
 import { localCache } from '../../services/localCache';
-import { PlusCircle, Bell, Receipt } from '@phosphor-icons/react';
+import { PlusCircle, Bell } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { ExpenseCard, ExpenseCardMode } from './components/ExpenseCard';
 import { SettlementItemCard } from './components/SettlementItemCard';
@@ -222,27 +222,26 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="type-title">Expenses & money</h2>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="type-title">Expenses &amp; money</h2>
           <p className="type-secondary mt-0.5">
             Split groceries, bills &amp; rent cleanly
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => {
-              sound.playTap();
-              setAddModalOpen(true);
-            }}
-            icon={<PlusCircle className="w-5 h-5" weight="fill" />}
-          >
-            Log expense
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          size="md"
+          className="whitespace-nowrap shrink-0"
+          onClick={() => {
+            sound.playTap();
+            setAddModalOpen(true);
+          }}
+          icon={<PlusCircle className="w-5 h-5" weight="fill" />}
+        >
+          Log expense
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -359,27 +358,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             </div>
 
             {agreedExpenses.length === 0 ? (
-              <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-center text-[#FF6B4A]">
-                  <Receipt className="w-6 h-6" />
-                </div>
-                <div className="space-y-1 max-w-xs">
-                  <h4 className="type-card-title text-[#1F2430]">No confirmed expenses yet</h4>
-                  <p className="type-secondary text-[14px]">
-                    Once all flatmates agree to a shared purchase, it appears here and counts toward your net balance.
-                  </p>
-                </div>
-                <div className="pt-1">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setAddModalOpen(true)}
-                    icon={<PlusCircle className="w-4 h-4 text-[#FF6B4A]" weight="fill" />}
-                  >
-                    Log an expense
-                  </Button>
-                </div>
-              </div>
+              <p className="px-4 py-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-xs font-medium text-[#64748B]">
+                No agreed expenses yet — they&apos;ll move here once confirmed
+              </p>
             ) : (
               agreedExpenses.map((exp, idx) => renderCard(exp, 'agreed', idx))
             )}

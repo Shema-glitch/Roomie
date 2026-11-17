@@ -188,10 +188,12 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
 
       <div className="mt-3.5 pt-3 border-t border-black/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <div className="flex items-center gap-1.5 flex-wrap text-[13px] text-[#64748B]">
-          <span>{exp.shares.length} roomies</span>
+          <span>
+            {exp.shares.length} {exp.shares.length === 1 ? 'roomie' : 'roomies'}
+          </span>
           <span aria-hidden="true">·</span>
           {isPayerMe ? (
-            <span className="font-medium text-[#2CA358]">You paid full</span>
+            <span className="font-medium text-[#2CA358]">Paid in full</span>
           ) : myShare ? (
             <span className="font-medium text-[#1F2430]">
               Your share: {sym}
