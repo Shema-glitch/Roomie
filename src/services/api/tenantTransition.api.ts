@@ -427,7 +427,7 @@ export class TenantTransitionApi {
     const userAvatar = user?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
     const userCountry = user?.country;
 
-    // 1. Calculate chores completed
+    // 1. Calculate chores completed from real assignments & user streak
     let totalChoresCompleted = 0;
     Object.values(store.draftRounds || {}).forEach((round) => {
       round.assignments.forEach((a) => {
@@ -436,7 +436,7 @@ export class TenantTransitionApi {
     });
     const streakDays = user?.streakDays || 0;
     if (streakDays > 0) {
-      totalChoresCompleted = Math.max(totalChoresCompleted, streakDays * 2 + 1);
+      totalChoresCompleted = Math.max(totalChoresCompleted, streakDays);
     }
 
     // 2. Weekly awards count & names
@@ -456,24 +456,38 @@ export class TenantTransitionApi {
       topAwardsSet.add('Reliable Flatmate');
     }
 
-    // 3. Tenancy count across memberships
-    const userMemberships = (store.memberships || []).filter((m) => m.userId === userId);
-    const tenancyCount = Math.max(1, userMemberships.length);
+    // 3. Real tenancy count across active/completed memberships
+    const userMemberships = (store.memberships || []).filter(
+      (m) => m.userId === userId && (m.status === 'active' || m.status === 'left')
+    );
+    const tenancyCount = userMemberships.length;
 
-    // 4. Harmony Score calculation (0-100)
-    // Base 80 + up to 12 pts for streak + up to 8 pts for awards
-    const streakContribution = Math.min(12, streakDays * 2);
-    const awardsContribution = Math.min(8, weeklyAwardsCount * 4);
-    const harmonyScore = Math.min(100, Math.max(50, 80 + streakContribution + awardsContribution));
+    // 4. Dynamic Score (0 when brand new, up to 100 from streaks, chores & awards)
+    const streakContribution = Math.min(40, streakDays * 6);
+    const choresContribution = Math.min(35, totalChoresCompleted * 5);
+    const awardsContribution = Math.min(25, weeklyAwardsCount * 12);
+    const rawScore = streakContribution + choresContribution + awardsContribution;
+    const harmonyScore =
+      rawScore === 0
+        ? 0
+        : Math.min(100, Math.round(rawScore + (tenancyCount > 0 ? 15 : 0)));
 
-    const verifiedSince = 'Sep 2026';
+    // Derive earliest membership month/year
+    const joinedDates = userMemberships
+      .map((m) => Date.parse(m.joinedAt))
+      .filter((ts) => Number.isFinite(ts));
+    const earliestJoined = joinedDates.length > 0 ? new Date(Math.min(...joinedDates)) : new Date();
+    const verifiedSince = earliestJoined.toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    });
 
     return {
       userId,
       userName,
       userAvatar,
       userCountry,
-      totalChoresCompleted: Math.max(1, totalChoresCompleted),
+      totalChoresCompleted,
       choreStreakDays: streakDays,
       weeklyAwardsCount,
       topAwards: Array.from(topAwardsSet),

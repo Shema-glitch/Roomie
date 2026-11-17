@@ -143,5 +143,27 @@ describe('TenantTransitionApi', () => {
       assert.ok(passport.topAwards.includes('Reliable Flatmate') || passport.topAwards.length > 0);
       assert.ok(passport.harmonyScore >= 50);
     });
+
+    it('returns real zero metrics for brand new users with no completed chores or streaks', async () => {
+      store.users.push({
+        id: 'u_fresh',
+        name: 'Fresh Roomie',
+        email: 'fresh@roomie.app',
+        avatar: '',
+        country: 'Cyprus',
+        countryCode: 'CY',
+        flag: '',
+        isHome: true,
+        streakDays: 0,
+        points: 0,
+        awayUntil: null,
+      });
+      const passport = await api.getTenantPassport('u_fresh');
+
+      assert.equal(passport.totalChoresCompleted, 0);
+      assert.equal(passport.choreStreakDays, 0);
+      assert.equal(passport.tenancyCount, 0);
+      assert.equal(passport.harmonyScore, 0);
+    });
   });
 });

@@ -133,14 +133,24 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           <div className="text-[11px] font-bold text-[#64748B] px-0.5">
             Flatmate Shoutouts
           </div>
-          <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 scrollbar-none snap-x">
+          <div
+            className={
+              otherAwards.length === 1
+                ? 'w-full'
+                : 'flex gap-2.5 overflow-x-auto pb-1 pt-0.5 scrollbar-none snap-x'
+            }
+          >
             {otherAwards.map((award, idx) => {
               const style = colorStyles[award.colorScheme];
               return (
                 <div
                   key={award.id}
                   style={{ '--stagger-index': idx + 1 } as React.CSSProperties}
-                  className={`stagger-item card-interactive ease-spring min-w-[210px] max-w-[240px] shrink-0 snap-start p-3 rounded-2xl border ${style.bg} ${style.border} flex flex-col justify-between contain-content`}
+                  className={`stagger-item card-interactive ease-spring p-3 rounded-2xl border ${style.bg} ${style.border} flex flex-col justify-between contain-content ${
+                    otherAwards.length === 1
+                      ? 'w-full'
+                      : 'min-w-[210px] max-w-[240px] shrink-0 snap-start'
+                  }`}
                 >
                   <div className="flex items-center gap-2.5 mb-1.5">
                     <span className="shrink-0 flex items-center justify-center">

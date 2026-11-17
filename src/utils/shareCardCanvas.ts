@@ -41,7 +41,7 @@ function roundRect(
  * Generates an offscreen 1080x1920 story card as a PNG Blob.
  */
 export async function generateShareCardBlob(options: ShareCardOptions): Promise<Blob> {
-  const { metrics, householdName = 'Our Sunny Flat', semesterLabel = 'Fall Semester 2026' } = options;
+  const { metrics, householdName = 'Our Sunny Flat' } = options;
 
   const width = 1080;
   const height = 1920;
@@ -84,7 +84,7 @@ export async function generateShareCardBlob(options: ShareCardOptions): Promise<
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 30px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('✨ ROOMIE RECAP · B-LABS ✨', width / 2, pillY + 48);
+  ctx.fillText('ROOMIE MONTHLY RECAP', width / 2, pillY + 48);
 
   // 3. Main Title
   ctx.fillStyle = '#FFFFFF';
@@ -93,7 +93,7 @@ export async function generateShareCardBlob(options: ShareCardOptions): Promise<
 
   ctx.fillStyle = '#FFE5B4';
   ctx.font = '600 36px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`${semesterLabel} Milestones`, width / 2, 390);
+  ctx.fillText('This Month at Your Flat', width / 2, 390);
 
   // 4. Central Stat Feature Card (Harmony Score)
   const cardX = 90;
@@ -222,11 +222,11 @@ export async function generateShareCardBlob(options: ShareCardOptions): Promise<
   ctx.fillStyle = '#FFC93C';
   ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('STANDOUT APARTMENT HONOR', width / 2, bannerY + 65);
+  ctx.fillText('TOP FLAT SHOUTOUT', width / 2, bannerY + 65);
 
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '900 48px system-ui, -apple-system, sans-serif';
-  ctx.fillText(`🏆 ${metrics.topAwardTitle || 'Supreme Clean Team'}`, width / 2, bannerY + 130);
+  ctx.fillText(`${metrics.topAwardTitle || 'Steady Roomies'}`, width / 2, bannerY + 130);
 
   // 7. Footer Branding
   const footerY = 1760;
@@ -257,7 +257,7 @@ export async function generateShareCardBlob(options: ShareCardOptions): Promise<
 export async function shareRoomieStoryCard(options: ShareCardOptions): Promise<boolean> {
   try {
     const blob = await generateShareCardBlob(options);
-    const fileName = `roomie-wrapped-${Date.now()}.png`;
+    const fileName = `roomie-recap-${Date.now()}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
     if (
@@ -266,8 +266,8 @@ export async function shareRoomieStoryCard(options: ShareCardOptions): Promise<b
       navigator.canShare({ files: [file] })
     ) {
       await navigator.share({
-        title: `${options.householdName || 'Our Flat'} · Roomie Wrapped`,
-        text: 'Check out our flat milestones this semester on Roomie! 🏠✨',
+        title: `${options.householdName || 'Our Flat'} · Monthly Flat Recap`,
+        text: 'Check out our monthly flat milestones on Roomie.',
         files: [file],
       });
       debugLog.info('social', 'share_card_shared', 'Shared wrapped story card via Web Share API');

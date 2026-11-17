@@ -34,7 +34,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
   if (!isOpen || !passport) return null;
 
   const handleCopyLink = async () => {
-    const shareText = `Roomie Flatmate Reputation Passport for ${passport.userName}: ${passport.harmonyScore}/100 Harmony Score • ${passport.choreStreakDays}d Streak • ${passport.totalChoresCompleted} Chores Completed • Verified Roomie Member.`;
+    const shareText = `Roomie Track Record for ${passport.userName}: ${passport.harmonyScore}/100 Harmony Score • ${passport.choreStreakDays}d Streak • ${passport.totalChoresCompleted} Chores Completed.`;
 
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
@@ -52,7 +52,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
       setCopied(true);
       sound.playTap();
       haptics.tokenClink();
-      showToast('Passport summary copied to clipboard!', 'success');
+      showToast('Track record copied to clipboard!', 'success');
       setTimeout(() => setCopied(false), 2000);
     } catch {
       showToast('Could not copy to clipboard', 'error');
@@ -61,8 +61,8 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
 
   const handleShare = async () => {
     const shareData = {
-      title: `${passport.userName}'s Roomie Passport`,
-      text: `Check out ${passport.userName}'s verified flatmate reputation passport: ${passport.harmonyScore}/100 Harmony Score on Roomie!`,
+      title: `${passport.userName}'s Roomie Track Record`,
+      text: `Check out ${passport.userName}'s Roomie Track Record: ${passport.harmonyScore}/100 Harmony Score.`,
       url: typeof window !== 'undefined' ? window.location.href : 'https://roomie.app',
     };
 
@@ -105,13 +105,13 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
             className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FF6B4A] border-2 border-b-4 border-[#D94E30] text-white text-xs font-extrabold hover:bg-[#E55A3A] active:translate-y-[1px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <ShareNetwork weight="bold" className="w-4 h-4" />
-            Share Passport
+            Share Record
           </button>
         </div>
       }
     >
       <div className="space-y-4">
-        {/* Passport Identity Card */}
+        {/* Track Record Identity Card */}
         <div className="p-4 rounded-3xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white border-2 border-[#334155] shadow-xl relative overflow-hidden space-y-3.5">
           {/* Background watermark badge */}
           <ShieldCheck
@@ -119,9 +119,9 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
             className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 pointer-events-none"
           />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-extrabold tracking-widest text-[#FF9278] uppercase bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
-              Verified Tenant Passport
+              Verified Roomie Record
             </span>
             <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
               <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#FCD34D]" />
@@ -146,7 +146,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
                 )}
               </h3>
               <p className="text-xs text-[#94A3B8]">
-                {passport.tenancyCount} {passport.tenancyCount === 1 ? 'Apartment' : 'Apartments'} Completed
+                {passport.tenancyCount} {passport.tenancyCount === 1 ? 'Apartment' : 'Apartments'}
               </p>
             </div>
           </div>
@@ -171,7 +171,9 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
                   ? 'Gold Exemplar'
                   : passport.harmonyScore >= 75
                   ? 'Silver Peer'
-                  : 'Reliable Roomie'}
+                  : passport.harmonyScore > 0
+                  ? 'Reliable Roomie'
+                  : 'Getting Started'}
               </span>
             </div>
           </div>
@@ -215,9 +217,9 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           </div>
         </div>
 
-        {/* Portable Explanation */}
+        {/* Personal Flat History Copy */}
         <div className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD7CF] text-xs text-[#9A3412] leading-relaxed">
-          <strong>Portable Reputation:</strong> When moving to your next flat or study exchange, your Roomie reputation travels with you as certified proof of great flatmate etiquette.
+          <strong>Your flat history:</strong> Share proof that you&apos;re a reliable roommate when applying for your next flat—without exposing private rent or chat details.
         </div>
       </div>
     </BottomSheet>

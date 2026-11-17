@@ -126,7 +126,7 @@ test('computeRoomieWrappedMetrics calculates positive social milestones', () => 
   });
 
   assert.ok(metrics.totalChoresTogether > 0, 'Total chores must be positive');
-  assert.ok(metrics.disputeFreeStreakDays >= 30, 'Dispute-free streak must be at least 30 days');
+  assert.ok(metrics.disputeFreeStreakDays >= 1, 'Dispute-free streak must be computed from expense dates');
   assert.equal(metrics.mostAppreciatedFlatmateName, 'Amina', 'Amina received 2 kudos vs Kai 1');
   assert.equal(metrics.topChefName, 'Kai', 'Kai hosted the dinner');
   assert.ok(metrics.flatHarmonyScore >= 50 && metrics.flatHarmonyScore <= 100, 'Harmony score between 50 and 100');
@@ -152,7 +152,10 @@ test('computeRoomieWrappedMetrics handles empty state gracefully', () => {
     roommates: [],
   });
 
-  assert.ok(metrics.totalChoresTogether > 0);
-  assert.ok(metrics.flatHarmonyScore >= 50);
+  assert.equal(metrics.totalChoresTogether, 0);
+  assert.equal(metrics.disputeFreeStreakDays, 0);
+  assert.equal(metrics.totalKudosExchanged, 0);
+  assert.equal(metrics.culturalDinnersHosted, 0);
+  assert.equal(metrics.flatHarmonyScore, 0);
   assert.equal(typeof metrics.mostAppreciatedFlatmateName, 'string');
 });

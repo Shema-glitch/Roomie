@@ -15,7 +15,6 @@ import {
   ShareNetwork,
   Heart,
   Confetti,
-  ForkKnife,
   ShieldCheck,
 } from '@phosphor-icons/react';
 import {
@@ -48,7 +47,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
   isOpen,
   onClose,
   householdName = 'Our Flat',
-  semesterLabel = 'Fall Semester 2026',
+  semesterLabel = 'This Month',
   roommates = [],
   assignments = [],
   chores = [],
@@ -71,6 +70,12 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
     culturalDinners,
     vibeSummary,
   });
+
+  const isEarlyDays =
+    metrics.totalChoresTogether === 0 &&
+    metrics.disputeFreeStreakDays === 0 &&
+    metrics.culturalDinnersHosted === 0 &&
+    metrics.totalKudosExchanged === 0;
 
   const totalSlides = 4;
 
@@ -116,8 +121,8 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${householdName} Wrapped`}
-      subtitle={`Semester living celebration · ${semesterLabel} recap`}
+      title="Monthly Flat Recap"
+      subtitle={`This month at ${householdName}`}
       footer={
         <div className="flex items-center justify-between w-full">
           {slide > 0 ? (
@@ -137,9 +142,15 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
             variant="primary"
             size="sm"
             onClick={handleNext}
-            icon={slide === totalSlides - 1 ? <Sparkle weight="fill" className="w-4 h-4" /> : <ArrowRight weight="bold" className="w-4 h-4" />}
+            icon={
+              slide === totalSlides - 1 ? (
+                <Sparkle weight="fill" className="w-4 h-4" />
+              ) : (
+                <ArrowRight weight="bold" className="w-4 h-4" />
+              )
+            }
           >
-            {slide === totalSlides - 1 ? 'Finish & Celebrate' : 'Next Milestone'}
+            {slide === totalSlides - 1 ? 'Done' : 'Next'}
           </Button>
         </div>
       }
@@ -151,54 +162,63 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
             <div
               key={idx}
               className={`h-1.5 flex-1 rounded-full transition-all duration-300 ease-spring ${
-                idx <= slide
-                  ? 'bg-[#FF6B4A]'
-                  : 'bg-[#E2E8F0]'
+                idx <= slide ? 'bg-[#FF6B4A]' : 'bg-[#E2E8F0]'
               }`}
             />
           ))}
         </div>
 
-        {/* Slide 0: Flat Harmony Rating & Peace */}
+        {/* Slide 0: Flat Harmony Rating */}
         {slide === 0 && (
           <div className="space-y-4 text-center animate-fade-in">
-            <MascotView state="celebrating" size="lg" bubbleText="Peaceful flat vibes! ✨" />
+            <MascotView state="celebrating" size="lg" bubbleText="Peaceful flat vibes!" />
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-wider text-[#FF6B4A]">
-                Apartment Health & Harmony
+                Flat Vibe Summary
               </span>
               <h3 className="type-title text-2xl text-[#1F2430]">
                 Flat Harmony Rating
               </h3>
             </div>
 
-            <Card padding="lg" className="bg-[#FFF5F2] border-2 border-[#FFD9CF] space-y-3">
-              <div className="flex items-center justify-center">
-                <span className="text-6xl font-black text-[#FF6B4A] font-mono">
-                  <AnimatedNumber value={metrics.flatHarmonyScore} suffix="%" />
-                </span>
-              </div>
-              <p className="text-xs font-semibold text-[#7C2D12]">
-                Calculated across weekly vibe pulses, dispute-free bill splits, and fair chore rotations.
-              </p>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/15 text-[#047857] text-xs font-black">
-                <ShieldCheck weight="fill" className="w-4 h-4 text-[#10B981]" />
-                <span>Zero Tension Household</span>
-              </div>
-            </Card>
+            {isEarlyDays && metrics.flatHarmonyScore === 0 ? (
+              <Card padding="lg" className="bg-[#FFF5F2] border-2 border-[#FFD9CF] space-y-2">
+                <p className="text-sm font-black text-[#1F2430]">
+                  Just getting started — check back after your first week!
+                </p>
+                <p className="text-xs font-medium text-[#64748B]">
+                  Complete a few chores, split bills, or submit a mood check-in to see your monthly recap.
+                </p>
+              </Card>
+            ) : (
+              <Card padding="lg" className="bg-[#FFF5F2] border-2 border-[#FFD9CF] space-y-3">
+                <div className="flex items-center justify-center">
+                  <span className="text-6xl font-black text-[#FF6B4A] font-mono">
+                    <AnimatedNumber value={metrics.flatHarmonyScore} suffix="%" />
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-[#7C2D12]">
+                  Based on your flat check-ins, clean bill splits, and completed chores.
+                </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/15 text-[#047857] text-xs font-bold">
+                  <ShieldCheck weight="fill" className="w-4 h-4 text-[#10B981]" />
+                  <span>Smooth Flat Living</span>
+                </div>
+              </Card>
+            )}
           </div>
         )}
 
-        {/* Slide 1: Team Accomplishments (Chores & Peaceful Streaks) */}
+        {/* Slide 1: Flat Milestones */}
         {slide === 1 && (
           <div className="space-y-4 text-center animate-fade-in">
-            <MascotView state="cheering" size="lg" bubbleText="Teamwork makes the dream work!" />
+            <MascotView state="cheering" size="lg" bubbleText="Keep the streak rolling!" />
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-wider text-[#14B8A6]">
-                Team Accomplishments
+                Flat Milestones
               </span>
               <h3 className="type-title text-2xl text-[#1F2430]">
-                Shared Momentum
+                Teamwork &amp; Streaks
               </h3>
             </div>
 
@@ -209,9 +229,13 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                   <span>Chores Done</span>
                 </div>
                 <div className="text-3xl font-black text-[#0F766E]">
-                  <AnimatedNumber value={metrics.totalChoresTogether} suffix="+" />
+                  <AnimatedNumber value={metrics.totalChoresTogether} />
                 </div>
-                <p className="text-[11px] text-[#115E59]">Tasks completed together this semester</p>
+                <p className="text-[11px] text-[#115E59]">
+                  {metrics.totalChoresTogether === 0
+                    ? 'No chores logged yet'
+                    : 'Tasks & streak days logged'}
+                </p>
               </Card>
 
               <Card padding="md" className="bg-[#EFF6FF] border-2 border-[#DBEAFE] space-y-1">
@@ -222,91 +246,119 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                 <div className="text-3xl font-black text-[#1D4ED8]">
                   <AnimatedNumber value={metrics.disputeFreeStreakDays} suffix="d" />
                 </div>
-                <p className="text-[11px] text-[#1E40AF]">Consecutive days without bill disputes</p>
+                <p className="text-[11px] text-[#1E40AF]">
+                  {metrics.disputeFreeStreakDays === 0
+                    ? 'Fresh start this week'
+                    : 'Days without bill disputes'}
+                </p>
               </Card>
             </div>
+
+            {metrics.totalChoresTogether === 0 && metrics.disputeFreeStreakDays === 0 && (
+              <p className="text-xs font-semibold text-[#64748B]">
+                Just getting started — check back after your first week!
+              </p>
+            )}
           </div>
         )}
 
-        {/* Slide 2: Cultural Dinners & Social Kudos */}
+        {/* Slide 2: Kitchen & Shoutouts */}
         {slide === 2 && (
           <div className="space-y-4 text-center animate-fade-in">
-            <MascotView state="calm" size="lg" bubbleText="Delicious dinners and good vibes!" />
+            <MascotView state="calm" size="lg" bubbleText="Good food and kind roomies!" />
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-wider text-[#F59E0B]">
-                Culinary & Camaraderie
+                Kitchen &amp; Shoutouts
               </span>
               <h3 className="type-title text-2xl text-[#1F2430]">
-                Chefs & Appreciation
+                Dinners &amp; Kudos
               </h3>
             </div>
 
             <div className="space-y-3">
               <Card padding="sm" className="bg-[#FEF3C7]/50 border-2 border-[#FDE68A] flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3 text-left">
+                <div className="flex items-center gap-3 text-left min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
                     <Icon icon="fluent-emoji-flat:pot-of-food" className="w-6 h-6" />
                   </div>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-[#92400E]">Top Flat Chef</span>
-                    <h4 className="text-base font-black text-[#1F2430]">{metrics.topChefName}</h4>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-[#92400E]">
+                      Top Flat Chef
+                    </span>
+                    <h4 className="text-base font-black text-[#1F2430] truncate">
+                      {metrics.topChefName}
+                    </h4>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#92400E] px-2.5 py-1 rounded-xl bg-white border border-[#FDE68A]">
-                  {metrics.culturalDinnersHosted} Dinners
+                <span className="text-xs font-bold text-[#92400E] px-2.5 py-1 rounded-xl bg-white border border-[#FDE68A] shrink-0">
+                  {metrics.culturalDinnersHosted} {metrics.culturalDinnersHosted === 1 ? 'Dinner' : 'Dinners'}
                 </span>
               </Card>
 
               <Card padding="sm" className="bg-[#FDF2F8] border-2 border-[#FCE7F3] flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3 text-left">
+                <div className="flex items-center gap-3 text-left min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-[#EC4899]/20 flex items-center justify-center shrink-0">
                     <Heart weight="fill" className="w-6 h-6 text-[#EC4899]" />
                   </div>
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-[#9D174D]">Most Appreciated</span>
-                    <h4 className="text-base font-black text-[#1F2430]">{metrics.mostAppreciatedFlatmateName}</h4>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-[#9D174D]">
+                      Most Appreciated
+                    </span>
+                    <h4 className="text-base font-black text-[#1F2430] truncate">
+                      {metrics.mostAppreciatedFlatmateName}
+                    </h4>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-[#9D174D] px-2.5 py-1 rounded-xl bg-white border border-[#FCE7F3]">
+                <span className="text-xs font-bold text-[#9D174D] px-2.5 py-1 rounded-xl bg-white border border-[#FCE7F3] shrink-0">
                   {metrics.totalKudosExchanged} Kudos
                 </span>
               </Card>
             </div>
+
+            {metrics.culturalDinnersHosted === 0 && metrics.totalKudosExchanged === 0 && (
+              <p className="text-xs font-semibold text-[#64748B]">
+                Just getting started — check back after your first week!
+              </p>
+            )}
           </div>
         )}
 
-        {/* Slide 3: Standout Flat Honor & Shareable Story Card */}
+        {/* Slide 3: Standout Flat Award & Share CTA */}
         {slide === 3 && (
           <div className="space-y-4 text-center animate-fade-in">
-            <MascotView state="celebrating" size="lg" bubbleText="You earned the top flat honor!" />
+            <MascotView state="celebrating" size="lg" bubbleText="Nice work around the flat!" />
             <div className="space-y-1">
-              <span className="text-xs font-black uppercase tracking-wider text-[#6366F1]">
-                Standout Apartment Award
+              <span className="text-xs font-black uppercase tracking-wider text-[#FF6B4A]">
+                Top Flat Shoutout
               </span>
               <h3 className="type-title text-2xl text-[#1F2430]">
                 {metrics.topAwardTitle}
               </h3>
             </div>
 
-            <Card padding="md" className="bg-[#F5F3FF] border-2 border-[#DDD6FE] space-y-2">
+            <Card padding="md" className="bg-[#FFF5F2] border-2 border-[#FFD3C9] space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <Confetti weight="duotone" className="w-6 h-6 text-[#6366F1]" />
-                <span className="text-sm font-black text-[#4338CA]">Certified Peaceful Flat</span>
+                <Confetti weight="duotone" className="w-6 h-6 text-[#FF6B4A]" />
+                <span className="text-sm font-black text-[#1F2430]">
+                  {householdName}
+                </span>
               </div>
-              <p className="text-xs text-[#5B21B6] leading-relaxed">
-                Your flat maintained a top-tier harmony score, shared delicious cultural dinners, and resolved tasks smoothly.
+              <p className="text-xs text-[#475569] leading-relaxed">
+                {isEarlyDays
+                  ? 'Just getting started — check back after your first week to celebrate your flat milestones!'
+                  : 'Your flat kept chores fair, shared dinners, and settled expenses smoothly.'}
               </p>
             </Card>
 
             <Button
-              variant="indigo"
+              variant="primary"
               size="lg"
               fullWidth
               loading={isSharing}
               onClick={handleShareCard}
               icon={<ShareNetwork weight="bold" className="w-5 h-5" />}
             >
-              Share Story Card (Zero Financials)
+              Share Recap Card
             </Button>
           </div>
         )}

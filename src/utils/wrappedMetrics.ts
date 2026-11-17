@@ -1,7 +1,7 @@
 /**
- * Roomie Wrapped Metrics Engine
- * Computes monthly and semester recap metrics strictly from household state
- * with STRICTLY ZERO monetary figures, debt balances, or private IDs.
+ * Roomie Monthly Recap Metrics Engine
+ * Computes flat recap metrics strictly from actual household state
+ * with zero monetary figures, debt balances, or private IDs.
  */
 
 import {
@@ -26,6 +26,8 @@ export interface WrappedMetricsInput {
   vibeSummary?: HouseholdVibeSummary;
 }
 
+const MS_PER_DAY = 86_400_000;
+
 export function computeRoomieWrappedMetrics(
   input: WrappedMetricsInput
 ): RoomieWrappedMetrics {
@@ -38,24 +40,43 @@ export function computeRoomieWrappedMetrics(
     vibeSummary,
   } = input;
 
-  // 1. Total chores completed together (collaborative metric)
+  // 1. Real chores completed & verified member streak days
   const completedTodayCount = assignments.filter((a) => a.completedToday).length;
-  // Estimate total chores semester to date with realistic minimum floor
-  const estimatedHistoricChores = awards.length * 10 + 28;
-  const totalChoresTogether = completedTodayCount + estimatedHistoricChores;
+  const totalMemberStreakDays = roommates.reduce(
+    (sum, r) => sum + Math.max(0, r.streakDays || 0),
+    0
+  );
+  const totalChoresTogether = completedTodayCount + totalMemberStreakDays;
 
-  // 2. Longest dispute-free expense streak (strictly days, zero currency)
-  const disputedExpenses = expenses.filter((e) => e.status === 'disputed');
-  let disputeFreeStreakDays = 42; // healthy baseline
-  if (disputedExpenses.length === 0 && expenses.length > 0) {
-    disputeFreeStreakDays = Math.max(30, expenses.length * 5);
-  } else if (disputedExpenses.length > 0) {
-    // If there were disputes, scale down proportionately
-    const disputeRatio = disputedExpenses.length / Math.max(1, expenses.length);
-    disputeFreeStreakDays = Math.max(7, Math.round(45 * (1 - disputeRatio)));
+  // 2. Real dispute-free streak in days (0 when no activity yet)
+  const activeExpenses = expenses.filter((e) => e.status !== 'cancelled');
+  const disputedExpenses = activeExpenses.filter((e) => e.status === 'disputed');
+  let disputeFreeStreakDays = 0;
+
+  if (activeExpenses.length > 0) {
+    const timestamps = activeExpenses
+      .map((e) => Date.parse(e.createdAt || e.date))
+      .filter((ts) => Number.isFinite(ts));
+
+    if (disputedExpenses.length === 0) {
+      const earliestMs = timestamps.length > 0 ? Math.min(...timestamps) : Date.now();
+      disputeFreeStreakDays = Math.max(1, Math.floor((Date.now() - earliestMs) / MS_PER_DAY));
+    } else {
+      const disputedTimestamps = disputedExpenses
+        .map((e) => Date.parse(e.createdAt || e.date))
+        .filter((ts) => Number.isFinite(ts));
+      const latestDisputeMs =
+        disputedTimestamps.length > 0 ? Math.max(...disputedTimestamps) : Date.now();
+      disputeFreeStreakDays = Math.max(0, Math.floor((Date.now() - latestDisputeMs) / MS_PER_DAY));
+    }
+  } else if (roommates.length > 0) {
+    disputeFreeStreakDays = roommates.reduce(
+      (max, r) => Math.max(max, Math.max(0, r.streakDays || 0)),
+      0
+    );
   }
 
-  // 3. Kudos & Most Appreciated Flatmate
+  // 3. Real kudos & most appreciated flatmate
   const kudosCounts: Record<string, number> = {};
   roommates.forEach((r) => {
     kudosCounts[r.id] = 0;
@@ -69,8 +90,8 @@ export function computeRoomieWrappedMetrics(
     }
   });
 
-  let mostAppreciatedId: string | undefined = undefined;
-  let maxKudos = -1;
+  let mostAppreciatedId: string | undefined;
+  let maxKudos = 0;
   Object.entries(kudosCounts).forEach(([userId, count]) => {
     if (count > maxKudos) {
       maxKudos = count;
@@ -78,26 +99,26 @@ export function computeRoomieWrappedMetrics(
     }
   });
 
-  // Fallback to highest streak if no kudos yet
-  if (!mostAppreciatedId || maxKudos === 0) {
-    const highestStreakUser = [...roommates].sort(
-      (a, b) => (b.streakDays || 0) - (a.streakDays || 0)
-    )[0];
+  if (!mostAppreciatedId) {
+    const highestStreakUser = [...roommates]
+      .filter((r) => (r.streakDays || 0) > 0)
+      .sort((a, b) => (b.streakDays || 0) - (a.streakDays || 0))[0];
     mostAppreciatedId = highestStreakUser?.id;
   }
 
   const mostAppreciatedUser = roommates.find((r) => r.id === mostAppreciatedId);
-  const mostAppreciatedFlatmateName = mostAppreciatedUser?.name.split(' ')[0] || 'Roomie';
+  const mostAppreciatedFlatmateName =
+    mostAppreciatedUser?.name.split(' ')[0] || 'No kudos yet';
 
-  // 4. Top Dinner Chef & Cultural Dinners Hosted
+  // 4. Real Dinner Night host & count
   const dinnersCount = culturalDinners.length;
   const hostCounts: Record<string, number> = {};
   culturalDinners.forEach((d) => {
     hostCounts[d.hostUserId] = (hostCounts[d.hostUserId] || 0) + 1;
   });
 
-  let topChefUserId: string | undefined = undefined;
-  let maxDinners = -1;
+  let topChefUserId: string | undefined;
+  let maxDinners = 0;
   Object.entries(hostCounts).forEach(([hostId, count]) => {
     if (count > maxDinners) {
       maxDinners = count;
@@ -105,42 +126,54 @@ export function computeRoomieWrappedMetrics(
     }
   });
 
-  if (!topChefUserId && roommates.length > 0) {
-    topChefUserId = roommates[0].id;
+  const topChefUser = roommates.find((r) => r.id === topChefUserId);
+  const topChefName = topChefUser?.name.split(' ')[0] || 'No dinners yet';
+
+  // 5. Real Flat Harmony Score (0 when the flat is brand new with zero activity)
+  const hasVibe = Boolean(vibeSummary?.revealed && typeof vibeSummary.averageScore === 'number');
+  const hasExpenses = activeExpenses.length > 0;
+  const hasChores = assignments.length > 0 || totalChoresTogether > 0;
+
+  let flatHarmonyScore = 0;
+  if (hasVibe || hasExpenses || hasChores) {
+    let earned = 0;
+    let maxPossible = 0;
+
+    if (hasVibe) {
+      earned += Math.round(((vibeSummary?.averageScore || 0) / 5) * 40);
+      maxPossible += 40;
+    }
+    if (hasExpenses) {
+      const cleanScore = Math.max(0, 30 - disputedExpenses.length * 10);
+      earned += cleanScore;
+      maxPossible += 30;
+    }
+    if (hasChores) {
+      const choreRatio =
+        assignments.length > 0
+          ? completedTodayCount / assignments.length
+          : Math.min(1, totalChoresTogether / 7);
+      earned += Math.round(choreRatio * 20) + 10;
+      maxPossible += 30;
+    }
+
+    flatHarmonyScore =
+      maxPossible > 0 ? Math.min(100, Math.round((earned / maxPossible) * 100)) : 0;
   }
 
-  const topChefUser = roommates.find((r) => r.id === topChefUserId);
-  const topChefName = topChefUser?.name.split(' ')[0] || 'Flat Chef';
-
-  // 5. Flat Harmony Score (0 to 100)
-  // Component A: Vibe score (max 40 pts)
-  const avgVibe = vibeSummary?.averageScore ?? 4.2;
-  const vibePoints = Math.round((avgVibe / 5) * 40);
-
-  // Component B: Harmony in expenses (max 30 pts)
-  const expenseHarmonyPoints = disputedExpenses.length === 0 ? 30 : Math.max(10, 30 - disputedExpenses.length * 6);
-
-  // Component C: Chore cooperation (max 30 pts)
-  const choreRatio = assignments.length > 0
-    ? assignments.filter((a) => a.completedToday).length / assignments.length
-    : 0.8;
-  const choreHarmonyPoints = Math.round(choreRatio * 20) + 10;
-
-  const flatHarmonyScore = Math.min(100, Math.max(50, vibePoints + expenseHarmonyPoints + choreHarmonyPoints));
-
-  // 6. Top award title
+  // 6. Top award title from real weekly shoutouts
   const topAward = awards[0];
-  const topAwardTitle = topAward ? topAward.title : 'Supreme Clean Team';
+  const topAwardTitle = topAward ? topAward.title : 'Steady Roomies';
 
   return {
     totalChoresTogether,
     disputeFreeStreakDays,
     mostAppreciatedFlatmateId: mostAppreciatedId,
     mostAppreciatedFlatmateName,
-    totalKudosExchanged: Math.max(totalKudosExchanged, 12),
+    totalKudosExchanged,
     topChefUserId,
     topChefName,
-    culturalDinnersHosted: Math.max(dinnersCount, 2),
+    culturalDinnersHosted: dinnersCount,
     flatHarmonyScore,
     topAwardTitle,
   };

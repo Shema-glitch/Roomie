@@ -621,3 +621,20 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 22. Monthly Flat Recap, Roomie Track Record & Real Metrics (Branch `feature/recap-and-track-record-polish`)
+
+- **Monthly Flat Recap & Real Metrics (`RoomieWrappedModal.tsx`, `wrappedMetrics.ts`, `shareCardCanvas.ts`, `wrappedMetrics.test.ts`)**:
+  - Updated header to `"Monthly Flat Recap"` / `"This month at [Apartment]"`, purged raw Unicode emojis (`✨`, `🏆`, `🏠`) across JSX and story-card canvas exports, softened slide headers (`"Peaceful flat vibes!"`, `"Smooth Flat Living"`, `"Flat Milestones"` / `"Teamwork & Streaks"`, `"Kitchen & Shoutouts"` / `"Dinners & Kudos"`), and switched the share CTA to brand coral (`#FF6B4A`) `"Share Recap Card"`.
+  - Replaced hardcoded `48+` / `42d` / `12` / `2` placeholders in `wrappedMetrics.ts` with genuine flat calculations (completed assignments + member streaks, real expense dispute-free days, real kudos/dinner totals, and real 0-state handling) plus `"Just getting started — check back after your first week!"` early-days state in `RoomieWrappedModal.tsx`.
+- **Roomie Track Record & Real Data (`TenantPassportModal.tsx`, `ReputationPassportModal.tsx`, `tenantTransition.api.ts`, `tenantTransition.test.ts`)**:
+  - Standardized naming to `"Verified Roomie Record"`, `"Share Record"`, and student-friendly history copy (`"Your flat history: Share proof that you're a reliable roommate when applying for your next flat—without exposing private rent or chat details."`).
+  - Removed hardcoded `80/100` base score, `1 CHORES` floor, `1 TENANCIES` floor, and `'Sep 2026'` date in `getTenantPassport` so brand-new users display real `0` progress and verified membership dates.
+- **Single-Flatmate Shoutout Card Width (`WeeklyAwardsSection.tsx`)**:
+  - Expanded single-flatmate shoutout cards (`otherAwards.length === 1`) to full `w-full` card width while preserving the horizontal snap carousel when `2+` flatmates exist.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **111 / 111 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.92 kB gzipped** (< 200 KB threshold).
+
+---
+
