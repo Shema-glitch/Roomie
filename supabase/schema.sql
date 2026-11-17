@@ -802,13 +802,13 @@ BEGIN
     END LOOP;
 
     -- Post public activity notice in household chat
-    INSERT INTO public.chat_messages (household_id, user_id, message_type, content, metadata)
+    INSERT INTO public.chat_messages (household_id, sender_id, type, body, link_target)
     VALUES (
       NEW.household_id,
       NULL,
       'activity',
-      '🛡️ Privacy Notice: ' || v_new_member_name || ' has joined the apartment roster.',
-      jsonb_build_object('screen', 'apartment', 'event', 'member_joined', 'new_user_id', NEW.user_id)
+      'Privacy Notice: ' || v_new_member_name || ' has joined the apartment roster.',
+      jsonb_build_object('screen', 'apartment', 'id', NEW.user_id)
     );
   END IF;
 
@@ -925,13 +925,13 @@ BEGIN
       );
     END IF;
 
-    INSERT INTO public.chat_messages (household_id, user_id, message_type, content, metadata)
+    INSERT INTO public.chat_messages (household_id, sender_id, type, body, link_target)
     VALUES (
       OLD.household_id,
       NULL,
       'activity',
       v_chat_text,
-      jsonb_build_object('screen', 'apartment', 'event', CASE WHEN v_is_removal THEN 'member_removed' ELSE 'member_left' END, 'target_user_id', OLD.user_id)
+      jsonb_build_object('screen', 'apartment', 'id', OLD.user_id)
     );
   END IF;
 

@@ -7,6 +7,7 @@ import { CurrencyCode, Household, User } from '../../types';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
 import { api } from '../../services/api';
+import { supabase } from '../../services/supabase';
 import { useBackHandler } from '../../utils/useBackHandler';
 import { CreateHouseholdFlowModal } from '../household/CreateHouseholdFlowModal';
 import { JoinHouseholdFlowModal } from '../household/JoinHouseholdFlowModal';
@@ -71,7 +72,9 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
     }
     try {
       const flats = await api.getHouseholds();
-      if (flats.length > 0 && !api.needsHouseholdSetup()) {
+      if (flats.length > 0) {
+        await api.setActiveHousehold(flats[0].id);
+        api.markHouseholdConfigured();
         sound.playSuccess();
         haptics.awardCelebrate();
         showToast(`You're in! Welcome to ${flats[0].name}`, 'success');
@@ -87,10 +90,34 @@ export const HouseholdSetupScreen: React.FC<HouseholdSetupScreenProps> = ({
   };
 
   useEffect(() => {
+    if (!currentUser?.id || !supabase) return;
+    const sb = supabase;
+    const channel = sb
+      .channel(`setup_membership_${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'memberships',
+          filter: `user_id=eq.${currentUser.id}`,
+        },
+        () => {
+          checkApprovalStatus(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
+  }, [currentUser?.id]);
+
+  useEffect(() => {
     if (!pendingRequest) return;
     const interval = setInterval(() => {
       checkApprovalStatus(false);
-    }, 5000);
+    }, 4000);
     return () => clearInterval(interval);
   }, [pendingRequest]);
 
