@@ -3,7 +3,6 @@ import { WeeklyAward } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { Icon } from '@iconify/react';
-import { Sparkle } from '@phosphor-icons/react';
 
 interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
@@ -72,18 +71,17 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       )}
 
       {/* Header */}
-      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#FEF08A] to-[#FBBF24] border-2 border-b-3 border-[#D97706] flex items-center justify-center shadow-xs shrink-0">
             <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
           </div>
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-heading font-black text-[#1F2430] truncate">
-              Weekly Honors · Everyone Wins!
+              Weekly Shoutouts
             </h3>
-            <p className="text-xs font-semibold text-[#64748B] flex items-center gap-1 line-clamp-1 sm:line-clamp-none">
-              <span>Celebrating everyone who makes our home awesome</span>
-              <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#F59E0B] inline shrink-0" />
+            <p className="text-xs font-semibold text-[#64748B] truncate">
+              Little wins around the flat
             </p>
           </div>
         </div>
@@ -96,7 +94,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               ? 'bg-[#19B5A5] text-white border-[#138E82]'
               : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
           }`}
-          title="Celebrate this week's honors"
+          title="Celebrate this week's shoutouts"
         >
           <Icon icon="fluent-emoji-flat:party-popper" className="w-4 h-4 shrink-0" />
           <span>{celebrated ? 'Cheering!' : 'Celebrate'}</span>
@@ -115,18 +113,9 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               <Icon icon={myAward.icon} className="w-8 h-8" />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black uppercase tracking-wider text-[#FF6B4A]">
-                  Your Award This Week
-                </span>
-                <span
-                  className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                    colorStyles[myAward.colorScheme].badge
-                  } ${colorStyles[myAward.colorScheme].text}`}
-                >
-                  {myAward.title}
-                </span>
-              </div>
+              <span className="text-xs font-black uppercase tracking-wider text-[#FF6B4A] block">
+                Your Shoutout This Week
+              </span>
               <h4 className="text-base font-heading font-black text-[#1F2430] mt-0.5">
                 {myAward.title}
               </h4>
@@ -138,11 +127,11 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
         </div>
       )}
 
-      {/* Flatmate Awards in Horizontal Swipe Strip */}
+      {/* Flatmate Shoutouts in Horizontal Swipe Strip */}
       {otherAwards.length > 0 && (
         <div className="space-y-1.5">
           <div className="text-[11px] font-bold text-[#64748B] px-0.5">
-            Flatmate Honors
+            Flatmate Shoutouts
           </div>
           <div className="flex gap-2.5 overflow-x-auto pb-1 pt-0.5 scrollbar-none snap-x">
             {otherAwards.map((award, idx) => {
@@ -192,11 +181,16 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               <Icon icon="fluent-emoji-flat:wrapped-gift" className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs font-black text-[#1F2430] truncate block">
-                Semester Flat Wrapped (Beta Labs)
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-xs font-black text-[#1F2430] truncate">
+                  Monthly Flat Recap
+                </span>
+                <span className="px-1.5 py-0.5 rounded-full bg-[#FFE4DD] text-[#D94E30] text-[10px] font-black uppercase tracking-wider shrink-0">
+                  BETA
+                </span>
+              </div>
               <span className="text-[10px] text-[#64748B] truncate block">
-                View flat recap & share story card
+                View flat recap &amp; share story card
               </span>
             </div>
           </div>

@@ -306,6 +306,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
           pendingJoinRequests={joinRequests}
           draftRound={draftRound}
           currentUser={currentUser}
+          householdName={activeHousehold.name}
           onMarkRead={async (id) => {
             await api.markNotificationRead(id);
             await loadData();
@@ -412,14 +413,9 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
           isOpen={syncPanelOpen}
           onClose={() => setSyncPanelOpen(false)}
           status={syncStatus}
-          onSetStatus={(next) => {
-            setSyncStatus(next);
-            setIsOffline(next === 'offline');
-          }}
           lastSyncedTime={lastSyncedTime}
           onTriggerSync={handleManualSync}
           householdName={activeHousehold.name}
-          onOpenDebugInspector={() => setDebugInspectorOpen(true)}
         />
       )}
 

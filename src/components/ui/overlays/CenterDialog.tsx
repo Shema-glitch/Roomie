@@ -33,6 +33,9 @@ export const CenterDialog: React.FC<CenterDialogProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };

@@ -40,9 +40,9 @@ export function getChoreStateEvent(state: UnifiedDraftState): ChoreStateEvent {
     case 'draft_open':
       return {
         state,
-        title: 'Sunday Chore Draft is Open!',
-        body: 'Pick chores you love, avoid chores you dislike before Sunday reveal.',
-        activityMessage: 'Sunday Chore Draft is open! Submit your secret wishes before Sunday reveal.',
+        title: 'Weekly Chore Picks',
+        body: 'Rank the chores you prefer before Sunday.',
+        activityMessage: 'Weekly Chore Picks are open! Rank the chores you prefer before Sunday.',
         linkTarget: { screen: 'chore-draft' },
       };
     case 'waiting_others':
@@ -115,9 +115,9 @@ export function getChoreDraftState(
   return {
     state: 'draft_open',
     badgeLabel: 'Draft Open',
-    bannerTitle: 'Sunday Chore Draft is Open!',
-    bannerSubtitle: 'Pick chores you love, avoid chores you dislike before Sunday reveal.',
-    actionLabel: 'Submit Secret Picks',
+    bannerTitle: 'Weekly Chore Picks',
+    bannerSubtitle: 'Rank the chores you prefer before Sunday.',
+    actionLabel: 'Choose My Chores',
   };
 }
 

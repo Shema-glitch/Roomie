@@ -397,7 +397,6 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <span className="text-[#FF6B4A] font-bold shrink-0">
                       <AnimatedNumber value={currentUser.points} suffix=" pts" />
                     </span>
-                    <span className="shrink-0">•</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -548,7 +547,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 <Icon icon="fluent-emoji-flat:fire" className="w-7 h-7 shrink-0" />
               </div>
 
-              {/* Flatmate Reputation Passport Trigger */}
+              {/* Roomie Track Record Trigger */}
               <div
                 onClick={async () => {
                   sound.playTap();
@@ -564,14 +563,11 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <ShieldCheck weight="duotone" className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs sm:text-sm font-extrabold text-white">Flatmate Reputation Passport</span>
-                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30">
-                        Portable
-                      </span>
-                    </div>
+                    <span className="text-xs sm:text-sm font-extrabold text-white block">
+                      Roomie Track Record
+                    </span>
                     <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
-                      Certified flat karma & chore credentials
+                      Your chore streak, shoutouts &amp; flat history
                     </p>
                   </div>
                 </div>

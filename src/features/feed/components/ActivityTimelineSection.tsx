@@ -15,10 +15,24 @@ import {
 
 interface ActivityTimelineSectionProps {
   activityMessages: ChatMessage[];
+  householdName?: string;
   onNavigateTab: (tab: 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment') => void;
   onOpenChoreReveal: () => void;
   onSelectExpense: (expenseId: string) => void;
 }
+
+const formatActivityBody = (body: string, householdName?: string): string => {
+  const clean = body
+    .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\s]+/u, '')
+    .replace(/^Privacy Notice:\s*/i, '')
+    .trim();
+
+  const rosterMatch = clean.match(/^(.+?)\s+has joined(?: the apartment roster\.?)?$/i);
+  if (rosterMatch) {
+    return `${rosterMatch[1]} joined ${householdName || 'the apartment'}`;
+  }
+  return clean;
+};
 
 const classifyActivity = (body: string) => {
   const text = body.toLowerCase();
@@ -42,6 +56,7 @@ const classifyActivity = (body: string) => {
 
 export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = ({
   activityMessages,
+  householdName,
   onNavigateTab,
   onOpenChoreReveal,
   onSelectExpense,
@@ -97,7 +112,9 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <IconTile icon={icon} color={tileColor} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-bold text-[#1F2430] leading-snug truncate">{act.body}</p>
+            <p className="text-[13px] font-bold text-[#1F2430] leading-snug truncate">
+              {formatActivityBody(act.body, householdName)}
+            </p>
             <p className="type-secondary text-[11px] flex items-center gap-1.5 mt-0.5 text-[#64748B]">
               <span>{timeFormatted}</span>
               <span>•</span>

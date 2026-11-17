@@ -61,8 +61,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
   return (
     <div className="w-full space-y-2.5">
       <div className="flex items-center justify-between px-1">
-        <h3 className="type-section-heading">Apartment Pulse</h3>
-        <span className="type-secondary text-xs text-[#64748B]">Real-time flat status</span>
+        <h3 className="type-section-heading">Flat Overview</h3>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -211,19 +210,19 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#6B21A8]">Weekly Vibe</div>
+            <div className="text-[11px] font-bold text-[#6B21A8]">House Mood</div>
             <div className="text-base font-heading font-black text-[#1F2430] truncate">
-              {vibeRevealed && vibeSummary ? `${vibeSummary.averageScore} / 5 · ${vibeMood?.label || 'Vibing'}` : 'Private Pulse'}
+              {vibeRevealed && vibeSummary ? `${vibeSummary.averageScore} / 5 · ${vibeMood?.label || 'Vibing'}` : 'Flat Check-in'}
             </div>
           </div>
 
           <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#6B21A8]">
             <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#9333EA]" />
-            <span>{vibeRevealed ? 'Flat average' : 'Tap to vote'}</span>
+            <span>{vibeRevealed ? 'Flat average' : 'Tap to check in'}</span>
           </div>
         </div>
 
-        {/* Tile 4: Cultural Dinner Tile */}
+        {/* Tile 4: Dinner Night Tile */}
         <div
           role="button"
           tabIndex={0}
@@ -241,14 +240,14 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
               <Icon icon="fluent-emoji-flat:pot-of-food" className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FFE4E6] text-[#9F1239]">
-              Beta Labs
+              BETA
             </span>
           </div>
 
           <div className="mt-2.5">
             <div className="text-[11px] font-bold text-[#9F1239]">Shared Meal</div>
             <div className="text-base font-heading font-black text-[#1F2430] truncate">
-              {culturalDinner ? culturalDinner.dishTitle : 'Cultural Dinner'}
+              {culturalDinner ? culturalDinner.dishTitle : 'Dinner Night'}
             </div>
           </div>
 

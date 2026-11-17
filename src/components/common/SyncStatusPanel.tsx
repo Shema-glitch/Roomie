@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { Button } from './Button';
 import { Card } from './Card';
 import { IconTile } from './IconTile';
-import { CloudCheck, CloudSlash, ArrowsClockwise, WarningCircle, WifiHigh, WifiSlash, Bug } from '@phosphor-icons/react';
+import { CloudCheck, CloudSlash, ArrowsClockwise, WarningCircle } from '@phosphor-icons/react';
 
 export type SyncStatusType = 'synced' | 'syncing' | 'offline' | 'needs_attention';
 
@@ -11,22 +11,18 @@ interface SyncStatusPanelProps {
   isOpen: boolean;
   onClose: () => void;
   status: SyncStatusType;
-  onSetStatus: (status: SyncStatusType) => void;
   lastSyncedTime: string;
   onTriggerSync: () => void;
   householdName?: string;
-  onOpenDebugInspector?: () => void;
 }
 
 export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
   isOpen,
   onClose,
   status,
-  onSetStatus,
   lastSyncedTime,
   onTriggerSync,
   householdName = 'Your Apartment',
-  onOpenDebugInspector,
 }) => {
   const getStatusConfig = () => {
     switch (status) {
@@ -106,7 +102,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         </Card>
 
         {/* Primary Sync Action */}
-        <div className="pt-1 space-y-2">
+        <div className="pt-1">
           <Button
             variant="primary"
             size="md"
@@ -119,43 +115,6 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
           >
             {status === 'syncing' ? 'Syncing...' : status === 'offline' ? 'Reconnect & Sync' : 'Sync now'}
           </Button>
-          {onOpenDebugInspector && (
-            <Button
-              variant="outline"
-              size="sm"
-              fullWidth
-              onClick={() => {
-                onClose();
-                onOpenDebugInspector();
-              }}
-              icon={<Bug weight="duotone" className="w-4 h-4 text-[#5B5BD6]" />}
-            >
-              Open Phase 1 Debug Layer
-            </Button>
-          )}
-        </div>
-
-        {/* Mode Switchers for Testing / Offline Usage */}
-        <div className="pt-2 border-t border-[#E6E8EE] space-y-2">
-          <span className="type-label block text-[#64748B]">Simulate mode</span>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onSetStatus(status === 'offline' ? 'synced' : 'offline')}
-              icon={status === 'offline' ? <WifiHigh weight="duotone" className="w-3.5 h-3.5" /> : <WifiSlash weight="duotone" className="w-3.5 h-3.5" />}
-            >
-              {status === 'offline' ? 'Go online' : 'Go offline'}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onSetStatus(status === 'needs_attention' ? 'synced' : 'needs_attention')}
-              icon={<WarningCircle weight="duotone" className="w-3.5 h-3.5" />}
-            >
-              {status === 'needs_attention' ? 'Clear alert' : 'Trigger alert'}
-            </Button>
-          </div>
         </div>
       </div>
     </Modal>

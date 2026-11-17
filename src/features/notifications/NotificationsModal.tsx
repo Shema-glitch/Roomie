@@ -29,10 +29,38 @@ interface NotificationsModalProps {
   pendingJoinRequests?: JoinRequest[];
   draftRound?: DraftRound | null;
   currentUser?: User | null;
+  householdName?: string;
   onMarkRead: (id: string) => Promise<void>;
   onMarkAllRead: () => Promise<void>;
   onActionClick: (target: { screen: string; id?: string }) => void;
 }
+
+const formatNotificationCopy = (
+  n: InAppNotification,
+  householdName?: string
+): { title: string; body: string } => {
+  const cleanTitle = n.title
+    .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\s]+/u, '')
+    .replace(/^Privacy Alert:\s*/i, '')
+    .trim();
+  const cleanBody = n.body
+    .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F\s]+/u, '')
+    .trim();
+
+  const joinMatch = cleanBody.match(/^(.+?)\s+(?:has\s+(?:officially\s+)?)?joined\b/i);
+  if (
+    n.type === 'privacy_alert' &&
+    (cleanTitle.toLowerCase().includes('new flatmate joined') || joinMatch)
+  ) {
+    const memberName = joinMatch?.[1]?.trim() || 'A new roomie';
+    return {
+      title: `${memberName} joined the flat`,
+      body: `Say hi or check everyone in ${householdName || 'your apartment'}.`,
+    };
+  }
+
+  return { title: cleanTitle, body: cleanBody };
+};
 
 export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   isOpen,
@@ -41,6 +69,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   pendingJoinRequests = [],
   draftRound,
   currentUser,
+  householdName,
   onMarkRead,
   onMarkAllRead,
   onActionClick,
@@ -214,18 +243,11 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         size="sm"
                       />
                       <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className="type-section-heading">
-                            {n.title}
-                          </h4>
-                          {n.type === 'privacy_alert' && (
-                            <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 tracking-wider">
-                              Privacy Notice
-                            </span>
-                          )}
-                        </div>
+                        <h4 className="type-section-heading">
+                          {formatNotificationCopy(n, householdName).title}
+                        </h4>
                         <p className="type-secondary mt-0.5 leading-relaxed">
-                          {n.body}
+                          {formatNotificationCopy(n, householdName).body}
                         </p>
                         <span className="type-secondary block mt-1">
                           {new Date(n.createdAt).toLocaleTimeString([], {
@@ -278,7 +300,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
                         }`}
                       >
                         {n.type === 'privacy_alert' || n.linkTarget.screen === 'apartment'
-                          ? 'View Roster'
+                          ? 'View Roomies'
                           : isSwapNotif
                           ? 'Review swap'
                           : isVibeNotif

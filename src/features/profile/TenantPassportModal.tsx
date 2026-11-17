@@ -83,7 +83,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Flatmate Reputation Passport"
+      title="Roomie Track Record"
       size="md"
       footer={
         <div className="flex gap-2.5">

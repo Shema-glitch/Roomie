@@ -579,3 +579,23 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 20. Human Roommate Vocabulary & Top-Navigation Polish (Branch `feature/polish-home-and-topnav`)
+
+- **Home Hero, Spotlight & Bento Grid (`HomeScreen.tsx`, `stateTable.ts`, `ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`)**:
+  - Updated Hero subtitle to `"Your flat at a glance."`, removed trailing bullet separators next to presence status and removed `"Live presence status"`.
+  - Updated open chore draft copy in `stateTable.ts` (`draft_open`) to `"Weekly Chore Picks"` / `"Rank the chores you prefer before Sunday."` / `"Choose My Chores"`.
+  - Renamed Bento section heading to `"Flat Overview"` (removing `"Real-time flat status"`), Tile 3 to `"House Mood"` / `"Flat Check-in"` / `"Tap to check in"`, and Tile 4 to `"Dinner Night"` with a clean `"BETA"` pill.
+  - Renamed `WeeklyAwardsSection.tsx` to `"Weekly Shoutouts"` (`"Little wins around the flat"`), purged `Sparkle` subtitle decoration, pinned `Celebrate` cleanly in the top-right header, removed duplicate badge pills above `myAward.title`, and renamed wrapped recap to `"Monthly Flat Recap"` with a `"BETA"` badge.
+  - Added `formatActivityBody` in `ActivityTimelineSection.tsx` to strip raw emojis / `Privacy Notice:` prefixes and render `[Name] joined [Apartment]`.
+- **Top-Navigation Sheets & Modal Focus Hygiene (`SyncStatusPanel.tsx`, `Modal.tsx`, `CenterDialog.tsx`, `NotificationsModal.tsx`, `ProfileSettingsModal.tsx`, `TenantPassportModal.tsx`)**:
+  - Removed `"Open Phase 1 Debug Layer"` and `"Simulate mode"` (`Go offline` / `Trigger alert`) developer controls from `SyncStatusPanel.tsx`, keeping debug access strictly inside the 5-tap version footer Easter egg in `ProfileSettingsModal.tsx`.
+  - Blurred active header trigger buttons via `document.activeElement.blur()` in `Modal.tsx` and `CenterDialog.tsx` on open.
+  - Humanized join alerts in `NotificationsModal.tsx` (`"[Name] joined the flat"` / `"Say hi or check everyone in [Apartment]."` / `"View Roomies"`) and removed the `"Privacy Notice"` badge.
+  - Renamed `"Flatmate Reputation Passport"` to `"Roomie Track Record"` (`"Your chore streak, shoutouts & flat history"`), removed `"Portable"` chip and trailing bullet dot before Favor Tokens in `ProfileSettingsModal.tsx`.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **110 / 110 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.80 kB gzipped** (< 200 KB threshold).
+
+---
+

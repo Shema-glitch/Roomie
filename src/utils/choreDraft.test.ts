@@ -18,12 +18,12 @@ test('chore draft state transition: draft_open when collecting and user has no p
   const draftState = getChoreDraftState(round, 'user_1');
   assert.equal(draftState.state, 'draft_open');
   assert.equal(draftState.badgeLabel, 'Draft Open');
-  assert.equal(draftState.bannerTitle, 'Sunday Chore Draft is Open!');
-  assert.equal(draftState.actionLabel, 'Submit Secret Picks');
+  assert.equal(draftState.bannerTitle, 'Weekly Chore Picks');
+  assert.equal(draftState.actionLabel, 'Choose My Chores');
 
   const event = getChoreStateEvent('draft_open');
-  assert.equal(event.title, 'Sunday Chore Draft is Open!');
-  assert.match(event.activityMessage, /Sunday Chore Draft is open/);
+  assert.equal(event.title, 'Weekly Chore Picks');
+  assert.match(event.activityMessage, /Weekly Chore Picks are open/);
   assert.equal(event.linkTarget.screen, 'chore-draft');
 });
 

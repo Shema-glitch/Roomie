@@ -380,7 +380,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     Hey, {currentUser.name.split(' ')[0]}!
                   </h2>
                   <p className="text-sm sm:text-base font-semibold text-[#475569]">
-                    Keeping your apartment running peacefully today.
+                    Your flat at a glance.
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
@@ -392,7 +392,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     <span className="font-medium whitespace-nowrap">
                       <AnimatedNumber value={currentUser.points} /> pts
                     </span>
-                    <span aria-hidden="true">·</span>
                     {/* 1-Tap Quick Presence Toggle */}
                     <button
                       type="button"
@@ -454,10 +453,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     {homeCount} of {roommates.length} at home
                   </span>
                 </div>
-
-                <span className="text-[11px] font-semibold text-[#64748B]">
-                  Live presence status
-                </span>
               </div>
             </div>
           </InfoCard>
@@ -733,6 +728,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* ZONE 5 — Lightweight Recent Activity */}
           <ActivityTimelineSection
             activityMessages={activityMessages}
+            householdName={household?.name}
             onNavigateTab={onNavigateTab}
             onOpenChoreReveal={onOpenChoreReveal}
             onSelectExpense={onSelectExpense}

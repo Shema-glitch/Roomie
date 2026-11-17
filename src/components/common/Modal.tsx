@@ -40,6 +40,9 @@ export const Modal: React.FC<ModalProps> = ({
       if (e.key === 'Escape') onClose();
     };
     if (isOpen) {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
       setDragOffsetY(0);
       setIsDragging(false);
       const prevOverflow = document.body.style.overflow;
