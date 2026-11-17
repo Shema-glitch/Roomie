@@ -115,10 +115,10 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
             onClick={onCancel}
             className="type-label text-[#64748B] hover:text-[#1F2430] flex items-center gap-1 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" /> Cancel Draft
+            <ArrowLeft className="w-4 h-4" /> Cancel
           </button>
           <span className="type-label text-[#FF6B4A] flex items-center gap-1">
-            <Shuffle className="w-3.5 h-3.5" /> Secret picks
+            <Shuffle className="w-3.5 h-3.5" /> Weekly Picks
           </span>
         </div>
 
@@ -173,12 +173,12 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
           {/* Current Choice Indicator */}
           {existingPick && (
             <div className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] type-secondary text-[#1F2430]">
-              {existingPick.pickType === 'want' && 'You picked: Want'}
-              {existingPick.pickType === 'avoid' && 'You picked: Avoid'}
+              {existingPick.pickType === 'want' && "You picked: I'll happily do this"}
+              {existingPick.pickType === 'avoid' && 'You picked: Not my favorite'}
               {existingPick.pickType === 'suggest_for' && (
                 <span>
-                  Suggested for{' '}
-                  {roommates.find((r) => r.id === existingPick.targetUserId)?.name}
+                  Better for{' '}
+                  {roommates.find((r) => r.id === existingPick.targetUserId)?.name || 'a roomie'}
                 </span>
               )}
             </div>
@@ -196,7 +196,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <Heart className="w-5 h-5 text-[#3DBE6D] fill-[#3DBE6D]/20" />
-              <span>I don't mind / Want</span>
+              <span>I&apos;ll happily do this</span>
             </button>
 
             <button
@@ -209,7 +209,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <Prohibit className="w-5 h-5 text-[#E5484D]" />
-              <span>Rather avoid this</span>
+              <span>Not my favorite</span>
             </button>
 
             <button
@@ -222,7 +222,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               }`}
             >
               <UsersThree className="w-5 h-5 text-[#5B5BD6]" />
-              <span>Suggest for roomie</span>
+              <span>Better for a roomie</span>
             </button>
           </div>
         </Card>
@@ -247,6 +247,8 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
               variant="primary"
               size="md"
               fullWidth
+              disabled={!existingPick}
+              className={!existingPick ? 'opacity-50 pointer-events-none' : ''}
               onClick={() => setCurrentIndex((prev) => prev + 1)}
               icon={<ArrowRight className="w-4 h-4" />}
             >
@@ -272,7 +274,7 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
           <Card padding="lg" className="w-full max-w-xs bg-white space-y-3">
             <h4 className="type-section-heading">
-              Suggest for roomie
+              Better for a roomie
             </h4>
             <p className="type-secondary">
               Who might be a great match for "{currentChore.name}"?

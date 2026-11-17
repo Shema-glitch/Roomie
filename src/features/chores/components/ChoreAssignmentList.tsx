@@ -12,6 +12,7 @@ import {
   ArrowsLeftRight,
   Heart,
   Camera,
+  PlusCircle,
 } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 
@@ -296,12 +297,14 @@ interface ChoreAssignmentListProps {
   todayDueAssignments: ChoreAssignment[];
   todayCompletedAssignments: ChoreAssignment[];
   chores: Chore[];
+  totalApartmentAssignments?: number;
   roommates: User[];
   currentUser: User;
   onSelectDoneChore: (chore: Chore) => void;
   onQuickCompleteChore?: (choreId: string) => Promise<void>;
   onSelectSwapChore: (chore: Chore) => void;
   onSelectKudos: (data: { chore: Chore; target: User }) => void;
+  onAddFirstChore?: () => void;
   onSwitchToAllFilter?: () => void;
 }
 
@@ -310,12 +313,14 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
     todayDueAssignments,
     todayCompletedAssignments,
     chores,
+    totalApartmentAssignments = 0,
     roommates,
     currentUser,
     onSelectDoneChore,
     onQuickCompleteChore,
     onSelectSwapChore,
     onSelectKudos,
+    onAddFirstChore,
     onSwitchToAllFilter,
   }) => {
     const { showToast } = useToast();
@@ -385,15 +390,29 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
               <div className="space-y-1 max-w-xs">
                 <h4 className="type-card-title text-[#1F2430]">All caught up for today!</h4>
                 <p className="type-secondary text-[14px]">
-                  Every due chore for today is finished and your apartment streak is protected.
+                  No due chores left—your flat streak is safe.
                 </p>
               </div>
-              {onSwitchToAllFilter && (
+              {chores.length === 0 && totalApartmentAssignments === 0 && onAddFirstChore ? (
                 <div className="pt-1">
-                  <Button variant="secondary" size="sm" onClick={onSwitchToAllFilter}>
-                    View all apartment tasks
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={onAddFirstChore}
+                    icon={<PlusCircle className="w-4 h-4" weight="fill" />}
+                  >
+                    Add First Chore
                   </Button>
                 </div>
+              ) : (
+                totalApartmentAssignments > 0 &&
+                onSwitchToAllFilter && (
+                  <div className="pt-1">
+                    <Button variant="secondary" size="sm" onClick={onSwitchToAllFilter}>
+                      View all apartment tasks
+                    </Button>
+                  </div>
+                )
               )}
             </div>
           ) : (

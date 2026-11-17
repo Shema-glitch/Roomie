@@ -5,7 +5,7 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { DutySchedule, User, Chore, DayOfWeek, Membership } from '../../types';
 import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate } from '../../utils/dutyRotation';
-import { Calendar, ArrowsLeftRight, UserCheck } from '@phosphor-icons/react';
+import { Calendar, ArrowsLeftRight, UserSwitch } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 
@@ -100,8 +100,11 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
             <Calendar className="w-5 h-5 text-[#5B5BD6] shrink-0" />
             <div>
               <span className="font-bold block text-sm">How Day Duty Works</span>
-              <span className="text-[#64748B]">
-                Instead of scattered chores, one roommate is the flat captain each day to handle general tidiness and daily chores.
+              <span className="text-[#64748B] block">
+                One roommate covers daily tidy duty each day so chores stay fair.
+              </span>
+              <span className="text-[11px] font-bold text-[#4F46E5] block mt-1">
+                Daily checklist: Mopping, kitchen tidy, trash &amp; recycling
               </span>
             </div>
           </div>
@@ -144,10 +147,10 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                     : 'bg-white border-[#E6E8EE]'
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  {/* Day Label & Badges */}
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-semibold text-sm text-[#1F2430]">
+                <div className="flex items-center justify-between gap-2">
+                  {/* Day Label & Badges (always left) */}
+                  <div className="flex items-center gap-1.5 min-w-0 shrink-0">
+                    <span className="font-heading font-semibold text-sm text-[#1F2430] whitespace-nowrap">
                       {DAY_DISPLAY_NAMES[entry.day].full}
                     </span>
                     {entry.completed ? (
@@ -157,34 +160,35 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                     ) : null}
                   </div>
 
-                  {/* Assigned Flatmate & Actions */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5">
+                  {/* Assigned Flatmate & Actions (always right, single baseline) */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <Avatar
                         src={assignedUser?.avatar || ''}
                         name={assignedUser?.name || 'Unassigned'}
                         flag={assignedUser?.flag || ''}
                         size="sm"
                       />
-                      <span className="text-xs font-bold text-[#1F2430]">
+                      <span className="text-xs font-bold text-[#1F2430] truncate max-w-[92px] sm:max-w-[140px]">
                         {assignedUser?.name || 'Unassigned'} {isMe && '(You)'}
                       </span>
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-1 pl-2 border-l border-[#E6E8EE]">
+                    {/* Tactile Circular Action Buttons */}
+                    <div className="flex items-center gap-1.5 pl-2 border-l border-[#E6E8EE] shrink-0">
                       <button
                         type="button"
                         onClick={() => handleInitiateSwap(entry.day)}
                         disabled={updating}
-                        className={`p-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
                           isSelectedForSwap
-                            ? 'bg-amber-500 text-white'
-                            : 'text-[#64748B] hover:text-[#1F2430] hover:bg-[#F7F8FB]'
+                            ? 'bg-amber-500 text-white hover:bg-amber-600'
+                            : 'bg-[#F4F6FA] hover:bg-[#E5E9F0] text-[#475569] hover:text-[#1F2430]'
                         }`}
                         title="Swap day with another flatmate"
+                        aria-label={`Swap ${DAY_DISPLAY_NAMES[entry.day].full} duty`}
                       >
-                        <ArrowsLeftRight className="w-3.5 h-3.5" />
+                        <ArrowsLeftRight weight="bold" className="w-3.5 h-3.5" />
                       </button>
 
                       {isAdmin && (
@@ -192,36 +196,45 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                           type="button"
                           onClick={() => setReassignDayTarget(reassignDayTarget === entry.day ? null : entry.day)}
                           disabled={updating}
-                          className="p-1.5 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#1F2430] hover:bg-[#F7F8FB] cursor-pointer"
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+                            reassignDayTarget === entry.day
+                              ? 'bg-[#1F2430] text-white'
+                              : 'bg-[#F4F6FA] hover:bg-[#E5E9F0] text-[#475569] hover:text-[#1F2430]'
+                          }`}
                           title="Admin: Reassign flatmate"
+                          aria-label={`Reassign ${DAY_DISPLAY_NAMES[entry.day].full} duty`}
                         >
-                          <UserCheck className="w-3.5 h-3.5" />
+                          <UserSwitch weight="bold" className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Duty checklist preview */}
-                <div className="mt-2 pt-2 border-t border-[#F1F3F8] flex items-center justify-between text-xs text-[#64748B]">
-                  <span>
-                    {entry.notes || 'Mopping, kitchen tidy, trash & recycling'}
-                  </span>
+                {/* Custom day note or today's Mark Finished CTA */}
+                {((entry.notes && entry.notes.trim().length > 0) || (isToday && isMe && !entry.completed)) && (
+                  <div className="mt-2 pt-2 border-t border-[#F1F3F8] flex items-center justify-between gap-2 text-xs text-[#64748B]">
+                    {entry.notes ? (
+                      <span className="truncate">{entry.notes}</span>
+                    ) : (
+                      <span />
+                    )}
 
-                  {isToday && isMe && !entry.completed && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playSuccess();
-                        onCompleteTodayDuty(entry.day);
-                        showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
-                      }}
-                      className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer"
-                    >
-                      Mark Finished
-                    </button>
-                  )}
-                </div>
+                    {isToday && isMe && !entry.completed && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playSuccess();
+                          onCompleteTodayDuty(entry.day);
+                          showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
+                        }}
+                        className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer shrink-0"
+                      >
+                        Mark Finished
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Admin Quick Reassign Picker */}
                 {reassignDayTarget === entry.day && (

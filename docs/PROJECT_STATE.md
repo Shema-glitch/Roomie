@@ -638,3 +638,23 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 23. Chores Hub, Duty Timetable & Weekly Picks Polish (Branch `feature/chores-page-polish`)
+
+- **Chores Screen & Assignment List (`ChoresScreen.tsx`, `ChoreAssignmentList.tsx`)**:
+  - Aligned the compact `New Chore` button (`whitespace-nowrap shrink-0`) top-right on the `Chores schedule` header row so segmented tabs sit cleanly beneath.
+  - Replaced copy with natural roommate phrasing (`"Who's doing what this week"`, `"All caught up for today! No due chores left—your flat streak is safe."`, and `"Going away? Pause chores & keep your streak"` so the bottom utility row never truncates).
+  - Rendered `+ Add First Chore` inside the empty assignment card when both `chores.length === 0` and `totalApartmentAssignments === 0`, showing `View all apartment tasks` only when tasks exist in `All chores`.
+- **Weekly Duty Timetable Modal (`DutyTimetableModal.tsx`)**:
+  - Kept `[DayLabel + Done/Due Today]` on the left and `[Avatar + Name | Swap | Reassign]` single-line aligned on the right across all 7 day rows without wrapping.
+  - Moved the shared daily captain checklist (`"Daily checklist: Mopping, kitchen tidy, trash & recycling"`) into the top summary banner once instead of repeating it inside every day card.
+  - Wrapped `ArrowsLeftRight` and `UserSwitch` action icons in circular `w-8 h-8 rounded-full bg-[#F4F6FA] hover:bg-[#E5E9F0]` tactile buttons.
+- **Weekly Chore Picks Flow (`SecretDraftScreen.tsx`)**:
+  - Standardized top bar labels to `Cancel` and `Weekly Picks`.
+  - Updated choice buttons to `"I'll happily do this"`, `"Not my favorite"`, and `"Better for a roomie"`, and muted `Next` (`opacity-50 pointer-events-none` + `disabled`) until a choice is selected on the current card.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **111 / 111 passing** across 18 suites.
+  - `npm run build`: succeeded, initial JS entry bundle **158.92 kB gzipped** (< 200 KB threshold).
+
+---
+

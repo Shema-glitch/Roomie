@@ -193,18 +193,21 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
           />
 
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-              <SectionTitle
-                title="Chores schedule"
-                subtitle="Equitably distributed across your apartment"
-              />
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="min-w-0 flex-1">
+                <SectionTitle
+                  title="Chores schedule"
+                  subtitle="Who's doing what this week"
+                />
+              </div>
               <Button
                 variant="primary"
                 size="sm"
+                className="whitespace-nowrap shrink-0"
                 onClick={() => setNewChoreModalOpen(true)}
                 icon={<PlusCircle className="w-4 h-4" weight="fill" />}
               >
-                New chore
+                New Chore
               </Button>
             </div>
 
@@ -266,12 +269,14 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             todayDueAssignments={todayDueAssignments}
             todayCompletedAssignments={todayCompletedAssignments}
             chores={chores}
+            totalApartmentAssignments={assignments.length}
             roommates={roommates}
             currentUser={currentUser}
             onSelectDoneChore={setDoneModalChore}
             onQuickCompleteChore={(choreId) => onCompleteChore(choreId)}
             onSelectSwapChore={setSwapModalChore}
             onSelectKudos={setKudosModalData}
+            onAddFirstChore={() => setNewChoreModalOpen(true)}
             onSwitchToAllFilter={
               scheduleFilter === 'my' ? () => setScheduleFilter('all') : undefined
             }
@@ -294,7 +299,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
           <span className="text-xs font-bold text-[#475569] truncate">
             {currentUser.awayUntil
               ? `Away mode active until ${currentUser.awayUntil}`
-              : 'Going on vacation? Pause your chores & protect your streak'}
+              : 'Going away? Pause chores & keep your streak'}
           </span>
         </div>
         <button
