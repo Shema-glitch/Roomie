@@ -5,7 +5,7 @@ import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { DutySchedule, User, Chore, DayOfWeek, Membership } from '../../types';
 import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate, formatDutyCompletedTime } from '../../utils/dutyRotation';
-import { Calendar, ArrowsLeftRight, UserSwitch } from '@phosphor-icons/react';
+import { Calendar, ArrowsLeftRight, UserSwitch, DotsThree } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
 
@@ -37,6 +37,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
   const { showToast } = useToast();
   const [reassignDayTarget, setReassignDayTarget] = useState<DayOfWeek | null>(null);
   const [swapDaySource, setSwapDaySource] = useState<DayOfWeek | null>(null);
+  const [openMenuDay, setOpenMenuDay] = useState<DayOfWeek | null>(null);
   const [updating, setUpdating] = useState<boolean>(false);
 
   if (!dutySchedule) return null;
@@ -120,8 +121,9 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
               </span>
             </div>
             <button
+              type="button"
               onClick={() => setSwapDaySource(null)}
-              className="font-bold underline cursor-pointer text-amber-800"
+              className="min-h-[44px] min-w-[44px] px-3 font-bold underline cursor-pointer text-amber-800 flex items-center justify-center shrink-0"
             >
               Cancel
             </button>
@@ -179,38 +181,81 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                       </span>
                     </div>
 
-                    {/* Tactile Circular Action Buttons */}
-                    <div className="flex items-center gap-1.5 pl-2 border-l border-[#E6E8EE] shrink-0">
+                    {/* Day Action Menu Button */}
+                    <div className="relative pl-2 border-l border-[#E6E8EE] shrink-0">
                       <button
                         type="button"
-                        onClick={() => handleInitiateSwap(entry.day)}
+                        onClick={() => {
+                          sound.playTap();
+                          setOpenMenuDay((prev) => (prev === entry.day ? null : entry.day));
+                        }}
                         disabled={updating}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+                        aria-label={`Actions for ${DAY_DISPLAY_NAMES[entry.day].full}`}
+                        aria-expanded={openMenuDay === entry.day}
+                        aria-haspopup="menu"
+                        className={`w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
                           isSelectedForSwap
                             ? 'bg-amber-500 text-white hover:bg-amber-600'
+                            : openMenuDay === entry.day || reassignDayTarget === entry.day
+                            ? 'bg-[#1F2430] text-white'
                             : 'bg-[#F4F6FA] hover:bg-[#E5E9F0] text-[#475569] hover:text-[#1F2430]'
                         }`}
-                        title="Swap day with another flatmate"
-                        aria-label={`Swap ${DAY_DISPLAY_NAMES[entry.day].full} duty`}
                       >
-                        <ArrowsLeftRight weight="bold" className="w-3.5 h-3.5" />
+                        <DotsThree weight="bold" className="w-5 h-5" />
                       </button>
 
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => setReassignDayTarget(reassignDayTarget === entry.day ? null : entry.day)}
-                          disabled={updating}
-                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                            reassignDayTarget === entry.day
-                              ? 'bg-[#1F2430] text-white'
-                              : 'bg-[#F4F6FA] hover:bg-[#E5E9F0] text-[#475569] hover:text-[#1F2430]'
-                          }`}
-                          title="Admin: Reassign flatmate"
-                          aria-label={`Reassign ${DAY_DISPLAY_NAMES[entry.day].full} duty`}
-                        >
-                          <UserSwitch weight="bold" className="w-3.5 h-3.5" />
-                        </button>
+                      {openMenuDay === entry.day && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setOpenMenuDay(null)}
+                          />
+                          <div
+                            role="menu"
+                            className="absolute right-0 top-full mt-1 z-20 min-w-[192px] bg-white rounded-2xl border-2 border-[#E2E8F0] shadow-lg p-1.5 space-y-1"
+                          >
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => {
+                                setOpenMenuDay(null);
+                                handleInitiateSwap(entry.day);
+                              }}
+                              disabled={updating}
+                              aria-label={`Swap ${DAY_DISPLAY_NAMES[entry.day].full} duty`}
+                              className="w-full min-h-[44px] px-3 rounded-xl text-left text-xs font-bold text-[#1F2430] hover:bg-[#F4F6FA] flex items-center gap-2 transition-colors cursor-pointer"
+                            >
+                              <ArrowsLeftRight weight="bold" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                              <span>
+                                {swapDaySource && swapDaySource !== entry.day
+                                  ? `Swap with ${DAY_DISPLAY_NAMES[swapDaySource].short}`
+                                  : isSelectedForSwap
+                                  ? 'Cancel swap'
+                                  : 'Swap day'}
+                              </span>
+                            </button>
+
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                  sound.playTap();
+                                  setOpenMenuDay(null);
+                                  setReassignDayTarget(
+                                    reassignDayTarget === entry.day ? null : entry.day
+                                  );
+                                }}
+                                disabled={updating}
+                                aria-label={`Reassign ${DAY_DISPLAY_NAMES[entry.day].full} captain`}
+                                className="w-full min-h-[44px] px-3 rounded-xl text-left text-xs font-bold text-[#1F2430] hover:bg-[#F4F6FA] flex items-center gap-2 transition-colors cursor-pointer"
+                              >
+                                <UserSwitch weight="bold" className="w-4 h-4 text-[#0B6B5F] shrink-0" />
+                                <span>Reassign captain</span>
+                              </button>
+                            )}
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -242,7 +287,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                             setUpdating(false);
                           }
                         }}
-                        className="text-xs font-bold text-white bg-[#0F7A3D] hover:bg-[#0A5C2D] disabled:opacity-60 disabled:cursor-not-allowed px-3 py-1.5 rounded-xl transition-colors cursor-pointer shrink-0"
+                        className="min-h-[44px] min-w-[44px] text-xs font-bold text-white bg-[#0F7A3D] hover:bg-[#0A5C2D] disabled:opacity-60 disabled:cursor-not-allowed px-3.5 py-2 rounded-xl transition-colors cursor-pointer shrink-0"
                       >
                         {updating ? 'Finishing...' : 'Mark finished'}
                       </button>
@@ -279,6 +324,10 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
             );
           })}
         </div>
+
+        <p className="text-xs font-medium text-[#64748B] text-center">
+          Monday through Sunday · Scroll to see all 7 days
+        </p>
 
         {/* Footer */}
         <div className="pt-2 flex justify-end">

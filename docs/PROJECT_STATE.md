@@ -848,6 +848,27 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 35. UI/UX Audit Batch 3 — Ergonomics, 44x44px Touch Targets, Safe Destructive Isolation & Unified Presence (`feature/audit-batch3-ergonomics`)
+
+- **44x44px Interactive Touch Targets & Accessible Spacing (`AppHeaderAndNav.tsx`, `ApartmentInfoCard.tsx`, `HouseDiscussionsAndRules.tsx`, `LandlordHubCard.tsx`, `ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`, `ChoresSidebar.tsx`, `ExpensesScreen.tsx`, `BalanceOverviewSection.tsx`, `ExpenseCard.tsx`)**:
+  - Upgraded small header controls (`Cloud Sync`, `Bell` alerts, header `Avatar`, desktop `Household Switcher`, `Favor Tokens`), accordion collapse/expand chevrons (`w-11 h-11 min-h-[44px] min-w-[44px]`), Wi-Fi password copy & eye visibility buttons, delivery address copy button, Landlord `Call` / `WhatsApp` / `Copy` / `Report issue` actions, `Ping` / `Celebrate` / `Open chat` / `Kudos`, `Expand`/`Collapse` chart toggle, `Remind`, and `Receipt and details` controls to at least `44x44px` (`min-h-[44px] min-w-[44px]`) with `>= 8px` (`gap-2`) separation between adjacent controls.
+- **Safe Destructive Isolation & Timetable Action Menus (`RoomiesRoster.tsx`, `DutyTimetableModal.tsx`, `ProfileSettingsModal.tsx`, `AppModals.tsx`)**:
+  - Replaced inline red `Remove` roomie buttons in `RoomiesRoster.tsx` with a `44x44px` `DotsThree` overflow menu exposing `"Remove [FirstName]"` wired to `RemoveMemberModal`.
+  - Replaced unlabeled `Swap` / `Reassign` circular icon pairs in `DutyTimetableModal.tsx` with a `44x44px` `DotsThree` action menu offering labeled `"Swap day"` and admin-only `"Reassign captain"` items, upgraded `Mark finished` / `Cancel` to `44px`, and added a `"Monday through Sunday · Scroll to see all 7 days"` scroll cue below the 7-day container.
+  - Updated `ProfileSettingsModal.tsx` (`Account` tab): grouped utilities (`Install app`, `Feedback`, `Export data`, `Check for updates`, `Save login info`), moved `Sign out` to a subtle secondary session control (`min-h-[44px]`), collapsed `Danger zone` behind an expandable disclosure (`dangerZoneOpen`), required typing `householdName` (passed from `AppModals.tsx`, falling back to `DELETE`) in the delete confirmation modal, and hid the mobile-only Haptics toggle on non-touch desktop viewports (`isTouchDevice`).
+- **Unified Presence, Single-Location Chore Picks, Desktop Quick Actions & Reduced Motion (`PresenceSegmentedControl.tsx`, `HomeScreen.tsx`, `HomeSidebar.tsx`, `ChoresScreen.tsx`, `ChatScreen.tsx`, `App.tsx`, `AppTabRouter.tsx`, `src/index.css`)**:
+  - Introduced `PresenceSegmentedControl` (`Home` / `Away` segmented group, `min-h-[44px]`) reused consistently across `HomeScreen`, `HomeSidebar`, and `ChoresScreen` (removing the ambiguous single `Set away` button).
+  - Kept the full `Weekly Chore Picks` card exclusively on `ChoresScreen`, replacing duplicate full cards on `HomeScreen` and `ChatScreen` with compact status pills and adding a Chores tab dot indicator in `AppHeaderAndNav.tsx` while open.
+  - Expanded desktop `HomeSidebar` Quick Actions to 4 single-label tiles (`Mark duty done`, `Log expense`, `Shopping list`, `Home / Away`).
+  - Added an explicit disabled `Settle up` state (`"All settled at {sym}0.00"`) alongside `Payment history` on zero-balance `BalanceOverviewSection`, plus inline `"Remind [Name]"` actions on pending expenses in `ExpenseCard.tsx`.
+  - Strengthened `@media (prefers-reduced-motion: reduce)` in `src/index.css` to suppress non-essential animations and hover/active transforms across interactive cards and buttons.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **126 / 126 passing** across 19 suites (0 failures, 0 skipped).
+  - `npm run build`: succeeded in **5.38s**, initial JS entry bundle **167.24 kB gzipped** (< 200 KB threshold).
+
+---
+
 
 
 

@@ -205,7 +205,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
             </div>
           </div>
 
-          <div className="mt-2 flex items-center justify-between gap-1">
+          <div className="mt-2 flex items-center justify-between gap-2">
             <button
               type="button"
               onClick={(e) => {
@@ -213,12 +213,12 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
                 onTriggerSupermarketPing();
               }}
               title={t('home.goingToMarket')}
-              className="text-xs font-bold text-[#78350F] hover:text-[#451A03] flex items-center gap-1 cursor-pointer"
+              className="min-h-[44px] min-w-[44px] px-2.5 -my-2 rounded-xl hover:bg-[#FDE68A]/50 text-xs font-bold text-[#78350F] hover:text-[#451A03] flex items-center gap-1 cursor-pointer transition-colors"
             >
               <Megaphone weight="bold" className="w-3.5 h-3.5" />
               <span>Ping</span>
             </button>
-            <span className="text-xs font-bold text-[#78350F] flex items-center gap-0.5">
+            <span className="min-h-[44px] -my-2 px-1 text-xs font-bold text-[#78350F] flex items-center gap-0.5">
               <span>{t('home.openList')}</span>
               <ArrowRight weight="bold" className="w-3.5 h-3.5 text-[#78350F] rtl-flip" />
             </span>

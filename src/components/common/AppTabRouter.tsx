@@ -186,6 +186,12 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
       },
       [loadData]
     );
+    const handleToggleHomeStatus = useCallback(async () => {
+      const next = await api.toggleHomeStatus();
+      setCurrentUser((prev) => (prev ? { ...prev, isHome: next } : null));
+      await loadData();
+      showToast(next ? 'Status set to Home' : 'Status set to Away', 'info');
+    }, [loadData, setCurrentUser, showToast]);
     const handleAddChore = useCallback(
       async (
         name: string,
@@ -294,11 +300,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
               setActiveTab('expenses');
             }}
             onSelectJoinRequest={setReviewJoinRequest}
-            onToggleHomeStatus={async () => {
-              const next = await api.toggleHomeStatus();
-              setCurrentUser((prev) => (prev ? { ...prev, isHome: next } : null));
-              showToast(next ? 'Marked as at home' : 'Marked as out', 'info');
-            }}
+            onToggleHomeStatus={handleToggleHomeStatus}
             onCompleteChore={handleCompleteChore}
             onGiveKudos={handleGiveKudos}
             onOpenExpensesAction={(action) => {
@@ -332,6 +334,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             onGiveKudos={handleGiveKudos}
             onSwapChore={handleSwapChore}
             onSetAway={handleSetAway}
+            onToggleHomeStatus={handleToggleHomeStatus}
             onAddChore={handleAddChore}
           />
         );

@@ -179,7 +179,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
           </div>
         </button>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {isExpanded && !isEditing && (
             <Button
               variant="outline"
@@ -202,7 +202,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
             }}
             aria-label={isExpanded ? 'Collapse landlord and maintenance' : 'Expand landlord and maintenance'}
             aria-expanded={isExpanded}
-            className="tactile-press w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+            className="tactile-press w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
             <CaretDown
               weight="bold"
@@ -318,7 +318,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               <button
                 type="button"
                 onClick={handleCall}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] text-[#1F2430] hover:text-[#FF6B4A] text-[12px] font-semibold active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#E6E8EE] text-[#1F2430] hover:text-[#FF6B4A] text-xs font-semibold active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <PhoneCall weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />
                 <span>Call</span>
@@ -327,7 +327,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               <button
                 type="button"
                 onClick={handleWhatsApp}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] text-[12px] font-semibold hover:bg-[#DCFCE7] active:scale-95 transition-all shadow-xs cursor-pointer"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] text-xs font-semibold hover:bg-[#DCFCE7] active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <WhatsappLogo weight="fill" className="w-3.5 h-3.5 text-[#16A34A]" />
                 <span>WhatsApp</span>
@@ -337,7 +337,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 type="button"
                 onClick={handleCopyPhone}
                 aria-label="Copy phone number"
-                className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                className="w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 bg-white border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] active:scale-95 transition-all flex items-center justify-center cursor-pointer"
               >
                 {copiedPhone ? (
                   <Check weight="bold" className="w-3.5 h-3.5 text-[#16A34A]" />
@@ -371,7 +371,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               sound.playTap();
               onOpenReportIssue();
             }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B4A] border border-b-2 border-[#D94E30] text-[#1F2033] font-extrabold text-xs hover:bg-[#FF7D61] active:scale-95 transition-all cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF6B4A] border border-b-2 border-[#D94E30] text-[#1F2033] font-extrabold text-xs hover:bg-[#FF7D61] active:scale-95 transition-all cursor-pointer"
           >
             <Plus weight="bold" className="w-3.5 h-3.5" />
             <span>Report issue</span>

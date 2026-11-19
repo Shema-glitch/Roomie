@@ -95,7 +95,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           <button
             type="button"
             onClick={handleCelebrate}
-            className={`btn-tactile ease-spring px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            className={`btn-tactile ease-spring min-h-[44px] min-w-[44px] px-3.5 py-2 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
               celebrated
                 ? 'bg-[#0F7A3D] text-white border-[#0A5C2D]'
                 : 'bg-[#FFF8E6] text-[#9A6700] border-[#F59E0B]/60 hover:bg-[#FEF3C7]'

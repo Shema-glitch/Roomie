@@ -6,6 +6,7 @@ import { Button } from '../../components/common/Button';
 import { MascotView } from '../../components/common/MascotView';
 import { Chip } from '../../components/common/Chip';
 import { AnimatedNumber } from '../../components/common/AnimatedNumber';
+import { PresenceSegmentedControl } from '../../components/common/PresenceSegmentedControl';
 import {
   User,
   Household,
@@ -43,6 +44,7 @@ import {
   ArrowsLeftRight,
 } from '@phosphor-icons/react';
 import { isAssignmentDueToday, getChoreDraftState, getCurrencySymbol } from '../../utils/stateTable';
+import { getTodayDuty } from '../../utils/dutyRotation';
 import { evaluateWeeklyAwards } from '../../utils/awards';
 import { ActivityTimelineSection } from './components/ActivityTimelineSection';
 import { HomeSidebar } from './components/HomeSidebar';
@@ -401,38 +403,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     {t('home.flatAtAGlance')}
                   </p>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
-                      <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
-                      <AnimatedNumber value={currentUser.streakDays} />{' '}
-                      <span>{t('home.dayStreak', { count: '' }).trim()}</span>
-                    </span>
-                    <span aria-hidden="true">·</span>
-                    <span className="font-medium whitespace-nowrap">
-                      <AnimatedNumber value={currentUser.points} />{' '}
-                      <span>{t('home.pts', { count: '' }).trim()}</span>
-                    </span>
-                    {/* 1-Tap Quick Presence Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        sound.playPop();
-                        onToggleHomeStatus();
-                        triggerMascotReaction(
-                          currentUser.isHome ? 'calm' : 'cheering',
-                          currentUser.isHome ? t('home.away') : t('home.imHome')
-                        );
-                        showToast(currentUser.isHome ? t('home.away') : t('home.imHome'), 'info');
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm text-[#4B5063]">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2033] whitespace-nowrap">
+                        <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
+                        <AnimatedNumber value={currentUser.streakDays} />{' '}
+                        <span>{t('home.dayStreak', { count: '' }).trim()}</span>
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <span className="font-medium whitespace-nowrap">
+                        <AnimatedNumber value={currentUser.points} />{' '}
+                        <span>{t('home.pts', { count: '' }).trim()}</span>
+                      </span>
+                    </div>
+                    <PresenceSegmentedControl
+                      isHome={currentUser.isHome}
+                      compact
+                      onSelectHome={() => {
+                        if (!currentUser.isHome) {
+                          sound.playPop();
+                          onToggleHomeStatus();
+                          triggerMascotReaction('cheering', t('home.imHome'));
+                        }
                       }}
-                      className={`btn-tactile ease-spring inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer border-2 ${
-                        currentUser.isHome
-                          ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
-                          : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${currentUser.isHome ? 'bg-[#19B5A5] animate-pulse' : 'bg-[#94A3B8]'}`} />
-                      <span>{currentUser.isHome ? t('home.imHome') : t('home.away')}</span>
-                    </button>
+                      onSelectAway={() => {
+                        if (currentUser.isHome) {
+                          sound.playPop();
+                          onToggleHomeStatus();
+                          triggerMascotReaction('calm', t('home.away'));
+                        }
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -589,59 +590,36 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             />
           )}
 
-          {choreDraftState.state !== 'reveal_done' ? (
-            <ActionCard
-              tint={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
-              iconTile={
-                <IconTile
-                  icon={
-                    choreDraftState.state === 'reveal_ready' ? (
-                      <CheckCircle weight="duotone" className="w-6 h-6" />
-                    ) : (
-                      <ArrowsClockwise weight="duotone" className="w-6 h-6" />
-                    )
-                  }
-                  color={choreDraftState.state === 'reveal_ready' ? 'amber' : 'indigo'}
-                  size="md"
-                />
-              }
-              title={choreDraftState.bannerTitle}
-              subtitle={choreDraftState.bannerSubtitle}
-              badge={
+          {(choreDraftState.state === 'draft_open' || choreDraftState.state === 'reveal_ready') && (
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                if (choreDraftState.state === 'reveal_ready') {
+                  onOpenChoreReveal();
+                } else {
+                  onOpenDraftPicks();
+                }
+              }}
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-[#FFF8E6] border-2 border-[#FDE68A] hover:border-[#F59E0B] flex items-center justify-between gap-3 text-start cursor-pointer transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
                 <Chip
-                  status="pending"
+                  status={choreDraftState.state === 'reveal_ready' ? 'agreed' : 'pending'}
                   label={choreDraftState.badgeLabel}
-                  size="sm"
+                  size="xs"
                 />
-              }
-              actions={
-                <div className="w-full">
-                  <Button
-                    variant={choreDraftState.state === 'reveal_ready' ? 'reward' : 'primary'}
-                    size="md"
-                    fullWidth
-                    onClick={() => {
-                      sound.playTap();
-                      if (choreDraftState.state === 'reveal_ready') {
-                        onOpenChoreReveal();
-                      } else {
-                        onOpenDraftPicks();
-                      }
-                    }}
-                    icon={
-                      choreDraftState.state === 'reveal_ready' ? (
-                        <CheckCircle weight="fill" className="w-4 h-4" />
-                      ) : (
-                        <ArrowsClockwise weight="bold" className="w-4 h-4" />
-                      )
-                    }
-                  >
-                    {choreDraftState.actionLabel}
-                  </Button>
-                </div>
-              }
-            />
-          ) : dutySchedule ? (
+                <span className="text-xs sm:text-[13px] font-bold text-[#1F2033] truncate">
+                  {choreDraftState.bannerTitle}
+                </span>
+              </div>
+              <span className="px-3 py-1.5 rounded-xl bg-[#FF6B4A] border-b-2 border-[#D94E30] text-[#1F2033] text-xs font-extrabold whitespace-nowrap shrink-0">
+                {choreDraftState.actionLabel}
+              </span>
+            </button>
+          )}
+
+          {dutySchedule ? (
             <DutyTodayBanner
               dutySchedule={dutySchedule}
               roommates={roommates}
@@ -762,6 +740,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             roommates={roommates}
             currentUser={currentUser}
             choreDraftState={choreDraftState}
+            todayDuty={getTodayDuty(dutySchedule, roommates, currentUser.id)}
+            onCompleteTodayDuty={onCompleteTodayDuty}
             onToggleHomeStatus={onToggleHomeStatus}
             onNavigateTab={onNavigateTab}
             onOpenExpensesAction={onOpenExpensesAction}

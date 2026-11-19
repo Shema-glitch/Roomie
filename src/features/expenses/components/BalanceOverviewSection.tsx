@@ -288,17 +288,33 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                 Settle up now
               </Button>
             ) : (
-              <Button
-                variant="secondary"
-                size="md"
-                fullWidth
-                onClick={() => {
-                  sound.playTap();
-                  onOpenSettleModal();
-                }}
-              >
-                Payment history
-              </Button>
+              <div className="space-y-2 w-full">
+                <div className="grid grid-cols-2 gap-3 w-full">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    fullWidth
+                    disabled
+                    icon={<Money className="w-4 h-4" weight="fill" />}
+                  >
+                    Settle up
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="md"
+                    fullWidth
+                    onClick={() => {
+                      sound.playTap();
+                      onOpenSettleModal();
+                    }}
+                  >
+                    Payment history
+                  </Button>
+                </div>
+                <p className="text-xs font-medium text-[#64748B] text-center">
+                  All settled at {sym}0.00
+                </p>
+              </div>
             )}
           </div>
         }
@@ -314,7 +330,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
             <button
               type="button"
               onClick={() => setBreakdownExpanded(!breakdownExpanded)}
-              className="type-secondary font-bold text-[14px] text-[#FF6B4A] hover:underline cursor-pointer"
+              className="min-h-[44px] min-w-[44px] px-3 rounded-xl hover:bg-[#FFF0ED] type-secondary font-bold text-[14px] text-[#C24124] hover:underline flex items-center justify-center cursor-pointer transition-colors"
             >
               {breakdownExpanded ? 'Collapse' : 'Expand'}
             </button>

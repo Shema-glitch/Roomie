@@ -218,6 +218,16 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         onSelectEditSplitTarget={setEditSplitTarget}
         onOpenChat={onOpenChat}
         onCancelExpense={onCancelExpense}
+        onRemindPending={
+          onRemindRoomies
+            ? async (expense, pendingNames) => {
+                await onRemindRoomies(
+                  `Friendly reminder for ${pendingNames.join(', ')}: please review "${expense.title}"`
+                );
+                showToast(`Sent reminder to ${pendingNames.join(', ')}`, 'info');
+              }
+            : undefined
+        }
       />
     </div>
   );
@@ -339,7 +349,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                         showToast('Sent gentle reminder to roomies!', 'info');
                       }
                     }}
-                    className="text-[14px] font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                    className="min-h-[44px] min-w-[44px] px-3 rounded-xl hover:bg-[#FFF0ED] text-[14px] font-bold text-[#C24124] hover:underline flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap transition-colors"
                   >
                     <Bell className="w-3.5 h-3.5" /> {t('expenses.remind')}
                   </button>

@@ -190,7 +190,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
             sound.playTap();
             onNavigateTab('chat');
           }}
-          className="btn-tactile tactile-hover ease-spring px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] text-xs font-bold text-[#5B5BD6] flex items-center gap-1.5 shadow-2xs cursor-pointer select-none whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+          className="btn-tactile tactile-hover ease-spring min-h-[44px] px-3.5 py-2 rounded-xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] text-xs font-bold text-[#3B4BC4] flex items-center gap-1.5 shadow-2xs cursor-pointer select-none whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <ChatCircleDots weight="fill" className="w-3.5 h-3.5" />
           <span>{t('home.openChat')}</span>

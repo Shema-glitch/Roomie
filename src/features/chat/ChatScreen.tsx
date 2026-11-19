@@ -154,22 +154,9 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
       {/* Messages Scroll Area */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 pe-3 sm:pe-5">
-        {/* Pinned Chore Picks State Pill */}
-        {draftState.state !== 'reveal_done' && (
-          <div className="px-3.5 py-2.5 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-between gap-2.5 shadow-2xs">
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              {draftState.state === 'reveal_ready' ? (
-                <CheckCircle weight="duotone" className="w-4 h-4 text-[#D94E30] shrink-0" />
-              ) : (
-                <ArrowsClockwise weight="duotone" className="w-4 h-4 text-[#D94E30] shrink-0" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-bold text-[#1F2033] truncate">
-                  {draftState.bannerTitle}
-                </p>
-                <p className="text-xs text-[#4B5063] truncate">{pinnedSubtitle}</p>
-              </div>
-            </div>
+        {/* Lightweight Chore Picks Status Pill (Full card lives on ChoresScreen) */}
+        {(draftState.state === 'draft_open' || draftState.state === 'reveal_ready') && (
+          <div className="flex justify-center">
             <button
               type="button"
               onClick={() => {
@@ -178,9 +165,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                   screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft',
                 });
               }}
-              className="shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl bg-[#FF6B4A] border-2 border-b-3 border-[#D94E30] text-[#1F2033] text-xs font-extrabold hover:bg-[#FF7D61] transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-[#FFF8E6] border border-[#FDE68A] hover:border-[#F59E0B] inline-flex items-center gap-2 text-xs font-bold text-[#1F2033] shadow-2xs transition-colors cursor-pointer"
             >
-              {draftState.actionLabel}
+              {draftState.state === 'reveal_ready' ? (
+                <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
+              ) : (
+                <ArrowsClockwise weight="bold" className="w-4 h-4 text-[#9A6700] shrink-0" />
+              )}
+              <span>{draftState.badgeLabel}</span>
+              <span aria-hidden="true">·</span>
+              <span className="text-[#9A6700] underline">{draftState.actionLabel}</span>
             </button>
           </div>
         )}

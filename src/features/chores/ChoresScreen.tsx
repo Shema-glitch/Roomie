@@ -7,6 +7,7 @@ import { Chip } from '../../components/common/Chip';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayOfWeek } from '../../types';
 import { DutyTodayBanner } from './DutyTodayBanner';
+import { PresenceSegmentedControl } from '../../components/common/PresenceSegmentedControl';
 import { getChoreDraftState, isAssignmentDueToday } from '../../utils/stateTable';
 import { getTodayDuty } from '../../utils/dutyRotation';
 import { sound } from '../../services/sound';
@@ -57,6 +58,7 @@ interface ChoresScreenProps {
     note?: string
   ) => Promise<void>;
   onSetAway: (days: number | null) => Promise<void>;
+  onToggleHomeStatus?: () => Promise<void>;
   onAddChore: (
     name: string,
     frequency: 'daily' | 'weekly',
@@ -80,6 +82,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   onGiveKudos,
   onSwapChore,
   onSetAway,
+  onToggleHomeStatus,
   onAddChore,
 }) => {
   const { t, isRtl } = useI18n();
@@ -312,25 +315,27 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             onSelectKudos={setKudosModalData}
           />
 
-          <div className="rounded-2xl border-2 border-[#E5E9F0] bg-[#F7F8FB] px-4 py-2.5 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <AirplaneTilt weight="duotone" className="w-4 h-4 text-[#64748B] shrink-0" />
-              <span className="text-xs font-bold text-[#475569] truncate">
+          <div className="rounded-2xl border-2 border-[#E5E9F0] bg-[#F7F8FB] px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <AirplaneTilt weight="duotone" className="w-4 h-4 text-[#4B5063] shrink-0" />
+              <span className="text-xs font-bold text-[#1F2033]">
                 {currentUser.awayUntil
-                  ? `Away mode active until ${currentUser.awayUntil}`
-                  : 'Going away? Pause chores & keep your streak'}
+                  ? `Away until ${currentUser.awayUntil}`
+                  : 'Presence & pause chores'}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                sound.playTap();
-                setAwayModalOpen(true);
+            <PresenceSegmentedControl
+              isHome={currentUser.isHome && !currentUser.awayUntil}
+              compact
+              onSelectHome={async () => {
+                if (currentUser.awayUntil) {
+                  await onSetAway(null);
+                } else if (!currentUser.isHome && onToggleHomeStatus) {
+                  await onToggleHomeStatus();
+                }
               }}
-              className="tactile-press shrink-0 whitespace-nowrap px-3 py-1 rounded-full bg-white border border-[#E5E9F0] text-xs font-black text-[#1F2430] hover:bg-[#EEF1F6] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
-            >
-              {currentUser.awayUntil ? 'Manage' : 'Set away'}
-            </button>
+              onSelectAway={() => setAwayModalOpen(true)}
+            />
           </div>
         </div>
       </div>

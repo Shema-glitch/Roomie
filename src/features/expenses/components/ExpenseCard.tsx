@@ -18,6 +18,7 @@ import {
   GitFork,
   ChatCircleDots,
   CaretRight,
+  Bell,
 } from '@phosphor-icons/react';
 
 export const formatExpenseDate = (dateStr: string): string => {
@@ -68,6 +69,7 @@ interface ExpenseCardProps {
   onSelectEditSplitTarget: (expense: Expense) => void;
   onOpenChat: () => void;
   onCancelExpense?: (expenseId: string) => Promise<void>;
+  onRemindPending?: (expense: Expense, pendingNames: string[]) => Promise<void>;
 }
 
 export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
@@ -82,11 +84,13 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
   onSelectEditSplitTarget,
   onOpenChat,
   onCancelExpense,
+  onRemindPending,
 }) => {
   const { showToast } = useToast();
   const [agreeing, setAgreeing] = useState(false);
   const [optimisticAgreed, setOptimisticAgreed] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [reminding, setReminding] = useState(false);
 
   const payer = roommates.find((r) => r.id === exp.paidBy);
   const { icon, color } = getCategoryDetails(exp.category);
@@ -279,23 +283,45 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
                     setCancelling(false);
                   }
                 }}
-                className="px-2.5 py-1.5 rounded-xl border border-[#FFD7CF] bg-[#FFF0ED] text-[#E5484D] text-[14px] font-bold hover:bg-[#FFE5E0] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
+                className="min-h-[44px] min-w-[44px] px-3 py-1.5 rounded-xl border border-[#FFD7CF] bg-[#FFF0ED] text-[#B42318] text-[14px] font-bold hover:bg-[#FFE5E0] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
               >
                 {cancelling ? 'Cancelling...' : 'Cancel'}
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                sound.playTap();
-                onSelect(exp);
-              }}
-              className="inline-flex items-center gap-1 text-[14px] font-bold text-[#475569] hover:text-[#1F2430] transition-colors duration-150 cursor-pointer"
-            >
-              <span>Receipt and details</span>
-              <CaretRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform duration-150" />
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {isWaitingRoomies && isPayerMe && pendingRoomies.length > 0 && onRemindPending && (
+                <button
+                  type="button"
+                  disabled={reminding}
+                  onClick={async () => {
+                    if (reminding) return;
+                    sound.playTap();
+                    setReminding(true);
+                    try {
+                      await onRemindPending(exp, pendingRoomies);
+                    } finally {
+                      setReminding(false);
+                    }
+                  }}
+                  className="min-h-[44px] min-w-[44px] px-3 rounded-xl bg-[#FFF0ED] border border-[#FFD7CF] text-xs font-bold text-[#C24124] hover:bg-[#FFE5E0] inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60 transition-colors"
+                >
+                  <Bell className="w-3.5 h-3.5 shrink-0" weight="fill" />
+                  <span>{reminding ? 'Reminding...' : `Remind ${pendingRoomies[0]}`}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playTap();
+                  onSelect(exp);
+                }}
+                className="min-h-[44px] min-w-[44px] px-2.5 rounded-xl inline-flex items-center gap-1 text-[14px] font-bold text-[#475569] hover:text-[#1F2430] hover:bg-[#F4F6FA] transition-colors duration-150 cursor-pointer"
+              >
+                <span>Receipt and details</span>
+                <CaretRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:translate-x-0.5 transition-transform duration-150" />
+              </button>
+            </div>
           )}
         </div>
       </div>

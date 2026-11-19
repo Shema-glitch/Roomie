@@ -262,6 +262,13 @@ function MainApp() {
     }
   );
 
+  const isChoreDraftPending =
+    draftRound && currentUser
+      ? draftRound.status === 'ready_to_reveal' ||
+        (draftRound.status === 'collecting' &&
+          !draftRound.picks.some((p) => p.userId === currentUser.id))
+      : false;
+
   const renderScreen = () => {
     if (loadError && (!currentUser || !activeHousehold || !draftRound)) {
       return (
@@ -464,6 +471,7 @@ function MainApp() {
           isDemoMode={isDemoMode}
           unreadNotifsCount={unreadNotifsCount}
           pendingJoinRequestsCount={joinRequests.length}
+          hasOpenChoreDraft={isChoreDraftPending}
           onSelectTab={(tab) => {
             setActiveTab(tab);
             if (tab === 'apartment') {
@@ -529,6 +537,7 @@ function MainApp() {
         <AppBottomNav
           activeTab={activeTab}
           pendingJoinRequestsCount={joinRequests.length}
+          hasOpenChoreDraft={isChoreDraftPending}
           onSelectTab={(tab) => {
             setActiveTab(tab);
             if (tab === 'apartment') {

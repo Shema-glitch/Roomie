@@ -40,6 +40,7 @@ import {
   Sparkle,
   ShieldCheck,
   CaretRight,
+  CaretDown,
 } from '@phosphor-icons/react';
 import { TenantPassportModal } from './TenantPassportModal';
 import { CURRENT_APP_VERSION } from '../../config/appVersion';
@@ -55,6 +56,7 @@ interface ProfileSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: User;
+  householdName?: string;
   settings: UserSettings;
   onUpdateSettings: (updates: Partial<UserSettings>) => Promise<UserSettings>;
   onUpdateProfile?: (updates: Partial<User>) => Promise<User>;
@@ -121,6 +123,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   isOpen,
   onClose,
   currentUser,
+  householdName,
   settings,
   onUpdateSettings,
   onUpdateProfile,
@@ -141,7 +144,14 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+  const [dangerZoneOpen, setDangerZoneOpen] = useState(false);
   const [signOutPromptOpen, setSignOutPromptOpen] = useState(false);
+  const expectedDeletePhrase = householdName?.trim() || 'DELETE';
+  const isTouchDevice =
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(pointer: coarse)').matches ||
+      'ontouchstart' in window ||
+      (navigator?.maxTouchPoints ?? 0) > 0);
   const [loginSaved, setLoginSaved] = useState(Boolean(isLoginSaved));
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
@@ -653,7 +663,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   />
                 </div>
 
-                {/* Haptics Toggle */}
+                {/* Haptics Toggle (touch / mobile devices only) */}
+                {isTouchDevice && (
                 <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
@@ -672,6 +683,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     label={t('profile.hapticsTitle')}
                   />
                 </div>
+                )}
 
                 {/* Reduced Motion Toggle */}
                 <div className="p-3.5 rounded-2xl border-2 border-b-4 border-[#E6E8EE] bg-white flex items-center justify-between gap-3 shadow-2xs">
@@ -856,143 +868,164 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           {/* TAB 3: ACCOUNT & DATA */}
           {activeTab === 'account' && (
             <div className="space-y-4">
-              <div className="space-y-2">
-            <span className="type-label block">
-              Account & Feedback
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleInstallApp}
-                icon={<DeviceMobile className="w-3.5 h-3.5 text-[#19B5A5]" />}
-              >
-                Install app
-              </Button>
+              <div className="space-y-2.5">
+                <span className="type-label block">
+                  App &amp; Data
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleInstallApp}
+                    icon={<DeviceMobile className="w-3.5 h-3.5 text-[#19B5A5]" />}
+                  >
+                    Install app
+                  </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  onClose();
-                  onOpenFeedback();
-                }}
-                icon={<ChatCircleText className="w-3.5 h-3.5 text-[#FF6B4A]" />}
-              >
-                Feedback
-              </Button>
-            </div>
-
-            {onCheckForUpdates && (
-              <Button
-                variant="outline"
-                size="sm"
-                fullWidth
-                disabled={checkingUpdates}
-                onClick={async () => {
-                  sound.playTap();
-                  setCheckingUpdates(true);
-                  try {
-                    const hasUpdate = await onCheckForUpdates();
-                    if (hasUpdate) {
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
                       onClose();
-                    }
-                  } finally {
-                    setCheckingUpdates(false);
-                  }
-                }}
-                icon={<DownloadSimple weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />}
-              >
-                {checkingUpdates ? t('profile.checkingUpdates') : t('profile.checkUpdates')}
-              </Button>
-            )}
+                      onOpenFeedback();
+                    }}
+                    icon={<ChatCircleText className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                  >
+                    Feedback
+                  </Button>
 
-            {onToggleSaveLogin && (
-              <Card
-                padding="sm"
-                className="flex items-center justify-between gap-3 bg-[#F7F8FB] border border-[#E6E8EE] rounded-2xl"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
-                    <Lightning className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-extrabold text-[#1F2033] truncate">Save login info</p>
-                    <p className="text-xs text-[#4B5063] truncate">1-tap quick sign-in on this device</p>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onExportData}
+                    icon={<DownloadSimple className="w-3.5 h-3.5 text-[#5B5BD6]" />}
+                  >
+                    Export data
+                  </Button>
+
+                  {onCheckForUpdates && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={checkingUpdates}
+                      onClick={async () => {
+                        sound.playTap();
+                        setCheckingUpdates(true);
+                        try {
+                          const hasUpdate = await onCheckForUpdates();
+                          if (hasUpdate) {
+                            onClose();
+                          }
+                        } finally {
+                          setCheckingUpdates(false);
+                        }
+                      }}
+                      icon={<DownloadSimple weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />}
+                    >
+                      {checkingUpdates ? t('profile.checkingUpdates') : t('profile.checkUpdates')}
+                    </Button>
+                  )}
                 </div>
+
+                {onToggleSaveLogin && (
+                  <Card
+                    padding="sm"
+                    className="flex items-center justify-between gap-3 bg-[#F7F8FB] border border-[#E6E8EE] rounded-2xl"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-2 rounded-xl bg-white text-[#19B5A5] shrink-0">
+                        <Lightning className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold text-[#1F2033] truncate">Save login info</p>
+                        <p className="text-xs text-[#4B5063] truncate">1-tap quick sign-in on this device</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        sound.playTap();
+                        const next = await onToggleSaveLogin(!loginSaved);
+                        setLoginSaved(next);
+                        showToast(
+                          next ? 'Saved login for 1-tap sign-in' : 'Removed saved login from this device',
+                          'info'
+                        );
+                      }}
+                      className={`min-h-[44px] min-w-[44px] px-3.5 rounded-full text-xs font-black transition-colors cursor-pointer shrink-0 ${
+                        loginSaved
+                          ? 'bg-[#0F7A3D] text-white'
+                          : 'bg-[#8A8FA3] border border-[#64748B] text-white'
+                      }`}
+                    >
+                      {loginSaved ? 'Saved' : 'Off'}
+                    </button>
+                  </Card>
+                )}
+
+                <div className="pt-1 border-t border-[#E6E8EE] flex items-center justify-between">
+                  <span className="text-xs font-medium text-[#64748B]">Session</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!onSignOut) return;
+                      sound.playTap();
+                      if (loginSaved || !onToggleSaveLogin) {
+                        onClose();
+                        onSignOut({ keepSavedLogin: loginSaved });
+                      } else {
+                        setSignOutPromptOpen(true);
+                      }
+                    }}
+                    className="min-h-[44px] min-w-[44px] px-3 rounded-xl text-xs font-bold text-[#475569] hover:text-[#1F2430] hover:bg-[#F4F6FA] inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <SignOut className="w-4 h-4 text-[#64748B]" />
+                    <span>Sign out</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Danger Zone: Collapsed disclosure isolating destructive account removal */}
+              <div className="border-2 border-[#FECACA] rounded-2xl bg-[#FEF2F2] overflow-hidden">
                 <button
                   type="button"
-                  onClick={async () => {
+                  onClick={() => {
                     sound.playTap();
-                    const next = await onToggleSaveLogin(!loginSaved);
-                    setLoginSaved(next);
-                    showToast(
-                      next ? 'Saved login for 1-tap sign-in' : 'Removed saved login from this device',
-                      'info'
-                    );
+                    setDangerZoneOpen((prev) => !prev);
                   }}
-                  className={`px-3 py-1 rounded-full text-xs font-black transition-colors cursor-pointer shrink-0 ${
-                    loginSaved
-                      ? 'bg-[#0F7A3D] text-white'
-                      : 'bg-[#8A8FA3] border border-[#64748B] text-white'
-                  }`}
+                  aria-expanded={dangerZoneOpen}
+                  className="w-full min-h-[44px] px-4 py-3 flex items-center justify-between gap-2 text-left cursor-pointer hover:bg-[#FEE2E2]/60 transition-colors"
                 >
-                  {loginSaved ? 'Saved' : 'Off'}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Warning className="w-4 h-4 text-[#B42318] shrink-0" />
+                    <span className="type-label text-[#B42318] font-bold">Danger zone</span>
+                  </div>
+                  <CaretDown
+                    weight="bold"
+                    className={`w-4 h-4 text-[#B42318] shrink-0 transition-transform duration-150 ${
+                      dangerZoneOpen ? 'rotate-180' : ''
+                    }`}
+                  />
                 </button>
-              </Card>
-            )}
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onExportData}
-                icon={<DownloadSimple className="w-3.5 h-3.5 text-[#5B5BD6]" />}
-              >
-                Export data
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  if (!onSignOut) return;
-                  if (loginSaved || !onToggleSaveLogin) {
-                    onClose();
-                    onSignOut({ keepSavedLogin: loginSaved });
-                  } else {
-                    setSignOutPromptOpen(true);
-                  }
-                }}
-                icon={<SignOut className="w-3.5 h-3.5 text-[#64748B]" />}
-              >
-                Sign out
-              </Button>
-            </div>
-          </div>
-
-          {/* Danger Zone: Separate distinct area with confirmation step */}
-          <div className="mt-4 pt-3 border-2 border-[#FECACA] rounded-2xl p-4 bg-[#FEF2F2] space-y-2.5">
-            <div className="flex items-center gap-2">
-              <Warning className="w-4 h-4 text-[#B42318]" />
-              <span className="type-label text-[#B42318] font-bold">Danger zone</span>
-            </div>
-            <p className="type-secondary text-[#7F1D1D] text-[14px] leading-relaxed">
-              Permanently delete your profile and personal streaks from this device.
-            </p>
-            <Button
-              variant="danger-outline"
-              size="sm"
-              onClick={() => {
-                setDeleteConfirmInput('');
-                setDeleteConfirmOpen(true);
-              }}
-              icon={<Trash className="w-3.5 h-3.5" />}
-            >
-              Delete account
-            </Button>
-          </div>
+                {dangerZoneOpen && (
+                  <div className="px-4 pb-4 pt-1 space-y-3 border-t border-[#FECACA]">
+                    <p className="type-secondary text-[#7F1D1D] text-[14px] leading-relaxed">
+                      Permanently delete your profile and personal streaks from this device.
+                    </p>
+                    <Button
+                      variant="danger-outline"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteConfirmInput('');
+                        setDeleteConfirmOpen(true);
+                      }}
+                      icon={<Trash className="w-3.5 h-3.5" />}
+                    >
+                      Delete account
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1001,7 +1034,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <button
               type="button"
               onClick={handleVersionTap}
-              className="text-[12px] font-bold text-[#94A3B8] hover:text-[#64748B] active:scale-95 transition-all cursor-pointer select-none"
+              className="min-h-[44px] px-3 text-[12px] font-bold text-[#64748B] hover:text-[#1F2430] active:scale-95 transition-all cursor-pointer select-none"
             >
               Roomie v{CURRENT_APP_VERSION} {devModeUnlocked ? '• Dev Mode Active' : ''}
             </button>
@@ -1069,15 +1102,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           </div>
 
           <div className="p-3 rounded-2xl bg-[#FFF0ED] border border-[#FFD7CF] space-y-1.5">
-            <label className="type-label text-[#E5484D] block">
-              Type DELETE to confirm:
+            <label className="type-label text-[#B42318] block">
+              Type {expectedDeletePhrase} to confirm:
             </label>
             <input
               type="text"
               value={deleteConfirmInput}
               onChange={(e) => setDeleteConfirmInput(e.target.value)}
-              placeholder="DELETE"
-              className="w-full px-3 py-2 rounded-xl border border-[#E6E8EE] bg-white text-[14px] font-bold uppercase tracking-widest focus:outline-none focus:border-[#E5484D] text-center"
+              placeholder={expectedDeletePhrase}
+              className="w-full px-3 py-2 rounded-xl border border-[#E6E8EE] bg-white text-[14px] font-bold tracking-wide focus:outline-none focus:border-[#E5484D] text-center"
             />
           </div>
 
@@ -1088,7 +1121,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <Button
               variant="danger-outline"
               size="md"
-              disabled={deleteConfirmInput.trim().toUpperCase() !== 'DELETE'}
+              disabled={deleteConfirmInput.trim().toLowerCase() !== expectedDeletePhrase.toLowerCase()}
               onClick={() => {
                 setDeleteConfirmOpen(false);
                 onClose();

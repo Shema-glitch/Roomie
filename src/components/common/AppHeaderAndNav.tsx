@@ -111,6 +111,7 @@ interface AppHeaderProps {
   isDemoMode: boolean;
   unreadNotifsCount: number;
   pendingJoinRequestsCount?: number;
+  hasOpenChoreDraft?: boolean;
   onSelectTab: (tab: AppTab) => void;
   onOpenHouseholdSwitcher: () => void;
   onOpenShowQR: () => void;
@@ -129,9 +130,9 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
     isDemoMode,
     unreadNotifsCount,
     pendingJoinRequestsCount = 0,
+    hasOpenChoreDraft = false,
     onSelectTab,
     onOpenHouseholdSwitcher,
-    onOpenShowQR,
     onOpenSyncPanel,
     onOpenNotifications,
     onOpenProfileSettings,
@@ -162,14 +163,14 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
         }`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 md:flex-initial">
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenHouseholdSwitcher();
               }}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+              className="min-h-[44px] flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
               aria-label={t('nav.switchHousehold')}
             >
               <span className="type-section-heading max-w-[215px] sm:max-w-[260px] md:max-w-none truncate text-[14px] sm:text-[18px]">
@@ -181,7 +182,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
 
           <nav
             aria-label="Desktop Navigation"
-            className="hidden md:flex items-center gap-0.5 lg:gap-1 p-1 bg-[#EEF0F6] rounded-2xl border border-[#CBD5E1] shrink min-w-0"
+            className="hidden md:flex items-center gap-2 p-1 bg-[#EEF0F6] rounded-2xl border border-[#CBD5E1] shrink min-w-0"
           >
             {DESKTOP_NAV_ITEMS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -197,7 +198,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                     });
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
+                  className={`relative min-h-[44px] min-w-[44px] flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-xl text-[14px] font-heading font-black transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                     isActive
                       ? 'bg-white text-[#1F2033] shadow-xs border border-[#CBD5E1]'
                       : 'text-[#4B5063] hover:text-[#1F2033] hover:bg-white/70 border border-transparent'
@@ -213,6 +214,12 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                     {tab.renderIcon(isActive)}
                   </span>
                   <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tabLabel}</span>
+                  {tab.id === 'chores' && hasOpenChoreDraft && (
+                    <span
+                      aria-label="Weekly picks open"
+                      className="ms-0.5 w-2.5 h-2.5 rounded-full bg-[#FF6B4A] border border-[#D94E30] shrink-0"
+                    />
+                  )}
                   {tab.id === 'apartment' && pendingJoinRequestsCount > 0 && (
                     <span className="ms-0.5 min-w-[20px] h-5 px-1.5 bg-[#FF6B4A] text-[#1F2033] rounded-full text-xs font-black leading-none flex items-center justify-center shadow-2xs">
                       {pendingJoinRequestsCount}
@@ -223,14 +230,14 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
             })}
           </nav>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {
                 sound.playTap();
                 onOpenSyncPanel();
               }}
-              className={`relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 border flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`relative w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 border flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                 syncStatus === 'syncing'
                   ? 'bg-[#EEF0FD] border-[#C7D2FE] text-[#3B4BC4]'
                   : syncStatus === 'offline'
@@ -264,7 +271,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 haptics.tokenClink();
                 sound.tokenClink();
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
+              className="hidden sm:inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
               title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
               aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
             >
@@ -283,7 +290,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 }
                 onOpenNotifications();
               }}
-              className="relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#CBD5E1] flex items-center justify-center text-[#1F2033] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
+              className="relative w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 bg-white border border-[#CBD5E1] flex items-center justify-center text-[#1F2033] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
               aria-label={t('nav.openNotifications')}
             >
               <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-5 h-5" />
@@ -300,7 +307,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 sound.playTap();
                 onOpenProfileSettings();
               }}
-              className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
+              className="w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 flex items-center justify-center hover:ring-2 hover:ring-[#FF6B4A] active:scale-[0.96] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer"
               aria-label={t('nav.profileSettings')}
             >
               <Avatar
@@ -321,11 +328,12 @@ AppHeader.displayName = 'AppHeader';
 interface AppBottomNavProps {
   activeTab: AppTab;
   pendingJoinRequestsCount?: number;
+  hasOpenChoreDraft?: boolean;
   onSelectTab: (tab: AppTab) => void;
 }
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
-  ({ activeTab, pendingJoinRequestsCount = 0, onSelectTab }) => {
+  ({ activeTab, pendingJoinRequestsCount = 0, hasOpenChoreDraft = false, onSelectTab }) => {
     const { t } = useI18n();
     return (
       <nav
@@ -359,6 +367,12 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
                 }`}
               >
                 {tabItem.renderIcon(isActive)}
+                {tabItem.id === 'chores' && hasOpenChoreDraft && (
+                  <span
+                    aria-label="Weekly picks open"
+                    className="absolute -top-0.5 -end-1 w-2.5 h-2.5 rounded-full bg-[#FF6B4A] border border-white"
+                  />
+                )}
                 {showJoinBadge && (
                   <span className="absolute -top-1 -end-1.5 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-[#1F2033] rounded-full text-xs font-black leading-none flex items-center justify-center border-2 border-white shadow-xs">
                     {pendingJoinRequestsCount}

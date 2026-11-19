@@ -111,7 +111,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
           </div>
         </button>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {subTab === 'topics' || !isExpanded ? (
             <Button
               variant="primary"
@@ -141,7 +141,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             }}
             aria-label={isExpanded ? 'Collapse discussions and rules' : 'Expand discussions and rules'}
             aria-expanded={isExpanded}
-            className="tactile-press w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+            className="tactile-press w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
             <CaretDown
               weight="bold"

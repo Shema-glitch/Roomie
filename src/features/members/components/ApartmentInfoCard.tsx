@@ -146,7 +146,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
           </div>
         </button>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {isExpanded && (
             <Button
               variant="outline"
@@ -170,7 +170,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             }}
             aria-label={isExpanded ? 'Collapse apartment info' : 'Expand apartment info'}
             aria-expanded={isExpanded}
-            className="tactile-press w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+            className="tactile-press w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
             <CaretDown
               weight="bold"
@@ -194,7 +194,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             <button
               type="button"
               onClick={() => handleCopy(activePassword, 'Wi-Fi password')}
-              className="text-xs font-bold text-[#1D4ED8] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+              className="min-h-[44px] min-w-[44px] px-2.5 text-xs font-bold text-[#1D4ED8] hover:underline flex items-center justify-center gap-1.5 shrink-0 cursor-pointer rounded-xl hover:bg-[#DBEAFE]/50 transition-colors"
             >
               <Copy weight="bold" className="w-3.5 h-3.5" />
               <span>Copy password</span>
@@ -215,7 +215,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="p-1 text-[#64748B] hover:text-[#1F2430] shrink-0 cursor-pointer"
+                  className="w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-[#64748B] hover:text-[#1F2430] hover:bg-[#F1F5F9] shrink-0 cursor-pointer transition-colors"
                   aria-label={showPassword ? 'Hide Wi-Fi password' : 'Show Wi-Fi password'}
                 >
                   {showPassword ? (
@@ -239,7 +239,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             <button
               type="button"
               onClick={() => handleCopy(activeAddress, 'Delivery address')}
-              className="text-xs font-bold text-[#0B6B5F] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+              className="min-h-[44px] min-w-[44px] px-2.5 text-xs font-bold text-[#0B6B5F] hover:underline flex items-center justify-center gap-1.5 shrink-0 cursor-pointer rounded-xl hover:bg-[#CCFBF1]/50 transition-colors"
             >
               <Copy weight="bold" className="w-3.5 h-3.5" />
               <span>Copy address</span>

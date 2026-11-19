@@ -349,6 +349,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
           isOpen={profileSettingsOpen}
           onClose={() => setProfileSettingsOpen(false)}
           currentUser={currentUser}
+          householdName={activeHousehold?.name}
           settings={settings}
           onUpdateSettings={async (updates) => {
             const s = await api.updateSettings(updates);
