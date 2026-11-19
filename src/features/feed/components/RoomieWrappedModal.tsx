@@ -222,7 +222,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
               </h3>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-left">
+            <div className="grid grid-cols-2 gap-3 text-start">
               <Card padding="md" className="bg-[#F0FDFA] border-2 border-[#CCFBF1] space-y-1">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[#0F766E]">
                   <CheckCircle weight="fill" className="w-4 h-4 text-[#14B8A6]" />
@@ -277,7 +277,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
 
             <div className="space-y-3">
               <Card padding="sm" className="bg-[#FEF3C7]/50 border-2 border-[#FDE68A] flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3 text-left min-w-0">
+                <div className="flex items-center gap-3 text-start min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
                     <Icon icon="fluent-emoji-flat:pot-of-food" className="w-6 h-6" />
                   </div>
@@ -296,7 +296,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
               </Card>
 
               <Card padding="sm" className="bg-[#FDF2F8] border-2 border-[#FCE7F3] flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3 text-left min-w-0">
+                <div className="flex items-center gap-3 text-start min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-[#EC4899]/20 flex items-center justify-center shrink-0">
                     <Heart weight="fill" className="w-6 h-6 text-[#EC4899]" />
                   </div>

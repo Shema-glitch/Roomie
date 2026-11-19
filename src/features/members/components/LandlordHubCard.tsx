@@ -23,6 +23,7 @@ import { containsIdentityDocument } from '../../../utils/privacyGuards';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { useToast } from '../../../components/common/Toast';
+import { Button } from '../../../components/common/Button';
 
 export interface LandlordHubCardProps {
   landlordProfile?: LandlordProfile | null;
@@ -133,33 +134,32 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
   return (
     <div className="bg-white rounded-[24px] p-5 border-2 border-[#E5E9F0] shadow-xs mb-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
             <Wrench weight="duotone" className="w-5 h-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-heading font-black text-[#1F2430] text-[16px]">Landlord &amp; Maintenance Hub</h3>
             <p className="type-caption text-[#64748B]">
-              Direct landlord contacts, emergencies & repairs
+              Direct landlord contacts, emergencies &amp; repairs
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {!isEditing && (
-            <button
-              type="button"
-              onClick={() => {
-                sound.playTap();
-                setIsEditing(true);
-              }}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F7F8FB] text-[#475569] font-bold text-[12px] hover:text-[#1F2430] border border-[#E6E8EE] transition-colors cursor-pointer"
-            >
-              <PencilSimple weight="bold" className="w-3.5 h-3.5" />
-              <span>Edit Contact</span>
-            </button>
-          )}
-        </div>
+        {!isEditing && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="whitespace-nowrap shrink-0"
+            onClick={() => {
+              sound.playTap();
+              setIsEditing(true);
+            }}
+            icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
+          >
+            Edit
+          </Button>
+        )}
       </div>
 
       {/* EDIT MODE */}

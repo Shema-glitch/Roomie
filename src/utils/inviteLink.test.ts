@@ -1,6 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extractInviteCodeFromInput, buildInviteUrl } from './inviteLink';
+import { extractInviteCodeFromInput, buildInviteUrl, getPublicInviteOrigin } from './inviteLink';
+
+test('getPublicInviteOrigin never leaks localhost or 127.0.0.1 in invite links', () => {
+  const prevWindow = (globalThis as { window?: unknown }).window;
+  try {
+    (globalThis as { window?: unknown }).window = {
+      location: { protocol: 'http:', hostname: 'localhost', origin: 'http://localhost:3000' },
+    };
+    assert.equal(getPublicInviteOrigin(), 'https://roomie.app');
+
+    (globalThis as { window?: unknown }).window = {
+      location: { protocol: 'http:', hostname: '127.0.0.1', origin: 'http://127.0.0.1:3000' },
+    };
+    assert.equal(getPublicInviteOrigin(), 'https://roomie.app');
+
+    (globalThis as { window?: unknown }).window = {
+      location: { protocol: 'https:', hostname: 'myroomie.app', origin: 'https://myroomie.app' },
+    };
+    assert.equal(getPublicInviteOrigin(), 'https://myroomie.app');
+  } finally {
+    (globalThis as { window?: unknown }).window = prevWindow;
+  }
+});
 
 test('extractInviteCodeFromInput parses HTTPS invite URLs cleanly', () => {
   assert.equal(

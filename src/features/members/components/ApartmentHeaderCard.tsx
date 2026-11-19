@@ -294,12 +294,12 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
                   <Shield weight="duotone" className="w-5 h-5 text-[#5B5BD6]" />
                 </div>
-                <div className="text-left min-w-0">
+                <div className="text-start min-w-0">
                   <p className="font-heading font-black text-sm text-[#1F2430]">Handover Admin</p>
-                  <p className="text-xs text-[#64748B]">Pass doorkeeper controls to a roomie</p>
+                  <p className="text-xs text-[#64748B]">Make another roomie the flat admin</p>
                 </div>
               </div>
-              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0 rtl-flip" />
             </button>
           )}
 
@@ -317,12 +317,12 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
                   <Buildings weight="duotone" className="w-5 h-5 text-[#FF6B4A]" />
                 </div>
-                <div className="text-left min-w-0">
+                <div className="text-start min-w-0">
                   <p className="font-heading font-black text-sm text-[#1F2430]">Switch Flat</p>
                   <p className="text-xs text-[#64748B]">Change or create another apartment</p>
                 </div>
               </div>
-              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0 rtl-flip" />
             </button>
           )}
 
@@ -340,12 +340,12 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 <div className="w-9 h-9 rounded-xl bg-white border border-[#E5E9F0] flex items-center justify-center shrink-0">
                   <House weight="duotone" className="w-5 h-5 text-[#19B5A5]" />
                 </div>
-                <div className="text-left min-w-0">
+                <div className="text-start min-w-0">
                   <p className="font-heading font-black text-sm text-[#1F2430]">Flat Guide</p>
                   <p className="text-xs text-[#64748B]">See how chores, ledger &amp; deposits work</p>
                 </div>
               </div>
-              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0" />
+              <CaretRight weight="bold" className="w-4 h-4 text-[#94A3B8] shrink-0 rtl-flip" />
             </button>
           )}
 
@@ -362,14 +362,14 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
               <div className="w-9 h-9 rounded-xl bg-white border border-[#FECACA] flex items-center justify-center shrink-0">
                 <SignOut weight="duotone" className="w-5 h-5 text-[#E5484D]" />
               </div>
-              <div className="text-left min-w-0">
+              <div className="text-start min-w-0">
                 <p className="font-heading font-black text-sm text-[#C53030]">
                   Leave This Apartment
                 </p>
                 <p className="text-xs text-[#9B2C2C]">Sign out of this shared flat</p>
               </div>
             </div>
-            <CaretRight weight="bold" className="w-4 h-4 text-[#E5484D] shrink-0" />
+            <CaretRight weight="bold" className="w-4 h-4 text-[#E5484D] shrink-0 rtl-flip" />
           </button>
         </div>
       </BottomSheet>

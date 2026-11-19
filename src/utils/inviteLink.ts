@@ -55,15 +55,19 @@ export function extractInviteCodeFromInput(raw: string | null | undefined): stri
 /**
  * Resolves the base HTTPS origin used in shareable QR codes & invite links.
  * Uses `VITE_PUBLIC_APP_URL` when set (essential when scanning from native APK localhost),
- * otherwise falls back to the active browser HTTP(S) origin.
+ * ignores localhost / 127.0.0.1 origins so mobile shares never leak dev URLs,
+ * and falls back to `'https://roomie.app'`.
  */
 export function getPublicInviteOrigin(): string {
-  const configured = (import.meta as any)?.env?.VITE_PUBLIC_APP_URL as string | undefined;
-  if (configured && configured.trim()) {
+  const configured = import.meta.env?.VITE_PUBLIC_APP_URL;
+  if (typeof configured === 'string' && configured.trim()) {
     return configured.trim().replace(/\/+$/, '');
   }
   if (typeof window !== 'undefined' && /^https?:$/.test(window.location.protocol)) {
-    return window.location.origin.replace(/\/+$/, '');
+    const host = window.location.hostname.toLowerCase();
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return window.location.origin.replace(/\/+$/, '');
+    }
   }
   return 'https://roomie.app';
 }

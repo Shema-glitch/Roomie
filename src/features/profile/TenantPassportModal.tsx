@@ -116,7 +116,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           {/* Background watermark badge */}
           <ShieldCheck
             weight="fill"
-            className="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 pointer-events-none"
+            className="absolute -end-4 -bottom-4 w-32 h-32 text-white/5 pointer-events-none"
           />
 
           <div className="flex items-center justify-between gap-2">
@@ -162,7 +162,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
                 <span className="text-xs font-normal text-[#94A3B8]"> / 100</span>
               </span>
             </div>
-            <div className="text-right">
+            <div className="text-end">
               <span className="text-[10px] font-bold text-[#FDE047] uppercase block">
                 Verified Tier
               </span>

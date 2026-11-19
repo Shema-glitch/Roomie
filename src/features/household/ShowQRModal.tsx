@@ -57,12 +57,17 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
           });
         }
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         if (active) {
           setQrDataUrl('');
-          debugLog.warn('qr_scanner', 'generate_qr', err?.message || 'Failed to render QR', {
-            householdId: household.id,
-          });
+          debugLog.warn(
+            'qr_scanner',
+            'generate_qr',
+            err instanceof Error ? err.message : 'Failed to render QR',
+            {
+              householdId: household.id,
+            }
+          );
         }
       });
     return () => {
@@ -191,9 +196,6 @@ export const ShowQRModal: React.FC<ShowQRModalProps> = ({
           <div className="type-big-number tracking-widest text-[#FF6B4A] py-0.5 select-all font-mono">
             {household.inviteCode}
           </div>
-          <p className="type-secondary text-[13px] truncate" title={inviteUrl}>
-            {inviteUrl}
-          </p>
         </Card>
 
         {/* Action Controls */}

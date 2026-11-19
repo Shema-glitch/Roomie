@@ -728,4 +728,22 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 28. Final Visual, Link & Copy Polish (`feature/final-master-polish`)
+
+- **Mobile-Safe Invite Origins & Clean Code Card (`src/utils/inviteLink.ts`, `src/utils/inviteLink.test.ts`, `src/features/household/ShowQRModal.tsx`)**:
+  - Updated `getPublicInviteOrigin()` so `localhost` and `127.0.0.1` web/Capacitor origins fall back cleanly to `VITE_PUBLIC_APP_URL` or `'https://roomie.app'` instead of exposing `http://localhost:3000` in WhatsApp shares or QR codes.
+  - Removed the raw URL line beneath the invite code inside `ShowQRModal.tsx` and replaced untyped error/env `any` usage cleanly.
+- **Apartment Card Button & Copy Consistency (`src/features/members/components/LandlordHubCard.tsx`, `src/features/members/components/ApartmentHeaderCard.tsx`)**:
+  - Replaced wrapping `"Edit Contact"` button in `LandlordHubCard.tsx` with single-line `<Button variant="outline" size="sm" className="whitespace-nowrap shrink-0">Edit</Button>` matching `ApartmentInfoCard.tsx`.
+  - Updated `Handover Admin` description in `ApartmentHeaderCard.tsx` from `"Pass doorkeeper controls to a roomie"` to `"Make another roomie the flat admin"` with logical RTL alignment (`text-start` and `.rtl-flip`).
+- **Recap, Track Record & Shoutout Consistency (`RoomieWrappedModal.tsx`, `TenantPassportModal.tsx`, `WeeklyAwardsSection.tsx`)**:
+  - Verified Monthly Flat Recap (`RoomieWrappedModal.tsx`), Verified Roomie Record (`TenantPassportModal.tsx`), and single-flatmate `w-full` shoutouts (`WeeklyAwardsSection.tsx`) alongside real dynamic metrics and RTL logical alignment (`text-start` / `text-end`).
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **122 / 122 passing** across 19 suites (including `localhost` invite-origin unit test).
+  - `npm run build`: succeeded, initial JS entry bundle **165.07 kB gzipped** (< 200 KB threshold).
+
+---
+
+
 
