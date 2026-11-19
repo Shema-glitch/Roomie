@@ -745,5 +745,20 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 29. Branded Storybook Toasts & Collapsible Flat Info Accordions (`feature/branded-toasts-and-collapsible-flat-info`)
+
+- **Branded Storybook Toast Redesign (`src/components/common/Toast.tsx`, `src/index.css`)**:
+  - Upgraded floating toasts to Roomie's tactile Storybook geometry (`mx-auto max-w-[360px] rounded-2xl border-2 border-b-4 px-3.5 py-2.5 shadow-lg backdrop-blur-sm`) below the safe top navbar offset (`top-[calc(env(safe-area-inset-top)+68px)] z-[80]`).
+  - Added semantic brand surfaces and Phosphor `fill` icon badges (`BellRinging` coral `#FF6B4A` for `info`, `CheckCircle` emerald `#2CA358` for `success`, `WarningCircle`/`Sparkle` amber `#F59E0B` for `warning`/`reward`, `XCircle` rose `#E5484D` for `error`), a `w-7 h-7 rounded-full` close button, and a matching GPU-composited bottom auto-dismiss progress bar (`.toast-progress-bar`).
+- **Priority Ordering & Smart Collapsible Accordions on `Flat Info & Rules` (`ApartmentScreen.tsx`, `ApartmentInfoCard.tsx`, `HouseDiscussionsAndRules.tsx`, `LandlordHubCard.tsx`)**:
+  - Reordered cards into roommate priority order: `ApartmentInfoCard` (top, expanded by default via `defaultExpanded = true`, collapsible header with rotating `CaretDown`) → `HouseDiscussionsAndRules` (middle, collapsed with `0 active` summary and `Propose` CTA when empty, auto-expanding when discussions or rules become active) → `LandlordHubCard` (bottom, collapsed by default into summary bar with `Landlord & Maintenance`, landlord name, and active-issue pill unless `activeIssues.length > 0`).
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **122 / 122 passing** across 19 suites.
+  - `npm run build`: succeeded in **8.50s**, initial JS entry bundle **165.29 kB gzipped** (< 200 KB threshold).
+
+---
+
+
 
 

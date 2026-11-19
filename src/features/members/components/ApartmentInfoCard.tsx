@@ -17,6 +17,7 @@ import {
   PencilSimple,
   ShieldWarning,
   Check,
+  CaretDown,
 } from '@phosphor-icons/react';
 
 import {
@@ -28,6 +29,7 @@ export { IDENTITY_DOCUMENT_REGEX, containsIdentityDocument };
 
 export interface ApartmentInfoCardProps {
   infoCard?: HouseholdInfoCard | null;
+  defaultExpanded?: boolean;
   onUpdateInfoCard: (params: {
     wifiSsid?: string;
     wifiPassword?: string;
@@ -39,9 +41,11 @@ export interface ApartmentInfoCardProps {
 
 export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
   infoCard,
+  defaultExpanded = true,
   onUpdateInfoCard,
 }) => {
   const { showToast } = useToast();
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [showPassword, setShowPassword] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
@@ -111,35 +115,70 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
   };
 
   return (
-    <div className="rounded-[24px] border-2 border-[#E5E9F0] bg-white p-5 shadow-xs space-y-4">
-      {/* Header with Title & Edit button */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-heading font-black text-base text-[#1F2430] flex items-center gap-2">
-            <WifiHigh weight="duotone" className="w-5 h-5 text-[#3B82F6] shrink-0" />
-            <span className="whitespace-nowrap">Apartment Info</span>
-          </h3>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Wi-Fi, delivery pin, trash schedule &amp; emergency contact
-          </p>
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="whitespace-nowrap shrink-0"
+    <div className="rounded-[24px] border-2 border-[#E5E9F0] bg-white p-4 sm:p-5 shadow-xs space-y-3.5">
+      {/* Header with Accordion Toggle & Edit button */}
+      <div className="flex items-center justify-between gap-2.5">
+        <button
+          type="button"
           onClick={() => {
             sound.playTap();
-            haptics.tokenClink();
-            setIsEditOpen(true);
+            setIsExpanded((prev) => !prev);
           }}
-          icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
+          aria-expanded={isExpanded}
+          className="flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer group"
         >
-          Edit
-        </Button>
+          <div className="w-9 h-9 rounded-2xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6] shrink-0">
+            <WifiHigh weight="duotone" className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-heading font-black text-base text-[#1F2430] truncate">
+              Apartment Info
+            </h3>
+            <p className="text-xs text-[#64748B] truncate">
+              {isExpanded
+                ? 'Wi-Fi, delivery pin, trash & emergency'
+                : `${activeSsid} · Tap to view details`}
+            </p>
+          </div>
+        </button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isExpanded && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="whitespace-nowrap shrink-0"
+              onClick={() => {
+                sound.playTap();
+                haptics.tokenClink();
+                setIsEditOpen(true);
+              }}
+              icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
+            >
+              Edit
+            </Button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setIsExpanded((prev) => !prev);
+            }}
+            aria-label={isExpanded ? 'Collapse apartment info' : 'Expand apartment info'}
+            aria-expanded={isExpanded}
+            className="w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+          >
+            <CaretDown
+              weight="bold"
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
-      {/* Cohesive Tinted Inner Rows */}
+      {isExpanded && (
       <div className="space-y-2.5">
         {/* Wi-Fi Details Row */}
         <div className="rounded-2xl bg-[#F0F7FF] border border-[#DBEAFE] p-3.5 space-y-2">
@@ -230,6 +269,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
           </p>
         </div>
       </div>
+      )}
 
       {/* Edit Modal */}
       {isEditOpen && (

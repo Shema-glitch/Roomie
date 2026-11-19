@@ -391,13 +391,24 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </div>
 
         <div
-          className={`w-full lg:col-span-5 self-start h-fit space-y-6 lg:sticky lg:top-0 mt-6 lg:mt-0 ${
+          className={`w-full lg:col-span-5 self-start h-fit space-y-4 lg:sticky lg:top-0 mt-6 lg:mt-0 ${
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >
           <ApartmentInfoCard
             infoCard={activeInfoCard}
             onUpdateInfoCard={handleUpdateInfoCard}
+            defaultExpanded={true}
+          />
+          <HouseDiscussionsAndRules
+            topics={topics}
+            agreements={agreements}
+            roommates={roommates}
+            currentUser={currentUser}
+            onOpenProposeModal={() => setProposeModalOpen(true)}
+            onOpenAddAgreementModal={() => setAddAgreementModalOpen(true)}
+            onVoteTopic={onVoteTopic}
+            onAddComment={onAddComment}
           />
           <LandlordHubCard
             landlordProfile={landlordProfile}
@@ -415,16 +426,6 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             onOpenMoveInSnapshot={() => setMoveInModalOpen(true)}
             onOpenMoveOutSnapshot={() => setMoveOutModalOpen(true)}
             onOpenExportPdf={() => setExportPdfModalOpen(true)}
-          />
-          <HouseDiscussionsAndRules
-            topics={topics}
-            agreements={agreements}
-            roommates={roommates}
-            currentUser={currentUser}
-            onOpenProposeModal={() => setProposeModalOpen(true)}
-            onOpenAddAgreementModal={() => setAddAgreementModalOpen(true)}
-            onVoteTopic={onVoteTopic}
-            onAddComment={onAddComment}
           />
         </div>
       </div>

@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  User,
   PhoneCall,
   WhatsappLogo,
   Wrench,
@@ -16,6 +15,7 @@ import {
   ShieldCheck,
   FilePdf,
   CaretRight,
+  CaretDown,
 } from '@phosphor-icons/react';
 import { LandlordProfile, MaintenanceIssue, MaintenanceIssueStatus } from '../../../types';
 import { copyTextToClipboard } from '../../../utils/clipboard';
@@ -130,37 +130,88 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
 
   const activeIssues = maintenanceIssues.filter((i) => !i.deletedAt && i.status !== 'fixed');
   const fixedIssues = maintenanceIssues.filter((i) => !i.deletedAt && i.status === 'fixed');
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => activeIssues.length > 0);
+  const prevIssueCountRef = useRef(activeIssues.length);
+
+  useEffect(() => {
+    if (prevIssueCountRef.current === 0 && activeIssues.length > 0) {
+      setIsExpanded(true);
+    }
+    prevIssueCountRef.current = activeIssues.length;
+  }, [activeIssues.length]);
+
+  const displayLandlordName = landlordProfile?.landlordName || name;
 
   return (
-    <div className="bg-white rounded-[24px] p-5 border-2 border-[#E5E9F0] shadow-xs mb-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+    <div className="bg-white rounded-[24px] p-4 sm:p-5 border-2 border-[#E5E9F0] shadow-xs space-y-3.5">
+      {/* Header Summary Bar */}
+      <div className="flex items-center justify-between gap-2.5">
+        <button
+          type="button"
+          onClick={() => {
+            sound.playTap();
+            setIsExpanded((prev) => !prev);
+          }}
+          aria-expanded={isExpanded}
+          className="flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer"
+        >
           <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
             <Wrench weight="duotone" className="w-5 h-5" />
           </div>
-          <div className="min-w-0">
-            <h3 className="font-heading font-black text-[#1F2430] text-[16px]">Landlord &amp; Maintenance Hub</h3>
-            <p className="type-caption text-[#64748B]">
-              Direct landlord contacts, emergencies &amp; repairs
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="font-heading font-black text-[#1F2430] text-base truncate">
+                Landlord &amp; Maintenance
+              </h3>
+              {activeIssues.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-[11px] font-bold whitespace-nowrap shrink-0">
+                  {activeIssues.length} active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-[#64748B] truncate">
+              {displayLandlordName} · Repairs, condition &amp; lease export
             </p>
           </div>
-        </div>
-        {!isEditing && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="whitespace-nowrap shrink-0"
+        </button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {isExpanded && !isEditing && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="whitespace-nowrap shrink-0"
+              onClick={() => {
+                sound.playTap();
+                setIsEditing(true);
+              }}
+              icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
+            >
+              Edit
+            </Button>
+          )}
+          <button
+            type="button"
             onClick={() => {
               sound.playTap();
-              setIsEditing(true);
+              setIsExpanded((prev) => !prev);
             }}
-            icon={<PencilSimple weight="bold" className="w-3.5 h-3.5" />}
+            aria-label={isExpanded ? 'Collapse landlord and maintenance' : 'Expand landlord and maintenance'}
+            aria-expanded={isExpanded}
+            className="w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
           >
-            Edit
-          </Button>
-        )}
+            <CaretDown
+              weight="bold"
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        </div>
       </div>
+
+      {isExpanded && (
+      <div>
 
       {/* EDIT MODE */}
       {isEditing ? (
@@ -456,6 +507,8 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
             </button>
           )}
         </div>
+      )}
+      </div>
       )}
     </div>
   );

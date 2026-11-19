@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ActionCard } from '../../../components/common/ActionCard';
 import { InfoCard } from '../../../components/common/InfoCard';
 import { IconTile } from '../../../components/common/IconTile';
@@ -14,6 +14,7 @@ import {
   ThumbsDown,
   PaperPlaneRight,
   FileText,
+  CaretDown,
 } from '@phosphor-icons/react';
 
 interface HouseDiscussionsAndRulesProps {
@@ -38,9 +39,19 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
   onAddComment,
 }) => {
   const { showToast } = useToast();
+  const totalActiveCount = topics.length + agreements.length;
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => totalActiveCount > 0);
+  const prevCountRef = useRef(totalActiveCount);
   const [subTab, setSubTab] = useState<'topics' | 'agreements'>('topics');
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [postingTopicId, setPostingTopicId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (prevCountRef.current === 0 && totalActiveCount > 0) {
+      setIsExpanded(true);
+    }
+    prevCountRef.current = totalActiveCount;
+  }, [totalActiveCount]);
 
   const handleVote = async (topicId: string, vote: 'agree' | 'disagree' | 'neutral') => {
     sound.playTap();
@@ -69,33 +80,76 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
   };
 
   return (
-    <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <h3 className="type-section-heading">House discussions and rules</h3>
-          <p className="type-secondary text-[14px]">Agreed standards and votes</p>
+    <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-xs space-y-3.5 rounded-[24px]">
+      <div className="flex items-center justify-between gap-2.5">
+        <button
+          type="button"
+          onClick={() => {
+            sound.playTap();
+            setIsExpanded((prev) => !prev);
+          }}
+          aria-expanded={isExpanded}
+          className="flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer"
+        >
+          <div className="w-9 h-9 rounded-2xl bg-[#EEF0FD] flex items-center justify-center text-[#5B5BD6] shrink-0">
+            <ChatCircleDots weight="duotone" className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="font-heading font-black text-base text-[#1F2430] truncate">
+                House discussions and rules
+              </h3>
+            </div>
+            <p className="text-xs text-[#64748B] truncate">
+              {totalActiveCount} active · Agreed standards and votes
+            </p>
+          </div>
+        </button>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {subTab === 'topics' || !isExpanded ? (
+            <Button
+              variant="primary"
+              size="sm"
+              className="whitespace-nowrap shrink-0"
+              onClick={onOpenProposeModal}
+              icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
+            >
+              Propose
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              className="whitespace-nowrap shrink-0"
+              onClick={onOpenAddAgreementModal}
+              icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
+            >
+              Add rule
+            </Button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              sound.playTap();
+              setIsExpanded((prev) => !prev);
+            }}
+            aria-label={isExpanded ? 'Collapse discussions and rules' : 'Expand discussions and rules'}
+            aria-expanded={isExpanded}
+            className="w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+          >
+            <CaretDown
+              weight="bold"
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
         </div>
-        {subTab === 'topics' ? (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onOpenProposeModal}
-            icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
-          >
-            Propose
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onOpenAddAgreementModal}
-            icon={<PlusCircle className="w-3.5 h-3.5" weight="fill" />}
-          >
-            Add rule
-          </Button>
-        )}
       </div>
 
+      {isExpanded && (
+      <>
       <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#E6E8EE]/70">
         <button
           type="button"
@@ -285,6 +339,8 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             ))
           )}
         </div>
+      )}
+      </>
       )}
     </InfoCard>
   );
