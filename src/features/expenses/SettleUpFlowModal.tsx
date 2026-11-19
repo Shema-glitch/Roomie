@@ -259,7 +259,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                 Amount Paid ({currencyLabel} {sym})
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 type-big-number text-[#64748B]">
+                <span className="absolute start-4 top-1/2 -translate-y-1/2 type-big-number text-[#64748B]">
                   {sym}
                 </span>
                 <input
@@ -269,7 +269,7 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white type-big-number focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
+                  className="w-full ps-10 pe-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white type-big-number focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
                 />
               </div>
             </div>

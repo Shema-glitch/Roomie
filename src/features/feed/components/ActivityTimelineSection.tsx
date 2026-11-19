@@ -3,6 +3,7 @@ import { InfoCard } from '../../../components/common/InfoCard';
 import { Button } from '../../../components/common/Button';
 import { ChatMessage } from '../../../types';
 import { sound } from '../../../services/sound';
+import { useI18n } from '../../../i18n/I18nProvider';
 import {
   ChatCircleDots,
   ArrowsClockwise,
@@ -60,6 +61,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
   onOpenChoreReveal,
   onSelectExpense,
 }) => {
+  const { t } = useI18n();
   const recentActivities = [...activityMessages]
     .filter((m) => m.type === 'activity')
     .slice(-3)
@@ -95,12 +97,12 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     });
 
     const categoryLabel = isDraft
-      ? 'Chore Draft'
+      ? t('home.chorePicks')
       : isChore
-      ? 'Chores'
+      ? t('nav.chores')
       : isExpense
-      ? 'Money'
-      : 'Apartment';
+      ? t('nav.money')
+      : t('nav.apartment');
 
     const tileColors = {
       indigo: 'bg-[#EEF0FD] text-[#5B5BD6] border-[#C7D2FE]',
@@ -179,8 +181,8 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
         <div>
-          <h3 className="type-section-heading">Recent Activity</h3>
-          <p className="type-secondary text-xs text-[#64748B]">Latest flat events &amp; updates</p>
+          <h3 className="type-section-heading">{t('home.recentActivity')}</h3>
+          <p className="type-secondary text-xs text-[#64748B]">{t('home.flatAtAGlance')}</p>
         </div>
         <button
           type="button"
@@ -191,8 +193,8 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
           className="btn-tactile ease-spring px-3 py-1.5 rounded-xl bg-white border border-[#E6E8EE] hover:border-[#CBD5E1] text-xs font-bold text-[#5B5BD6] flex items-center gap-1.5 shadow-2xs cursor-pointer select-none whitespace-nowrap shrink-0"
         >
           <ChatCircleDots weight="fill" className="w-3.5 h-3.5" />
-          <span>Open Chat</span>
-          <ArrowRight weight="bold" className="w-3 h-3" />
+          <span>{t('home.openChat')}</span>
+          <ArrowRight weight="bold" className="w-3 h-3 rtl-flip" />
         </button>
       </div>
 
@@ -202,7 +204,7 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
         </div>
       ) : (
         <InfoCard padding="md" className="text-center type-secondary bg-white text-xs">
-          No recent apartment updates yet.
+          {t('home.noRecentActivity')}
         </InfoCard>
       )}
     </div>

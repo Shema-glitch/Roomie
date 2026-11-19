@@ -1,5 +1,6 @@
 import React from 'react';
 import { House } from '@phosphor-icons/react';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface DemoModeBannerProps {
   householdName?: string;
@@ -10,6 +11,7 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
   householdName,
   onSetupRealFlat,
 }) => {
+  const { t } = useI18n();
   return (
     <div
       role="status"
@@ -21,7 +23,8 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
             Demo
           </span>
           <span className="truncate">
-            Previewing {householdName || 'sample flat'}
+            {householdName ? `${householdName} — ` : ''}
+            {t('banner.demo')}
           </span>
         </div>
         <button
@@ -30,7 +33,7 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
           className="text-[12px] font-bold bg-[#FF6B4A] hover:bg-[#E85635] text-white px-2.5 py-1 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
         >
           <House weight="fill" className="w-3 h-3" />
-          <span>My real flat</span>
+          <span>{t('banner.exitDemo')}</span>
         </button>
       </div>
     </div>

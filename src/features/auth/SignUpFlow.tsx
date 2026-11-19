@@ -70,7 +70,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 <div>
                   <label className="type-label block mb-1.5 text-xs">Full Name</label>
                   <div className="relative flex items-center">
-                    <User weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <User weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute start-3.5 pointer-events-none" />
                     <input
                       type="text"
                       value={name}
@@ -78,7 +78,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                       placeholder="e.g. Alex Johnson"
                       autoFocus
                       required
-                      className="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                      className="w-full ps-11 pe-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                     />
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                 <div>
                   <label className="type-label block mb-1.5 text-xs">Email Address</label>
                   <div className="relative flex items-center">
-                    <EnvelopeSimple weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                    <EnvelopeSimple weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute start-3.5 pointer-events-none" />
                     <input
                       type="email"
                       value={email}
@@ -155,7 +155,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                       placeholder="alex@university.edu"
                       autoFocus
                       required
-                      className={`w-full pl-11 pr-4 py-3 rounded-2xl border-2 bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:ring-3 transition-all min-h-[48px] ${
+                      className={`w-full ps-11 pe-4 py-3 rounded-2xl border-2 bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:ring-3 transition-all min-h-[48px] ${
                         emailTouched && !emailCheck.valid && email.trim()
                           ? 'border-[#E5484D] focus:border-[#E5484D] focus:ring-[#E5484D]/15'
                           : 'border-[#E6E8EE] focus:border-[#FF6B4A] focus:ring-[#FF6B4A]/15'
@@ -230,7 +230,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
               <button
                 type="button"
                 onClick={() => onStepChange('name')}
-                className="text-[#FF6B4A] font-bold text-[11px] hover:underline shrink-0 ml-2 cursor-pointer"
+                className="text-[#FF6B4A] font-bold text-[11px] hover:underline shrink-0 ms-2 cursor-pointer"
               >
                 Edit
               </button>
@@ -240,7 +240,7 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
               <div>
                 <label className="type-label block mb-1.5 text-xs">Create Password</label>
                 <div className="relative flex items-center">
-                  <LockKey weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute left-3.5 pointer-events-none" />
+                  <LockKey weight="duotone" className="w-5 h-5 text-[#8F9CAE] absolute start-3.5 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -248,12 +248,12 @@ export const SignUpFlow: React.FC<SignUpFlowProps> = ({
                     placeholder="Create a strong password"
                     autoFocus
                     required
-                    className="w-full pl-11 pr-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
+                    className="w-full ps-11 pe-11 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] font-medium text-[#1F2430] placeholder-[#9AA5B5] focus:outline-none focus:border-[#FF6B4A] focus:ring-3 focus:ring-[#FF6B4A]/15 transition-all min-h-[48px]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
+                    className="absolute end-3 text-[#8F9CAE] hover:text-[#1F2430] cursor-pointer p-1.5"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? <EyeSlash weight="duotone" className="w-4 h-4" /> : <Eye weight="duotone" className="w-4 h-4" />}

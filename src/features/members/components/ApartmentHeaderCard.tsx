@@ -7,6 +7,7 @@ import { BottomSheet, CenterDialog } from '../../../components/ui/overlays';
 import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
+import { useI18n } from '../../../i18n/I18nProvider';
 import {
   Buildings,
   QrCode,
@@ -47,6 +48,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
   onReviewJoinRequest,
   onRefreshRequests,
 }) => {
+  const { t } = useI18n();
   const [checkingRequests, setCheckingRequests] = useState(false);
   const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
   const [settingsSheetOpen, setSettingsSheetOpen] = useState(false);
@@ -108,7 +110,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                     aria-label="Apartment privacy info"
                   >
                     <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-                    <span>Private</span>
+                    <span>{t('apartment.private')}</span>
                   </button>
                 </div>
               </div>
@@ -122,8 +124,8 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 setSettingsSheetOpen(true);
               }}
               className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 flex items-center justify-center transition-all cursor-pointer"
-              aria-label="Apartment settings"
-              title="Apartment Settings"
+              aria-label={t('apartment.settings')}
+              title={t('apartment.settings')}
             >
               <DotsThree weight="bold" className="w-5 h-5" />
             </button>
@@ -142,7 +144,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
               }}
               icon={<QrCode weight="duotone" className="w-4 h-4" />}
             >
-              Invite Roomie
+              {t('apartment.inviteRoomie')}
             </Button>
 
             <button
@@ -160,7 +162,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                   pendingCount > 0 ? 'text-[#D97706]' : 'text-[#5B5BD6]'
                 }`}
               />
-              <span>Requests</span>
+              <span>{t('apartment.requests')}</span>
               {pendingCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#F59E0B] text-white text-[11px] font-black leading-none">
                   {pendingCount}
@@ -175,25 +177,22 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
       <CenterDialog
         isOpen={privacyDialogOpen}
         onClose={() => setPrivacyDialogOpen(false)}
-        title="Private Flat Shield"
-        subtitle="Members-only workspace"
+        title={t('apartment.privateTitle')}
+        subtitle={household.name}
         maxWidth="sm"
         footer={
           <Button variant="primary" size="md" fullWidth onClick={() => setPrivacyDialogOpen(false)}>
-            Got it
+            {t('common.done')}
           </Button>
         }
       >
-        <div className="space-y-3 text-left">
+        <div className="space-y-3 text-start">
           <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0]">
             <ShieldCheck weight="duotone" className="w-6 h-6 text-[#059669] shrink-0 mt-0.5" />
             <p className="text-[13px] text-[#065F46] leading-relaxed font-medium">
-              All flat topics, chores, chat messages, and ledger balances are strictly private to approved flatmates.
+              {t('apartment.privateBody', { name: household.name })}
             </p>
           </div>
-          <p className="text-[13px] text-[#475569] leading-relaxed font-medium px-1">
-            The admin only approves incoming roomies. House rules, expenses, and decisions are handled together by the flat.
-          </p>
         </div>
       </CenterDialog>
 

@@ -8,6 +8,8 @@ import { PaperPlaneRight, CheckCircle, ArrowsClockwise } from '@phosphor-icons/r
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
 import { buildChatTimeline } from './chatActivity';
+import { useI18n } from '../../i18n/I18nProvider';
+import { localizeChoreDraftState } from '../../i18n/helpers';
 
 const QUICK_REACTIONS = [
   { emoji: 'heart', icon: 'fluent-emoji-flat:red-heart', label: 'Love' },
@@ -53,13 +55,17 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
   onNavigateAction,
 }) => {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [activeReactionMsgId, setActiveReactionMsgId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const draftState = getChoreDraftState(draftRound, currentUser.id);
+  const draftState = localizeChoreDraftState(
+    getChoreDraftState(draftRound, currentUser.id),
+    t
+  );
   const timeline = useMemo(() => buildChatTimeline(messages), [messages]);
   const hasDraftText = inputText.trim().length > 0;
 
@@ -113,7 +119,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   const pinnedSubtitle =
     draftState.state === 'draft_open'
-      ? 'Pick your chores before Sunday'
+      ? t('draft.chatBannerSubtitle')
       : draftState.bannerSubtitle;
 
   return (
@@ -125,10 +131,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       <div className="py-2.5 px-1 flex items-center justify-between border-b border-[#E6E8EE] mb-2 shrink-0">
         <div>
           <h3 className="font-heading font-black text-xl text-[#1F2430]">
-            {householdName ? `${householdName} Chat` : 'Flat Chat'}
+            {householdName || t('chat.title')}
           </h3>
           <p className="text-sm font-semibold text-[#475569]">
-            {roommates.length} {roommates.length === 1 ? 'roomie' : 'roomies'} in this flat
+            {t('chat.activeRoomies', { count: roommates.length })}
           </p>
         </div>
         <div className="flex -space-x-2">
@@ -147,7 +153,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 pr-3 sm:pr-5">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 pe-3 sm:pe-5">
         {/* Pinned Chore Picks State Pill */}
         {draftState.state !== 'reveal_done' && (
           <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2.5 shadow-2xs">
@@ -182,10 +188,10 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         {timeline.length === 0 ? (
           <div className="h-full flex items-center justify-center p-6 text-center">
             <EmptyState
-              title="No messages yet"
-              description="Say hello to your roomies! System activity, chore reminders, and shared receipt notices will also appear here."
+              title={t('chat.emptyTitle')}
+              description={t('chat.emptySubtitle')}
               mascotState="idle"
-              bubbleText="Say hello to roomies!"
+              bubbleText={t('chat.title')}
               className="border-none shadow-none bg-transparent"
             />
           </div>
@@ -233,7 +239,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                   }`}
                 >
                   {!isMe && (
-                    <span className="text-xs font-bold text-[#475569] ml-1">
+                    <span className="text-xs font-bold text-[#475569] ms-1">
                       {sender?.name.split(' ')[0]}
                     </span>
                   )}
@@ -247,16 +253,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                     }}
                     onTouchStart={() => handleTouchStart(msg.id)}
                     onTouchEnd={handleTouchEnd}
-                    title="Tap or long-press to react"
+                    title={t('chat.tapToReact')}
                     className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug shadow-xs relative cursor-pointer transition-all select-text ${
                       isMe
-                        ? 'bg-[#FF6B4A] text-white rounded-br-sm shadow-[#FF6B4A]/20'
-                        : 'bg-white text-[#1F2430] border border-[#E6E8EE] rounded-bl-sm'
+                        ? 'bg-[#FF6B4A] text-white rounded-ee-sm shadow-[#FF6B4A]/20'
+                        : 'bg-white text-[#1F2430] border border-[#E6E8EE] rounded-es-sm'
                     }`}
                   >
                     <p className="font-medium break-words">{displayBody}</p>
                     <span
-                      className={`text-[10px] block text-right mt-1 leading-none font-medium ${
+                      className={`text-[10px] block text-end mt-1 leading-none font-medium ${
                         isMe ? 'text-white/80' : 'text-[#64748B]'
                       }`}
                     >
@@ -272,10 +278,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                     <div
                       onClick={(e) => e.stopPropagation()}
                       className={`flex items-center gap-2 p-2 bg-white border-2 border-[#E6E8EE] shadow-lg rounded-2xl z-20 animate-in fade-in zoom-in-95 duration-150 ${
-                        isMe ? 'ml-auto' : 'mr-auto'
+                        isMe ? 'ms-auto' : 'me-auto'
                       }`}
                     >
-                      <span className="text-sm font-black text-[#475569] pl-1">React:</span>
+                      <span className="text-sm font-black text-[#475569] ps-1">
+                        {t('chat.reactPrefix')}
+                      </span>
                       {QUICK_REACTIONS.map((r) => (
                         <button
                           key={r.emoji}
@@ -333,20 +341,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Message roomies..."
+          placeholder={t('chat.placeholder')}
           className="flex-1 min-w-0 h-11 px-4 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] text-[#1F2430] placeholder:text-[#64748B] focus:outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/30 shadow-xs"
         />
         <button
           type="submit"
           disabled={!hasDraftText || sending}
-          aria-label="Send message"
+          aria-label={t('chat.sendAria')}
           className={`w-11 h-11 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center transition-all active:scale-95 shadow-xs ${
             hasDraftText && !sending
               ? 'bg-[#FF6B4A] hover:bg-[#E55A3A] text-white cursor-pointer'
               : 'bg-[#E6E8EE] text-[#94A3B8] cursor-not-allowed'
           }`}
         >
-          <PaperPlaneRight weight="fill" className="w-5 h-5" />
+          <PaperPlaneRight weight="fill" className="w-5 h-5 rtl-flip" />
         </button>
       </form>
     </div>

@@ -21,6 +21,8 @@ import {
 } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { getChoreDraftState } from '../../utils/stateTable';
+import { useI18n } from '../../i18n/I18nProvider';
+import { localizeChoreDraftState } from '../../i18n/helpers';
 
 interface NotificationsModalProps {
   isOpen: boolean;
@@ -75,9 +77,13 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
   onActionClick,
 }) => {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [filter, setFilter] = useState<'all' | 'chore' | 'expense'>('all');
 
-  const draftState = getChoreDraftState(draftRound, currentUser?.id || '');
+  const draftState = localizeChoreDraftState(
+    getChoreDraftState(draftRound, currentUser?.id || ''),
+    t
+  );
 
   const activePendingRequestIds = new Set(pendingJoinRequests.map((r) => r.id));
 
@@ -109,8 +115,8 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
     <BottomSheet
       isOpen={isOpen}
       onClose={onClose}
-      title="Notifications"
-      subtitle="Gentle updates & reminders"
+      title={t('notifs.title')}
+      subtitle={t('notifs.subtitle')}
     >
       <div className="space-y-4">
         {/* Filter pills & Mark All Read */}
@@ -118,9 +124,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({
           <div className="flex gap-1.5">
             {(
               [
-                { id: 'all', label: 'All' },
-                { id: 'chore', label: 'Chores' },
-                { id: 'expense', label: 'Money' },
+                { id: 'all', label: t('common.all') },
+                { id: 'chore', label: t('nav.chores') },
+                { id: 'expense', label: t('nav.money') },
               ] satisfies Array<{ id: 'all' | 'chore' | 'expense'; label: string }>
             ).map((f) => (
               <button

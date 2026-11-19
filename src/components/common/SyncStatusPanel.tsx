@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { IconTile } from './IconTile';
 import { CloudCheck, CloudSlash, ArrowsClockwise, WarningCircle } from '@phosphor-icons/react';
+import { useI18n } from '../../i18n/I18nProvider';
 
 export type SyncStatusType = 'synced' | 'syncing' | 'offline' | 'needs_attention';
 
@@ -24,11 +25,12 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
   onTriggerSync,
   householdName = 'Your Apartment',
 }) => {
+  const { t } = useI18n();
   const getStatusConfig = () => {
     switch (status) {
       case 'syncing':
         return {
-          label: 'Syncing',
+          label: t('nav.syncing'),
           color: 'indigo' as const,
           icon: <ArrowsClockwise weight="duotone" className="w-5 h-5 animate-spin" />,
           pillClass: 'bg-[#EEF0FD] text-[#5B5BD6] border-[#D3D5F9]',
@@ -36,28 +38,28 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
         };
       case 'offline':
         return {
-          label: 'Offline',
+          label: t('nav.offline'),
           color: 'slate' as const,
           icon: <CloudSlash weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#FFF0ED] text-[#E5484D] border-[#FFD7CF]',
-          description: 'Working in offline mode. All chores and logged expenses are safely cached locally and will sync when you reconnect.',
+          description: t('banner.offline'),
         };
       case 'needs_attention':
         return {
-          label: 'Needs attention',
+          label: t('nav.needsAttention'),
           color: 'amber' as const,
           icon: <WarningCircle weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#FFF8E6] text-[#8A6200] border-[#FFE8A3]',
-          description: 'A shared ledger update requires resolution. Tap "Sync now" to fetch the latest state from your roomies.',
+          description: t('sync.subtitle'),
         };
       case 'synced':
       default:
         return {
-          label: 'Synced',
+          label: t('nav.synced'),
           color: 'green' as const,
           icon: <CloudCheck weight="duotone" className="w-5 h-5" />,
           pillClass: 'bg-[#E6FAF8] text-[#19B5A5] border-[#97E5DE]',
-          description: 'All apartment changes, expenses, and chore rotations are backed up and live across roomies.',
+          description: t('sync.allUpToDate'),
         };
     }
   };
@@ -68,7 +70,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Sync status"
+      title={t('sync.title')}
       subtitle={householdName}
     >
       <div className="space-y-4">
@@ -113,7 +115,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
             disabled={status === 'syncing'}
             icon={status === 'syncing' ? <ArrowsClockwise weight="fill" className="w-4 h-4 animate-spin" /> : <CloudCheck weight="fill" className="w-4 h-4" />}
           >
-            {status === 'syncing' ? 'Syncing...' : status === 'offline' ? 'Reconnect & Sync' : 'Sync now'}
+            {status === 'syncing' ? t('sync.syncingNow') : t('sync.syncNow')}
           </Button>
         </div>
       </div>

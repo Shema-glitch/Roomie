@@ -3,6 +3,7 @@ import { WeeklyAward } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { Icon } from '@iconify/react';
+import { useI18n } from '../../../i18n/I18nProvider';
 
 interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
@@ -19,6 +20,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   isRoomieWrappedEnabled = false,
   onOpenWrapped,
 }) => {
+  const { t } = useI18n();
   const [celebrated, setCelebrated] = useState(false);
 
   if (!awards || awards.length === 0) return null;
@@ -78,10 +80,10 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           </div>
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-heading font-black text-[#1F2430] truncate">
-              Weekly Shoutouts
+              {t('home.weeklyShoutouts')}
             </h3>
             <p className="text-xs font-semibold text-[#64748B] truncate">
-              Little wins around the flat
+              {t('home.flatAtAGlance')}
             </p>
           </div>
         </div>
@@ -184,7 +186,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             haptics.tokenClink();
             onOpenWrapped();
           }}
-          className="btn-tactile ease-spring w-full p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border border-[#FFD3C9] flex items-center justify-between text-left cursor-pointer shadow-2xs select-none gap-2"
+          className="btn-tactile ease-spring w-full p-3 rounded-2xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF8E6] to-[#EEF0FD] border border-[#FFD3C9] flex items-center justify-between text-start cursor-pointer shadow-2xs select-none gap-2"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-white border border-[#FFD3C9] flex items-center justify-center shrink-0">
@@ -193,19 +195,19 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="text-xs font-black text-[#1F2430] truncate">
-                  Monthly Flat Recap
+                  {t('home.monthlyFlatRecap')}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-[#FFE4DD] text-[#D94E30] text-[11px] font-bold shrink-0">
-                  Beta
+                  {t('common.beta')}
                 </span>
               </div>
               <span className="text-[10px] text-[#64748B] truncate block">
-                View flat recap &amp; share story card
+                {t('home.recapSubtitle')}
               </span>
             </div>
           </div>
           <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-[11px] font-black whitespace-nowrap shrink-0">
-            Open Story
+            {t('home.viewRecap')}
           </span>
         </button>
       )}

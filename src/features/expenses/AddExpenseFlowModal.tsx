@@ -341,7 +341,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                 Total Amount ({currencyLabel} {sym})
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black font-heading text-[#6B7280]">
+                <span className="absolute start-4 top-1/2 -translate-y-1/2 text-2xl font-black font-heading text-[#6B7280]">
                   {sym}
                 </span>
                 <input
@@ -351,7 +351,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   placeholder="0.00"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
+                  className="w-full ps-10 pe-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-2xl font-heading font-black text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[48px]"
                 />
               </div>
             </div>
@@ -367,7 +367,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setReceiptUrl(undefined)}
-                    className="absolute top-2 right-2 px-2.5 py-1 rounded-xl bg-black/60 text-white text-xs font-bold hover:bg-black/80"
+                    className="absolute top-2 end-2 px-2.5 py-1 rounded-xl bg-black/60 text-white text-xs font-bold hover:bg-black/80"
                   >
                     Remove
                   </button>

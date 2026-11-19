@@ -12,6 +12,8 @@ import { sound } from '../../services/sound';
 import { ArrowsClockwise, PlusCircle, CheckCircle, AirplaneTilt } from '@phosphor-icons/react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
 import { ChoresSidebar } from './components/ChoresSidebar';
+import { useI18n } from '../../i18n/I18nProvider';
+import { localizeChoreDraftState } from '../../i18n/helpers';
 
 const DoneFlowModal = React.lazy(() =>
   import('./DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
@@ -79,6 +81,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   onSetAway,
   onAddChore,
 }) => {
+  const { t, isRtl } = useI18n();
   const [scheduleFilter, setScheduleFilter] = useState<'my' | 'all'>('my');
 
   const [doneModalChore, setDoneModalChore] = useState<Chore | null>(null);
@@ -103,8 +106,8 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   );
 
   const draftState = useMemo(
-    () => getChoreDraftState(draftRound, currentUser.id),
-    [draftRound, currentUser.id]
+    () => localizeChoreDraftState(getChoreDraftState(draftRound, currentUser.id), t),
+    [draftRound, currentUser.id, t]
   );
 
   return (
@@ -196,8 +199,8 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="min-w-0 flex-1">
                 <SectionTitle
-                  title="Chores schedule"
-                  subtitle="Who's doing what this week"
+                  title={t('chores.scheduleTitle')}
+                  subtitle={t('chores.scheduleSubtitle')}
                 />
               </div>
               <Button
@@ -207,19 +210,19 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                 onClick={() => setNewChoreModalOpen(true)}
                 icon={<PlusCircle className="w-4 h-4" weight="fill" />}
               >
-                New Chore
+                {t('chores.newChore')}
               </Button>
             </div>
 
             <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+                className="pointer-events-none absolute top-1.5 bottom-1.5 start-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
                 style={{
                   transform:
                     scheduleFilter === 'my'
                       ? 'translate3d(0%, 0, 0)'
-                      : 'translate3d(100%, 0, 0)',
+                      : `translate3d(${isRtl ? -100 : 100}%, 0, 0)`,
                 }}
               />
               <button
@@ -234,7 +237,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                My tasks ({myAssignments.length})
+                {t('chores.myTasksTab', { count: myAssignments.length })}
               </button>
               <button
                 type="button"
@@ -248,18 +251,18 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     : 'text-[#475569] hover:text-[#1F2430]'
                 }`}
               >
-                All chores ({assignments.length})
+                {t('chores.allChoresTab', { count: assignments.length })}
               </button>
             </div>
           </div>
 
           {chores.length === 0 && (
             <EmptyState
-              title="No chores in rotation"
-              description="Add household chores like kitchen cleaning, bathroom, or trash to start the rotation."
+              title={t('chores.emptyTitle')}
+              description={t('chores.emptyDesc')}
               mascotState="calm"
-              bubbleText="Add your first chore!"
-              actionLabel="Add chore"
+              bubbleText={t('chores.emptyBubble')}
+              actionLabel={t('chores.addChore')}
               actionIcon={<PlusCircle className="w-4 h-4" weight="fill" />}
               onAction={() => setNewChoreModalOpen(true)}
             />

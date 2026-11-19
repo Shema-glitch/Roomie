@@ -49,6 +49,8 @@ import { HomeSidebar } from './components/HomeSidebar';
 import { WeeklyAwardsSection } from './components/WeeklyAwardsSection';
 import { ApartmentPulseGrid } from './components/ApartmentPulseGrid';
 import { useFeatureFlag } from '../../config/featureFlags';
+import { useI18n } from '../../i18n/I18nProvider';
+import { getLocalizedGreeting, localizeChoreDraftState } from '../../i18n/helpers';
 
 const DoneFlowModal = React.lazy(() =>
   import('../chores/DoneFlowModal').then((m) => ({ default: m.DoneFlowModal }))
@@ -117,6 +119,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onRemindRoomies,
 }) => {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [doneChoreModalTarget, setDoneChoreModalTarget] = useState<Chore | null>(null);
   const [vibeSummary, setVibeSummary] = useState<HouseholdVibeSummary | undefined>(
     () => localCache.getSnapshot(household?.id)?.vibeSummary
@@ -349,7 +352,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const sym = getCurrencySymbol(household?.currency);
-  const choreDraftState = getChoreDraftState(draftRound, currentUser.id);
+  const rawChoreDraftState = getChoreDraftState(draftRound, currentUser.id);
+  const choreDraftState = localizeChoreDraftState(rawChoreDraftState, t);
   const homeCount = roommates.filter((r) => r.isHome).length;
   const reducedMotion =
     typeof window !== 'undefined' && window.matchMedia
@@ -377,20 +381,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 space-y-2">
                   <h2 className="text-2xl sm:text-3xl font-heading font-black text-[#1F2430] leading-snug">
-                    Hey, {currentUser.name.split(' ')[0]}!
+                    {getLocalizedGreeting(
+                      new Date().getHours(),
+                      currentUser.name.split(' ')[0],
+                      t
+                    )}
                   </h2>
                   <p className="text-sm sm:text-base font-semibold text-[#475569]">
-                    Your flat at a glance.
+                    {t('home.flatAtAGlance')}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-[#64748B]">
                     <span className="inline-flex items-center gap-1.5 font-semibold text-[#1F2430] whitespace-nowrap">
                       <Icon icon="fluent-emoji-flat:fire" className="w-4 h-4 shrink-0" />
-                      <AnimatedNumber value={currentUser.streakDays} /> day streak
+                      <AnimatedNumber value={currentUser.streakDays} />{' '}
+                      <span>{t('home.dayStreak', { count: '' }).trim()}</span>
                     </span>
                     <span aria-hidden="true">·</span>
                     <span className="font-medium whitespace-nowrap">
-                      <AnimatedNumber value={currentUser.points} /> pts
+                      <AnimatedNumber value={currentUser.points} />{' '}
+                      <span>{t('home.pts', { count: '' }).trim()}</span>
                     </span>
                     {/* 1-Tap Quick Presence Toggle */}
                     <button
@@ -400,19 +410,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         onToggleHomeStatus();
                         triggerMascotReaction(
                           currentUser.isHome ? 'calm' : 'cheering',
-                          currentUser.isHome ? 'Catch you later!' : 'Welcome back home!'
+                          currentUser.isHome ? t('home.away') : t('home.imHome')
                         );
-                        showToast(currentUser.isHome ? 'Status: Out of the flat' : 'Status: You are Home', 'info');
+                        showToast(currentUser.isHome ? t('home.away') : t('home.imHome'), 'info');
                       }}
                       className={`btn-tactile ease-spring inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer border-2 ${
                         currentUser.isHome
                           ? 'bg-[#E6FAF8] text-[#138E82] border-[#19B5A5]/40 shadow-2xs'
                           : 'bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]'
                       }`}
-                      title="Tap to toggle if you are at home or out"
                     >
                       <span className={`w-2 h-2 rounded-full ${currentUser.isHome ? 'bg-[#19B5A5] animate-pulse' : 'bg-[#94A3B8]'}`} />
-                      <span>{currentUser.isHome ? "I'm Home" : 'Out'}</span>
+                      <span>{currentUser.isHome ? t('home.imHome') : t('home.away')}</span>
                     </button>
                   </div>
                 </div>
@@ -450,7 +459,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     ))}
                   </div>
                   <span className="text-xs font-semibold text-[#475569]">
-                    {homeCount} of {roommates.length} at home
+                    {t('home.atHomeCount', { home: homeCount, total: roommates.length })}
                   </span>
                 </div>
               </div>
@@ -654,7 +663,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     className="flex-1"
                     onClick={() => onNavigateTab('chores')}
                   >
-                    View chores
+                    {t('draft.doneAction')}
                   </Button>
                   <Button
                     variant="primary"
@@ -666,7 +675,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     }}
                     icon={<CheckCircle weight="fill" className="w-4 h-4" />}
                   >
-                    Mark done
+                    {t('chores.markDone')}
                   </Button>
                 </div>
               }

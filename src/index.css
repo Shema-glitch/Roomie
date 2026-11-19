@@ -78,6 +78,23 @@
     direction: rtl;
     text-align: right;
   }
+
+  [dir="rtl"] body {
+    font-family: 'Noto Sans Arabic', 'Tahoma', 'Arial', 'Nunito', -apple-system, sans-serif;
+    line-height: 1.65;
+  }
+
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3,
+  [dir="rtl"] h4,
+  [dir="rtl"] .font-heading {
+    font-family: 'Noto Sans Arabic', 'Baloo 2', 'Tahoma', 'Arial', sans-serif;
+  }
+
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
 }
 
 /* Unified Type Scale Roles */

@@ -18,6 +18,7 @@ import { api } from '../../services/api';
 import { localCache } from '../../services/localCache';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { ChatCircleDots, UsersThree } from '@phosphor-icons/react';
+import { useI18n } from '../../i18n/I18nProvider';
 import { ApartmentHeaderCard } from './components/ApartmentHeaderCard';
 import { RoomiesRoster } from './components/RoomiesRoster';
 import { HouseDiscussionsAndRules } from './components/HouseDiscussionsAndRules';
@@ -90,6 +91,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   infoCard,
   onUpdateInfoCard,
 }) => {
+  const { t, isRtl } = useI18n();
   const sym = getCurrencySymbol(household?.currency);
 
   const [mobileTab, setMobileTab] = useState<'roomies' | 'meetings'>('roomies');
@@ -332,12 +334,12 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-[#E6E8EE]/70">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+            className="pointer-events-none absolute top-1.5 bottom-1.5 start-1.5 w-[calc(50%-6px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
             style={{
               transform:
                 mobileTab === 'roomies'
                   ? 'translate3d(0%, 0, 0)'
-                  : 'translate3d(100%, 0, 0)',
+                  : `translate3d(${isRtl ? -100 : 100}%, 0, 0)`,
             }}
           />
           <button
@@ -353,7 +355,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             }`}
           >
             <UsersThree className="w-4 h-4" weight={mobileTab === 'roomies' ? 'fill' : 'duotone'} />
-            <span>Roomies ({members.length})</span>
+            <span>{t('apartment.roomiesTab', { count: members.length })}</span>
           </button>
           <button
             type="button"
@@ -368,7 +370,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
             }`}
           >
             <ChatCircleDots className="w-4 h-4" weight={mobileTab === 'meetings' ? 'fill' : 'duotone'} />
-            <span>Flat Info &amp; Rules</span>
+            <span>{t('apartment.rulesTab')}</span>
           </button>
         </div>
       </div>

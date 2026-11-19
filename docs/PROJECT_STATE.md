@@ -711,3 +711,21 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 27. Phase 4C: Real Multi-Language i18n & Arabic RTL Polish (Branch `feature/i18n-and-rtl`)
+
+- **Lightweight Typed i18n Engine & Code-Split Locale Dictionaries (`src/i18n/index.ts`, `src/i18n/I18nProvider.tsx`, `src/i18n/helpers.ts`, `src/i18n/locales/*.ts`)**:
+  - Built zero-dependency typed i18n engine supporting English (`en`), Turkish (`tr`), French (`fr`), and Arabic (`ar`) with 100% compile-time `TranslationKey` parity across all 4 dictionaries.
+  - Kept initial bundle lean by synchronously bundling only `en` and code-splitting `tr` (`4.38 kB` gzipped), `fr` (`4.29 kB` gzipped), and `ar` (`4.73 kB` gzipped) via dynamic `import()`.
+  - Synced live `settings.language` updates from `useRoomieAppState.ts` and `ProfileSettingsModal.tsx` through `<I18nProvider>` and `<html dir lang>`.
+- **Multi-Screen Translation & Arabic RTL Layout Fixes**:
+  - Translated primary navigation & banners (`AppHeaderAndNav.tsx`, `OfflineBanner.tsx`, `DemoModeBanner.tsx`), auth (`WelcomeLanding.tsx`, `SignInForm.tsx`), Home (`HomeScreen.tsx`, `ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`, `HomeSidebar.tsx`), Chores (`ChoresScreen.tsx`), Expenses (`ExpensesScreen.tsx`, `BalanceOverviewSection.tsx`), Chat (`ChatScreen.tsx`), Apartment (`ApartmentScreen.tsx`, `ApartmentHeaderCard.tsx`), and Top-Nav Modals (`ProfileSettingsModal.tsx`, `NotificationsModal.tsx`, `SyncStatusPanel.tsx`, `AppUpdateModal.tsx`).
+  - Fixed segmented pill sliders (`SignInForm.tsx`, `ChoresScreen.tsx`, `ExpensesScreen.tsx`, `ApartmentScreen.tsx`, `ProfileSettingsModal.tsx`) to use logical `start-*` offsets and direction-aware `translate3d` (`isRtl ? -1 : 1`).
+  - Switched physical positioning/corners/icons to logical CSS equivalents (`ps-`/`pe-`, `start-`/`end-`, `text-start`/`text-end`, `rounded-ee-sm`/`rounded-es-sm`, `.rtl-flip`) across `ChatScreen.tsx`, `Avatar.tsx`, `SignUpFlow.tsx`, `AddExpenseFlowModal.tsx`, `SettleUpFlowModal.tsx`, and `index.css` (Arabic font stack + comfortable line-height).
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **121 / 121 passing** across 19 suites (including `src/i18n/i18n.test.ts`).
+  - `npm run build`: succeeded, initial JS entry bundle **165.03 kB gzipped** (< 200 KB threshold).
+
+---
+
+

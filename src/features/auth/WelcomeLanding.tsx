@@ -5,6 +5,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
 import { ArrowRight, QrCode, X, Lightning } from '@phosphor-icons/react';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface WelcomeLandingProps {
   isRevealed: boolean;
@@ -31,6 +32,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
   onReplayShowcase,
   onDemoFlat,
 }) => {
+  const { t } = useI18n();
   const [signingInEmail, setSigningInEmail] = useState<string | null>(null);
 
   const handleQuickTap = async (acct: SavedLoginAccount) => {
@@ -54,10 +56,10 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
               size={savedAccounts.length > 0 ? 'lg' : 'xl'}
               bubbleText={
                 pendingInviteCode
-                  ? 'You got a flat invite!'
+                  ? t('auth.gotInvite')
                   : savedAccounts.length > 0
-                  ? 'Welcome back!'
-                  : 'Welcome to Roomie!'
+                  ? t('auth.welcomeBack')
+                  : t('auth.welcomeToRoomie')
               }
             />
           </div>
@@ -68,7 +70,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 isRevealed ? 'animate-fade-up delay-150' : 'opacity-0'
               }`}
             >
-              The joyful way to share a home.
+              {t('auth.heroTitle')}
             </h1>
             {savedAccounts.length === 0 && (
               <p
@@ -76,7 +78,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                   isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
                 }`}
               >
-                Fair chores, quiet splits, and happy flatmates living in harmony.
+                {t('auth.heroSubtitle')}
               </p>
             )}
           </div>
@@ -88,11 +90,11 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
           >
             <div className="flex items-center justify-between px-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-[#64748B]">
-                Quick sign-in
+                {t('auth.quickSignIn')}
               </span>
               <span className="text-[11px] font-bold text-[#19B5A5] inline-flex items-center gap-1">
                 <Lightning weight="fill" className="w-3 h-3" />
-                1-tap saved logins
+                {t('auth.oneTapSaved')}
               </span>
             </div>
             <div className="space-y-2">
@@ -102,13 +104,13 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 return (
                   <div
                     key={acct.email}
-                    className="group relative w-full p-2.5 pr-3 rounded-2xl bg-white border-2 border-[#E6E8EE] hover:border-[#FF6B4A] shadow-xs flex items-center justify-between gap-2.5 transition-all"
+                    className="group relative w-full p-2.5 pe-3 rounded-2xl bg-white border-2 border-[#E6E8EE] hover:border-[#FF6B4A] shadow-xs flex items-center justify-between gap-2.5 transition-all"
                   >
                     <button
                       type="button"
                       disabled={Boolean(signingInEmail)}
                       onClick={() => handleQuickTap(acct)}
-                      className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer disabled:opacity-60 focus:outline-none"
+                      className="flex items-center gap-3 min-w-0 flex-1 text-start cursor-pointer disabled:opacity-60 focus:outline-none"
                     >
                       <Avatar src={acct.avatar} name={acct.name} size="md" className="shrink-0" />
                       <div className="min-w-0 flex-1">
@@ -156,7 +158,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
 
         {pendingInviteCode && (
           <div
-            className={`p-3.5 rounded-3xl bg-[#F0FDFB] border-2 border-[#19B5A5]/40 text-left space-y-1.5 ${
+            className={`p-3.5 rounded-3xl bg-[#F0FDFB] border-2 border-[#19B5A5]/40 text-start space-y-1.5 ${
               isRevealed ? 'animate-fade-up delay-250' : 'opacity-0'
             }`}
           >
@@ -195,9 +197,9 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 sound.playTap();
                 onGetStarted();
               }}
-              icon={<ArrowRight weight="bold" className="w-5 h-5" />}
+              icon={<ArrowRight weight="bold" className="w-5 h-5 rtl-flip" />}
             >
-              {pendingInviteCode ? 'Create Account & Join Flat' : 'Get Started'}
+              {pendingInviteCode ? t('auth.getStarted') : t('auth.getStarted')}
             </Button>
           </div>
 
@@ -211,7 +213,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
                 onSignIn();
               }}
             >
-              I already have an account
+              {t('auth.haveAccount')}
             </Button>
           </div>
 
@@ -228,7 +230,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
               }}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
             >
-              <span>Replay presentation</span>
+              <span>{t('auth.howItWorks')}</span>
             </button>
             <span className="text-[#CBD5E1]">•</span>
             <button
@@ -239,7 +241,7 @@ export const WelcomeLanding: React.FC<WelcomeLandingProps> = ({
               }}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#6B7280] hover:text-[#FF6B4A] py-1.5 px-3 rounded-full hover:bg-white transition-all cursor-pointer"
             >
-              <span>Demo flat</span>
+              <span>{t('auth.tryDemoFlat')}</span>
             </button>
           </div>
         </div>

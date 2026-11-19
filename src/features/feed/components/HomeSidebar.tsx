@@ -7,6 +7,9 @@ import { User } from '../../../types';
 import { sound } from '../../../services/sound';
 import { Icon } from '@iconify/react';
 import { Receipt, ArrowsClockwise } from '@phosphor-icons/react';
+import { useI18n } from '../../../i18n/I18nProvider';
+import { localizeChoreDraftState } from '../../../i18n/helpers';
+import type { ChoreDraftStateInfo } from '../../../utils/stateTable';
 
 interface HomeSidebarProps {
   roommates: User[];
@@ -33,16 +36,18 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
   onOpenChoreReveal,
   onOpenDraftPicks,
 }) => {
+  const { t } = useI18n();
   const homeCount = roommates.filter((r) => r.isHome).length;
+  const localizedDraft = localizeChoreDraftState(
+    choreDraftState as ChoreDraftStateInfo,
+    t
+  );
 
   return (
     <div className="space-y-6">
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
         <div className="min-w-0">
-          <h3 className="type-section-heading">Roomie presence</h3>
-          <p className="type-secondary text-[13px] text-[#64748B]">
-            Live apartment status · {homeCount} of {roommates.length} at home
-          </p>
+          <h3 className="type-section-heading">{t('home.atHomeCount', { home: homeCount, total: roommates.length })}</h3>
         </div>
 
         <div className="space-y-2.5">
@@ -68,19 +73,19 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                   />
                   <div className="min-w-0 flex-1">
                     <p className="text-[14px] font-bold text-[#1F2430] truncate">
-                      {isMe ? `${r.name.split(' ')[0]} (You)` : r.name.split(' ')[0]}
+                      {isMe ? `${r.name.split(' ')[0]} (${t('common.you')})` : r.name.split(' ')[0]}
                     </p>
                     <p className="type-secondary text-[13px] flex items-center gap-1 whitespace-nowrap">
                       <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                       <span>
-                        {r.streakDays}d streak • {r.points} pts
+                        {t('home.dayStreak', { count: r.streakDays })} · {t('home.pts', { count: r.points })}
                       </span>
                     </p>
                   </div>
                 </div>
                 <Chip
                   status={r.isHome ? 'active' : 'away'}
-                  label={r.isHome ? 'Home' : 'Away'}
+                  label={r.isHome ? t('home.imHome') : t('home.away')}
                   size="xs"
                 />
               </div>
@@ -89,12 +94,12 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
         </div>
 
         <Button variant="secondary" size="sm" fullWidth onClick={onToggleHomeStatus}>
-          Toggle my status ({currentUser.isHome ? 'Leave home' : 'Return home'})
+          {currentUser.isHome ? t('home.away') : t('home.imHome')}
         </Button>
       </InfoCard>
 
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-3">
-        <h3 className="type-section-heading">Quick actions</h3>
+        <h3 className="type-section-heading">{t('home.quickActions')}</h3>
         <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
@@ -106,13 +111,13 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                 onNavigateTab('expenses');
               }
             }}
-            className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-left hover:bg-[#FFEAE4] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
+            className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-start hover:bg-[#FFEAE4] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <Receipt weight="fill" className="w-4 h-4" />
             </div>
-            <p className="text-[14px] font-bold text-[#1F2430]">Log expense</p>
-            <p className="text-[14px] text-[#475569]">Split purchases</p>
+            <p className="text-[14px] font-bold text-[#1F2430]">{t('home.addExpense')}</p>
+            <p className="text-[14px] text-[#475569]">{t('home.expensesTile')}</p>
           </button>
 
           <button
@@ -127,16 +132,20 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                 onOpenDraftPicks();
               }
             }}
-            className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-left hover:bg-[#EDE9FE] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
+            className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-start hover:bg-[#EDE9FE] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <ArrowsClockwise weight="bold" className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">
-              {choreDraftState.state === 'reveal_done' ? 'Chore schedule' : choreDraftState.actionLabel}
+              {choreDraftState.state === 'reveal_done'
+                ? t('chores.scheduleTitle')
+                : localizedDraft.actionLabel}
             </p>
             <p className="text-[14px] text-[#475569]">
-              {choreDraftState.state === 'reveal_done' ? 'View all tasks' : choreDraftState.badgeLabel}
+              {choreDraftState.state === 'reveal_done'
+                ? t('home.myTasks')
+                : localizedDraft.badgeLabel}
             </p>
           </button>
         </div>

@@ -19,6 +19,7 @@ import {
   ChartPieSlice,
 } from '@phosphor-icons/react';
 import { formatCurrency } from './ExpenseCard';
+import { useI18n } from '../../../i18n/I18nProvider';
 
 const SpendingBreakdownChart = React.lazy(() =>
   import('../SpendingBreakdownChart').then((m) => ({ default: m.SpendingBreakdownChart }))
@@ -63,6 +64,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
   onOpenSettleModal,
 }) => {
   const { showToast } = useToast();
+  const { t } = useI18n();
   const [showCalculationInfo, setShowCalculationInfo] = useState(false);
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
 
@@ -106,10 +108,10 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
         }
         subtitle={
           myNet > 0.05
-            ? 'You are owed by your roomies'
+            ? t('expenses.youAreOwed')
             : myNet < -0.05
-            ? 'You owe shared apartment balance'
-            : 'All roomie expenses settled up'
+            ? t('expenses.youOwe')
+            : t('expenses.allSettled')
         }
         detail={
           <div className="space-y-3 mt-2">
@@ -243,7 +245,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                   }}
                   icon={<Bell className="w-4 h-4" />}
                 >
-                  Remind
+                  {t('expenses.remind')}
                 </Button>
                 <Button
                   variant="secondary"
@@ -253,7 +255,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                     onOpenSettleModal();
                   }}
                 >
-                  Confirm payment
+                  {t('expenses.confirmPayment')}
                 </Button>
               </div>
             ) : myNet < -0.05 ? (

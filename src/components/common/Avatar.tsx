@@ -76,7 +76,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       {/* Country Flag Badge */}
       {flag && (
         <span
-          className={`absolute -bottom-1 -right-1 rounded-full bg-white shadow-xs border border-[#E6E8EE] px-0.5 leading-tight flex items-center justify-center ${flagSize}`}
+          className={`absolute -bottom-1 -end-1 rounded-full bg-white shadow-xs border border-[#E6E8EE] px-0.5 leading-tight flex items-center justify-center ${flagSize}`}
           title={name}
         >
           {flag}
@@ -86,7 +86,7 @@ export const Avatar: React.FC<AvatarProps> = ({
       {/* "I'm home" status green dot (if showStatus is enabled without statusRing) */}
       {showStatus && !statusRing && isHome !== undefined && (
         <span
-          className={`absolute top-0 right-0 rounded-full border-2 border-white ${dotSize} ${
+          className={`absolute top-0 end-0 rounded-full border-2 border-white ${dotSize} ${
             isHome ? 'bg-[#3DBE6D]' : 'bg-[#9CA3AF]'
           }`}
           title={isHome ? 'Currently at home' : 'Currently away'}

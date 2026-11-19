@@ -4,6 +4,7 @@ import { supabase } from '../services/supabase';
 import { localCache } from '../services/localCache';
 import { sound } from '../services/sound';
 import { haptics } from '../utils/haptics';
+import { setLocale } from '../i18n';
 import {
   initDeviceNotificationChannel,
   requestDeviceNotificationPermission,
@@ -402,14 +403,7 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
   }, [isAuthenticated, isDemoMode, currentUser?.id, settings.pushNotifications, loadData]);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    if (settings.language === 'ar') {
-      document.documentElement.setAttribute('dir', 'rtl');
-      document.documentElement.setAttribute('lang', 'ar');
-    } else {
-      document.documentElement.setAttribute('dir', 'ltr');
-      document.documentElement.setAttribute('lang', settings.language || 'en');
-    }
+    void setLocale(settings.language || 'en');
   }, [settings.language]);
 
   useEffect(() => {

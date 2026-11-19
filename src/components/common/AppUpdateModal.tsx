@@ -6,6 +6,7 @@ import { AppReleaseInfo } from '../../services/appUpdate';
 import { DownloadSimple, Sparkle } from '@phosphor-icons/react';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface AppUpdateModalProps {
   release: AppReleaseInfo | null;
@@ -13,6 +14,7 @@ interface AppUpdateModalProps {
 }
 
 export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismiss }) => {
+  const { t } = useI18n();
   if (!release) return null;
 
   const handleDownload = () => {
@@ -28,8 +30,8 @@ export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismi
       isOpen={Boolean(release)}
       onClose={release.isMandatory ? () => {} : onDismiss}
       showClose={!release.isMandatory}
-      title="New Roomie Update"
-      subtitle={`Version ${release.versionName} is ready to install`}
+      title={t('update.title')}
+      subtitle={t('update.subtitle', { version: release.versionName })}
       maxWidth="sm"
       footer={
         <div className="space-y-2">
@@ -40,11 +42,11 @@ export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismi
             onClick={handleDownload}
             icon={<DownloadSimple weight="bold" className="w-4 h-4" />}
           >
-            Download Update
+            {t('update.download')}
           </Button>
           {!release.isMandatory && (
             <Button variant="outline" size="sm" fullWidth onClick={onDismiss}>
-              Later
+              {t('common.later')}
             </Button>
           )}
         </div>
@@ -52,7 +54,7 @@ export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismi
     >
       <div className="space-y-4 text-center">
         <div className="flex justify-center pt-1">
-          <MascotView state="celebrating" size="md" bubbleText="Fresh update ready!" />
+          <MascotView state="celebrating" size="md" bubbleText={t('update.title')} />
         </div>
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] border border-[#FFD3C9] text-xs font-black text-[#FF6B4A]">
@@ -61,9 +63,9 @@ export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismi
         </div>
 
         {release.releaseNotes && (
-          <div className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-left">
+          <div className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-start">
             <span className="text-[11px] font-black uppercase tracking-wider text-[#64748B] block mb-1">
-              What&apos;s New
+              {t('update.whatsNew')}
             </span>
             <p className="text-xs font-medium text-[#1F2430] leading-relaxed whitespace-pre-line">
               {release.releaseNotes}

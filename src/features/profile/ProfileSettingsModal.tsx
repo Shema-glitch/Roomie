@@ -43,6 +43,8 @@ import {
 } from '@phosphor-icons/react';
 import { TenantPassportModal } from './TenantPassportModal';
 import { CURRENT_APP_VERSION } from '../../config/appVersion';
+import { useI18n } from '../../i18n/I18nProvider';
+import { LANGUAGE_LABELS } from '../../i18n';
 import { useToast } from '../../components/common/Toast';
 import { Icon } from '@iconify/react';
 import { processPhoto } from '../../utils/photoPipeline';
@@ -108,7 +110,7 @@ const SettingsRowToggle: React.FC<SettingsRowToggleProps> = ({
     >
       <span
         className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
-          checked ? 'right-0.5' : 'left-0.5'
+          checked ? 'end-0.5' : 'start-0.5'
         }`}
       />
     </button>
@@ -135,6 +137,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   onCheckForUpdates,
 }) => {
   const { showToast } = useToast();
+  const { t, isRtl, changeLanguage } = useI18n();
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
@@ -263,20 +266,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   };
 
   const handleLanguageChange = async (lang: 'en' | 'tr' | 'fr' | 'ar') => {
+    await changeLanguage(lang);
     await onUpdateSettings({ language: lang });
-    if (typeof document !== 'undefined') {
-      if (lang === 'ar') {
-        document.documentElement.setAttribute('dir', 'rtl');
-        document.documentElement.setAttribute('lang', 'ar');
-      } else {
-        document.documentElement.setAttribute('dir', 'ltr');
-        document.documentElement.setAttribute('lang', lang);
-      }
-    }
     showToast(
-      `Language set to ${
-        lang === 'en' ? 'English' : lang === 'tr' ? 'Türkçe' : lang === 'fr' ? 'Français' : 'العربية'
-      }`,
+      t('profile.languageChanged', { lang: LANGUAGE_LABELS[lang] }),
       'info'
     );
   };
@@ -320,18 +313,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
       <BottomSheet
         isOpen={isOpen}
         onClose={onClose}
-        title="Profile & Settings"
-        subtitle="Manage your identity, roomie habits and account"
+        title={t('profile.modalTitle')}
+        subtitle={t('profile.modalSubtitle')}
       >
         <div className="space-y-4">
           {/* Segmented Pill Navigation with Sliding Indicator */}
           <div className="relative grid grid-cols-3 p-1 bg-[#EEF0F6] rounded-2xl border-2 border-[#E2E5EC]">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(33.333%-2.67px)] rounded-xl bg-white shadow-2xs border border-[#CBD5E1] transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+              className="pointer-events-none absolute top-1 bottom-1 start-1 w-[calc(33.333%-2.67px)] rounded-xl bg-white shadow-2xs border border-[#CBD5E1] transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
               style={{
                 transform: `translate3d(${
-                  activeTab === 'profile' ? 0 : activeTab === 'preferences' ? 100 : 200
+                  (activeTab === 'profile' ? 0 : activeTab === 'preferences' ? 100 : 200) *
+                  (isRtl ? -1 : 1)
                 }%, 0, 0)`,
               }}
             />
@@ -347,7 +341,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
-              Profile
+              {t('profile.tabProfile')}
             </button>
             <button
               type="button"
@@ -361,7 +355,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
-              Preferences
+              {t('profile.tabPreferences')}
             </button>
             <button
               type="button"
@@ -375,7 +369,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   : 'text-[#64748B] hover:text-[#1F2430]'
               }`}
             >
-              Account
+              {t('profile.tabAccount')}
             </button>
           </div>
           {/* TAB 1: PROFILE */}
@@ -572,16 +566,16 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs sm:text-sm font-extrabold text-white block">
-                      Roomie Track Record
+                      {t('profile.trackRecordTitle')}
                     </span>
                     <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
-                      Your chore streak, shoutouts &amp; flat history
+                      {t('profile.trackRecordSub')}
                     </p>
                   </div>
                 </div>
                 <div className="shrink-0 flex items-center gap-1 text-[#38BDF8] text-xs font-bold">
-                  <span>View</span>
-                  <CaretRight weight="bold" className="w-3.5 h-3.5" />
+                  <span>{t('profile.openTrackRecord')}</span>
+                  <CaretRight weight="bold" className="w-3.5 h-3.5 rtl-flip" />
                 </div>
               </div>
             </div>
@@ -592,7 +586,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             <div className="space-y-4">
               <div className="space-y-2.5">
                 <span className="type-label block text-xs uppercase tracking-wider text-[#64748B]">
-                  Interface & System
+                  {t('profile.interfaceSystem')}
                 </span>
 
                 {/* Language */}
@@ -600,8 +594,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <IconTile icon={<Globe className="w-4 h-4" />} color="indigo" size="sm" />
                     <div className="min-w-0 flex-1">
-                      <span className="text-[14px] font-bold text-[#1F2430] block">Language</span>
-                      <span className="type-secondary text-[12px] block">Interface language</span>
+                      <span className="text-[14px] font-bold text-[#1F2430] block">{t('profile.language')}</span>
+                      <span className="type-secondary text-[12px] block">{t('profile.interfaceLanguage')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto flex-wrap">
@@ -645,17 +639,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     />
                     <div className="min-w-0 flex-1">
                       <span className="text-[14px] font-bold text-[#1F2430] block truncate">
-                        Sound effects
+                        {t('profile.soundTitle')}
                       </span>
                       <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
-                        Tactile chimes and celebratory fanfares
+                        {t('profile.soundSub')}
                       </span>
                     </div>
                   </div>
                   <SettingsRowToggle
                     checked={settings.soundEnabled}
                     onChange={toggleSound}
-                    label="Toggle sound effects"
+                    label={t('profile.soundTitle')}
                   />
                 </div>
 
@@ -665,17 +659,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <IconTile icon={<Vibrate weight="duotone" className="w-4 h-4" />} color="indigo" size="sm" />
                     <div className="min-w-0 flex-1">
                       <span className="text-[14px] font-bold text-[#1F2430] block truncate">
-                        Haptic feedback
+                        {t('profile.hapticsTitle')}
                       </span>
                       <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
-                        Tactile vibrations for awards, vibe & swaps
+                        {t('profile.hapticsSub')}
                       </span>
                     </div>
                   </div>
                   <SettingsRowToggle
                     checked={settings.hapticsEnabled ?? isHapticsEnabled()}
                     onChange={toggleHaptics}
-                    label="Toggle haptic feedback"
+                    label={t('profile.hapticsTitle')}
                   />
                 </div>
 
@@ -685,17 +679,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <IconTile icon={<Eye weight="duotone" className="w-4 h-4" />} color="teal" size="sm" />
                     <div className="min-w-0 flex-1">
                       <span className="text-[14px] font-bold text-[#1F2430] block truncate">
-                        Reduced motion
+                        {t('profile.reducedMotionTitle')}
                       </span>
                       <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
-                        Calmer transitions (syncs with OS setting)
+                        {t('profile.reducedMotionSub')}
                       </span>
                     </div>
                   </div>
                   <SettingsRowToggle
                     checked={settings.reducedMotion}
                     onChange={toggleReducedMotion}
-                    label="Toggle reduced motion"
+                    label={t('profile.reducedMotionTitle')}
                   />
                 </div>
 
@@ -705,17 +699,17 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <IconTile icon={<Bell weight="duotone" className="w-4 h-4" />} color="amber" size="sm" />
                     <div className="min-w-0 flex-1">
                       <span className="text-[14px] font-bold text-[#1F2430] block truncate">
-                        Push notifications
+                        {t('profile.pushTitle')}
                       </span>
                       <span className="type-secondary text-[12px] block leading-snug truncate sm:whitespace-normal">
-                        Time-based reminders for chore duties
+                        {t('profile.pushSub')}
                       </span>
                     </div>
                   </div>
                   <SettingsRowToggle
                     checked={settings.pushNotifications}
                     onChange={togglePush}
-                    label="Toggle push notifications"
+                    label={t('profile.pushTitle')}
                   />
                 </div>
               </div>
@@ -909,7 +903,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                 }}
                 icon={<DownloadSimple weight="bold" className="w-3.5 h-3.5 text-[#FF6B4A]" />}
               >
-                {checkingUpdates ? 'Checking for updates...' : 'Check for updates'}
+                {checkingUpdates ? t('profile.checkingUpdates') : t('profile.checkUpdates')}
               </Button>
             )}
 

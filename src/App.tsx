@@ -26,6 +26,7 @@ import {
 } from './services/appUpdate';
 import { useRoomieAppState } from './hooks/useRoomieAppState';
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
+import { I18nProvider } from './i18n/I18nProvider';
 import { DraftPick, JoinRequest } from './types';
 
 const AppUpdateModal = React.lazy(() =>
@@ -598,7 +599,7 @@ function MainApp() {
   };
 
   return (
-    <>
+    <I18nProvider language={settings.language}>
       {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
       {renderScreen()}
       {availableUpdate && (
@@ -606,7 +607,7 @@ function MainApp() {
           <AppUpdateModal release={availableUpdate} onDismiss={handleDismissUpdate} />
         </React.Suspense>
       )}
-    </>
+    </I18nProvider>
   );
 }
 

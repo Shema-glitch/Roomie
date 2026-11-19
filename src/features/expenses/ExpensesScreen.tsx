@@ -18,6 +18,7 @@ import { ExpenseCard, ExpenseCardMode } from './components/ExpenseCard';
 import { SettlementItemCard } from './components/SettlementItemCard';
 import { BalanceOverviewSection } from './components/BalanceOverviewSection';
 import { RecurringBillsSection } from './components/RecurringBillsSection';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface ExpensesScreenProps {
   expenses: Expense[];
@@ -78,6 +79,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   onOpenChat,
 }) => {
   const { showToast } = useToast();
+  const { t, isRtl } = useI18n();
   const sym = getCurrencySymbol(currency);
 
   const effectiveHouseholdId =
@@ -224,9 +226,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="type-title">Expenses &amp; money</h2>
+          <h2 className="type-title">{t('expenses.title')}</h2>
           <p className="type-secondary mt-0.5">
-            Split groceries, bills &amp; rent cleanly
+            {t('expenses.subtitle')}
           </p>
         </div>
 
@@ -240,7 +242,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           }}
           icon={<PlusCircle className="w-5 h-5" weight="fill" />}
         >
-          Log expense
+          {t('expenses.logExpense')}
         </Button>
       </div>
 
@@ -261,9 +263,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           <div className="relative grid grid-cols-3 p-1.5 rounded-2xl bg-[#E6E8EE]/70 max-w-md">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute top-1.5 bottom-1.5 left-1.5 w-[calc(33.333%-4px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
+              className="pointer-events-none absolute top-1.5 bottom-1.5 start-1.5 w-[calc(33.333%-4px)] rounded-xl bg-white shadow-sm transition-transform duration-250 ease-spring will-change-transform motion-reduce:transition-none"
               style={{
-                transform: `translate3d(${filterIndex * 100}%, 0, 0)`,
+                transform: `translate3d(${filterIndex * (isRtl ? -100 : 100)}%, 0, 0)`,
               }}
             />
             <button
@@ -276,7 +278,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 expenseFilter === 'all' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >
-              All ({expenses.length})
+              {t('expenses.filterAll', { count: expenses.length })}
             </button>
             <button
               type="button"
@@ -288,7 +290,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 expenseFilter === 'pending' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >
-              Pending ({needsMyAgreementExpenses.length + waitingForRoomiesExpenses.length})
+              {t('expenses.filterPending', {
+                count: needsMyAgreementExpenses.length + waitingForRoomiesExpenses.length,
+              })}
             </button>
             <button
               type="button"
@@ -300,7 +304,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 expenseFilter === 'agreed' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >
-              Agreed ({agreedExpenses.length})
+              {t('expenses.filterAgreed', { count: agreedExpenses.length })}
             </button>
           </div>
 
@@ -308,10 +312,10 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <span className="type-section-heading text-[#FF6B4A]">
-                  Needs your agreement ({needsMyAgreementExpenses.length})
+                  {t('expenses.needsAgreement', { count: needsMyAgreementExpenses.length })}
                 </span>
                 <span className="type-secondary text-[13px] sm:text-[14px]">
-                  Tap to review or dispute
+                  {t('expenses.agree')} / {t('expenses.dispute')}
                 </span>
               </div>
 
@@ -323,7 +327,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                 <span className="type-section-heading">
-                  Waiting for roomies ({waitingForRoomiesExpenses.length})
+                  {t('expenses.waitingRoomies', { count: waitingForRoomiesExpenses.length })}
                 </span>
                 {waitingForRoomiesExpenses.some((e) => e.paidBy === currentUser.id) && (
                   <button
@@ -337,7 +341,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                     }}
                     className="text-[14px] font-bold text-[#FF6B4A] hover:underline flex items-center gap-1 cursor-pointer whitespace-nowrap"
                   >
-                    <Bell className="w-3.5 h-3.5" /> Remind all
+                    <Bell className="w-3.5 h-3.5" /> {t('expenses.remind')}
                   </button>
                 )}
               </div>
@@ -350,16 +354,13 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-2">
               <span className="type-section-heading">
-                Agreed purchases ({agreedExpenses.length})
-              </span>
-              <span className="type-secondary text-[13px] sm:text-[14px]">
-                Counted in final balance
+                {t('expenses.agreedSection', { count: agreedExpenses.length })}
               </span>
             </div>
 
             {agreedExpenses.length === 0 ? (
               <p className="px-4 py-3 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] text-xs font-medium text-[#64748B]">
-                No agreed expenses yet — they&apos;ll move here once confirmed
+                {t('expenses.agreedEmptyNote')}
               </p>
             ) : (
               agreedExpenses.map((exp, idx) => renderCard(exp, 'agreed', idx))
