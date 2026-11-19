@@ -126,17 +126,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   );
   const awards: WeeklyAward[] = useMemo(() => {
     const activeUsers = roommates.length > 0 ? roommates : [currentUser];
-    const assignments = draftRound?.assignments || [];
-    const kudos = assignments.flatMap((a) => a.kudos || []);
+    const assignmentsList = draftRound?.assignments || [];
+    const kudos = assignmentsList.flatMap((a) => a.kudos || []);
     return evaluateWeeklyAwards({
       householdId: household?.id || '',
       weekLabel: 'Weekly Honors',
       users: activeUsers,
-      assignments,
+      assignments: assignmentsList,
       kudos,
       expenses: expenses || [],
     });
   }, [household?.id, roommates, currentUser, draftRound?.assignments, expenses]);
+
+  const hasFlatActivity = useMemo(() => {
+    const hasCompletedChore = assignments.some(
+      (a) => a.completedToday || (a.kudos?.length ?? 0) > 0
+    );
+    const hasCompletedDuty = Boolean(dutySchedule?.entries.some((e) => e.completed));
+    const hasLoggedExpense = expenses.some((e) => e.status !== 'cancelled');
+    const hasUserProgress = roommates.some((r) => r.streakDays > 0 || r.points > 0);
+    return hasCompletedChore || hasCompletedDuty || hasLoggedExpense || hasUserProgress;
+  }, [assignments, dutySchedule, expenses, roommates]);
   const [pendingSwaps, setPendingSwaps] = useState<ChoreSwapRequest[]>(
     () => localCache.getSnapshot(household?.id)?.pendingSwaps || []
   );
@@ -713,6 +723,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <ApartmentPulseGrid
             netBalance={netBalance}
             currencySymbol={sym}
+            expenses={expenses}
             onNavigateMoney={() => onNavigateTab('expenses')}
             shoppingItems={shoppingItems}
             onOpenShoppingList={() => setIsShoppingModalOpen(true)}
@@ -729,6 +740,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <WeeklyAwardsSection
             awards={awards}
             currentUserId={currentUser.id}
+            hasFlatActivity={hasFlatActivity}
             isRoomieWrappedEnabled={isRoomieWrappedEnabled}
             onOpenWrapped={() => setIsWrappedModalOpen(true)}
             reducedMotion={reducedMotion}

@@ -809,6 +809,26 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 33. UI/UX Audit Batch 1 — Data Truth, Status Separation & Form Validation (`feature/audit-batch1-data-truth`)
+
+- **Single Source of Truth for Today's Duty (`src/types/index.ts`, `src/utils/dutyRotation.ts`, `src/services/api/chores.api.ts`, `DutyTodayBanner.tsx`, `DutyTimetableModal.tsx`, `ChoresScreen.tsx`, `ChoreAssignmentList.tsx`)**:
+  - Added `completedAt` / `completedByUserId` tracking on `DutyDayEntry` and made `ChoresApi.completeDutyDay` + `completeChore` strictly idempotent so duplicate clicks never emit multiple chat activity events or double-award progress.
+  - Added `ChoresApi.awardCompletionProgress` so both duty completion and chore completion increment `streakDays` and `points`, mirror updates into `store.users`, and persist to Supabase `profiles` before reload.
+  - Updated `DutyTodayBanner` (used on `HomeScreen` and `ChoresScreen`) and `DutyTimetableModal` to show `"Done at [time]"` once completed, disable buttons during async submission, and hide duplicate `"Mark Finished"` buttons; reconciled `ChoreAssignmentList` so `"Due Today"` never appears alongside `"All caught up!"`.
+- **Separated Settled Balance from Pending Approval + Currency Glyph & `Intl.NumberFormat` (`index.html`, `src/index.css`, `src/utils/stateTable.ts`, `BalanceOverviewSection.tsx`, `ExpenseCard.tsx`, `SettlementItemCard.tsx`, `ApartmentPulseGrid.tsx`, `HomeScreen.tsx`, `src/i18n/locales/*.ts`)**:
+  - Added `summarizePendingExpenses` and `formatDecimalCurrency` (`Intl.NumberFormat`), displaying `"{sym}0.00 owed · 1 expense awaiting [Name]'s approval ({sym}65.00)"` on Money and `"Pending"` / `"{count} pending"` on the Home Expenses tile whenever unapproved or disputed expenses exist.
+  - Applied `tabular-nums` across balance/expense figures and added a tiny `&text=₺` `Noto Sans` subset fallback in `index.html` + `src/index.css` so `₺` (`U+20BA`) renders cleanly without falling back to `ŧ`.
+- **Activity-Gated Shoutouts, Weekly Picks Math & Expense Title Validation (`HomeScreen.tsx`, `WeeklyAwardsSection.tsx`, `SecretDraftScreen.tsx`, `AddExpenseFlowModal.tsx`, `AddRecurringBillModal.tsx`)**:
+  - Gated pre-awarded `WeeklyAwardsSection` badges behind `hasFlatActivity` (completed duties/chores, kudos, logged expenses, or earned points/streaks), rendering `"Unlocks after your first week of flat activity"` until activity exists.
+  - Fixed Weekly Picks progress percentage (`calculateDraftProgressPercent`: Step `1 of 4` displays `25%`), required `>= 2` characters for expense and recurring bill titles, and clarified why `All chores (0)` stays empty until weekly picks close.
+- **Verification**:
+  - Added unit tests in `src/utils/choreDraft.test.ts` and `src/utils/dutyRotation.test.ts`.
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **126 / 126 passing** across 19 suites.
+  - `npm run build`: initial JS entry bundle under 200 KB gzipped.
+
+---
+
 
 
 

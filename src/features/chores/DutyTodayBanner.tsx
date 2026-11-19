@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DutySchedule, User, DayOfWeek } from '../../types';
-import { getTodayDuty, DAY_DISPLAY_NAMES } from '../../utils/dutyRotation';
+import { getTodayDuty, DAY_DISPLAY_NAMES, formatDutyCompletedTime } from '../../utils/dutyRotation';
 import { Avatar } from '../../components/common/Avatar';
 import { Calendar, CheckCircle } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
@@ -26,6 +26,8 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
   className = '',
 }) => {
   const { showToast } = useToast();
+  const [finishing, setFinishing] = useState(false);
+
   if (!dutySchedule) return null;
 
   const duty = getTodayDuty(dutySchedule, roommates, currentUser.id);
@@ -33,15 +35,20 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
 
   const { entry, user, isMe, day } = duty;
   const dayName = DAY_DISPLAY_NAMES[day].full;
+  const completedTime = formatDutyCompletedTime(entry.completedAt);
+  const doneLabel = completedTime ? `Done at ${completedTime}` : 'Done';
 
   const handleFinish = async () => {
-    if (!onCompleteTodayDuty) return;
+    if (!onCompleteTodayDuty || entry.completed || finishing) return;
+    setFinishing(true);
     sound.playSuccess();
     try {
       await onCompleteTodayDuty(day);
-      showToast('Duty day finished! The flat salutes you! 🎉', 'success');
+      showToast('Duty day finished! Streak and points updated.', 'success');
     } catch {
       showToast('Could not update status', 'error');
+    } finally {
+      setFinishing(false);
     }
   };
 
@@ -66,11 +73,13 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               <Chip
                 status={entry.completed ? 'done' : 'due'}
                 size="xs"
-                label={entry.completed ? 'Done' : 'Due Today'}
+                label={entry.completed ? doneLabel : 'Due Today'}
               />
             </div>
             <p className="text-xs text-[#64748B] mt-1 leading-relaxed">
-              {entry.notes || 'Handle common area mopping, kitchen tidy, and trash.'}
+              {entry.completed
+                ? `Completed${completedTime ? ` at ${completedTime}` : ''} — great work keeping the flat tidy.`
+                : entry.notes || 'Handle common area mopping, kitchen tidy, and trash.'}
             </p>
           </div>
         </div>
@@ -79,11 +88,12 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
           {!entry.completed && onCompleteTodayDuty && (
             <button
               type="button"
+              disabled={finishing}
               onClick={handleFinish}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
             >
               <CheckCircle className="w-3.5 h-3.5" weight="fill" />
-              <span>Mark Finished</span>
+              <span>{finishing ? 'Finishing...' : 'Mark Finished'}</span>
             </button>
           )}
           <button
@@ -124,12 +134,12 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               <span className="text-xs text-[#64748B]">{dayName}</span>
             </div>
             {entry.completed && (
-              <Chip status="done" size="xs" label="Done" />
+              <Chip status="done" size="xs" label={doneLabel} />
             )}
           </div>
           <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
             {entry.completed
-              ? `${user?.name || 'Roomie'} finished today's flat duties.`
+              ? `${user?.name || 'Roomie'} finished today's flat duties${completedTime ? ` at ${completedTime}` : ''}.`
               : `${user?.name || 'Roomie'} is on duty today. Be kind and keep shared spaces tidy.`}
           </p>
         </div>

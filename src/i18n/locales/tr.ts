@@ -92,6 +92,8 @@ const tr: TranslationDictionary = {
   'home.owed': 'Alacak',
   'home.due': 'Borç',
   'home.settled': 'Temiz',
+  'home.pendingBadge': 'Bekliyor',
+  'home.pendingCount': '{count} bekliyor',
   'home.collectPayment': 'Ödeme al',
   'home.settleBalance': 'Hesabı kapat',
   'home.balancesClear': 'Hesaplar eşit',

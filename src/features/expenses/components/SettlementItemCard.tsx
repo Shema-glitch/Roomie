@@ -44,7 +44,12 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = React.memo(
           size="sm"
         />
       }
-      title={`${sym}${formatCurrency(s.amount)} paid directly`}
+      title={
+        <span className="type-card-title tabular-nums">
+          {sym}
+          {formatCurrency(s.amount)} paid directly
+        </span>
+      }
       subtitle={`${fromUser?.name.split(' ')[0] || 'Roomie'} to ${
         toUser?.name.split(' ')[0] || 'Roomie'
       } • ${formatExpenseDate(s.createdAt)}`}

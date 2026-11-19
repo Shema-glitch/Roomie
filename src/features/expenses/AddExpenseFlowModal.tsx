@@ -70,6 +70,8 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
   const [receiptCompressing, setReceiptCompressing] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const cleanTitle = title.trim();
+  const isTitleValid = cleanTitle.length >= 2;
   const amountNum = parseFloat(amountStr) || 0;
   const sharePerPerson =
     participants.length > 0 ? (amountNum / participants.length).toFixed(2) : '0.00';
@@ -142,8 +144,8 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || amountNum <= 0 || participants.length === 0) {
-      showToast('Please fill in title, valid amount, and participants', 'error');
+    if (!isTitleValid || amountNum <= 0 || participants.length === 0) {
+      showToast('Please enter at least 2 characters for the title, a valid amount, and participants', 'error');
       return;
     }
 
@@ -151,7 +153,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
     sound.playSuccess();
     try {
       await onAddExpense(
-        title.trim(),
+        cleanTitle,
         amountNum,
         category,
         participants,
@@ -328,11 +330,17 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               <input
                 type="text"
                 required
+                minLength={2}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Lemar weekly groceries, Water refills"
                 className="w-full px-4 py-3 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[16px] font-semibold text-[#1F2430] focus:outline-none focus:border-[#FF6B4A] min-h-[44px]"
               />
+              {cleanTitle.length === 1 && (
+                <p className="text-xs font-semibold text-[#E5484D] mt-1">
+                  Enter at least 2 characters for the expense title.
+                </p>
+              )}
             </div>
 
             {/* Amount */}
@@ -403,7 +411,7 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
               <Button
                 variant="primary"
                 size="md"
-                disabled={!title.trim() || amountNum <= 0}
+                disabled={!isTitleValid || amountNum <= 0}
                 onClick={handleNext}
                 icon={<ArrowRight className="w-4 h-4" />}
               >

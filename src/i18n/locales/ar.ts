@@ -92,6 +92,8 @@ const ar: TranslationDictionary = {
   'home.owed': 'لك',
   'home.due': 'عليك',
   'home.settled': 'خالص',
+  'home.pendingBadge': 'معلق',
+  'home.pendingCount': '{count} معلق',
   'home.collectPayment': 'تحصيل المبلغ',
   'home.settleBalance': 'تصفية الرصيد',
   'home.balancesClear': 'الحسابات صافية',

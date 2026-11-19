@@ -8,6 +8,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Chore, ChoreAssignment, DraftRound, User, KudosType, DutySchedule, DayOfWeek } from '../../types';
 import { DutyTodayBanner } from './DutyTodayBanner';
 import { getChoreDraftState, isAssignmentDueToday } from '../../utils/stateTable';
+import { getTodayDuty } from '../../utils/dutyRotation';
 import { sound } from '../../services/sound';
 import { ArrowsClockwise, PlusCircle, CheckCircle, AirplaneTilt } from '@phosphor-icons/react';
 import { ChoreAssignmentList } from './components/ChoreAssignmentList';
@@ -108,6 +109,16 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   const draftState = useMemo(
     () => localizeChoreDraftState(getChoreDraftState(draftRound, currentUser.id), t),
     [draftRound, currentUser.id, t]
+  );
+
+  const todayDuty = useMemo(
+    () => getTodayDuty(dutySchedule, roommates, currentUser.id),
+    [dutySchedule, roommates, currentUser.id]
+  );
+  const isDutyPendingToday = Boolean(todayDuty?.isMe && !todayDuty.entry.completed);
+  const activeChoreCount = useMemo(
+    () => chores.filter((c) => c.active).length,
+    [chores]
   );
 
   return (
@@ -273,6 +284,10 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             todayCompletedAssignments={todayCompletedAssignments}
             chores={chores}
             totalApartmentAssignments={assignments.length}
+            activeChoreCount={activeChoreCount}
+            draftState={draftState.state}
+            draftActionLabel={draftState.actionLabel}
+            isDutyPendingToday={isDutyPendingToday}
             roommates={roommates}
             currentUser={currentUser}
             onSelectDoneChore={setDoneModalChore}
@@ -280,6 +295,9 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             onSelectSwapChore={setSwapModalChore}
             onSelectKudos={setKudosModalData}
             onAddFirstChore={() => setNewChoreModalOpen(true)}
+            onOpenDraftAction={
+              draftState.state === 'reveal_ready' ? onOpenReveal : onOpenDraftPicks
+            }
             onSwitchToAllFilter={
               scheduleFilter === 'my' ? () => setScheduleFilter('all') : undefined
             }

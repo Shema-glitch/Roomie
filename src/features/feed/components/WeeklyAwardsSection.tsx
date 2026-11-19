@@ -3,11 +3,13 @@ import { WeeklyAward } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { Icon } from '@iconify/react';
+import { Trophy } from '@phosphor-icons/react';
 import { useI18n } from '../../../i18n/I18nProvider';
 
 interface WeeklyAwardsSectionProps {
   awards: WeeklyAward[];
   currentUserId: string;
+  hasFlatActivity?: boolean;
   reducedMotion?: boolean;
   isRoomieWrappedEnabled?: boolean;
   onOpenWrapped?: () => void;
@@ -16,6 +18,7 @@ interface WeeklyAwardsSectionProps {
 export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   awards,
   currentUserId,
+  hasFlatActivity = true,
   reducedMotion = false,
   isRoomieWrappedEnabled = false,
   onOpenWrapped,
@@ -23,7 +26,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
   const { t } = useI18n();
   const [celebrated, setCelebrated] = useState(false);
 
-  if (!awards || awards.length === 0) return null;
+  if (hasFlatActivity && (!awards || awards.length === 0)) return null;
 
   const myAward = awards.find((a) => a.recipientUserId === currentUserId);
   const otherAwards = awards.filter((a) => a.recipientUserId !== currentUserId);
@@ -88,23 +91,41 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleCelebrate}
-          className={`btn-tactile ease-spring px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            celebrated
-              ? 'bg-[#19B5A5] text-white border-[#138E82]'
-              : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
-          }`}
-          title="Celebrate this week's shoutouts"
-        >
-          <Icon icon="fluent-emoji-flat:party-popper" className="w-4 h-4 shrink-0" />
-          <span>{celebrated ? 'Cheering!' : 'Celebrate'}</span>
-        </button>
+        {hasFlatActivity && (
+          <button
+            type="button"
+            onClick={handleCelebrate}
+            className={`btn-tactile ease-spring px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              celebrated
+                ? 'bg-[#19B5A5] text-white border-[#138E82]'
+                : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
+            }`}
+            title="Celebrate this week's shoutouts"
+          >
+            <Icon icon="fluent-emoji-flat:party-popper" className="w-4 h-4 shrink-0" />
+            <span>{celebrated ? 'Cheering!' : 'Celebrate'}</span>
+          </button>
+        )}
       </div>
 
-      {/* Hero Badge for Current User */}
-      {myAward && (
+      {!hasFlatActivity ? (
+        <div className="p-4 rounded-2xl border-2 border-dashed border-[#E5E9F0] bg-[#F7F8FB] flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-white border border-[#E5E9F0] flex items-center justify-center text-[#D97706] shrink-0">
+            <Trophy weight="duotone" className="w-5 h-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="text-sm font-heading font-black text-[#1F2430]">
+              Unlocks after your first week of flat activity
+            </h4>
+            <p className="text-xs font-medium text-[#64748B] mt-0.5 leading-relaxed">
+              Complete a duty or log a shared expense to earn your flat&apos;s first shoutout badges.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Hero Badge for Current User */}
+          {myAward && (
         <div
           className={`p-4 rounded-2xl border transition-transform ${
             colorStyles[myAward.colorScheme].bg
@@ -176,9 +197,11 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
           </div>
         </div>
       )}
+        </>
+      )}
 
       {/* Roomie Wrapped Story Pill Trigger */}
-      {isRoomieWrappedEnabled && onOpenWrapped && (
+      {hasFlatActivity && isRoomieWrappedEnabled && onOpenWrapped && (
         <button
           type="button"
           onClick={() => {

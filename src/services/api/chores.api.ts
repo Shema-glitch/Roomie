@@ -415,57 +415,92 @@ export class ChoresApi {
     return round;
   }
 
+  private async awardCompletionProgress(pointsEarned: number): Promise<void> {
+    this.store.currentUser.streakDays += 1;
+    this.store.currentUser.points += pointsEarned;
+    this.store.users = this.store.users.map((u) =>
+      u.id === this.store.currentUser.id
+        ? {
+            ...u,
+            streakDays: this.store.currentUser.streakDays,
+            points: this.store.currentUser.points,
+          }
+        : u
+    );
+    this.ctx.save();
+
+    if (supabase && !this.isDemoMode() && isUuid(this.store.currentUser.id)) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            streak_days: this.store.currentUser.streakDays,
+            points: this.store.currentUser.points,
+          })
+          .eq('id', this.store.currentUser.id);
+      } catch (err: any) {
+        logger.warn('award_completion_progress_sync', err?.message || 'Could not sync streak/points');
+      }
+    }
+  }
+
   public async completeChore(choreId: string, photoUrl?: string): Promise<void> {
     const hid = this.store.activeHouseholdId;
     const round = await this.getDraftRound(hid);
-    const assign = round.assignments.find(a => a.choreId === choreId && a.userId === this.store.currentUser.id);
-    if (assign) {
-      assign.completedToday = true;
-      if (photoUrl) assign.lastPhotoUrl = photoUrl;
-      this.store.currentUser.streakDays += 1;
-      this.store.currentUser.points += 20;
-      const chore = this.store.chores.find(c => c.id === choreId);
-      const useUuid = !this.isDemoMode() && isUuid(hid);
-      const logId = makeEntityId('clog', useUuid);
+    const assign = round.assignments.find(
+      (a) => a.choreId === choreId && a.userId === this.store.currentUser.id
+    );
+    if (!assign || assign.completedToday) return;
 
-      this.ctx.dispatchRemoteMutation(
-        hid,
-        'chores_draft',
-        'complete_chore',
-        { roundId: round.id, householdId: hid, choreId, userId: this.store.currentUser.id, photoUrl, logId },
-        `Completed "${chore?.name || choreId}"${photoUrl ? ' with photo proof' : ''}`,
-        async () => {
-          const sb = supabase!;
-          let q = sb
-            .from('chore_assignments')
-            .update({ completed_today: true, last_photo_url: photoUrl || null })
-            .eq('chore_id', choreId);
-          if (isUuid(round.id)) q = q.eq('round_id', round.id);
-          const { error: assignErr } = await q;
-          if (assignErr) return { error: assignErr };
+    assign.completedToday = true;
+    if (photoUrl) assign.lastPhotoUrl = photoUrl;
+    const chore = this.store.chores.find((c) => c.id === choreId);
+    const useUuid = !this.isDemoMode() && isUuid(hid);
+    const logId = makeEntityId('clog', useUuid);
 
-          if (isUuid(choreId) && isUuid(this.store.currentUser.id)) {
-            return sb.from('chore_logs').upsert(
-              {
-                ...(isUuid(logId) ? { id: logId } : {}),
-                household_id: hid,
-                chore_id: choreId,
-                user_id: this.store.currentUser.id,
-                photo_url: photoUrl || null,
-              },
-              { onConflict: 'id' }
-            );
-          }
-          return { error: null };
+    this.ctx.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'complete_chore',
+      { roundId: round.id, householdId: hid, choreId, userId: this.store.currentUser.id, photoUrl, logId },
+      `Completed "${chore?.name || choreId}"${photoUrl ? ' with photo proof' : ''}`,
+      async () => {
+        const sb = supabase!;
+        let q = sb
+          .from('chore_assignments')
+          .update({ completed_today: true, last_photo_url: photoUrl || null })
+          .eq('chore_id', choreId);
+        if (isUuid(round.id)) q = q.eq('round_id', round.id);
+        const { error: assignErr } = await q;
+        if (assignErr) return { error: assignErr };
+
+        if (isUuid(choreId) && isUuid(this.store.currentUser.id)) {
+          return sb.from('chore_logs').upsert(
+            {
+              ...(isUuid(logId) ? { id: logId } : {}),
+              household_id: hid,
+              chore_id: choreId,
+              user_id: this.store.currentUser.id,
+              photo_url: photoUrl || null,
+            },
+            { onConflict: 'id' }
+          );
         }
-      );
+        return { error: null };
+      }
+    );
 
-      this.ctx.addMessage(hid, null, 'activity', `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`, {
+    this.ctx.addMessage(
+      hid,
+      null,
+      'activity',
+      `${this.store.currentUser.name} completed ${chore?.name || 'chore'}. Send kudos?`,
+      {
         screen: 'chores',
         id: choreId,
-      });
-      this.ctx.save();
-    }
+      }
+    );
+    await this.awardCompletionProgress(20);
   }
 
   public async giveKudos(choreId: string, targetUserId: string, type: 'thanks' | 'great_job' | 'needs_look', note?: string): Promise<void> {
@@ -591,17 +626,19 @@ export class ChoresApi {
     const hid = householdId || this.store.activeHouseholdId;
     const schedule = await this.getDutySchedule(hid);
     const entry = schedule.entries.find((e) => e.day === day);
-    if (entry) {
-      entry.completed = true;
-      this.ctx.addMessage(
-        hid,
-        null,
-        'activity',
-        `${this.store.currentUser.name} completed today's apartment duty.`,
-        { screen: 'chores' }
-      );
-      this.ctx.save();
-    }
+    if (!entry || entry.completed) return;
+
+    entry.completed = true;
+    entry.completedAt = new Date().toISOString();
+    entry.completedByUserId = this.store.currentUser.id;
+    this.ctx.addMessage(
+      hid,
+      null,
+      'activity',
+      `${this.store.currentUser.name} completed today's apartment duty.`,
+      { screen: 'chores' }
+    );
+    await this.awardCompletionProgress(20);
   }
 
   public async checkDutyDayReminder(): Promise<void> {
@@ -625,7 +662,7 @@ export class ChoresApi {
             id: 'notif_duty_' + Date.now(),
             userId: this.store.currentUser.id,
             type: 'chore',
-            title: "☀️ Today is your Flat Duty Day!",
+            title: 'Today is your Flat Duty Day!',
             body: `You are on duty today at ${flat?.name || 'the apartment'}. Tap to review and complete today's tasks.`,
             read: false,
             createdAt: new Date().toISOString(),

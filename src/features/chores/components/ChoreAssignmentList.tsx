@@ -4,7 +4,7 @@ import { IconTile } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Chip } from '../../../components/common/Chip';
 import { Chore, ChoreAssignment, User } from '../../../types';
-import { CHORE_REWARD_POINTS } from '../../../utils/stateTable';
+import { CHORE_REWARD_POINTS, UnifiedDraftState } from '../../../utils/stateTable';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
@@ -13,6 +13,8 @@ import {
   Heart,
   Camera,
   PlusCircle,
+  ArrowsClockwise,
+  Clock,
 } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 
@@ -298,6 +300,10 @@ interface ChoreAssignmentListProps {
   todayCompletedAssignments: ChoreAssignment[];
   chores: Chore[];
   totalApartmentAssignments?: number;
+  activeChoreCount?: number;
+  draftState?: UnifiedDraftState;
+  draftActionLabel?: string;
+  isDutyPendingToday?: boolean;
   roommates: User[];
   currentUser: User;
   onSelectDoneChore: (chore: Chore) => void;
@@ -305,6 +311,7 @@ interface ChoreAssignmentListProps {
   onSelectSwapChore: (chore: Chore) => void;
   onSelectKudos: (data: { chore: Chore; target: User }) => void;
   onAddFirstChore?: () => void;
+  onOpenDraftAction?: () => void;
   onSwitchToAllFilter?: () => void;
 }
 
@@ -314,6 +321,10 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
     todayCompletedAssignments,
     chores,
     totalApartmentAssignments = 0,
+    activeChoreCount = chores.filter((c) => c.active).length,
+    draftState = 'reveal_done',
+    draftActionLabel,
+    isDutyPendingToday = false,
     roommates,
     currentUser,
     onSelectDoneChore,
@@ -321,6 +332,7 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
     onSelectSwapChore,
     onSelectKudos,
     onAddFirstChore,
+    onOpenDraftAction,
     onSwitchToAllFilter,
   }) => {
     const { showToast } = useToast();
@@ -370,51 +382,101 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
       [todayDueAssignments, optimisticCompletedIds]
     );
 
+    const isWaitingForWeeklyPicksClose =
+      draftState !== 'reveal_done' && totalApartmentAssignments === 0 && activeChoreCount > 0;
+
     return (
       <>
         <div className="space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
             <span className="type-section-heading">
-              Today's due tasks ({remainingDueCount})
+              {isWaitingForWeeklyPicksClose
+                ? `This week's schedule (${totalApartmentAssignments})`
+                : `Today's due tasks (${remainingDueCount})`}
             </span>
             <span className="type-secondary text-[13px] sm:text-[14px]">
-              Complete on time to protect streak
+              {isWaitingForWeeklyPicksClose
+                ? 'Populates once weekly picks close'
+                : 'Complete on time to protect streak'}
             </span>
           </div>
 
           {todayDueAssignments.length === 0 ? (
-            <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#EBF9F0] border border-[#BBF7D0] flex items-center justify-center text-[#2CA358]">
-                <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
-              </div>
-              <div className="space-y-1 max-w-xs">
-                <h4 className="type-card-title text-[#1F2430]">All caught up for today!</h4>
-                <p className="type-secondary text-[14px]">
-                  No due chores left—your flat streak is safe.
-                </p>
-              </div>
-              {chores.length === 0 && totalApartmentAssignments === 0 && onAddFirstChore ? (
-                <div className="pt-1">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={onAddFirstChore}
-                    icon={<PlusCircle className="w-4 h-4" weight="fill" />}
-                  >
-                    Add First Chore
-                  </Button>
+            isWaitingForWeeklyPicksClose ? (
+              <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF0FD] border border-[#D6D8FB] flex items-center justify-center text-[#5B5BD6]">
+                  <ArrowsClockwise className="w-6 h-6" weight="duotone" />
                 </div>
-              ) : (
-                totalApartmentAssignments > 0 &&
-                onSwitchToAllFilter && (
+                <div className="space-y-1 max-w-sm">
+                  <h4 className="type-card-title text-[#1F2430]">
+                    {draftState === 'reveal_ready'
+                      ? 'Weekly picks are in — ready to reveal'
+                      : 'All chores (0) until weekly picks close'}
+                  </h4>
+                  <p className="type-secondary text-[14px]">
+                    {draftState === 'reveal_ready'
+                      ? `${activeChoreCount} flat chores are ready. Reveal assignments above to populate this week's chore schedule.`
+                      : draftState === 'waiting_others'
+                      ? `Your picks are locked in for ${activeChoreCount} flat chores. Assignments stay at (0) until all roomies finish ranking and weekly picks close.`
+                      : `${activeChoreCount} flat chores are queued for this week's draft. All chores stays at (0) until weekly picks close.`}
+                  </p>
+                </div>
+                {onOpenDraftAction && (
                   <div className="pt-1">
-                    <Button variant="secondary" size="sm" onClick={onSwitchToAllFilter}>
-                      View all apartment tasks
+                    <Button variant="teal" size="sm" onClick={onOpenDraftAction}>
+                      {draftActionLabel || 'Choose My Chores'}
                     </Button>
                   </div>
-                )
-              )}
-            </div>
+                )}
+              </div>
+            ) : isDutyPendingToday ? (
+              <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF5F2] border border-[#FFD7CF] flex items-center justify-center text-[#FF6B4A]">
+                  <Clock className="w-6 h-6" weight="duotone" />
+                </div>
+                <div className="space-y-1 max-w-sm">
+                  <h4 className="type-card-title text-[#1F2430]">
+                    Duty Captain checklist due today
+                  </h4>
+                  <p className="type-secondary text-[14px]">
+                    No extra chores queued — mark Today&apos;s Duty Captain card above finished once your flat tidy is done.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 rounded-[24px] bg-white border-2 border-[#E6E8EE] shadow-xs text-center flex flex-col items-center justify-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#EBF9F0] border border-[#BBF7D0] flex items-center justify-center text-[#2CA358]">
+                  <Icon icon="fluent-emoji-flat:trophy" className="w-6 h-6" />
+                </div>
+                <div className="space-y-1 max-w-xs">
+                  <h4 className="type-card-title text-[#1F2430]">All caught up for today!</h4>
+                  <p className="type-secondary text-[14px]">
+                    No due chores left—your flat streak is safe.
+                  </p>
+                </div>
+                {chores.length === 0 && totalApartmentAssignments === 0 && onAddFirstChore ? (
+                  <div className="pt-1">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={onAddFirstChore}
+                      icon={<PlusCircle className="w-4 h-4" weight="fill" />}
+                    >
+                      Add First Chore
+                    </Button>
+                  </div>
+                ) : (
+                  totalApartmentAssignments > 0 &&
+                  onSwitchToAllFilter && (
+                    <div className="pt-1">
+                      <Button variant="secondary" size="sm" onClick={onSwitchToAllFilter}>
+                        View all apartment tasks
+                      </Button>
+                    </div>
+                  )
+                )}
+              </div>
+            )
           ) : (
             todayDueAssignments.map((a, idx) => {
               const chore = choreMap.get(a.choreId);

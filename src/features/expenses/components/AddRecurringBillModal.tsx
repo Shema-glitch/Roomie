@@ -60,8 +60,8 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanTitle = title.trim();
-    if (!cleanTitle) {
-      showToast('Please enter a bill title', 'error');
+    if (cleanTitle.length < 2) {
+      showToast('Please enter at least 2 characters for the bill title', 'error');
       return;
     }
     const amount = parseFloat(amountStr);

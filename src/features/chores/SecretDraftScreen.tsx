@@ -6,6 +6,7 @@ import { Avatar } from '../../components/common/Avatar';
 import { ProgressBar } from '../../components/common/ProgressBar';
 import { MascotView } from '../../components/common/MascotView';
 import { Chore, DraftPick, User, MascotState } from '../../types';
+import { calculateDraftProgressPercent } from '../../utils/stateTable';
 import { sound } from '../../services/sound';
 import { haptics } from '../../utils/haptics';
 import {
@@ -160,9 +161,11 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
   };
 
   const coach = getCoachFeedback();
-  const progressPercent = showSummary
-    ? 100
-    : ((currentIndex + (existingPick ? 1 : 0.35)) / activeChores.length) * 100;
+  const progressPercent = calculateDraftProgressPercent(
+    currentIndex,
+    activeChores.length,
+    showSummary
+  );
 
   if (showSummary) {
     return (

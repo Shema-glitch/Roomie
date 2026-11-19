@@ -1,4 +1,4 @@
-import { DraftRound, Expense, ChoreAssignment, EffortLevel } from '../types';
+import { DraftRound, Expense, ChoreAssignment, EffortLevel, User } from '../types';
 
 export type UnifiedDraftState = 'draft_open' | 'waiting_others' | 'reveal_ready' | 'reveal_done';
 
@@ -173,21 +173,38 @@ export function getCurrencySymbol(currency?: string): string {
   }
 }
 
+const intlTwoDecimals = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const intlNoDecimals = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
 /**
- * Currency formatter with configurable currency symbol and comma separators
+ * Formats a numeric amount using Intl.NumberFormat with fixed 2-decimal precision
+ * (no currency symbol prefix).
+ */
+export function formatDecimalCurrency(amount: number | undefined | null): string {
+  const num = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+  return intlTwoDecimals.format(num);
+}
+
+/**
+ * Currency formatter with configurable currency symbol and Intl.NumberFormat separators
  */
 export function formatCurrency(
   amount: number | undefined | null,
   currency: string = 'TRY',
   forceDecimals: boolean = false
 ): string {
-  const num = amount ?? 0;
+  const num = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
   const sym = getCurrencySymbol(currency);
   const hasFractions = num % 1 !== 0;
-  return sym + num.toLocaleString('en-US', {
-    minimumFractionDigits: forceDecimals || hasFractions ? 2 : 0,
-    maximumFractionDigits: 2,
-  });
+  const formatter = forceDecimals || hasFractions ? intlTwoDecimals : intlNoDecimals;
+  return sym + formatter.format(num);
 }
 
 /**
@@ -195,6 +212,92 @@ export function formatCurrency(
  */
 export function formatCurrencyTRY(amount: number | undefined | null, forceDecimals: boolean = false): string {
   return formatCurrency(amount, 'TRY', forceDecimals);
+}
+
+/**
+ * Step-accurate progress percentage for Weekly Picks flow (e.g. Step 1 of 4 -> 25%).
+ */
+export function calculateDraftProgressPercent(
+  currentIndex: number,
+  totalChores: number,
+  isSummary: boolean = false
+): number {
+  if (isSummary) return 100;
+  if (totalChores <= 0) return 0;
+  return Math.min(100, Math.max(0, Math.round(((currentIndex + 1) / totalChores) * 100)));
+}
+
+export interface PendingExpensesSummary {
+  pendingCount: number;
+  disputedCount: number;
+  totalPendingAmount: number;
+  hasUnsettledActivity: boolean;
+  statusText: string | null;
+}
+
+/**
+ * Summarizes unapproved (pending or disputed) apartment expenses so UI never
+ * conflates "₺0.00 owed so far" with "all expenses settled".
+ */
+export function summarizePendingExpenses(
+  expenses: Expense[],
+  roommates: User[],
+  currentUserId: string,
+  currencySymbol: string
+): PendingExpensesSummary {
+  const pendingExpenses = expenses.filter((e) => e.status === 'pending');
+  const disputedExpenses = expenses.filter((e) => e.status === 'disputed');
+  const pendingCount = pendingExpenses.length;
+  const disputedCount = disputedExpenses.length;
+  const totalPendingAmount = pendingExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const hasUnsettledActivity = pendingCount > 0 || disputedCount > 0;
+
+  if (!hasUnsettledActivity) {
+    return {
+      pendingCount: 0,
+      disputedCount: 0,
+      totalPendingAmount: 0,
+      hasUnsettledActivity: false,
+      statusText: null,
+    };
+  }
+
+  let statusText: string;
+  if (pendingCount === 1) {
+    const exp = pendingExpenses[0];
+    const formattedAmt = `${currencySymbol}${formatDecimalCurrency(exp.amount)}`;
+    const pendingShareUserIds = exp.shares
+      .filter((s) => s.response === 'pending')
+      .map((s) => s.userId);
+    const needsMyApproval =
+      exp.paidBy !== currentUserId && pendingShareUserIds.includes(currentUserId);
+
+    if (needsMyApproval) {
+      statusText = `1 expense awaiting your approval (${formattedAmt})`;
+    } else if (pendingShareUserIds.length === 1) {
+      const target = roommates.find((r) => r.id === pendingShareUserIds[0]);
+      const firstName = target?.name.split(' ')[0] || 'Roomie';
+      statusText = `1 expense awaiting ${firstName}'s approval (${formattedAmt})`;
+    } else {
+      statusText = `1 expense awaiting roomies' approval (${formattedAmt})`;
+    }
+  } else if (pendingCount > 1) {
+    const formattedTotal = `${currencySymbol}${formatDecimalCurrency(totalPendingAmount)}`;
+    statusText = `${pendingCount} expenses awaiting approval (${formattedTotal})`;
+  } else {
+    statusText =
+      disputedCount === 1
+        ? '1 disputed expense needs resolution'
+        : `${disputedCount} disputed expenses need resolution`;
+  }
+
+  return {
+    pendingCount,
+    disputedCount,
+    totalPendingAmount,
+    hasUnsettledActivity: true,
+    statusText,
+  };
 }
 
 /**

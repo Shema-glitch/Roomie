@@ -11,6 +11,7 @@ import { useToast } from '../../../components/common/Toast';
 import {
   Wallet,
   CheckCircle,
+  Clock,
   Question,
   CaretUp,
   CaretDown,
@@ -19,6 +20,7 @@ import {
   ChartPieSlice,
 } from '@phosphor-icons/react';
 import { formatCurrency } from './ExpenseCard';
+import { summarizePendingExpenses } from '../../../utils/stateTable';
 import { useI18n } from '../../../i18n/I18nProvider';
 
 const SpendingBreakdownChart = React.lazy(() =>
@@ -69,21 +71,24 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
   const [breakdownExpanded, setBreakdownExpanded] = useState(false);
 
   const myBreakdown = balances.calculationBreakdowns?.[currentUser.id];
+  const pendingSummary = summarizePendingExpenses(expenses, roommates, currentUser.id, sym);
+  const isNetZero = myNet <= 0.05 && myNet >= -0.05;
+  const hasPendingApprovalOnly = isNetZero && pendingSummary.hasUnsettledActivity;
 
   return (
     <div className="space-y-6">
       <ActionCard
-        tint={myNet >= 0 ? 'green' : 'coral'}
+        tint={myNet < -0.05 ? 'coral' : hasPendingApprovalOnly ? 'amber' : 'green'}
         iconTile={
           <IconTile
             icon={<Wallet className="w-6 h-6" />}
-            color={myNet >= 0 ? 'green' : 'coral'}
+            color={myNet < -0.05 ? 'coral' : hasPendingApprovalOnly ? 'amber' : 'green'}
             size="md"
           />
         }
         title={
           <div className="flex items-baseline gap-2">
-            <span className="type-big-number">
+            <span className="type-big-number tabular-nums">
               {myNet > 0.05 ? (
                 <span className="text-[#2CA358]">
                   <AnimatedNumber
@@ -101,7 +106,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                   />
                 </span>
               ) : (
-                <span className="text-[#1F2430]">{sym}0.00</span>
+                <span className="text-[#1F2430] tabular-nums">{sym}0.00</span>
               )}
             </span>
           </div>
@@ -111,6 +116,12 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
             ? t('expenses.youAreOwed')
             : myNet < -0.05
             ? t('expenses.youOwe')
+            : hasPendingApprovalOnly && pendingSummary.statusText
+            ? (
+                <span className="tabular-nums">
+                  {sym}0.00 owed · {pendingSummary.statusText}
+                </span>
+              )
             : t('expenses.allSettled')
         }
         detail={
@@ -138,7 +149,7 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                         {isMeDebtor ? 'You owe' : `${fromUser?.name.split(' ')[0]} owes`}{' '}
                         {toUser?.id === currentUser.id ? 'You' : toUser?.name.split(' ')[0]}
                       </span>
-                      <span className="font-heading font-bold text-[18px] shrink-0 whitespace-nowrap">
+                      <span className="font-heading font-bold text-[18px] shrink-0 whitespace-nowrap tabular-nums">
                         {sym}
                         {formatCurrency(d.amount)}
                       </span>
@@ -146,6 +157,11 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                   );
                 })}
               </div>
+            ) : pendingSummary.hasUnsettledActivity && pendingSummary.statusText ? (
+              <p className="type-secondary flex items-center gap-1.5 text-[#92400E] font-semibold tabular-nums">
+                <Clock className="w-4 h-4 text-[#D97706] shrink-0" weight="fill" />
+                <span>{pendingSummary.statusText} before balances finalize.</span>
+              </p>
             ) : (
               <p className="type-secondary flex items-center gap-1.5">
                 <CheckCircle className="w-4 h-4 text-[#2CA358]" weight="fill" /> All apartment expenses are fully
@@ -184,14 +200,14 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                   <div className="space-y-1.5 text-[#475569] pt-1">
                     <div className="flex justify-between items-center">
                       <span>Total you paid for flat (agreed):</span>
-                      <span className="font-mono font-bold text-[#2CA358]">
+                      <span className="font-mono tabular-nums font-bold text-[#2CA358]">
                         +{sym}
                         {formatCurrency(myBreakdown?.totalPaidAgreed ?? 0)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Your share across agreed expenses:</span>
-                      <span className="font-mono font-bold text-[#E5484D]">
+                      <span className="font-mono tabular-nums font-bold text-[#E5484D]">
                         -{sym}
                         {formatCurrency(
                           (myBreakdown?.ownShareOfOwnExpenses ?? 0) +
@@ -201,14 +217,14 @@ export const BalanceOverviewSection: React.FC<BalanceOverviewSectionProps> = ({
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Confirmed settlements received:</span>
-                      <span className="font-mono font-bold text-[#475569]">
+                      <span className="font-mono tabular-nums font-bold text-[#475569]">
                         {sym}
                         {formatCurrency(myBreakdown?.settlementsReceived ?? 0)}
                       </span>
                     </div>
                     <div className="pt-1.5 border-t border-[#E6E8EE] flex justify-between items-center font-bold text-[#1F2430]">
                       <span>Your Net Balance:</span>
-                      <span className="font-mono font-black text-base text-[#2CA358]">
+                      <span className="font-mono tabular-nums font-black text-base text-[#2CA358]">
                         {myNet >= 0 ? '+' : '-'}
                         {sym}
                         {formatCurrency(Math.abs(myNet))}

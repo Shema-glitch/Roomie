@@ -243,6 +243,8 @@ export interface DutyDayEntry {
   choreIds: string[];
   notes?: string;
   completed?: boolean;
+  completedAt?: string;
+  completedByUserId?: string;
 }
 
 export interface DutySchedule {

@@ -3,6 +3,7 @@ import { IconTile, IconTileColor } from '../../../components/common/IconTile';
 import { Button } from '../../../components/common/Button';
 import { Chip } from '../../../components/common/Chip';
 import { Expense, User, ExpenseCategory } from '../../../types';
+import { formatDecimalCurrency } from '../../../utils/stateTable';
 import { sound } from '../../../services/sound';
 import { useToast } from '../../../components/common/Toast';
 import {
@@ -28,12 +29,8 @@ export const formatExpenseDate = (dateStr: string): string => {
   return `${parseInt(d, 10)} ${monthName}`;
 };
 
-export const formatCurrency = (amount: number | undefined | null): string => {
-  return (amount ?? 0).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
+export const formatCurrency = (amount: number | undefined | null): string =>
+  formatDecimalCurrency(amount);
 
 const getCategoryDetails = (
   cat: ExpenseCategory
@@ -153,7 +150,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
         </div>
 
         <div className="text-right shrink-0 flex flex-col items-end gap-1">
-          <span className="font-heading font-semibold text-lg sm:text-xl text-[#1F2430] whitespace-nowrap">
+          <span className="font-heading font-semibold text-lg sm:text-xl text-[#1F2430] whitespace-nowrap tabular-nums">
             {sym}
             {formatCurrency(exp.amount)}
           </span>
@@ -193,9 +190,13 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
           </span>
           <span aria-hidden="true">·</span>
           {isPayerMe ? (
-            <span className="font-medium text-[#2CA358]">Paid in full</span>
+            isWaitingRoomies && pendingRoomies.length > 0 ? (
+              <span className="font-medium text-[#D97706]">You paid</span>
+            ) : (
+              <span className="font-medium text-[#2CA358]">Paid in full</span>
+            )
           ) : myShare ? (
-            <span className="font-medium text-[#1F2430]">
+            <span className="font-medium text-[#1F2430] tabular-nums">
               Your share: {sym}
               {formatCurrency(myShare.shareAmount)}
             </span>
@@ -204,7 +205,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
           {isWaitingRoomies && pendingRoomies.length > 0 && (
             <>
               <span aria-hidden="true">·</span>
-              <span>Waiting for {pendingRoomies.join(', ')}</span>
+              <span>Awaiting {pendingRoomies.join(', ')}&apos;s approval</span>
             </>
           )}
         </div>

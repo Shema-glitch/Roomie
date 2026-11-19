@@ -4,7 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Chip } from '../../components/common/Chip';
 import { Avatar } from '../../components/common/Avatar';
 import { DutySchedule, User, Chore, DayOfWeek, Membership } from '../../types';
-import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate } from '../../utils/dutyRotation';
+import { DAY_DISPLAY_NAMES, getDayOfWeekFromDate, formatDutyCompletedTime } from '../../utils/dutyRotation';
 import { Calendar, ArrowsLeftRight, UserSwitch } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
 import { sound } from '../../services/sound';
@@ -135,6 +135,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
             const assignedUser = roommates.find((r) => r.id === entry.assignedUserId) || (entry.assignedUserId === currentUser.id ? currentUser : null);
             const isMe = assignedUser?.id === currentUser.id;
             const isSelectedForSwap = swapDaySource === entry.day;
+            const completedTime = formatDutyCompletedTime(entry.completedAt);
 
             return (
               <div
@@ -154,7 +155,11 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                       {DAY_DISPLAY_NAMES[entry.day].full}
                     </span>
                     {entry.completed ? (
-                      <Chip status="done" size="xs" label="Done" />
+                      <Chip
+                        status="done"
+                        size="xs"
+                        label={completedTime ? `Done at ${completedTime}` : 'Done'}
+                      />
                     ) : isToday ? (
                       <Chip status="due" size="xs" label="Due Today" />
                     ) : null}
@@ -223,14 +228,23 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                     {isToday && isMe && !entry.completed && (
                       <button
                         type="button"
-                        onClick={() => {
+                        disabled={updating}
+                        onClick={async () => {
+                          if (updating || entry.completed) return;
+                          setUpdating(true);
                           sound.playSuccess();
-                          onCompleteTodayDuty(entry.day);
-                          showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
+                          try {
+                            await onCompleteTodayDuty(entry.day);
+                            showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
+                          } catch {
+                            showToast('Could not update duty status', 'error');
+                          } finally {
+                            setUpdating(false);
+                          }
                         }}
-                        className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer shrink-0"
+                        className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-60 disabled:cursor-not-allowed px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer shrink-0"
                       >
-                        Mark Finished
+                        {updating ? 'Finishing...' : 'Mark Finished'}
                       </button>
                     )}
                   </div>

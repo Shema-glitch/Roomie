@@ -90,6 +90,8 @@ export const en = {
   'home.owed': 'Owed',
   'home.due': 'Due',
   'home.settled': 'Settled',
+  'home.pendingBadge': 'Pending',
+  'home.pendingCount': '{count} pending',
   'home.collectPayment': 'Collect payment',
   'home.settleBalance': 'Settle balance',
   'home.balancesClear': 'Balances clear',

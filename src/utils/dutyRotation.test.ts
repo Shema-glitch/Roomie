@@ -5,8 +5,7 @@ import {
   reassignDutyDay,
   swapDutyDays,
   getTodayDuty,
-  getDayOfWeekFromDate,
-  getMondayOfWeek,
+  formatDutyCompletedTime,
   DAYS_OF_WEEK,
 } from './dutyRotation';
 import { User, Chore } from '../types';
@@ -82,4 +81,11 @@ test('getTodayDuty identifies flat captain and whether it is current user', () =
   assert.equal(duty.day, 'friday');
   assert.ok(duty.user);
   assert.equal(typeof duty.isMe, 'boolean');
+});
+
+test('formatDutyCompletedTime formats valid timestamps and handles invalid/empty values', () => {
+  assert.equal(formatDutyCompletedTime(undefined), null);
+  assert.equal(formatDutyCompletedTime('not-a-date'), null);
+  const formatted = formatDutyCompletedTime('2026-11-19T14:35:00.000Z');
+  assert.ok(typeof formatted === 'string' && formatted.length >= 4);
 });

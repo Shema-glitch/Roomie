@@ -20,6 +20,21 @@ export const DAY_DISPLAY_NAMES: Record<DayOfWeek, { short: string; full: string 
   sunday: { short: 'Sun', full: 'Sunday' },
 };
 
+const dutyTimeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+/**
+ * Formats a duty completion ISO timestamp into a concise local time string (e.g. "14:35" / "2:35 PM").
+ */
+export function formatDutyCompletedTime(completedAt?: string): string | null {
+  if (!completedAt) return null;
+  const parsed = new Date(completedAt);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return dutyTimeFormatter.format(parsed);
+}
+
 /**
  * Returns the DayOfWeek for a given date.
  */

@@ -8,9 +8,16 @@ import {
   ShieldCheck,
   ForkKnife,
 } from '@phosphor-icons/react';
-import { HouseholdVibeSummary, CulturalDinner, ShoppingItem, VibeRating } from '../../../types';
+import {
+  HouseholdVibeSummary,
+  CulturalDinner,
+  ShoppingItem,
+  VibeRating,
+  Expense,
+} from '../../../types';
 import { AnimatedNumber } from '../../../components/common/AnimatedNumber';
 import { VIBE_DEFINITIONS } from '../../../utils/vibe';
+import { formatDecimalCurrency } from '../../../utils/stateTable';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -18,6 +25,7 @@ import { useI18n } from '../../../i18n/I18nProvider';
 export interface ApartmentPulseGridProps {
   netBalance: number;
   currencySymbol: string;
+  expenses?: Expense[];
   onNavigateMoney: () => void;
   shoppingItems: ShoppingItem[];
   onOpenShoppingList: () => void;
@@ -33,6 +41,7 @@ export interface ApartmentPulseGridProps {
 export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
   netBalance,
   currencySymbol,
+  expenses = [],
   onNavigateMoney,
   shoppingItems,
   onOpenShoppingList,
@@ -48,6 +57,11 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
   const isOwed = netBalance > 0.05;
   const owes = netBalance < -0.05;
   const absBal = Math.abs(netBalance);
+  const pendingApprovalCount = expenses.filter(
+    (e) => e.status === 'pending' || e.status === 'disputed'
+  ).length;
+  const hasPendingApproval = pendingApprovalCount > 0;
+  const isPendingWithoutBalance = !isOwed && !owes && hasPendingApproval;
 
   const neededCount = shoppingItems.filter((i) => i.status === 'needed').length;
   const runningLowCount = shoppingItems.filter((i) => i.isLow && i.status === 'needed').length;
@@ -83,6 +97,8 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
               ? 'bg-[#F0FDF4] border-[#86EFAC] border-b-[#4ADE80]'
               : owes
               ? 'bg-[#FFF5F2] border-[#FFD3C9] border-b-[#FF8A70]'
+              : isPendingWithoutBalance
+              ? 'bg-[#FFFBEB] border-[#FDE68A] border-b-[#F59E0B]'
               : 'bg-[#F8FAFC] border-[#E2E8F0] border-b-[#CBD5E1]'
           }`}
         >
@@ -93,6 +109,8 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
                   ? 'bg-[#BBF7D0] text-[#15803D]'
                   : owes
                   ? 'bg-[#FFD7CF] text-[#D94E30]'
+                  : isPendingWithoutBalance
+                  ? 'bg-[#FDE68A] text-[#B45309]'
                   : 'bg-[#E2E8F0] text-[#334155]'
               }`}
             >
@@ -104,32 +122,52 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
                   ? 'bg-[#BBF7D0] text-[#166534]'
                   : owes
                   ? 'bg-[#FED7AA] text-[#9A3412]'
+                  : isPendingWithoutBalance
+                  ? 'bg-[#FEF3C7] text-[#92400E]'
                   : 'bg-[#E2E8F0] text-[#475569]'
               }`}
             >
-              {isOwed ? t('home.owed') : owes ? t('home.due') : t('home.settled')}
+              {isOwed
+                ? t('home.owed')
+                : owes
+                ? t('home.due')
+                : isPendingWithoutBalance
+                ? t('home.pendingBadge')
+                : t('home.settled')}
             </span>
           </div>
 
           <div className="mt-2.5">
             <div className="text-[11px] font-bold text-[#64748B]">{t('home.expensesTile')}</div>
             <div
-              className={`text-base font-heading font-black tracking-tight truncate ${
-                isOwed ? 'text-[#166534]' : owes ? 'text-[#9A3412]' : 'text-[#1E293B]'
+              className={`text-base font-heading font-black tracking-tight truncate tabular-nums ${
+                isOwed
+                  ? 'text-[#166534]'
+                  : owes
+                  ? 'text-[#9A3412]'
+                  : isPendingWithoutBalance
+                  ? 'text-[#92400E]'
+                  : 'text-[#1E293B]'
               }`}
             >
               {isOwed ? '+' : owes ? '-' : ''}
               {currencySymbol}
-              <AnimatedNumber value={absBal} decimals={2} />
+              <AnimatedNumber
+                value={absBal}
+                decimals={2}
+                formatFn={(v) => formatDecimalCurrency(v)}
+              />
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#64748B]">
+          <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#64748B] tabular-nums">
             <span>
               {isOwed
                 ? t('home.collectPayment')
                 : owes
                 ? t('home.settleBalance')
+                : hasPendingApproval
+                ? t('home.pendingCount', { count: pendingApprovalCount })
                 : t('home.balancesClear')}
             </span>
             <ArrowRight weight="bold" className="w-3 h-3 text-[#94A3B8] rtl-flip" />

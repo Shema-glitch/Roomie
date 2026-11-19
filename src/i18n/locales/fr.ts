@@ -92,6 +92,8 @@ const fr: TranslationDictionary = {
   'home.owed': 'À recevoir',
   'home.due': 'À régler',
   'home.settled': 'À jour',
+  'home.pendingBadge': 'En attente',
+  'home.pendingCount': '{count} en attente',
   'home.collectPayment': 'Encaisser',
   'home.settleBalance': 'Régler le solde',
   'home.balancesClear': 'Comptes à jour',
