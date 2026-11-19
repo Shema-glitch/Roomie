@@ -216,7 +216,7 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
               <div className="space-y-1.5 pt-1">
                 <label className="text-xs font-bold text-[#1F2430] flex items-center justify-between">
                   <span>Dietary Accommodations</span>
-                  <span className="text-[11px] text-[#64748B] font-normal">Select all that apply</span>
+                  <span className="text-xs text-[#4B5063] font-normal">Select all that apply</span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {DIETARY_BADGES.map((b) => {
@@ -246,7 +246,7 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
                   <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#F59E0B]" />
                   <span>Flatmates Dietary Preferences</span>
                 </div>
-                <p className="text-[11px] text-[#78350F] leading-relaxed">
+                <p className="text-xs text-[#78350F] leading-relaxed">
                   {roommates
                     .filter((r) => r.dietaryTags && r.dietaryTags.length > 0)
                     .map((r) => `${r.name.split(' ')[0]} (${r.dietaryTags?.join(', ')})`)
@@ -261,10 +261,9 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
               size="lg"
               fullWidth
               loading={isSubmitting}
-              className="bg-[#FF6B4A] text-white"
               icon={<Icon icon="fluent-emoji-flat:pot-of-food" className="w-5 h-5" />}
             >
-              Schedule Dinner
+              Schedule dinner
             </Button>
           </form>
         )}
@@ -276,8 +275,8 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
             <div className="space-y-2 p-3 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-[#1F2430]">My Dietary Profile</h4>
-                  <p className="text-[11px] text-[#64748B]">
+                  <h4 className="text-xs font-black text-[#1F2033]">My Dietary Profile</h4>
+                  <p className="text-xs text-[#4B5063]">
                     Let flatmates know what you eat so dinners are always safe.
                   </p>
                 </div>
@@ -338,13 +337,13 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
                         r.dietaryTags.map((t) => (
                           <span
                             key={t}
-                            className="px-2 py-0.5 rounded-lg bg-[#EBF9F0] text-[#10B981] font-bold text-[10px]"
+                            className="px-2 py-0.5 rounded-lg bg-[#EBF9F0] text-[#0F7A3D] font-bold text-xs"
                           >
                             {t}
                           </span>
                         ))
                       ) : (
-                        <span className="text-[10px] text-[#94A3B8]">No restrictions</span>
+                        <span className="text-xs text-[#4B5063]">No restrictions</span>
                       )}
                     </div>
                   </div>

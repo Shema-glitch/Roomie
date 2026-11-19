@@ -103,7 +103,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
               <span className="text-[#64748B] block">
                 One roommate covers daily tidy duty each day so chores stay fair.
               </span>
-              <span className="text-[11px] font-bold text-[#4F46E5] block mt-1">
+              <span className="text-xs font-bold text-[#3B4BC4] block mt-1">
                 Daily checklist: Mopping, kitchen tidy, trash &amp; recycling
               </span>
             </div>
@@ -242,9 +242,9 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                             setUpdating(false);
                           }
                         }}
-                        className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-60 disabled:cursor-not-allowed px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer shrink-0"
+                        className="text-xs font-bold text-white bg-[#0F7A3D] hover:bg-[#0A5C2D] disabled:opacity-60 disabled:cursor-not-allowed px-3 py-1.5 rounded-xl transition-colors cursor-pointer shrink-0"
                       >
-                        {updating ? 'Finishing...' : 'Mark Finished'}
+                        {updating ? 'Finishing...' : 'Mark finished'}
                       </button>
                     )}
                   </div>
@@ -253,7 +253,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                 {/* Admin Quick Reassign Picker */}
                 {reassignDayTarget === entry.day && (
                   <div className="mt-3 p-2.5 rounded-xl bg-[#F7F8FB] border-2 border-[#E6E8EE] space-y-2">
-                    <span className="text-[11px] font-bold text-[#64748B] block uppercase tracking-wider">
+                    <span className="text-xs font-bold text-[#4B5063] block uppercase tracking-wider">
                       Reassign {DAY_DISPLAY_NAMES[entry.day].full} to:
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

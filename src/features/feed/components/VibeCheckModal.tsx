@@ -146,7 +146,7 @@ export const VibeCheckModal: React.FC<VibeCheckModalProps> = ({
         {/* Dynamic Privacy Notice */}
         <div className="p-3 rounded-2xl bg-[#F0FDF4] border-2 border-[#BBF7D0] flex items-start gap-2.5">
           <ShieldCheck className="w-5 h-5 text-[#16A34A] shrink-0 mt-0.5" weight="fill" />
-          <p className="text-[11px] font-semibold text-[#166534] leading-snug">
+          <p className="text-xs font-semibold text-[#0F7A3D] leading-snug">
             Completely anonymous — group mood unlocks once {unlockThreshold}{' '}
             {unlockThreshold === 1 ? 'roomie checks' : 'roomies check'} in.
           </p>

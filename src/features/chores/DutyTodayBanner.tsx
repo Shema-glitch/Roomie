@@ -90,10 +90,10 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               type="button"
               disabled={finishing}
               onClick={handleFinish}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
+              className="px-4 py-2 min-h-[44px] rounded-2xl bg-[#0F7A3D] hover:bg-[#0A5C2D] border-2 border-b-4 border-[#0A5C2D] active:translate-y-[2px] active:border-b-2 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-extrabold transition-all cursor-pointer shadow-2xs inline-flex items-center gap-1.5"
             >
-              <CheckCircle className="w-3.5 h-3.5" weight="fill" />
-              <span>{finishing ? 'Finishing...' : 'Mark Finished'}</span>
+              <CheckCircle className="w-4 h-4" weight="fill" />
+              <span>{finishing ? 'Finishing...' : 'Mark finished'}</span>
             </button>
           )}
           <button
@@ -102,9 +102,9 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
               sound.playTap();
               onOpenTimetable();
             }}
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-[#F7F8FB] border border-[#E6E8EE] text-xs font-bold text-[#1F2430] transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+            className="px-3.5 py-2 min-h-[44px] rounded-2xl bg-white hover:bg-[#F7F8FB] border-2 border-b-4 border-[#CBD5E1] active:translate-y-[2px] active:border-b-2 text-xs font-bold text-[#1F2033] transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
           >
-            <Calendar className="w-3.5 h-3.5 text-[#FF6B4A]" />
+            <Calendar className="w-4 h-4 text-[#D94E30]" />
             <span>Timetable</span>
           </button>
         </div>

@@ -106,11 +106,11 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             }}
             className="tactile-hover tactile-press p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-start hover:bg-[#FFEAE4] cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
+            <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-[#1F2033] flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <Receipt weight="fill" className="w-4 h-4" />
             </div>
-            <p className="text-[14px] font-bold text-[#1F2430]">{t('home.addExpense')}</p>
-            <p className="text-[13px] text-[#475569]">{t('home.expensesTile')}</p>
+            <p className="text-[14px] font-bold text-[#1F2033]">{t('home.addExpense')}</p>
+            <p className="text-[13px] text-[#4B5063]">{t('home.expensesTile')}</p>
           </button>
 
           <button
@@ -125,11 +125,11 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             }}
             className="tactile-hover tactile-press p-3 rounded-2xl bg-[#FFF9EE] border border-[#FDE047] text-start hover:bg-[#FEF3C7] cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#EAB308] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
+            <div className="w-8 h-8 rounded-xl bg-[#FFC93C] text-[#1F2033] flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <ShoppingCart weight="fill" className="w-4 h-4" />
             </div>
-            <p className="text-[14px] font-bold text-[#1F2430]">{t('home.shoppingListAction')}</p>
-            <p className="text-[13px] text-[#475569]">{t('home.shoppingTile')}</p>
+            <p className="text-[14px] font-bold text-[#1F2033]">{t('home.shoppingListAction')}</p>
+            <p className="text-[13px] text-[#4B5063]">{t('home.shoppingTile')}</p>
           </button>
         </div>
       </InfoCard>

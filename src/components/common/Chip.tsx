@@ -56,52 +56,52 @@ export const Chip: React.FC<ChipProps> = ({
       case 'agreed':
         effectiveVariant = 'success';
         effectiveLabel = label || 'Agreed';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#0F7A3D] shadow-xs shrink-0" />;
         break;
       case 'pending':
         effectiveVariant = 'reward';
         effectiveLabel = label || 'Pending';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#8A6200] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#9A6700] shadow-xs shrink-0" />;
         break;
       case 'disputed':
         effectiveVariant = 'danger';
         effectiveLabel = label || 'Disputed';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#BF3337] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#B42318] shadow-xs shrink-0" />;
         break;
       case 'cancelled':
         effectiveVariant = 'neutral';
         effectiveLabel = label || 'Cancelled';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#64748B] shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#4B5063] shrink-0" />;
         break;
       case 'paid':
         effectiveVariant = 'success';
         effectiveLabel = label || 'Paid';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#0F7A3D] shadow-xs shrink-0" />;
         break;
       case 'active':
         effectiveVariant = 'success';
         effectiveLabel = label || 'Active';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#0F7A3D] shadow-xs shrink-0" />;
         break;
       case 'away':
         effectiveVariant = 'info';
         effectiveLabel = label || 'Away';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#5B5BD6] shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#3B4BC4] shrink-0" />;
         break;
       case 'admin':
-        effectiveVariant = 'primary';
+        effectiveVariant = 'info';
         effectiveLabel = label || 'Admin';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#3B4BC4] shadow-xs shrink-0" />;
         break;
       case 'done':
         effectiveVariant = 'success';
         effectiveLabel = label || 'Done';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#2CA358] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#0F7A3D] shadow-xs shrink-0" />;
         break;
       case 'due':
-        effectiveVariant = 'primary';
+        effectiveVariant = 'reward';
         effectiveLabel = label || 'Due Today';
-        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#FF6B4A] shadow-xs shrink-0" />;
+        effectiveIcon = effectiveIcon || <span className="w-2 h-2 rounded-full bg-[#9A6700] shadow-xs shrink-0" />;
         break;
     }
   }
@@ -124,64 +124,64 @@ export const Chip: React.FC<ChipProps> = ({
       case 'neutral':
         return {
           backgroundColor: '#F1F5F9',
-          color: '#64748B',
-          borderColor: '#E2E8F0',
+          color: '#4B5063',
+          borderColor: '#CBD5E1',
         };
       case 'primary':
         return {
           backgroundColor: THEME.colors.primaryLight,
-          color: THEME.colors.primaryDark,
+          color: '#1F2033',
           borderColor: '#FFC8BE',
         };
       case 'secondary':
         return {
-          backgroundColor: THEME.colors.secondaryLight,
-          color: THEME.colors.secondaryDark,
+          backgroundColor: '#E6FAF8',
+          color: '#0B6B5F',
           borderColor: '#BBEFEA',
         };
       case 'reward':
         return {
-          backgroundColor: THEME.colors.rewardLight,
-          color: '#8A6200',
-          borderColor: '#FFE8A3',
+          backgroundColor: '#FFF8E6',
+          color: '#9A6700',
+          borderColor: '#FDE68A',
         };
       case 'success':
         return {
-          backgroundColor: THEME.colors.successLight,
-          color: THEME.colors.successDark,
+          backgroundColor: '#EBF9F0',
+          color: '#0F7A3D',
           borderColor: '#B8ECC8',
         };
       case 'danger':
         return {
-          backgroundColor: THEME.colors.errorLight,
-          color: THEME.colors.errorDark,
-          borderColor: '#F8BFC2',
+          backgroundColor: '#FEF2F2',
+          color: '#B42318',
+          borderColor: '#FECACA',
         };
       case 'info':
         return {
-          backgroundColor: THEME.colors.infoLight,
-          color: THEME.colors.info,
-          borderColor: '#D3D5F9',
+          backgroundColor: '#EEF0FD',
+          color: '#3B4BC4',
+          borderColor: '#C7D2FE',
         };
       case 'outline':
         return {
           backgroundColor: 'transparent',
-          color: THEME.colors.ink,
+          color: '#1F2033',
           borderColor: THEME.colors.line,
         };
       case 'default':
       default:
         return {
           backgroundColor: '#F1F5F9',
-          color: '#64748B',
-          borderColor: '#E2E8F0',
+          color: '#4B5063',
+          borderColor: '#CBD5E1',
         };
     }
   };
 
   const sizeClasses =
     size === 'xs'
-      ? 'px-2.5 py-0.5 text-[11px] sm:text-[12px] font-extrabold tracking-wide'
+      ? 'px-2.5 py-0.5 text-xs font-extrabold tracking-wide'
       : size === 'sm'
       ? 'px-2.5 py-0.5 text-[12px] sm:text-[13px] font-bold'
       : 'px-3.5 py-1.5 text-[14px] font-semibold';

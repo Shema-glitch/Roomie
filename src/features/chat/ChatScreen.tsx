@@ -124,16 +124,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col h-full lg:h-[calc(100dvh-108px)] w-full max-w-5xl mx-auto pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
+      className="flex flex-col h-full lg:h-[calc(100dvh-108px)] w-full pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
       onClick={() => setActiveReactionMsgId(null)}
     >
       {/* Header Info */}
       <div className="py-2.5 px-1 flex items-center justify-between border-b border-[#E6E8EE] mb-2 shrink-0">
         <div>
-          <h3 className="font-heading font-black text-xl text-[#1F2430]">
+          <h3 className="font-heading font-black text-xl text-[#1F2033]">
             {householdName || t('chat.title')}
           </h3>
-          <p className="text-sm font-semibold text-[#475569]">
+          <p className="text-sm font-semibold text-[#4B5063]">
             {t('chat.activeRoomies', { count: roommates.length })}
           </p>
         </div>
@@ -156,18 +156,18 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3 px-1 pe-3 sm:pe-5">
         {/* Pinned Chore Picks State Pill */}
         {draftState.state !== 'reveal_done' && (
-          <div className="px-3.5 py-2.5 rounded-2xl bg-[#EEF0FD] border border-[#DDD6FE] flex items-center justify-between gap-2.5 shadow-2xs">
+          <div className="px-3.5 py-2.5 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] flex items-center justify-between gap-2.5 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               {draftState.state === 'reveal_ready' ? (
-                <CheckCircle weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                <CheckCircle weight="duotone" className="w-4 h-4 text-[#D94E30] shrink-0" />
               ) : (
-                <ArrowsClockwise weight="duotone" className="w-4 h-4 text-[#5B5BD6] shrink-0" />
+                <ArrowsClockwise weight="duotone" className="w-4 h-4 text-[#D94E30] shrink-0" />
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-bold text-[#1F2430] truncate">
+                <p className="text-[13px] font-bold text-[#1F2033] truncate">
                   {draftState.bannerTitle}
                 </p>
-                <p className="text-[12px] text-[#475569] truncate">{pinnedSubtitle}</p>
+                <p className="text-xs text-[#4B5063] truncate">{pinnedSubtitle}</p>
               </div>
             </div>
             <button
@@ -178,7 +178,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                   screen: draftState.state === 'reveal_ready' ? 'chore-reveal' : 'chore-draft',
                 });
               }}
-              className="shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl bg-[#5B5BD6] text-white text-[12px] font-bold hover:bg-[#4747B8] transition-colors cursor-pointer"
+              className="shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl bg-[#FF6B4A] border-2 border-b-3 border-[#D94E30] text-[#1F2033] text-xs font-extrabold hover:bg-[#FF7D61] transition-colors cursor-pointer"
             >
               {draftState.actionLabel}
             </button>
@@ -203,7 +203,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
             if (entry.kind === 'activity') {
               return (
                 <div key={msg.id} className="contain-content">
-                  <div className="mx-auto my-1.5 max-w-[82%] w-fit rounded-full bg-[#EEF1F6] px-3 py-1 text-center text-[11px] font-medium text-[#64748B]">
+                  <div className="mx-auto my-1.5 max-w-[82%] w-fit rounded-full bg-[#EEF1F6] px-3 py-1 text-center text-xs font-semibold text-[#4B5063]">
                     {displayBody}
                   </div>
                 </div>
@@ -256,14 +256,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                     title={t('chat.tapToReact')}
                     className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug shadow-xs relative cursor-pointer transition-all select-text ${
                       isMe
-                        ? 'bg-[#FF6B4A] text-white rounded-ee-sm shadow-[#FF6B4A]/20'
-                        : 'bg-white text-[#1F2430] border border-[#E6E8EE] rounded-es-sm'
+                        ? 'bg-[#FF6B4A] text-[#1F2033] rounded-ee-sm shadow-[#FF6B4A]/20'
+                        : 'bg-white text-[#1F2033] border border-[#E6E8EE] rounded-es-sm'
                     }`}
                   >
-                    <p className="font-medium break-words whitespace-pre-wrap">{displayBody}</p>
+                    <p className="font-semibold break-words whitespace-pre-wrap">{displayBody}</p>
                     <span
-                      className={`text-[10px] block text-end mt-1 leading-none font-medium ${
-                        isMe ? 'text-white/80' : 'text-[#64748B]'
+                      className={`text-xs block text-end mt-1 leading-none font-semibold ${
+                        isMe ? 'text-[#1F2033]/85' : 'text-[#4B5063]'
                       }`}
                     >
                       {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -351,7 +351,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           }}
           placeholder={t('chat.placeholder')}
           aria-label={t('chat.placeholder')}
-          className="flex-1 min-w-0 min-h-[44px] max-h-28 px-4 py-2.5 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] leading-snug text-[#1F2430] placeholder:text-[#64748B] resize-none focus:outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/30 shadow-xs"
+          className="flex-1 min-w-0 min-h-[44px] max-h-28 px-4 py-2.5 rounded-2xl border-2 border-[#CBD5E1] bg-white text-[15px] leading-snug text-[#1F2033] placeholder:text-[#4B5063] resize-none focus:outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/30 shadow-xs"
         />
         <button
           type="submit"
@@ -359,8 +359,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
           aria-label={t('chat.sendAria')}
           className={`w-11 h-11 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center transition-all active:scale-95 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
             hasDraftText && !sending
-              ? 'bg-[#FF6B4A] hover:bg-[#E55A3A] text-white cursor-pointer'
-              : 'bg-[#E6E8EE] text-[#94A3B8] cursor-not-allowed'
+              ? 'bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] cursor-pointer'
+              : 'bg-[#E6E8EE] text-[#4B5063] cursor-not-allowed'
           }`}
         >
           <PaperPlaneRight weight="fill" className="w-5 h-5 rtl-flip" />

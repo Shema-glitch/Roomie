@@ -154,8 +154,8 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
               </div>
             </div>
           </div>
-          <span className="text-[11px] font-semibold text-[#B45309] bg-[#FEF3C7] px-2.5 py-1 rounded-full border border-[#FDE68A]">
-            Social Currency
+          <span className="text-xs font-semibold text-[#9A6700] bg-[#FFF8E6] px-2.5 py-1 rounded-full border border-[#FDE68A]">
+            Social currency
           </span>
         </div>
 
@@ -182,7 +182,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
                   Trade <span className="font-bold">"{req.requesterChoreName}"</span> for your task
                 </div>
                 {req.note && (
-                  <p className="text-[11px] text-[#475569] italic bg-white/70 p-2 rounded-xl">
+                  <p className="text-xs text-[#4B5063] italic bg-white/70 p-2 rounded-xl">
                     "{req.note}"
                   </p>
                 )}
@@ -290,7 +290,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
 
         {/* Actions */}
         {userTokens < tokenCost && (
-          <p className="text-[11px] font-semibold text-[#854D0E] bg-[#FFF8E6] p-2.5 rounded-xl border border-[#FDE68A] leading-snug flex items-start gap-1.5">
+          <p className="text-xs font-semibold text-[#9A6700] bg-[#FFF8E6] p-2.5 rounded-xl border border-[#FDE68A] leading-snug flex items-start gap-1.5">
             <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0 mt-0.5" />
             <span>
               <span className="font-bold">Need more tokens?</span> Complete tasks on time, maintain streaks, or accept chore swaps for flatmates to earn Favor Tokens!

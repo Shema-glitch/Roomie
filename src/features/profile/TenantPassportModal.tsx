@@ -102,10 +102,10 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           <button
             type="button"
             onClick={handleShare}
-            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FF6B4A] border-2 border-b-4 border-[#D94E30] text-white text-xs font-extrabold hover:bg-[#E55A3A] active:translate-y-[1px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FF6B4A] border-2 border-b-4 border-[#D94E30] text-[#1F2033] text-xs font-extrabold hover:bg-[#FF7D61] active:translate-y-[1px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <ShareNetwork weight="bold" className="w-4 h-4" />
-            Share Record
+            Share record
           </button>
         </div>
       }
@@ -120,10 +120,10 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           />
 
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] font-extrabold tracking-widest text-[#FF9278] uppercase bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
+            <span className="text-xs font-extrabold tracking-wider text-[#FF9278] uppercase bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
               Verified Roomie Record
             </span>
-            <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
+            <div className="flex items-center gap-1 text-xs text-[#CBD5E1]">
               <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#FCD34D]" />
               <span>Since {passport.verifiedSince}</span>
             </div>
@@ -154,17 +154,17 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           {/* Harmony Score Banner */}
           <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-[#FF9278] block">
-                Harmony Score
+              <span className="text-xs uppercase font-bold text-[#FF9278] block">
+                Harmony score
               </span>
               <span className="text-xl font-black text-white tracking-tight">
                 {passport.harmonyScore}
-                <span className="text-xs font-normal text-[#94A3B8]"> / 100</span>
+                <span className="text-xs font-normal text-[#CBD5E1]"> / 100</span>
               </span>
             </div>
             <div className="text-end">
-              <span className="text-[10px] font-bold text-[#FDE047] uppercase block">
-                Verified Tier
+              <span className="text-xs font-bold text-[#FDE047] uppercase block">
+                Verified tier
               </span>
               <span className="text-xs font-extrabold text-white">
                 {passport.harmonyScore >= 90
@@ -182,19 +182,19 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
         {/* 3 Key Reputation Metrics */}
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
-            <Fire weight="fill" className="w-5 h-5 text-amber-500 mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#1F2430]">{passport.choreStreakDays}d</div>
-            <div className="text-[10px] font-bold text-[#64748B] uppercase">Streak</div>
+            <Fire weight="fill" className="w-5 h-5 text-amber-600 mx-auto mb-1" />
+            <div className="text-base font-extrabold text-[#1F2033]">{passport.choreStreakDays}d</div>
+            <div className="text-xs font-bold text-[#4B5063] uppercase">Streak</div>
           </div>
           <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
-            <CheckCircle weight="fill" className="w-5 h-5 text-emerald-500 mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#1F2430]">{passport.totalChoresCompleted}</div>
-            <div className="text-[10px] font-bold text-[#64748B] uppercase">Chores</div>
+            <CheckCircle weight="fill" className="w-5 h-5 text-[#0F7A3D] mx-auto mb-1" />
+            <div className="text-base font-extrabold text-[#1F2033]">{passport.totalChoresCompleted}</div>
+            <div className="text-xs font-bold text-[#4B5063] uppercase">Chores</div>
           </div>
           <div className="p-3 rounded-2xl bg-[#F8FAFC] border-2 border-b-3 border-[#E5E9F0]">
-            <HouseLine weight="fill" className="w-5 h-5 text-[#FF6B4A] mx-auto mb-1" />
-            <div className="text-base font-extrabold text-[#1F2430]">{passport.tenancyCount}</div>
-            <div className="text-[10px] font-bold text-[#64748B] uppercase">Tenancies</div>
+            <HouseLine weight="fill" className="w-5 h-5 text-[#D94E30] mx-auto mb-1" />
+            <div className="text-base font-extrabold text-[#1F2033]">{passport.tenancyCount}</div>
+            <div className="text-xs font-bold text-[#4B5063] uppercase">Tenancies</div>
           </div>
         </div>
 

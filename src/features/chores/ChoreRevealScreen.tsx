@@ -280,7 +280,7 @@ export const ChoreRevealScreen: React.FC<ChoreRevealScreenProps> = ({
 
                 {/* Effort Badge */}
                 <div className="text-right shrink-0">
-                  <span className="type-label block mb-0.5 text-[11px]">
+                  <span className="type-label block mb-0.5 text-xs">
                     Effort load
                   </span>
                   <Chip

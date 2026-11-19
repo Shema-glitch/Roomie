@@ -124,10 +124,10 @@ export const ActivityTimelineSection: React.FC<ActivityTimelineSectionProps> = (
             <p className="text-[13px] font-bold text-[#1F2430] leading-snug line-clamp-2">
               {formatActivityBody(act.body, householdName)}
             </p>
-            <p className="type-secondary text-[11px] flex items-center gap-1.5 mt-0.5 text-[#64748B]">
+            <p className="type-secondary text-xs flex items-center gap-1.5 mt-0.5 text-[#4B5063]">
               <span>{timeFormatted}</span>
               <span>•</span>
-              <span className="font-semibold text-[#475569]">{categoryLabel}</span>
+              <span className="font-semibold text-[#1F2033]">{categoryLabel}</span>
             </p>
           </div>
         </div>

@@ -67,63 +67,63 @@ export const Button: React.FC<ButtonProps> = ({
       case 'primary':
         return {
           backgroundColor: THEME.colors.primary,
-          color: '#FFFFFF',
+          color: '#1F2033',
           boxShadow: `0 4px 0 ${THEME.colors.primaryDark}`,
           border: 'none',
         };
       case 'teal':
         return {
-          backgroundColor: THEME.colors.secondary,
+          backgroundColor: '#0B7A6E',
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.secondaryDark}`,
+          boxShadow: '0 4px 0 #075950',
           border: 'none',
         };
       case 'green':
         return {
-          backgroundColor: THEME.colors.success,
+          backgroundColor: '#0F7A3D',
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.successDark}`,
+          boxShadow: '0 4px 0 #0A5C2D',
           border: 'none',
         };
       case 'indigo':
         return {
-          backgroundColor: THEME.colors.info,
+          backgroundColor: '#3B4BC4',
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.infoDark}`,
+          boxShadow: '0 4px 0 #2D3BA3',
           border: 'none',
         };
       case 'reward':
         return {
           backgroundColor: THEME.colors.reward,
-          color: THEME.colors.ink,
+          color: '#1F2033',
           boxShadow: `0 4px 0 ${THEME.colors.rewardDark}`,
           border: 'none',
         };
       case 'danger':
         return {
-          backgroundColor: THEME.colors.error,
+          backgroundColor: '#B42318',
           color: '#FFFFFF',
-          boxShadow: `0 4px 0 ${THEME.colors.errorDark}`,
+          boxShadow: '0 4px 0 #8E1B12',
           border: 'none',
         };
       case 'danger-outline':
         return {
           backgroundColor: '#FFFFFF',
-          color: '#E5484D',
-          boxShadow: '0 4px 0 #CBD5E1',
-          border: '2px solid #E6E8EE',
+          color: '#B42318',
+          boxShadow: '0 4px 0 #E2E8F0',
+          border: '2px solid #FECACA',
         };
       case 'tertiary':
         return {
           backgroundColor: '#F1F3F9',
-          color: '#475569',
+          color: '#1F2033',
           boxShadow: '0 3px 0 #CBD5E1',
-          border: '1.5px solid #E2E8F0',
+          border: '1.5px solid #CBD5E1',
         };
       case 'ghost':
         return {
           backgroundColor: '#FFFFFF',
-          color: '#5B5BD6',
+          color: '#3B4BC4',
           boxShadow: '0 3px 0 #CBD5E1',
           border: '2px solid #E6E8EE',
         };
@@ -132,9 +132,9 @@ export const Button: React.FC<ButtonProps> = ({
       default:
         return {
           backgroundColor: '#FFFFFF',
-          color: '#1F2430',
+          color: '#1F2033',
           boxShadow: '0 4px 0 #CBD5E1',
-          border: '2px solid #E6E8EE',
+          border: '2px solid #E2E8F0',
         };
     }
   };
@@ -142,12 +142,12 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeClasses = () => {
     switch (size) {
       case 'sm':
-        return 'min-h-[44px] min-w-[44px] px-3.5 py-2 text-[13px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
+        return 'min-h-[44px] min-w-[44px] px-3.5 py-2 text-[13px] font-heading font-extrabold tracking-normal whitespace-nowrap';
       case 'lg':
-        return 'min-h-[56px] px-6 py-3.5 text-[16px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
+        return 'min-h-[56px] px-6 py-3.5 text-[16px] font-heading font-extrabold tracking-normal whitespace-nowrap';
       case 'md':
       default:
-        return 'min-h-[48px] px-5 py-2.5 text-[14px] font-heading font-black tracking-wider uppercase whitespace-nowrap';
+        return 'min-h-[48px] px-5 py-2.5 text-[14px] font-heading font-extrabold tracking-normal whitespace-nowrap';
     }
   };
 

@@ -231,7 +231,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                 <div className="text-3xl font-black text-[#0F766E]">
                   <AnimatedNumber value={metrics.totalChoresTogether} />
                 </div>
-                <p className="text-[11px] text-[#115E59]">
+                <p className="text-xs text-[#0B6B5F]">
                   {metrics.totalChoresTogether === 0
                     ? 'No chores logged yet'
                     : 'Tasks & streak days logged'}
@@ -246,7 +246,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                 <div className="text-3xl font-black text-[#1D4ED8]">
                   <AnimatedNumber value={metrics.disputeFreeStreakDays} suffix="d" />
                 </div>
-                <p className="text-[11px] text-[#1E40AF]">
+                <p className="text-xs text-[#1E40AF]">
                   {metrics.disputeFreeStreakDays === 0
                     ? 'Fresh start this week'
                     : 'Days without bill disputes'}
@@ -282,7 +282,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                     <Icon icon="fluent-emoji-flat:pot-of-food" className="w-6 h-6" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-[#92400E]">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#9A6700]">
                       Top Flat Chef
                     </span>
                     <h4 className="text-base font-black text-[#1F2430] truncate">
@@ -301,7 +301,7 @@ export const RoomieWrappedModal: React.FC<RoomieWrappedModalProps> = ({
                     <Heart weight="fill" className="w-6 h-6 text-[#EC4899]" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-[#9D174D]">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#9D174D]">
                       Most Appreciated
                     </span>
                     <h4 className="text-base font-black text-[#1F2430] truncate">

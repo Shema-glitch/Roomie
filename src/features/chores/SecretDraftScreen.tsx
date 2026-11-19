@@ -217,22 +217,22 @@ export const SecretDraftScreen: React.FC<SecretDraftScreenProps> = ({
 
             <div className="grid grid-cols-3 gap-2 pt-1">
               <div className="p-3 rounded-2xl bg-emerald-50 border-2 border-emerald-200">
-                <div className="text-xl font-heading font-black text-emerald-700">
+                <div className="text-xl font-heading font-black text-[#0F7A3D]">
                   {preferredCount}
                 </div>
-                <div className="text-[11px] font-bold text-emerald-800">Preferred</div>
+                <div className="text-xs font-bold text-[#0F7A3D]">Preferred</div>
               </div>
               <div className="p-3 rounded-2xl bg-amber-50 border-2 border-amber-200">
-                <div className="text-xl font-heading font-black text-amber-700">
+                <div className="text-xl font-heading font-black text-[#9A6700]">
                   {avoidCount}
                 </div>
-                <div className="text-[11px] font-bold text-amber-800">Not fave</div>
+                <div className="text-xs font-bold text-[#9A6700]">Not fave</div>
               </div>
               <div className="p-3 rounded-2xl bg-indigo-50 border-2 border-indigo-200">
-                <div className="text-xl font-heading font-black text-indigo-700">
+                <div className="text-xl font-heading font-black text-[#3B4BC4]">
                   {suggestCount}
                 </div>
-                <div className="text-[11px] font-bold text-indigo-800">Passed</div>
+                <div className="text-xs font-bold text-[#3B4BC4]">Passed</div>
               </div>
             </div>
           </div>

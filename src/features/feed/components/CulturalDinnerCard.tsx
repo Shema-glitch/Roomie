@@ -114,7 +114,7 @@ export const CulturalDinnerCard: React.FC<CulturalDinnerCardProps> = ({
           <span className="type-card-title text-[#1F2430]">
             Cultural Dinner: {activeDish}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] text-[11px] font-black uppercase tracking-wider">
+          <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#9A6700] text-xs font-black uppercase tracking-wider">
             Beta Labs
           </span>
         </div>
@@ -149,10 +149,10 @@ export const CulturalDinnerCard: React.FC<CulturalDinnerCardProps> = ({
                   haptics.tokenClink();
                   onOpenHostModal();
                 }}
-                className="text-[11px] font-bold text-[#D97706] hover:text-[#B45309] flex items-center gap-1 transition-colors"
+                className="text-xs font-bold text-[#9A6700] hover:text-[#78350F] flex items-center gap-1 transition-colors"
               >
-                <Plus weight="bold" className="w-3 h-3" />
-                <span>Host Another</span>
+                <Plus weight="bold" className="w-3.5 h-3.5" />
+                <span>Host another</span>
               </button>
             )}
           </div>

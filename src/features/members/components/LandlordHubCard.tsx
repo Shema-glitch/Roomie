@@ -168,7 +168,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                 Landlord &amp; Maintenance
               </h3>
               {activeIssues.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-[11px] font-bold whitespace-nowrap shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] text-xs font-bold whitespace-nowrap shrink-0">
                   {activeIssues.length} active
                 </span>
               )}
@@ -301,10 +301,10 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-[15px] text-[#1F2430]">
+                <span className="font-semibold text-[15px] text-[#1F2033]">
                   {landlordProfile?.landlordName || name}
                 </span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#FFF0ED] text-[#FF6B4A] font-bold">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-[#4B5063] font-bold">
                   {landlordProfile?.roleLabel || role}
                 </span>
               </div>
@@ -361,8 +361,8 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
       <div>
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2">
-            <span className="type-caption font-bold text-[#1F2430] uppercase tracking-wider text-[11px]">
-              Apartment Maintenance ({activeIssues.length} Active)
+            <span className="type-caption font-bold text-[#1F2033] uppercase tracking-wider text-xs">
+              Apartment maintenance ({activeIssues.length} active)
             </span>
           </div>
           <button
@@ -371,10 +371,10 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
               sound.playTap();
               onOpenReportIssue();
             }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#FFF0ED] text-[#FF6B4A] font-bold text-[12px] hover:bg-[#FFE4DD] active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#FF6B4A] border border-b-2 border-[#D94E30] text-[#1F2033] font-extrabold text-xs hover:bg-[#FF7D61] active:scale-95 transition-all cursor-pointer"
           >
             <Plus weight="bold" className="w-3.5 h-3.5" />
-            <span>Report Issue</span>
+            <span>Report issue</span>
           </button>
         </div>
 
@@ -411,13 +411,13 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
 
                 <div className="shrink-0">
                   {issue.status === 'notified_landlord' ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2563EB] font-medium">
-                      <Megaphone weight="fill" className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-[#EEF0FD] text-[#3B4BC4] font-semibold">
+                      <Megaphone weight="fill" className="w-3.5 h-3.5" />
                       <span>Notified</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-[#FFFBEB] text-[#D97706] font-medium">
-                      <Clock weight="fill" className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-[#FFF8E6] text-[#9A6700] font-semibold">
+                      <Clock weight="fill" className="w-3.5 h-3.5" />
                       <span>Reported</span>
                     </span>
                   )}
@@ -432,15 +432,15 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
                   sound.playTap();
                   onSelectIssue(issue);
                 }}
-                className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between opacity-70 hover:opacity-100 cursor-pointer transition-opacity"
+                className="p-2.5 rounded-2xl bg-[#F7F8FB] border border-[#E6E8EE] flex items-center justify-between opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <CheckCircle weight="fill" className="w-4 h-4 text-[#16A34A] shrink-0" />
-                  <span className="text-[12px] text-[#475569] truncate line-through">
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
+                  <span className="text-xs text-[#4B5063] truncate line-through">
                     {issue.title}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#16A34A] font-medium shrink-0">Fixed</span>
+                <span className="text-xs text-[#0F7A3D] font-bold shrink-0">Fixed</span>
               </div>
             ))}
           </div>

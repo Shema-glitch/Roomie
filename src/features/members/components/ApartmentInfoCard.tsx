@@ -194,10 +194,10 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             <button
               type="button"
               onClick={() => handleCopy(activePassword, 'Wi-Fi password')}
-              className="text-[11px] font-bold text-[#2563EB] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+              className="text-xs font-bold text-[#1D4ED8] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
             >
-              <Copy weight="bold" className="w-3 h-3" />
-              <span>Copy Password</span>
+              <Copy weight="bold" className="w-3.5 h-3.5" />
+              <span>Copy password</span>
             </button>
           </div>
 
@@ -239,10 +239,10 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             <button
               type="button"
               onClick={() => handleCopy(activeAddress, 'Delivery address')}
-              className="text-[11px] font-bold text-[#0D9488] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+              className="text-xs font-bold text-[#0B6B5F] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
             >
-              <Copy weight="bold" className="w-3 h-3" />
-              <span>Copy Address</span>
+              <Copy weight="bold" className="w-3.5 h-3.5" />
+              <span>Copy address</span>
             </button>
           </div>
 
@@ -285,7 +285,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
         >
           <form onSubmit={handleSaveEdit} className="space-y-3.5 py-1">
             {/* Privacy Rule Notice shown inside Edit modal */}
-            <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center gap-2 text-[11px] text-[#92400E] font-medium">
+            <div className="p-2.5 rounded-xl bg-[#FFF8E6] border border-[#FDE68A] flex items-center gap-2 text-xs text-[#9A6700] font-medium">
               <ShieldWarning weight="duotone" className="w-4 h-4 text-[#D97706] shrink-0" />
               <span>
                 Strict Privacy Rule: Identity documents (passports, visas, national IDs) must never be stored here.

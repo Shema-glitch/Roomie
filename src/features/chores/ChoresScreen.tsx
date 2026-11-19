@@ -187,13 +187,13 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                     size="md"
                     fullWidth
                     onClick={onOpenReveal}
-                    icon={<CheckCircle className="w-4 h-4 text-[#19B5A5]" />}
+                    icon={<CheckCircle className="w-4 h-4 text-[#0F7A3D]" />}
                   >
                     {draftState.actionLabel}
                   </Button>
                 ) : (
                   <Button
-                    variant="teal"
+                    variant="primary"
                     size="md"
                     fullWidth
                     onClick={onOpenDraftPicks}

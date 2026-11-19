@@ -50,16 +50,16 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
       title={
         <div className="flex items-center justify-between gap-2 flex-wrap w-full">
           <div className="flex items-center gap-2">
-            <span className="type-card-title text-[#1F2430]">Shared Shopping List</span>
+            <span className="type-card-title text-[#1F2033]">Shared shopping list</span>
             {lowCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-[#FEF2F2] text-[#DC2626] text-[10px] font-black uppercase tracking-wider flex items-center gap-1 border border-[#FCA5A5]">
-                <WarningCircle weight="fill" className="w-3 h-3" />
+              <span className="px-2 py-0.5 rounded-full bg-[#FEF2F2] text-[#B42318] text-xs font-black uppercase tracking-wider flex items-center gap-1 border border-[#FECACA]">
+                <WarningCircle weight="fill" className="w-3.5 h-3.5" />
                 <span>{lowCount} Low</span>
               </span>
             )}
           </div>
-          <span className="text-[11px] font-bold text-[#0D9488] hover:underline">
-            View All ({items.length}) →
+          <span className="text-xs font-bold text-[#0B6B5F] hover:underline">
+            View all ({items.length}) →
           </span>
         </div>
       }
@@ -90,12 +90,12 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                     </div>
                     <span className="font-semibold text-[#1F2430] truncate">{item.title}</span>
                     {item.quantityLabel && (
-                      <span className="text-[10px] text-[#64748B] shrink-0">({item.quantityLabel})</span>
+                      <span className="text-xs text-[#4B5063] shrink-0">({item.quantityLabel})</span>
                     )}
                   </div>
                   {item.isLow && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#FFF5F5] text-[#E53E3E] text-[9px] font-black tracking-wider uppercase shrink-0">
-                      Running Low
+                    <span className="px-2 py-0.5 rounded-md bg-[#FEF2F2] text-[#B42318] text-xs font-black tracking-wider uppercase shrink-0">
+                      Running low
                     </span>
                   )}
                 </div>

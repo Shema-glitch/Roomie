@@ -829,6 +829,25 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 34. UI/UX Audit Batch 2 — Semantic Color Tokens, WCAG AA Contrast, Unified Primary CTAs & 12px Type Floor (`feature/audit-batch2-color-and-type`)
+
+- **Semantic Tokens & WCAG AA Contrast (`src/index.css`, `src/theme/tokens.ts`, `Button.tsx`, `Chip.tsx`, `DemoModeBanner.tsx`)**:
+  - Defined clean semantic palette tokens across CSS variables and `THEME.colors`: Primary Brand Coral (`#FF6B4A` with high-contrast dark ink `#1F2033`), Success (`#0F7A3D`, `#0B6B5F` on mint chips), Warning (`#9A6700` on soft amber), and Danger (`#B42318`, strictly reserved for destructive actions and disputed/low alerts).
+  - Unified all primary CTAs (`Choose my chores`, `Log expense`, `New chore`, `Invite roomie`, `Propose`, `View recap`) onto Brand Coral `#FF6B4A` + `#1F2033` ink across Home, Chores (`ChoresScreen.tsx`), Chat (`ChatScreen.tsx`), Apartment (`ApartmentHeaderCard.tsx`), and Shoutouts (`WeeklyAwardsSection.tsx`).
+- **Neutral Invite Chip, Accessible Navigation & High-Contrast OFF Toggles (`AppHeaderAndNav.tsx`, `ApartmentHeaderCard.tsx`, `ProfileSettingsModal.tsx`, `ShoppingListModal.tsx`)**:
+  - Removed the redundant coral invite-code pill from the global header bar and restyled the flat invite code chip in `ApartmentHeaderCard.tsx` as a neutral copy chip (`bg-[#F1F5F9] text-[#1F2033] border-[#CBD5E1]`) with a Phosphor `Copy` icon and toast feedback.
+  - Darkened inactive navigation labels/icons to `#4B5063` and styled OFF toggles in `ProfileSettingsModal.tsx` and `ShoppingListModal.tsx` with `#8A8FA3` tracks and bordered knobs.
+- **12px Minimum Type Scale, Sentence Case & Unified Page Width (`ChatScreen.tsx`, `ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`, `src/i18n/locales/en.ts`, Modals)**:
+  - Raised sub-12px micro-labels across core screens, nav badges, Bento tiles, chat system pills/timestamps, and modals to `text-xs` (`12px` minimum) with `#4B5063` or darker ink on light/tinted surfaces.
+  - Standardized button and section casing to clean sentence case (`Choose my chores`, `Log expense`, `New chore`, `Invite roomie`, `Mark finished`, `View recap`), removing forced `uppercase` styling from `Button.tsx` and `ApartmentHeaderCard.tsx`.
+  - Removed the narrower `max-w-5xl mx-auto` constraint on `ChatScreen.tsx` so desktop Chat matches the full `max-w-7xl` layout width across all 5 tabs.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **126 / 126 passing** across 19 suites.
+  - `npm run build`: initial JS entry bundle under 200 KB gzipped.
+
+---
+
 
 
 

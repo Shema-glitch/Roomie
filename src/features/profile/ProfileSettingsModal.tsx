@@ -104,12 +104,12 @@ const SettingsRowToggle: React.FC<SettingsRowToggleProps> = ({
         haptics.tokenClink();
         onChange();
       }}
-      className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative shrink-0 cursor-pointer active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed ${
-        checked ? 'bg-[#FF6B4A] border-[#D94E30]' : 'bg-[#E6E8EE] border-[#CBD5E1]'
+      className={`w-12 h-7 rounded-full border-2 border-b-3 transition-all relative shrink-0 cursor-pointer active:translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
+        checked ? 'bg-[#0F7A3D] border-[#0A5C2D]' : 'bg-[#8A8FA3] border-[#64748B]'
       }`}
     >
       <span
-        className={`w-5 h-5 rounded-full bg-white shadow-xs absolute top-0.5 transition-transform ${
+        className={`w-5 h-5 rounded-full bg-white border border-[#4B5063]/40 shadow-xs absolute top-0.5 transition-transform ${
           checked ? 'end-0.5' : 'start-0.5'
         }`}
       />
@@ -568,7 +568,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <span className="text-xs sm:text-sm font-extrabold text-white block">
                       {t('profile.trackRecordTitle')}
                     </span>
-                    <p className="text-[11px] text-[#94A3B8] truncate mt-0.5">
+                    <p className="text-xs text-[#CBD5E1] truncate mt-0.5">
                       {t('profile.trackRecordSub')}
                     </p>
                   </div>
@@ -726,11 +726,11 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                         <span className="text-xs font-black text-[#581C87] uppercase tracking-wider block">
                           Beta Labs
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#F3E8FF] text-[#7E22CE] border border-[#D8B4FE] uppercase tracking-wider shrink-0">
+                        <span className="text-xs font-black px-2 py-0.5 rounded-full bg-[#F3E8FF] text-[#6B21A8] border border-[#D8B4FE] uppercase tracking-wider shrink-0">
                           Preview
                         </span>
                       </div>
-                      <span className="text-[11px] text-[#7E22CE] block leading-tight">
+                      <span className="text-xs text-[#6B21A8] block leading-tight">
                         Experimental flat features in early access
                       </span>
                     </div>
@@ -917,8 +917,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                     <Lightning className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-extrabold text-[#1F2430] truncate">Save login info</p>
-                    <p className="text-[11px] text-[#64748B] truncate">1-tap quick sign-in on this device</p>
+                    <p className="text-xs font-extrabold text-[#1F2033] truncate">Save login info</p>
+                    <p className="text-xs text-[#4B5063] truncate">1-tap quick sign-in on this device</p>
                   </div>
                 </div>
                 <button
@@ -934,8 +934,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
                   }}
                   className={`px-3 py-1 rounded-full text-xs font-black transition-colors cursor-pointer shrink-0 ${
                     loginSaved
-                      ? 'bg-[#19B5A5] text-white'
-                      : 'bg-white border border-[#CBD5E1] text-[#475569]'
+                      ? 'bg-[#0F7A3D] text-white'
+                      : 'bg-[#8A8FA3] border border-[#64748B] text-white'
                   }`}
                 >
                   {loginSaved ? 'Saved' : 'Off'}
@@ -973,10 +973,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           </div>
 
           {/* Danger Zone: Separate distinct area with confirmation step */}
-          <div className="mt-4 pt-3 border-2 border-[#FFD7CF] rounded-2xl p-4 bg-[#FFF0ED]/40 space-y-2.5">
+          <div className="mt-4 pt-3 border-2 border-[#FECACA] rounded-2xl p-4 bg-[#FEF2F2] space-y-2.5">
             <div className="flex items-center gap-2">
-              <Warning className="w-4 h-4 text-[#E5484D]" />
-              <span className="type-label text-[#E5484D] font-bold">Danger zone</span>
+              <Warning className="w-4 h-4 text-[#B42318]" />
+              <span className="type-label text-[#B42318] font-bold">Danger zone</span>
             </div>
             <p className="type-secondary text-[#7F1D1D] text-[14px] leading-relaxed">
               Permanently delete your profile and personal streaks from this device.

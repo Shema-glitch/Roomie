@@ -128,7 +128,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               onChange={(e) => setNewTitle(e.target.value)}
               maxLength={80}
               required
-              className="flex-1 px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6]"
+              className="flex-1 px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#1F2033] placeholder:text-[#4B5063] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#0B7A6E]"
             />
             <input
               type="text"
@@ -136,7 +136,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               value={newQuantity}
               onChange={(e) => setNewQuantity(e.target.value)}
               maxLength={30}
-              className="w-24 px-2.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#1F2430] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#14B8A6]"
+              className="w-24 px-2.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#1F2033] placeholder:text-[#4B5063] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/40 focus:border-[#0B7A6E]"
             />
           </div>
 
@@ -150,10 +150,10 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                     sound.playTap();
                     setNewCategory(c.id);
                   }}
-                  className={`tactile-press px-2.5 py-1 rounded-xl text-[11px] font-bold transition-colors cursor-pointer ${
+                  className={`tactile-press px-2.5 py-1 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                     newCategory === c.id
-                      ? 'bg-[#14B8A6] text-white shadow-xs'
-                      : 'bg-white text-[#64748B] border border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                      ? 'bg-[#0B7A6E] text-white shadow-xs'
+                      : 'bg-white text-[#4B5063] border border-[#CBD5E1] hover:bg-[#F1F5F9]'
                   }`}
                 >
                   {c.label}
@@ -173,15 +173,15 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                 }}
                 className={`tactile-press inline-flex items-center gap-1.5 px-3 py-2 rounded-full border-2 border-b-3 text-xs font-bold transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
                   newIsLow
-                    ? 'bg-[#FFF1F2] border-[#FB7185] text-[#BE123C]'
-                    : 'bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                    ? 'bg-[#FEF2F2] border-[#B42318] text-[#B42318]'
+                    : 'bg-[#F1F5F9] border-[#8A8FA3] text-[#1F2033] hover:bg-[#E2E8F0]'
                 }`}
               >
                 <WarningCircle
                   weight={newIsLow ? 'fill' : 'duotone'}
-                  className={`w-4 h-4 ${newIsLow ? 'text-[#E11D48]' : 'text-[#94A3B8]'}`}
+                  className={`w-4 h-4 ${newIsLow ? 'text-[#B42318]' : 'text-[#4B5063]'}`}
                 />
-                <span>Running Low</span>
+                <span>Running low</span>
               </button>
 
               <Button
@@ -192,7 +192,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                 className="flex-1 sm:flex-initial sm:min-w-[140px] whitespace-nowrap"
                 icon={<Plus weight="bold" className="w-3.5 h-3.5" />}
               >
-                Add Item
+                Add item
               </Button>
             </div>
           </div>
@@ -279,17 +279,17 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                           {item.title}
                         </span>
                         {item.quantityLabel && (
-                          <span className="text-[11px] text-[#64748B] shrink-0 font-medium">
+                          <span className="text-xs text-[#4B5063] shrink-0 font-medium">
                             • {item.quantityLabel}
                           </span>
                         )}
                         {item.isLow && (
-                          <span className="px-1.5 py-0.2 rounded bg-[#FFF5F5] text-[#DC2626] text-[9px] font-black uppercase tracking-wider border border-[#FEB2B2]">
+                          <span className="px-2 py-0.5 rounded bg-[#FEF2F2] text-[#B42318] text-xs font-black uppercase tracking-wider border border-[#FECACA]">
                             Low
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-[#94A3B8] uppercase font-semibold">
+                      <span className="text-xs text-[#4B5063] uppercase font-semibold">
                         {item.category}
                       </span>
                     </div>

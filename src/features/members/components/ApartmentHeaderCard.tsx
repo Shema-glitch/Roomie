@@ -7,10 +7,13 @@ import { BottomSheet, CenterDialog } from '../../../components/ui/overlays';
 import { Household, JoinRequest } from '../../../types';
 import { sound } from '../../../services/sound';
 import { haptics } from '../../../utils/haptics';
+import { copyTextToClipboard } from '../../../utils/clipboard';
+import { useToast } from '../../../components/common/Toast';
 import { useI18n } from '../../../i18n/I18nProvider';
 import {
   Buildings,
   QrCode,
+  Copy,
   House,
   Shield,
   ShieldCheck,
@@ -36,7 +39,7 @@ interface ApartmentHeaderCardProps {
 }
 
 const HEADER_CTA_BASE_CLASSES =
-  'h-12 w-full rounded-2xl border-2 border-b-4 px-4 flex items-center justify-center gap-2 font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wide transition-all duration-150 ease-out hover:-translate-y-0.5 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2';
+  'h-12 w-full rounded-2xl border-2 border-b-4 px-4 flex items-center justify-center gap-2 font-heading font-extrabold text-sm tracking-normal transition-all duration-150 ease-out hover:-translate-y-0.5 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2';
 
 export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
   household,
@@ -52,6 +55,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
   onRefreshRequests,
 }) => {
   const { t } = useI18n();
+  const { showToast } = useToast();
   const [checkingRequests, setCheckingRequests] = useState(false);
   const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
   const [settingsSheetOpen, setSettingsSheetOpen] = useState(false);
@@ -96,10 +100,26 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                   {household.name}
                 </h3>
                 <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[12px] font-bold text-[#475569] font-mono">
-                    {household.inviteCode}
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[12px] font-bold text-[#475569]">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      sound.playTap();
+                      haptics.light();
+                      const ok = await copyTextToClipboard(household.inviteCode);
+                      if (ok) {
+                        showToast('Invite code copied!', 'success');
+                      } else {
+                        onShowQR();
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-bold text-[#1F2033] hover:bg-[#E2E8F0] transition-colors font-mono cursor-pointer"
+                    title="Copy invite code"
+                    aria-label={`Copy invite code ${household.inviteCode}`}
+                  >
+                    <span>{household.inviteCode}</span>
+                    <Copy weight="bold" className="w-3.5 h-3.5 text-[#4B5063] shrink-0" />
+                  </button>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-bold text-[#4B5063]">
                     {household.currency}
                   </span>
                   <button
@@ -109,10 +129,10 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                       haptics.light();
                       setPrivacyDialogOpen(true);
                     }}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[12px] font-bold text-[#047857] hover:bg-[#D1FAE5] active:scale-[0.97] transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EBF9F0] border border-[#A7F3D0] text-xs font-bold text-[#0F7A3D] hover:bg-[#D1FAE5] active:scale-[0.97] transition-all cursor-pointer"
                     aria-label="Apartment privacy info"
                   >
-                    <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+                    <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#0F7A3D] shrink-0" />
                     <span>{t('apartment.private')}</span>
                   </button>
                 </div>
@@ -126,7 +146,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 haptics.light();
                 setSettingsSheetOpen(true);
               }}
-              className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 flex items-center justify-center transition-all cursor-pointer"
+              className="w-11 h-11 shrink-0 aspect-square rounded-full p-0 bg-[#F7F8FB] border border-[#CBD5E1] text-[#4B5063] hover:text-[#1F2033] hover:bg-[#EEF1F6] active:scale-95 flex items-center justify-center transition-all cursor-pointer"
               aria-label={t('apartment.settings')}
               title={t('apartment.settings')}
             >
@@ -143,7 +163,7 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                 haptics.light();
                 onShowQR();
               }}
-              className={`${HEADER_CTA_BASE_CLASSES} bg-[#FF6B4A] border-[#E05334] border-b-[#D94E30] text-white hover:bg-[#FA5D3B] hover:border-[#D94E30]`}
+              className={`${HEADER_CTA_BASE_CLASSES} bg-[#FF6B4A] border-[#D94E30] border-b-[#D94E30] text-[#1F2033] hover:bg-[#FF7D61] hover:border-[#D94E30]`}
             >
               <QrCode weight="bold" className="w-4 h-4 shrink-0" />
               <span className="truncate">{t('apartment.inviteRoomie')}</span>
@@ -154,19 +174,19 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
               onClick={handleOpenRequests}
               className={`${HEADER_CTA_BASE_CLASSES} ${
                 pendingCount > 0
-                  ? 'bg-[#FFFBEB] border-[#F59E0B] border-b-[#D97706] text-[#92400E] hover:bg-[#FEF3C7]'
-                  : 'bg-white border-[#E2E8F0] text-[#1E293B] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                  ? 'bg-[#FFF8E6] border-[#F59E0B] border-b-[#D97706] text-[#9A6700] hover:bg-[#FEF3C7]'
+                  : 'bg-white border-[#CBD5E1] text-[#1F2033] hover:border-[#94A3B8] hover:bg-[#F8FAFC]'
               }`}
             >
               <UserPlus
                 weight="duotone"
                 className={`w-4 h-4 shrink-0 ${
-                  pendingCount > 0 ? 'text-[#D97706]' : 'text-[#5B5BD6]'
+                  pendingCount > 0 ? 'text-[#9A6700]' : 'text-[#3B4BC4]'
                 }`}
               />
               <span className="truncate">{t('apartment.requests')}</span>
               {pendingCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#F59E0B] text-white text-[11px] font-black leading-none shrink-0">
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#9A6700] text-white text-xs font-black leading-none shrink-0">
                   {pendingCount}
                 </span>
               )}
@@ -358,20 +378,20 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
               setSettingsSheetOpen(false);
               onOpenLeaveModal();
             }}
-            className="w-full p-3.5 rounded-2xl bg-[#FFF5F5] border border-[#FECACA] hover:bg-[#FEE2E2] active:scale-[0.99] flex items-center justify-between gap-3 transition-all cursor-pointer mt-1"
+            className="w-full p-3.5 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] active:scale-[0.99] flex items-center justify-between gap-3 transition-all cursor-pointer mt-1"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-white border border-[#FECACA] flex items-center justify-center shrink-0">
-                <SignOut weight="duotone" className="w-5 h-5 text-[#E5484D]" />
+                <SignOut weight="duotone" className="w-5 h-5 text-[#B42318]" />
               </div>
               <div className="text-start min-w-0">
-                <p className="font-heading font-black text-sm text-[#C53030]">
-                  Leave This Apartment
+                <p className="font-heading font-black text-sm text-[#B42318]">
+                  Leave apartment
                 </p>
-                <p className="text-xs text-[#9B2C2C]">Sign out of this shared flat</p>
+                <p className="text-xs text-[#7F1D1D]">Sign out of this shared flat</p>
               </div>
             </div>
-            <CaretRight weight="bold" className="w-4 h-4 text-[#E5484D] shrink-0 rtl-flip" />
+            <CaretRight weight="bold" className="w-4 h-4 text-[#B42318] shrink-0 rtl-flip" />
           </button>
         </div>
       </BottomSheet>

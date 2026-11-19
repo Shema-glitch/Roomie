@@ -57,14 +57,14 @@ export const AppUpdateModal: React.FC<AppUpdateModalProps> = ({ release, onDismi
           <MascotView state="celebrating" size="md" bubbleText={t('update.title')} />
         </div>
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] border border-[#FFD3C9] text-xs font-black text-[#FF6B4A]">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] border border-[#FFD3C9] text-xs font-black text-[#B83B1D]">
           <Sparkle weight="fill" className="w-3.5 h-3.5" />
           <span>v{release.versionName}</span>
         </div>
 
         {release.releaseNotes && (
           <div className="p-3.5 rounded-2xl bg-[#F7F8FB] border border-[#E5E9F0] text-start">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#64748B] block mb-1">
+            <span className="text-xs font-black uppercase tracking-wider text-[#4B5063] block mb-1">
               {t('update.whatsNew')}
             </span>
             <p className="text-xs font-medium text-[#1F2430] leading-relaxed whitespace-pre-line">

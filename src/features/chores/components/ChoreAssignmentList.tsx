@@ -142,7 +142,7 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
               <div className="flex flex-wrap items-center gap-2.5 w-full">
                 {hasQuickComplete && !isOptimisticDone && (
                   <Button
-                    variant="teal"
+                    variant="green"
                     size="md"
                     loading={isSaving}
                     onClick={() => onQuickComplete(chore)}
@@ -154,12 +154,12 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
                 )}
                 {!isOptimisticDone && (
                   <Button
-                    variant={hasQuickComplete ? 'secondary' : 'teal'}
+                    variant={hasQuickComplete ? 'secondary' : 'green'}
                     size="md"
                     onClick={() => onSelectDoneChore(chore)}
                     icon={
                       hasQuickComplete ? (
-                        <Camera className="w-4 h-4 text-[#475569]" />
+                        <Camera className="w-4 h-4 text-[#4B5063]" />
                       ) : (
                         <CheckCircle className="w-4 h-4" weight="fill" />
                       )
@@ -423,8 +423,8 @@ export const ChoreAssignmentList: React.FC<ChoreAssignmentListProps> = React.mem
                 </div>
                 {onOpenDraftAction && (
                   <div className="pt-1">
-                    <Button variant="teal" size="sm" onClick={onOpenDraftAction}>
-                      {draftActionLabel || 'Choose My Chores'}
+                    <Button variant="primary" size="sm" onClick={onOpenDraftAction}>
+                      {draftActionLabel || 'Choose my chores'}
                     </Button>
                   </div>
                 )}

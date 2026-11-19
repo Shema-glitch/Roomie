@@ -7,30 +7,33 @@ export const THEME = {
   colors: {
     primary: '#FF6B4A',
     primaryDark: '#D94E30',
+    onPrimary: '#1F2033',
     primaryLight: '#FFF0ED',
-    
-    secondary: '#19B5A5',
-    secondaryDark: '#138E82',
+
+    secondary: '#0B7A6E',
+    secondaryDark: '#075950',
+    secondaryText: '#0B6B5F',
     secondaryLight: '#E6FAF8',
-    
+
     reward: '#FFC93C',
     rewardDark: '#DDA821',
+    warningText: '#9A6700',
     rewardLight: '#FFF8E6',
-    
-    info: '#5B5BD6',
-    infoDark: '#4747B8',
+
+    info: '#3B4BC4',
+    infoDark: '#2D3BA3',
     infoLight: '#EEF0FD',
-    
-    success: '#3DBE6D',
-    successDark: '#2CA358',
+
+    success: '#0F7A3D',
+    successDark: '#0A5C2D',
     successLight: '#EBF9F0',
-    
-    error: '#E5484D',
-    errorDark: '#BF3337',
-    errorLight: '#FDECEE',
-    
-    ink: '#1F2430',
-    muted: '#6B7280',
+
+    error: '#B42318',
+    errorDark: '#8E1B12',
+    errorLight: '#FEF2F2',
+
+    ink: '#1F2033',
+    muted: '#4B5063',
     line: '#E6E8EE',
     bg: '#F7F8FB',
     surface: '#FFFFFF',

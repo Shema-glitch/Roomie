@@ -97,8 +97,8 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             onClick={handleCelebrate}
             className={`btn-tactile ease-spring px-3 py-1.5 rounded-xl font-heading font-black text-xs border-2 border-b-4 will-change-transform cursor-pointer flex items-center gap-1.5 shrink-0 ${
               celebrated
-                ? 'bg-[#19B5A5] text-white border-[#138E82]'
-                : 'bg-[#FFF8E6] text-[#B45309] border-[#F59E0B]/50 hover:bg-[#FEF3C7]'
+                ? 'bg-[#0F7A3D] text-white border-[#0A5C2D]'
+                : 'bg-[#FFF8E6] text-[#9A6700] border-[#F59E0B]/60 hover:bg-[#FEF3C7]'
             }`}
             title="Celebrate this week's shoutouts"
           >
@@ -110,14 +110,14 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
 
       {!hasFlatActivity ? (
         <div className="p-4 rounded-2xl border-2 border-dashed border-[#E5E9F0] bg-[#F7F8FB] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-white border border-[#E5E9F0] flex items-center justify-center text-[#D97706] shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-white border border-[#E5E9F0] flex items-center justify-center text-[#9A6700] shrink-0">
             <Trophy weight="duotone" className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-heading font-black text-[#1F2430]">
+            <h4 className="text-sm font-heading font-black text-[#1F2033]">
               Unlocks after your first week of flat activity
             </h4>
-            <p className="text-xs font-medium text-[#64748B] mt-0.5 leading-relaxed">
+            <p className="text-xs font-medium text-[#4B5063] mt-0.5 leading-relaxed">
               Complete a duty or log a shared expense to earn your flat&apos;s first shoutout badges.
             </p>
           </div>
@@ -136,13 +136,13 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               <Icon icon={myAward.icon} className="w-8 h-8" />
             </span>
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-black uppercase tracking-wider text-[#FF6B4A] block">
-                Your Shoutout This Week
+              <span className="text-xs font-black uppercase tracking-wider text-[#B83B1D] block">
+                Your shoutout this week
               </span>
-              <h4 className="text-base font-heading font-black text-[#1F2430] mt-0.5">
+              <h4 className="text-base font-heading font-black text-[#1F2033] mt-0.5">
                 {myAward.title}
               </h4>
-              <p className="text-xs font-medium text-[#475569] mt-1 leading-relaxed">
+              <p className="text-xs font-medium text-[#4B5063] mt-1 leading-relaxed">
                 {myAward.reason}
               </p>
             </div>
@@ -153,8 +153,8 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
       {/* Flatmate Shoutouts in Horizontal Swipe Strip */}
       {otherAwards.length > 0 && (
         <div className="space-y-1.5">
-          <div className="text-[11px] font-bold text-[#64748B] px-0.5">
-            Flatmate Shoutouts
+          <div className="text-xs font-bold text-[#4B5063] px-0.5">
+            Flatmate shoutouts
           </div>
           <div
             className={
@@ -180,15 +180,15 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
                       <Icon icon={award.icon} className="w-6 h-6" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-bold text-[#64748B] truncate">
+                      <div className="text-xs font-bold text-[#4B5063] truncate">
                         {award.recipientName.split(' ')[0]}
                       </div>
-                      <div className="text-xs font-heading font-black text-[#1F2430] truncate">
+                      <div className="text-xs font-heading font-black text-[#1F2033] truncate">
                         {award.title}
                       </div>
                     </div>
                   </div>
-                  <p className="text-[11px] font-medium text-[#475569] line-clamp-2 leading-tight">
+                  <p className="text-xs font-medium text-[#4B5063] line-clamp-2 leading-tight">
                     {award.reason}
                   </p>
                 </div>
@@ -217,19 +217,19 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-xs font-black text-[#1F2430] truncate">
+                <span className="text-xs font-black text-[#1F2033] truncate">
                   {t('home.monthlyFlatRecap')}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-[#FFE4DD] text-[#D94E30] text-[11px] font-bold shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-[#FFE4DD] text-[#9A3412] text-xs font-bold shrink-0">
                   {t('common.beta')}
                 </span>
               </div>
-              <span className="text-[10px] text-[#64748B] truncate block">
+              <span className="text-xs text-[#4B5063] truncate block">
                 {t('home.recapSubtitle')}
               </span>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-xl bg-[#FF6B4A] text-white text-[11px] font-black whitespace-nowrap shrink-0">
+          <span className="px-3 py-1.5 rounded-xl bg-[#FF6B4A] border-b-2 border-[#D94E30] text-[#1F2033] text-xs font-extrabold whitespace-nowrap shrink-0">
             {t('home.viewRecap')}
           </span>
         </button>

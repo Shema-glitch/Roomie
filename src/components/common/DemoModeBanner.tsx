@@ -19,7 +19,7 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 text-[12px] sm:text-[13px] font-medium flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-[#FFE8A3] text-[#7A5200] shrink-0">
+          <span className="font-bold uppercase tracking-wider text-xs px-1.5 py-0.5 rounded bg-[#FFE8A3] text-[#7A5200] shrink-0">
             Demo
           </span>
           <span className="truncate">
@@ -30,7 +30,7 @@ export const DemoModeBanner: React.FC<DemoModeBannerProps> = ({
         <button
           type="button"
           onClick={onSetupRealFlat}
-          className="text-[12px] font-bold bg-[#FF6B4A] hover:bg-[#E85635] text-white px-2.5 py-1 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
+          className="text-xs font-extrabold bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] px-2.5 py-1 rounded-xl cursor-pointer flex items-center gap-1 shrink-0 transition-colors"
         >
           <House weight="fill" className="w-3 h-3" />
           <span>{t('banner.exitDemo')}</span>

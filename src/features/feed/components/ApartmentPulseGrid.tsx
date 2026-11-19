@@ -117,14 +117,14 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
               <Wallet weight="duotone" className="w-5 h-5" />
             </div>
             <span
-              className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+              className={`text-xs font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
                 isOwed
-                  ? 'bg-[#BBF7D0] text-[#166534]'
+                  ? 'bg-[#EBF9F0] text-[#0F7A3D]'
                   : owes
-                  ? 'bg-[#FED7AA] text-[#9A3412]'
+                  ? 'bg-[#FFF5F2] text-[#B83B1D]'
                   : isPendingWithoutBalance
-                  ? 'bg-[#FEF3C7] text-[#92400E]'
-                  : 'bg-[#E2E8F0] text-[#475569]'
+                  ? 'bg-[#FFF8E6] text-[#9A6700]'
+                  : 'bg-[#EBF9F0] text-[#0F7A3D]'
               }`}
             >
               {isOwed
@@ -138,16 +138,16 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#64748B]">{t('home.expensesTile')}</div>
+            <div className="text-xs font-bold text-[#4B5063]">{t('home.expensesTile')}</div>
             <div
               className={`text-base font-heading font-black tracking-tight truncate tabular-nums ${
                 isOwed
-                  ? 'text-[#166534]'
+                  ? 'text-[#0F7A3D]'
                   : owes
                   ? 'text-[#9A3412]'
                   : isPendingWithoutBalance
-                  ? 'text-[#92400E]'
-                  : 'text-[#1E293B]'
+                  ? 'text-[#9A6700]'
+                  : 'text-[#1F2033]'
               }`}
             >
               {isOwed ? '+' : owes ? '-' : ''}
@@ -160,7 +160,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#64748B] tabular-nums">
+          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#4B5063] tabular-nums">
             <span>
               {isOwed
                 ? t('home.collectPayment')
@@ -170,7 +170,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
                 ? t('home.pendingCount', { count: pendingApprovalCount })
                 : t('home.balancesClear')}
             </span>
-            <ArrowRight weight="bold" className="w-3 h-3 text-[#94A3B8] rtl-flip" />
+            <ArrowRight weight="bold" className="w-3.5 h-3.5 text-[#4B5063] rtl-flip" />
           </div>
         </div>
 
@@ -192,15 +192,15 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
               <Icon icon="fluent-emoji-flat:shopping-cart" className="w-5 h-5" />
             </div>
             {runningLowCount > 0 && (
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626] border border-[#FECDD3] whitespace-nowrap shrink-0">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FEF2F2] text-[#B42318] border border-[#FECACA] whitespace-nowrap shrink-0">
                 {t('home.lowStockCount', { count: runningLowCount })}
               </span>
             )}
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#854D0E]">{t('home.shoppingTile')}</div>
-            <div className="text-base font-heading font-black text-[#1F2430] truncate">
+            <div className="text-xs font-bold text-[#78350F]">{t('home.shoppingTile')}</div>
+            <div className="text-base font-heading font-black text-[#1F2033] truncate">
               {t('home.itemsNeeded', { count: neededCount })}
             </div>
           </div>
@@ -213,14 +213,14 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
                 onTriggerSupermarketPing();
               }}
               title={t('home.goingToMarket')}
-              className="text-[11px] font-bold text-[#B45309] hover:text-[#78350F] flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#78350F] hover:text-[#451A03] flex items-center gap-1 cursor-pointer"
             >
-              <Megaphone weight="bold" className="w-3 h-3" />
+              <Megaphone weight="bold" className="w-3.5 h-3.5" />
               <span>Ping</span>
             </button>
-            <span className="text-[11px] font-bold text-[#854D0E] flex items-center gap-0.5">
+            <span className="text-xs font-bold text-[#78350F] flex items-center gap-0.5">
               <span>{t('home.openList')}</span>
-              <ArrowRight weight="bold" className="w-3 h-3 text-[#B45309] rtl-flip" />
+              <ArrowRight weight="bold" className="w-3.5 h-3.5 text-[#78350F] rtl-flip" />
             </span>
           </div>
         </div>
@@ -249,8 +249,8 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#6B21A8]">{t('home.houseMoodTile')}</div>
-            <div className="text-base font-heading font-black text-[#1F2430] truncate">
+            <div className="text-xs font-bold text-[#6B21A8]">{t('home.houseMoodTile')}</div>
+            <div className="text-base font-heading font-black text-[#1F2033] truncate">
               {vibeRevealed && vibeSummary
                 ? `${vibeSummary.averageScore} / 5 · ${vibeMood?.label || 'Vibing'}`
                 : (vibeSummary?.submissionCount ?? 0) > 0
@@ -262,8 +262,8 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#6B21A8]">
-            <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#9333EA]" />
+          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#6B21A8]">
+            <ShieldCheck weight="fill" className="w-3.5 h-3.5 text-[#7E22CE]" />
             <span>{vibeRevealed ? t('home.moodPrivateHint') : t('home.checkInNow')}</span>
           </div>
         </div>
@@ -285,20 +285,20 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
             <div className="w-9 h-9 rounded-xl bg-[#FECDD3] flex items-center justify-center shrink-0">
               <Icon icon="fluent-emoji-flat:pot-of-food" className="w-5 h-5" />
             </div>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFE4E6] text-[#9F1239] whitespace-nowrap shrink-0">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FFE4E6] text-[#9F1239] whitespace-nowrap shrink-0">
               {t('common.beta')}
             </span>
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#9F1239]">{t('home.sharedMeal')}</div>
-            <div className="text-base font-heading font-black text-[#1F2430] truncate">
+            <div className="text-xs font-bold text-[#9F1239]">{t('home.sharedMeal')}</div>
+            <div className="text-base font-heading font-black text-[#1F2033] truncate">
               {culturalDinner ? culturalDinner.dishTitle : t('home.dinnerNight')}
             </div>
           </div>
 
-          <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[#9F1239]">
-            <ForkKnife weight="bold" className="w-3 h-3 text-[#E11D48]" />
+          <div className="mt-2 flex items-center gap-1 text-xs font-bold text-[#9F1239]">
+            <ForkKnife weight="bold" className="w-3.5 h-3.5 text-[#9F1239]" />
             <span>
               {culturalDinner
                 ? t('home.rsvpGoing', { count: culturalDinner.rsvpUserIds?.length || 1 })

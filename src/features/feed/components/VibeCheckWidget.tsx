@@ -54,10 +54,10 @@ export const VibeCheckWidget: React.FC<VibeCheckWidgetProps> = ({
               Apartment Vibe Pulse
             </h4>
             <span
-              className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
+              className={`text-xs font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
                 isRevealed
-                  ? 'bg-[#E6FAF8] text-[#138E82] border border-[#19B5A5]/30'
-                  : 'bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]'
+                  ? 'bg-[#E6FAF8] text-[#0B6B5F] border border-[#0B7A6E]/30'
+                  : 'bg-[#F1F5F9] text-[#4B5063] border border-[#CBD5E1]'
               }`}
             >
               {isRevealed ? 'Unlocked' : 'Private'}

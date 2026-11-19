@@ -175,27 +175,13 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               <span className="type-section-heading max-w-[215px] sm:max-w-[260px] md:max-w-none truncate text-[14px] sm:text-[18px]">
                 {activeHousehold.name}
               </span>
-              <CaretDown weight="bold" className="w-3.5 h-3.5 text-[#475569] shrink-0" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                sound.playTap();
-                onOpenShowQR();
-              }}
-              className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-[14px] font-bold text-[#FF6B4A] hover:bg-[#FFEAE4] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0"
-              title="Click to view apartment invite code and QR"
-            >
-              <span className="font-mono tracking-wide font-black">
-                {activeHousehold.inviteCode}
-              </span>
+              <CaretDown weight="bold" className="w-3.5 h-3.5 text-[#4B5063] shrink-0" />
             </button>
           </div>
 
           <nav
             aria-label="Desktop Navigation"
-            className="hidden md:flex items-center gap-0.5 lg:gap-1 p-1 bg-[#EEF0F6] rounded-2xl border border-[#E2E5EC] shrink min-w-0"
+            className="hidden md:flex items-center gap-0.5 lg:gap-1 p-1 bg-[#EEF0F6] rounded-2xl border border-[#CBD5E1] shrink min-w-0"
           >
             {DESKTOP_NAV_ITEMS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -213,22 +199,22 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                   aria-current={isActive ? 'page' : undefined}
                   className={`relative flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                     isActive
-                      ? 'bg-white text-[#1F2430] shadow-xs border border-[#E2E5EC]'
-                      : 'text-[#475569] hover:text-[#1F2430] hover:bg-white/60 border border-transparent'
+                      ? 'bg-white text-[#1F2033] shadow-xs border border-[#CBD5E1]'
+                      : 'text-[#4B5063] hover:text-[#1F2033] hover:bg-white/70 border border-transparent'
                   }`}
                   title={tabLabel}
                   aria-label={tabLabel}
                 >
                   <span
                     className={`transition-colors duration-150 ${
-                      isActive ? 'text-[#FF6B4A]' : 'text-[#94A3B8]'
+                      isActive ? 'text-[#D94E30]' : 'text-[#4B5063]'
                     }`}
                   >
                     {tab.renderIcon(isActive)}
                   </span>
                   <span className={isActive ? 'inline' : 'hidden lg:inline'}>{tabLabel}</span>
                   {tab.id === 'apartment' && pendingJoinRequestsCount > 0 && (
-                    <span className="ms-0.5 min-w-[18px] h-[18px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-black leading-none flex items-center justify-center shadow-2xs">
+                    <span className="ms-0.5 min-w-[20px] h-5 px-1.5 bg-[#FF6B4A] text-[#1F2033] rounded-full text-xs font-black leading-none flex items-center justify-center shadow-2xs">
                       {pendingJoinRequestsCount}
                     </span>
                   )}
@@ -246,12 +232,12 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               }}
               className={`relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 border flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                 syncStatus === 'syncing'
-                  ? 'bg-[#EEF0FD] border-[#D3D5F9] text-[#5B5BD6]'
+                  ? 'bg-[#EEF0FD] border-[#C7D2FE] text-[#3B4BC4]'
                   : syncStatus === 'offline'
-                  ? 'bg-[#FFF0ED] border-[#FFD7CF] text-[#E5484D]'
+                  ? 'bg-[#FEF2F2] border-[#FECACA] text-[#B42318]'
                   : syncStatus === 'needs_attention'
-                  ? 'bg-[#FFF8E6] border-[#FFE8A3] text-[#8A6200]'
-                  : 'bg-white border-[#E6E8EE] text-[#19B5A5] hover:border-[#19B5A5]'
+                  ? 'bg-[#FFF8E6] border-[#FDE68A] text-[#9A6700]'
+                  : 'bg-white border-[#CBD5E1] text-[#0B6B5F] hover:border-[#0B7A6E]'
               }`}
               title={`Sync status: ${syncTitleLabel}. Tap to open sync details.`}
               aria-label="Apartment sync status"
@@ -259,26 +245,26 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               {syncStatus === 'syncing' ? (
                 <ArrowsClockwise
                   weight="duotone"
-                  className="w-5 h-5 shrink-0 animate-spin text-[#5B5BD6]"
+                  className="w-5 h-5 shrink-0 animate-spin text-[#3B4BC4]"
                 />
               ) : syncStatus === 'offline' ? (
-                <CloudSlash weight="duotone" className="w-5 h-5 shrink-0 text-[#E5484D]" />
+                <CloudSlash weight="duotone" className="w-5 h-5 shrink-0 text-[#B42318]" />
               ) : syncStatus === 'needs_attention' ? (
-                <WarningCircle weight="duotone" className="w-5 h-5 shrink-0 text-[#8A6200]" />
+                <WarningCircle weight="duotone" className="w-5 h-5 shrink-0 text-[#9A6700]" />
               ) : (
-                <CloudCheck weight="duotone" className="w-5 h-5 shrink-0 text-[#19B5A5]" />
+                <CloudCheck weight="duotone" className="w-5 h-5 shrink-0 text-[#0B6B5F]" />
               )}
               <span className="sr-only">{syncButtonLabel}</span>
             </button>
 
-            {/* Phase 2: Favor Token Pill */}
+            {/* Favor Token Pill */}
             <button
               type="button"
               onClick={() => {
                 haptics.tokenClink();
                 sound.tokenClink();
               }}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#B45309] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
               title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
               aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
             >
@@ -297,12 +283,12 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 }
                 onOpenNotifications();
               }}
-              className="relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#E6E8EE] flex items-center justify-center text-[#1F2430] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
+              className="relative w-10 h-10 shrink-0 aspect-square rounded-full p-0 bg-white border border-[#CBD5E1] flex items-center justify-center text-[#1F2033] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
               aria-label={t('nav.openNotifications')}
             >
               <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-5 h-5" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute -top-1 -end-1 min-w-[18px] h-[18px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-extrabold leading-none flex items-center justify-center border-2 border-white">
+                <span className="absolute -top-1 -end-1 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-[#1F2033] rounded-full text-xs font-extrabold leading-none flex items-center justify-center border-2 border-white">
                   {unreadNotifsCount}
                 </span>
               )}
@@ -362,19 +348,19 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = React.memo(
               aria-current={isActive ? 'page' : undefined}
               className={`relative flex flex-col items-center justify-center py-1.5 px-2.5 rounded-2xl min-h-[48px] min-w-[58px] transition-[transform,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.95] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 ${
                 isActive
-                  ? 'text-[#FF6B4A] font-extrabold'
-                  : 'text-[#475569] hover:text-[#1F2430]'
+                  ? 'text-[#1F2033] font-extrabold'
+                  : 'text-[#4B5063] hover:text-[#1F2033]'
               }`}
               aria-label={itemLabel}
             >
               <div
                 className={`relative p-1 rounded-xl transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  isActive ? 'bg-[#FFF0ED] scale-105' : 'bg-transparent scale-100'
+                  isActive ? 'bg-[#FFF0ED] text-[#D94E30] scale-105' : 'bg-transparent scale-100'
                 }`}
               >
                 {tabItem.renderIcon(isActive)}
                 {showJoinBadge && (
-                  <span className="absolute -top-1 -end-1.5 min-w-[17px] h-[17px] px-1 bg-[#FF6B4A] text-white rounded-full text-[10px] font-black leading-none flex items-center justify-center border-2 border-white shadow-xs">
+                  <span className="absolute -top-1 -end-1.5 min-w-[20px] h-5 px-1 bg-[#FF6B4A] text-[#1F2033] rounded-full text-xs font-black leading-none flex items-center justify-center border-2 border-white shadow-xs">
                     {pendingJoinRequestsCount}
                   </span>
                 )}

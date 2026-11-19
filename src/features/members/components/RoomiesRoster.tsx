@@ -38,7 +38,7 @@ const RoomieRosterCard: React.FC<RoomieRosterCardProps> = React.memo(
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <span className="type-card-title truncate">{user.name}</span>
             {isMe && (
-              <span className="text-[14px] font-bold text-[#FF6B4A] shrink-0 normal-case">
+              <span className="text-[13px] font-bold text-[#4B5063] shrink-0 normal-case">
                 (You)
               </span>
             )}
@@ -52,15 +52,15 @@ const RoomieRosterCard: React.FC<RoomieRosterCardProps> = React.memo(
         </div>
       }
       subtitle={
-        <span className="text-[13px] text-[#64748B]">
+        <span className="text-[13px] text-[#4B5063]">
           {membership.role === 'admin' ? 'Admin' : 'Member'} · From {user.country}{' '}
           {user.flag || ''}
         </span>
       }
       detail={
-        <div className="flex items-center justify-between text-[13px] text-[#64748B] pt-1">
+        <div className="flex items-center justify-between text-[13px] text-[#4B5063] pt-1">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 text-[#1F2430] font-medium">
+            <span className="inline-flex items-center gap-1 text-[#1F2033] font-medium">
               <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
               {user.streakDays}d streak
             </span>
@@ -75,7 +75,7 @@ const RoomieRosterCard: React.FC<RoomieRosterCardProps> = React.memo(
                 sound.playTap();
                 onSelectRemoveUser(user);
               }}
-              className="text-xs font-bold text-[#E5484D] hover:underline flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-red-50 transition-colors"
+              className="text-xs font-bold text-[#B42318] hover:underline flex items-center gap-1 cursor-pointer py-1.5 px-2 rounded-lg hover:bg-[#FEF2F2] transition-colors"
             >
               <UserMinus className="w-3.5 h-3.5" /> Remove
             </button>
