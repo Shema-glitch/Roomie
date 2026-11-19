@@ -5,6 +5,7 @@ import { Chip } from '../../../components/common/Chip';
 import { PresenceSegmentedControl } from '../../../components/common/PresenceSegmentedControl';
 import { DayOfWeek, DutyDayEntry, User } from '../../../types';
 import { sound } from '../../../services/sound';
+import { useToast } from '../../../components/common/Toast';
 import { Icon } from '@iconify/react';
 import { Receipt, ShoppingCart, CheckCircle, House, AirplaneTilt } from '@phosphor-icons/react';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -19,6 +20,7 @@ interface HomeSidebarProps {
   };
   todayDuty?: { entry: DutyDayEntry; user: User | null; isMe: boolean; day: DayOfWeek } | null;
   onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
+  onUndoTodayDuty?: (day: DayOfWeek) => Promise<void>;
   onToggleHomeStatus: () => void;
   onNavigateTab: (tab: 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment') => void;
   onOpenExpensesAction?: (action: 'add' | 'settle' | 'confirm') => void;
@@ -32,11 +34,13 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
   currentUser,
   todayDuty,
   onCompleteTodayDuty,
+  onUndoTodayDuty,
   onToggleHomeStatus,
   onNavigateTab,
   onOpenExpensesAction,
   onOpenShoppingList,
 }) => {
+  const { showToast } = useToast();
   const { t } = useI18n();
   const [finishingDuty, setFinishingDuty] = useState(false);
   const homeCount = roommates.filter((r) => r.isHome).length;
@@ -47,7 +51,20 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
     if (canMarkDutyDone && todayDuty && onCompleteTodayDuty && !finishingDuty) {
       setFinishingDuty(true);
       try {
-        await onCompleteTodayDuty(todayDuty.day);
+        const completedDay = todayDuty.day;
+        await onCompleteTodayDuty(completedDay);
+        showToast('Duty day finished! Streak and points updated.', 'success', {
+          duration: 5000,
+          action: onUndoTodayDuty
+            ? {
+                label: 'Undo',
+                onClick: async () => {
+                  await onUndoTodayDuty(completedDay);
+                  showToast('Duty completion undone', 'info');
+                },
+              }
+            : undefined,
+        });
       } finally {
         setFinishingDuty(false);
       }
@@ -88,9 +105,9 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                     <p className="text-[14px] font-bold text-[#1F2033] truncate">
                       {isMe ? `${r.name.split(' ')[0]} (${t('common.you')})` : r.name.split(' ')[0]}
                     </p>
-                    <p className="type-secondary text-[13px] flex items-center gap-1 whitespace-nowrap">
+                    <p className="type-secondary text-[13px] flex items-center gap-1 min-w-0 truncate">
                       <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
-                      <span>
+                      <span className="truncate">
                         {t('home.dayStreak', { count: r.streakDays })} · {t('home.pts', { count: r.points })}
                       </span>
                     </p>
@@ -100,6 +117,7 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                   status={r.isHome ? 'active' : 'away'}
                   label={r.isHome ? 'Home' : 'Away'}
                   size="xs"
+                  className="shrink-0"
                 />
               </div>
             );

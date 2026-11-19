@@ -455,6 +455,14 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
             }
             await loadData();
           }}
+          onUndoTodayDuty={async (day) => {
+            await api.uncompleteDutyDay(day);
+            if (activeHousehold) {
+              const refreshed = await api.getDutySchedule(activeHousehold.id);
+              setDutySchedule(refreshed);
+            }
+            await loadData();
+          }}
         />
       )}
     </React.Suspense>

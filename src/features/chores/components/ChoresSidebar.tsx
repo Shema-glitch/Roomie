@@ -24,8 +24,8 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
     <div className="space-y-6">
       <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-sm space-y-4">
         <div className="min-w-0">
-          <h3 className="type-section-heading">Roomie streaks and kudos</h3>
-          <p className="type-secondary text-[13px] text-[#64748B] mt-0.5">
+          <h3 className="type-section-heading truncate">Roomie streaks and kudos</h3>
+          <p className="type-secondary text-[13px] text-[#64748B] mt-0.5 truncate">
             Apartment chore consistency · Top streak: {maxStreak}d
           </p>
         </div>
@@ -61,7 +61,7 @@ export const ChoresSidebar: React.FC<ChoresSidebarProps> = ({
                         <span className="text-[13px] font-semibold text-[#FF6B4A] shrink-0">(You)</span>
                       )}
                     </div>
-                    <p className="text-xs text-[#4B5063] flex items-center gap-1.5 whitespace-nowrap mt-0.5">
+                    <p className="text-xs text-[#4B5063] flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mt-0.5 min-w-0">
                       <span className="inline-flex items-center gap-1 font-medium text-[#1F2033]">
                         <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
                         {r.streakDays}d

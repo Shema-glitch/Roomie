@@ -445,7 +445,7 @@ export const RemoveMemberModal: React.FC<RemoveMemberModalProps> = ({
             disabled={removing}
             onClick={handleConfirm}
           >
-            {removing ? 'Removing...' : 'Confirm Remove'}
+            {removing ? 'Removing...' : `Remove ${targetUser.name.split(' ')[0]}`}
           </Button>
         </div>
       </div>

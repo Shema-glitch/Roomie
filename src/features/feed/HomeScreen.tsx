@@ -87,6 +87,7 @@ interface HomeScreenProps {
   onOpenDraftPicks: () => void;
   onOpenTimetable?: () => void;
   onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
+  onUndoTodayDuty?: (day: DayOfWeek) => Promise<void>;
   onSelectExpense: (expenseId: string) => void;
   onSelectJoinRequest: (req: JoinRequest) => void;
   onToggleHomeStatus: () => void;
@@ -113,6 +114,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenDraftPicks,
   onOpenTimetable,
   onCompleteTodayDuty,
+  onUndoTodayDuty,
   onSelectExpense,
   onSelectJoinRequest,
   onToggleHomeStatus,
@@ -449,8 +451,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               {/* Inline Roommate Presence Footer */}
               <div className="pt-3 border-t border-[#FFD3C9]/70 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1.5 overflow-hidden">
-                    {roommates.map((r) => (
+                  <div className="flex -space-x-1.5 overflow-hidden shrink-0">
+                    {roommates.slice(0, 5).map((r) => (
                       <span
                         key={r.id}
                         title={`${r.name} (${r.isHome ? 'Home' : 'Away'})`}
@@ -468,6 +470,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                         )}
                       </span>
                     ))}
+                    {roommates.length > 5 && (
+                      <span className="relative z-10 inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-white bg-[#EEF0F6] text-[10px] font-extrabold text-[#1F2033]">
+                        +{roommates.length - 5}
+                      </span>
+                    )}
                   </div>
                   <span className="text-xs font-semibold text-[#475569]">
                     {t('home.atHomeCount', { home: homeCount, total: roommates.length })}
@@ -626,6 +633,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               currentUser={currentUser}
               onOpenTimetable={onOpenTimetable || (() => onNavigateTab('chores'))}
               onCompleteTodayDuty={onCompleteTodayDuty}
+              onUndoTodayDuty={onUndoTodayDuty}
             />
           ) : myTodayChore ? (
             <ActionCard
@@ -742,6 +750,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             choreDraftState={choreDraftState}
             todayDuty={getTodayDuty(dutySchedule, roommates, currentUser.id)}
             onCompleteTodayDuty={onCompleteTodayDuty}
+            onUndoTodayDuty={onUndoTodayDuty}
             onToggleHomeStatus={onToggleHomeStatus}
             onNavigateTab={onNavigateTab}
             onOpenExpensesAction={onOpenExpensesAction}

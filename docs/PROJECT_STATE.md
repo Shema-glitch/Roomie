@@ -869,6 +869,22 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 36. UI/UX Audit Final Blindspots — Currency Glyph Fidelity, Overflow Resilience, Header Clarity & Duty Undo (`feature/audit-final-blindspots`)
+
+- **Currency Glyph (`₺` / `U+20BA`) & Overflow Resilience (`index.html`, `src/index.css`, `HomeScreen.tsx`, `HomeSidebar.tsx`, `RoomiesRoster.tsx`, `ChoresSidebar.tsx`, `DutyTodayBanner.tsx`, `ChoreAssignmentList.tsx`, `ExpenseCard.tsx`, `SettlementItemCard.tsx`)**:
+  - Loaded `Noto Sans` weights `400;500;600;700;800` with `&text=%E2%82%BA` in `index.html` and prioritized `'Noto Sans'` ahead of `'Baloo 2'` and `'Nunito'` across base typography and `.type-*` utility stacks in `src/index.css` so `₺` (`U+20BA`) resolves cleanly at every weight without distorting or looking like `ŧ`, while all other glyphs continue using `'Baloo 2'` / `'Nunito'` / `'Noto Sans Arabic'`.
+  - Audited roommate cards, chore rows, duty captain banners, sidebar tiles, and expense/settlement rows for `min-w-0 truncate` / `break-words` resilience across 40-character names and 3+ roommates (capping the Zone 1 Home avatar stack at 5 visible circles with a `+N` overflow badge).
+- **Header Clarity & Confirmation/Undo Safety (`AppHeaderAndNav.tsx`, `Toast.tsx`, `chores.api.ts`, `index.ts`, `AppTabRouter.tsx`, `AppModals.tsx`, `DutyTodayBanner.tsx`, `DutyTimetableModal.tsx`, `HomeSidebar.tsx`, `ApartmentModals.tsx`)**:
+  - Added visible status labels (`"Synced"`, `"Offline"`, `"Syncing"`, `"Attention"`) beside the header cloud sync icon on `sm:`+ viewports along with explicit hover tooltips (`"{status} · Tap for sync details"`), unread notification tooltip/aria counts on the `Bell` button, and an interactive Favor Token explainer popover on tap (`Favor Tokens ({count}/10)`).
+  - Extended `ToastProvider` (`Toast.tsx`) with optional `ToastOptions.action` buttons and `44x44px` close hit areas, added `ChoresApi.uncompleteDutyDay` + shared `adjustCompletionProgress` helper (`chores.api.ts`), and wired `"Undo"` actions into every `"Mark finished"` / `"Mark duty done"` completion toast (`DutyTodayBanner.tsx`, `DutyTimetableModal.tsx`, `HomeSidebar.tsx`).
+  - Updated `RemoveMemberModal` (`ApartmentModals.tsx`) so the primary destructive button explicitly says `"Remove [FirstName]"` alongside typing `householdName` (or `DELETE`) in `ProfileSettingsModal`.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **126 / 126 passing** across 19 suites (0 failures, 0 skipped).
+  - `npm run build`: succeeded in **6.53s**, initial JS entry bundle **168.08 kB gzipped** (< 200 KB threshold).
+
+---
+
 
 
 

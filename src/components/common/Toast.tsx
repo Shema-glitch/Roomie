@@ -11,15 +11,30 @@ import { sound } from '../../services/sound';
 
 export type ToastType = 'success' | 'info' | 'warning' | 'reward' | 'error';
 
+export interface ToastAction {
+  label: string;
+  onClick: () => void | Promise<void>;
+}
+
+export interface ToastOptions {
+  duration?: number;
+  action?: ToastAction;
+}
+
 export interface ToastMessage {
   id: string;
   message: string;
   type: ToastType;
   duration: number;
+  action?: ToastAction;
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
+  showToast: (
+    message: string,
+    type?: ToastType,
+    durationOrOptions?: number | ToastOptions
+  ) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -86,9 +101,21 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const showToast = useCallback(
-    (message: string, type: ToastType = 'info', duration: number = 3200) => {
+    (
+      message: string,
+      type: ToastType = 'info',
+      durationOrOptions: number | ToastOptions = 3200
+    ) => {
+      const options =
+        typeof durationOrOptions === 'number'
+          ? { duration: durationOrOptions }
+          : durationOrOptions;
+      const duration = options.duration ?? (options.action ? 5000 : 3200);
       const id = 'toast_' + Date.now() + Math.random().toString(36).substring(2, 5);
-      setToasts((prev) => [...prev.slice(-2), { id, message, type, duration }]);
+      setToasts((prev) => [
+        ...prev.slice(-2),
+        { id, message, type, duration, action: options.action },
+      ]);
 
       if (type === 'reward') {
         if (message.toLowerCase().includes('token')) {
@@ -135,13 +162,29 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <p className="text-[13px] sm:text-sm font-bold flex-1 leading-snug min-w-0 break-words">
                 {toast.message}
               </p>
+              {toast.action && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const handler = toast.action?.onClick;
+                    removeToast(toast.id);
+                    if (handler) {
+                      sound.playTap();
+                      await handler();
+                    }
+                  }}
+                  className="min-h-[44px] min-w-[44px] px-3 rounded-xl bg-white/85 hover:bg-white border border-black/15 text-xs font-extrabold text-[#1F2033] shrink-0 cursor-pointer transition-colors"
+                >
+                  {toast.action.label}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => removeToast(toast.id)}
-                className="w-7 h-7 rounded-full hover:bg-black/5 flex items-center justify-center shrink-0 transition-colors cursor-pointer active:scale-95"
+                className="w-11 h-11 min-h-[44px] min-w-[44px] -mr-1.5 rounded-full hover:bg-black/5 flex items-center justify-center shrink-0 transition-colors cursor-pointer active:scale-95"
                 aria-label="Dismiss toast"
               >
-                <X weight="bold" className="w-3.5 h-3.5 opacity-75" />
+                <X weight="bold" className="w-4 h-4 opacity-75" />
               </button>
               <span
                 aria-hidden="true"

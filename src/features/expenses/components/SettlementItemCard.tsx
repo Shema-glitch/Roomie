@@ -45,14 +45,18 @@ export const SettlementItemCard: React.FC<SettlementItemCardProps> = React.memo(
         />
       }
       title={
-        <span className="type-card-title tabular-nums">
+        <span className="block truncate type-card-title tabular-nums">
           {sym}
           {formatCurrency(s.amount)} paid directly
         </span>
       }
-      subtitle={`${fromUser?.name.split(' ')[0] || 'Roomie'} to ${
-        toUser?.name.split(' ')[0] || 'Roomie'
-      } • ${formatExpenseDate(s.createdAt)}`}
+      subtitle={
+        <span className="block truncate">
+          {`${fromUser?.name.split(' ')[0] || 'Roomie'} to ${
+            toUser?.name.split(' ')[0] || 'Roomie'
+          } · ${formatExpenseDate(s.createdAt)}`}
+        </span>
+      }
       detail={
         <div className="flex items-center justify-between type-secondary text-[14px]">
           <span>Direct transfer</span>

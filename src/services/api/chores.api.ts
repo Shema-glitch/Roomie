@@ -415,9 +415,9 @@ export class ChoresApi {
     return round;
   }
 
-  private async awardCompletionProgress(pointsEarned: number): Promise<void> {
-    this.store.currentUser.streakDays += 1;
-    this.store.currentUser.points += pointsEarned;
+  private async adjustCompletionProgress(deltaStreak: number, deltaPoints: number): Promise<void> {
+    this.store.currentUser.streakDays = Math.max(0, this.store.currentUser.streakDays + deltaStreak);
+    this.store.currentUser.points = Math.max(0, this.store.currentUser.points + deltaPoints);
     this.store.users = this.store.users.map((u) =>
       u.id === this.store.currentUser.id
         ? {
@@ -442,6 +442,10 @@ export class ChoresApi {
         logger.warn('award_completion_progress_sync', err?.message || 'Could not sync streak/points');
       }
     }
+  }
+
+  private async awardCompletionProgress(pointsEarned: number): Promise<void> {
+    await this.adjustCompletionProgress(1, pointsEarned);
   }
 
   public async completeChore(choreId: string, photoUrl?: string): Promise<void> {
@@ -639,6 +643,24 @@ export class ChoresApi {
       { screen: 'chores' }
     );
     await this.awardCompletionProgress(20);
+  }
+
+  public async uncompleteDutyDay(day: DayOfWeek, householdId?: string): Promise<void> {
+    const hid = householdId || this.store.activeHouseholdId;
+    const schedule = await this.getDutySchedule(hid);
+    const entry = schedule.entries.find((e) => e.day === day);
+    if (!entry || !entry.completed) return;
+
+    const wasCompletedByMe = entry.completedByUserId === this.store.currentUser.id;
+    entry.completed = false;
+    entry.completedAt = undefined;
+    entry.completedByUserId = undefined;
+
+    if (wasCompletedByMe) {
+      await this.adjustCompletionProgress(-1, -20);
+    } else {
+      this.ctx.save();
+    }
   }
 
   public async checkDutyDayReminder(): Promise<void> {

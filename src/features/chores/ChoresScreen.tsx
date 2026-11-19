@@ -44,6 +44,7 @@ interface ChoresScreenProps {
   onOpenReveal: () => void;
   onOpenTimetable?: () => void;
   onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
+  onUndoTodayDuty?: (day: DayOfWeek) => Promise<void>;
   onCompleteChore: (choreId: string, photoUrl?: string) => Promise<void>;
   onGiveKudos: (
     choreId: string,
@@ -78,6 +79,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
   onOpenReveal,
   onOpenTimetable,
   onCompleteTodayDuty,
+  onUndoTodayDuty,
   onCompleteChore,
   onGiveKudos,
   onSwapChore,
@@ -134,6 +136,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
             currentUser={currentUser}
             onOpenTimetable={onOpenTimetable || (() => {})}
             onCompleteTodayDuty={onCompleteTodayDuty}
+            onUndoTodayDuty={onUndoTodayDuty}
           />
 
           <ActionCard

@@ -1,4 +1,4 @@
-import React, { startTransition } from 'react';
+import React, { startTransition, useState } from 'react';
 import { Avatar } from './Avatar';
 import { AnimatedNumber } from './AnimatedNumber';
 import { SyncStatusType } from './SyncStatusPanel';
@@ -138,6 +138,8 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
     onOpenProfileSettings,
   }) => {
     const { t } = useI18n();
+    const [tokenExplainerOpen, setTokenExplainerOpen] = useState(false);
+    const tokenBalance = currentUser.favorTokens ?? 5;
     const syncTitleLabel =
       syncStatus === 'syncing'
         ? t('nav.syncing')
@@ -237,7 +239,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 sound.playTap();
                 onOpenSyncPanel();
               }}
-              className={`relative w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 border flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              className={`relative h-11 min-h-[44px] w-11 sm:w-auto sm:px-3 shrink-0 rounded-full border flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2 active:scale-[0.96] transition-[transform,border-color,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                 syncStatus === 'syncing'
                   ? 'bg-[#EEF0FD] border-[#C7D2FE] text-[#3B4BC4]'
                   : syncStatus === 'offline'
@@ -246,8 +248,8 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                   ? 'bg-[#FFF8E6] border-[#FDE68A] text-[#9A6700]'
                   : 'bg-white border-[#CBD5E1] text-[#0B6B5F] hover:border-[#0B7A6E]'
               }`}
-              title={`Sync status: ${syncTitleLabel}. Tap to open sync details.`}
-              aria-label="Apartment sync status"
+              title={`${syncTitleLabel} · Tap for sync details`}
+              aria-label={`Sync status: ${syncTitleLabel}`}
             >
               {syncStatus === 'syncing' ? (
                 <ArrowsClockwise
@@ -261,23 +263,66 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
               ) : (
                 <CloudCheck weight="duotone" className="w-5 h-5 shrink-0 text-[#0B6B5F]" />
               )}
-              <span className="sr-only">{syncButtonLabel}</span>
+              <span className="hidden sm:inline text-xs font-extrabold whitespace-nowrap">
+                {syncButtonLabel}
+              </span>
+              <span className="sr-only sm:hidden">{syncButtonLabel}</span>
             </button>
 
-            {/* Favor Token Pill */}
-            <button
-              type="button"
-              onClick={() => {
-                haptics.tokenClink();
-                sound.tokenClink();
-              }}
-              className="hidden sm:inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
-              title="Favor Tokens: Spend to swap chores or ask a roommate favor!"
-              aria-label={`Favor Tokens: ${currentUser.favorTokens ?? 5}`}
-            >
-              <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
-              <AnimatedNumber value={currentUser.favorTokens ?? 5} />
-            </button>
+            {/* Favor Token Pill & Explainer Popover */}
+            <div className="relative hidden sm:block shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  haptics.tokenClink();
+                  sound.tokenClink();
+                  setTokenExplainerOpen((prev) => !prev);
+                }}
+                className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFF8E6] border border-[#FDE68A] text-[#9A6700] font-black text-xs shadow-2xs shrink-0 select-none active:scale-[0.96] transition-transform cursor-pointer whitespace-nowrap"
+                title="Favor Tokens: Tap to see what tokens unlock"
+                aria-label={`Favor Tokens: ${tokenBalance} of 10. Tap for details.`}
+                aria-expanded={tokenExplainerOpen}
+              >
+                <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
+                <AnimatedNumber value={tokenBalance} />
+              </button>
+
+              {tokenExplainerOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setTokenExplainerOpen(false)}
+                  />
+                  <div
+                    role="dialog"
+                    aria-label="Favor Tokens explainer"
+                    className="absolute right-0 top-full mt-2 z-30 w-72 bg-white rounded-2xl border-2 border-b-4 border-[#FDE68A] shadow-xl p-3.5 space-y-2 text-start"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 font-heading font-bold text-sm text-[#1F2033]">
+                        <Icon icon="fluent-emoji-flat:coin" className="w-4 h-4 shrink-0" />
+                        <span>Favor Tokens ({tokenBalance}/10)</span>
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#4B5063] leading-relaxed">
+                      Spend tokens to offer a chore swap when your week is packed. Earn tokens back by covering chores for roommates or hitting streaks.
+                    </p>
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sound.playTap();
+                          setTokenExplainerOpen(false);
+                        }}
+                        className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-[#FFF8E6] hover:bg-[#FEF3C7] border border-[#FDE68A] text-xs font-extrabold text-[#9A6700] cursor-pointer transition-colors"
+                      >
+                        Got it
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             <button
               type="button"
@@ -291,7 +336,16 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 onOpenNotifications();
               }}
               className="relative w-11 h-11 min-h-[44px] min-w-[44px] shrink-0 aspect-square rounded-full p-0 bg-white border border-[#CBD5E1] flex items-center justify-center text-[#1F2033] hover:border-[#FF6B4A] active:scale-[0.96] shadow-2xs transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A]/70 focus-visible:ring-offset-2"
-              aria-label={t('nav.openNotifications')}
+              title={
+                unreadNotifsCount > 0
+                  ? `${unreadNotifsCount} unread notifications`
+                  : 'Notifications'
+              }
+              aria-label={
+                unreadNotifsCount > 0
+                  ? `${t('nav.openNotifications')} (${unreadNotifsCount} unread)`
+                  : t('nav.openNotifications')
+              }
             >
               <Bell weight={unreadNotifsCount > 0 ? 'fill' : 'duotone'} className="w-5 h-5" />
               {unreadNotifsCount > 0 && (

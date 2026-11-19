@@ -20,6 +20,7 @@ interface DutyTimetableModalProps {
   onReassignDay: (day: DayOfWeek, userId: string) => Promise<void>;
   onSwapDays: (day1: DayOfWeek, day2: DayOfWeek) => Promise<void>;
   onCompleteTodayDuty: (day: DayOfWeek) => Promise<void>;
+  onUndoTodayDuty?: (day: DayOfWeek) => Promise<void>;
 }
 
 export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
@@ -33,6 +34,7 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
   onReassignDay,
   onSwapDays,
   onCompleteTodayDuty,
+  onUndoTodayDuty,
 }) => {
   const { showToast } = useToast();
   const [reassignDayTarget, setReassignDayTarget] = useState<DayOfWeek | null>(null);
@@ -280,7 +282,22 @@ export const DutyTimetableModal: React.FC<DutyTimetableModalProps> = ({
                           sound.playSuccess();
                           try {
                             await onCompleteTodayDuty(entry.day);
-                            showToast('Duty day marked complete! Great work keeping the flat tidy.', 'success');
+                            showToast(
+                              'Duty day marked complete! Great work keeping the flat tidy.',
+                              'success',
+                              {
+                                duration: 5000,
+                                action: onUndoTodayDuty
+                                  ? {
+                                      label: 'Undo',
+                                      onClick: async () => {
+                                        await onUndoTodayDuty(entry.day);
+                                        showToast('Duty completion undone', 'info');
+                                      },
+                                    }
+                                  : undefined,
+                              }
+                            );
                           } catch {
                             showToast('Could not update duty status', 'error');
                           } finally {

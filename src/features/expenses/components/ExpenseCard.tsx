@@ -146,7 +146,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
             <h4 className="type-card-title truncate group-hover:text-[#FF6B4A] transition-colors duration-150">
               {exp.title}
             </h4>
-            <p className="text-[13px] text-[#64748B] mt-0.5">
+            <p className="text-[13px] text-[#64748B] mt-0.5 truncate">
               Paid by {isPayerMe ? 'You' : payer?.name.split(' ')[0] || 'Roomie'} ·{' '}
               {formatExpenseDate(exp.date)} · <span className="capitalize">{exp.category}</span>
             </p>
@@ -188,7 +188,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
       )}
 
       <div className="mt-3.5 pt-3 border-t border-black/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 flex-wrap text-[13px] text-[#64748B]">
+        <div className="flex items-center gap-1.5 flex-wrap text-[13px] text-[#64748B] min-w-0 flex-1">
           <span>
             {exp.shares.length} {exp.shares.length === 1 ? 'roomie' : 'roomies'}
           </span>
@@ -209,7 +209,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = React.memo(({
           {isWaitingRoomies && pendingRoomies.length > 0 && (
             <>
               <span aria-hidden="true">·</span>
-              <span>Awaiting {pendingRoomies.join(', ')}&apos;s approval</span>
+              <span className="min-w-0 break-words">Awaiting {pendingRoomies.join(', ')}&apos;s approval</span>
             </>
           )}
         </div>

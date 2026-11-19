@@ -55,14 +55,14 @@ const RoomieRosterCard: React.FC<RoomieRosterCardProps> = React.memo(
         </div>
       }
       subtitle={
-        <span className="text-[13px] text-[#4B5063]">
+        <span className="block truncate text-[13px] text-[#4B5063]">
           {membership.role === 'admin' ? 'Admin' : 'Member'} · From {user.country}{' '}
           {user.flag || ''}
         </span>
       }
       detail={
-        <div className="flex items-center justify-between text-[13px] text-[#4B5063] pt-1">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2 text-[13px] text-[#4B5063] pt-1">
+          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
             <span className="inline-flex items-center gap-1 text-[#1F2033] font-medium">
               <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
               {user.streakDays}d streak

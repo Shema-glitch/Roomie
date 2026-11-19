@@ -862,6 +862,8 @@ export class ApiService {
     this.chores.swapDutyDays(day1, day2, householdId);
   public completeDutyDay = (day: DayOfWeek, householdId?: string) =>
     this.chores.completeDutyDay(day, householdId);
+  public uncompleteDutyDay = (day: DayOfWeek, householdId?: string) =>
+    this.chores.uncompleteDutyDay(day, householdId);
   public checkDutyDayReminder = () => this.chores.checkDutyDayReminder();
 
   // --- Chat Facade ---

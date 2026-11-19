@@ -149,6 +149,13 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
       },
       [loadData]
     );
+    const handleUndoTodayDuty = useCallback(
+      async (day: DayOfWeek) => {
+        await api.uncompleteDutyDay(day);
+        await loadData();
+      },
+      [loadData]
+    );
     const handleCompleteChore = useCallback(
       async (choreId: string, photoUrl?: string) => {
         await api.completeChore(choreId, photoUrl);
@@ -295,6 +302,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             onOpenDraftPicks={handleOpenDraftPicks}
             onOpenTimetable={handleOpenTimetable}
             onCompleteTodayDuty={handleCompleteTodayDuty}
+            onUndoTodayDuty={handleUndoTodayDuty}
             onSelectExpense={(id) => {
               setSelectedExpenseId(id);
               setActiveTab('expenses');
@@ -330,6 +338,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             onOpenReveal={handleOpenChoreReveal}
             onOpenTimetable={handleOpenTimetable}
             onCompleteTodayDuty={handleCompleteTodayDuty}
+            onUndoTodayDuty={handleUndoTodayDuty}
             onCompleteChore={handleCompleteChore}
             onGiveKudos={handleGiveKudos}
             onSwapChore={handleSwapChore}

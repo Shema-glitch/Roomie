@@ -14,6 +14,7 @@ interface DutyTodayBannerProps {
   currentUser: User;
   onOpenTimetable: () => void;
   onCompleteTodayDuty?: (day: DayOfWeek) => Promise<void>;
+  onUndoTodayDuty?: (day: DayOfWeek) => Promise<void>;
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
   currentUser,
   onOpenTimetable,
   onCompleteTodayDuty,
+  onUndoTodayDuty,
   className = '',
 }) => {
   const { showToast } = useToast();
@@ -44,7 +46,18 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
     sound.playSuccess();
     try {
       await onCompleteTodayDuty(day);
-      showToast('Duty day finished! Streak and points updated.', 'success');
+      showToast('Duty day finished! Streak and points updated.', 'success', {
+        duration: 5000,
+        action: onUndoTodayDuty
+          ? {
+              label: 'Undo',
+              onClick: async () => {
+                await onUndoTodayDuty(day);
+                showToast('Duty completion undone', 'info');
+              },
+            }
+          : undefined,
+      });
     } catch {
       showToast('Could not update status', 'error');
     } finally {
@@ -125,19 +138,19 @@ export const DutyTodayBanner: React.FC<DutyTodayBannerProps> = ({
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-[#64748B]">Today&apos;s Flat Captain:</span>
-              <span className="font-heading font-semibold text-sm text-[#1F2430]">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <span className="text-xs text-[#64748B] shrink-0">Today&apos;s Flat Captain:</span>
+              <span className="font-heading font-semibold text-sm text-[#1F2430] min-w-0 truncate">
                 {user?.name || 'Roomie'}
               </span>
-              <span className="text-xs text-[#64748B]" aria-hidden="true">·</span>
-              <span className="text-xs text-[#64748B]">{dayName}</span>
+              <span className="text-xs text-[#64748B] shrink-0" aria-hidden="true">·</span>
+              <span className="text-xs text-[#64748B] shrink-0">{dayName}</span>
             </div>
             {entry.completed && (
-              <Chip status="done" size="xs" label={doneLabel} />
+              <Chip status="done" size="xs" label={doneLabel} className="shrink-0" />
             )}
           </div>
-          <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+          <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed break-words">
             {entry.completed
               ? `${user?.name || 'Roomie'} finished today's flat duties${completedTime ? ` at ${completedTime}` : ''}.`
               : `${user?.name || 'Roomie'} is on duty today. Be kind and keep shared spaces tidy.`}

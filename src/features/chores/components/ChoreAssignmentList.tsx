@@ -109,7 +109,7 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
           }
           title={
             <span
-              className={`type-card-title font-semibold transition-colors duration-150 ${
+              className={`block truncate type-card-title font-semibold transition-colors duration-150 ${
                 isOptimisticDone ? 'line-through text-[#475569]' : 'text-[#1F2430]'
               }`}
             >
@@ -117,9 +117,11 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
             </span>
           }
           subtitle={
-            isOptimisticDone
-              ? `Completed by You · +${points} pts`
-              : `${freqLabel} · ${effortLabel} · ${a.scheduledTime} · Assigned to ${assigneeLabel}`
+            <span className="block break-words min-w-0">
+              {isOptimisticDone
+                ? `Completed by You · +${points} pts`
+                : `${freqLabel} · ${effortLabel} · ${a.scheduledTime} · Assigned to ${assigneeLabel}`}
+            </span>
           }
           badge={
             <Chip
@@ -130,7 +132,7 @@ const DueChoreRow: React.FC<DueChoreRowProps> = React.memo(
           }
           detail={
             <p
-              className={`text-[14px] transition-opacity duration-150 ${
+              className={`text-[14px] break-words min-w-0 transition-opacity duration-150 ${
                 isOptimisticDone ? 'line-through opacity-70 text-[#64748B]' : 'text-[#475569]'
               }`}
             >
@@ -235,13 +237,17 @@ const CompletedChoreRow: React.FC<CompletedChoreRowProps> = React.memo(
           />
         }
         title={
-          <span className="type-card-title font-semibold line-through text-[#475569]">
+          <span className="block truncate type-card-title font-semibold line-through text-[#475569]">
             {chore.name}
           </span>
         }
-        subtitle={`Completed by ${isMe ? 'You' : assignedUser?.name} · ${effortLabel} · +${getEffortPoints(chore.effortLevel)} pts`}
+        subtitle={
+          <span className="block break-words min-w-0">
+            Completed by {isMe ? 'You' : assignedUser?.name} · {effortLabel} · +{getEffortPoints(chore.effortLevel)} pts
+          </span>
+        }
         detail={
-          <p className="text-[14px] text-[#475569] opacity-80">{chore.description}</p>
+          <p className="text-[14px] text-[#475569] opacity-80 break-words min-w-0">{chore.description}</p>
         }
         badge={<Chip status="agreed" label="Done" size="xs" />}
         actions={
