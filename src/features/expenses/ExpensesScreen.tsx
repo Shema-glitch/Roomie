@@ -274,7 +274,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 sound.playTap();
                 setExpenseFilter('all');
               }}
-              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                 expenseFilter === 'all' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >
@@ -286,7 +286,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 sound.playTap();
                 setExpenseFilter('pending');
               }}
-              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                 expenseFilter === 'pending' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >
@@ -300,7 +300,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
                 sound.playTap();
                 setExpenseFilter('agreed');
               }}
-              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+              className={`relative z-10 py-2 px-2 rounded-xl text-[13px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                 expenseFilter === 'agreed' ? 'text-[#1F2430]' : 'text-[#475569] hover:text-[#1F2430]'
               }`}
             >

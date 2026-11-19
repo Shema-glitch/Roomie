@@ -89,7 +89,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             setIsExpanded((prev) => !prev);
           }}
           aria-expanded={isExpanded}
-          className="flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer"
+          className="tactile-hover rounded-2xl p-1 -m-1 flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="w-9 h-9 rounded-2xl bg-[#EEF0FD] flex items-center justify-center text-[#5B5BD6] shrink-0">
             <ChatCircleDots weight="duotone" className="w-5 h-5" />
@@ -136,7 +136,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             }}
             aria-label={isExpanded ? 'Collapse discussions and rules' : 'Expand discussions and rules'}
             aria-expanded={isExpanded}
-            className="w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+            className="tactile-press w-9 h-9 rounded-full bg-[#F7F8FB] border border-[#E6E8EE] text-[#475569] hover:text-[#1F2430] flex items-center justify-center shrink-0 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
             <CaretDown
               weight="bold"

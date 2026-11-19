@@ -6,10 +6,8 @@ import { Chip } from '../../../components/common/Chip';
 import { User } from '../../../types';
 import { sound } from '../../../services/sound';
 import { Icon } from '@iconify/react';
-import { Receipt, ArrowsClockwise } from '@phosphor-icons/react';
+import { Receipt, ShoppingCart } from '@phosphor-icons/react';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { localizeChoreDraftState } from '../../../i18n/helpers';
-import type { ChoreDraftStateInfo } from '../../../utils/stateTable';
 
 interface HomeSidebarProps {
   roommates: User[];
@@ -22,6 +20,7 @@ interface HomeSidebarProps {
   onToggleHomeStatus: () => void;
   onNavigateTab: (tab: 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment') => void;
   onOpenExpensesAction?: (action: 'add' | 'settle' | 'confirm') => void;
+  onOpenShoppingList?: () => void;
   onOpenChoreReveal: () => void;
   onOpenDraftPicks: () => void;
 }
@@ -29,19 +28,13 @@ interface HomeSidebarProps {
 export const HomeSidebar: React.FC<HomeSidebarProps> = ({
   roommates,
   currentUser,
-  choreDraftState,
   onToggleHomeStatus,
   onNavigateTab,
   onOpenExpensesAction,
-  onOpenChoreReveal,
-  onOpenDraftPicks,
+  onOpenShoppingList,
 }) => {
   const { t } = useI18n();
   const homeCount = roommates.filter((r) => r.isHome).length;
-  const localizedDraft = localizeChoreDraftState(
-    choreDraftState as ChoreDraftStateInfo,
-    t
-  );
 
   return (
     <div className="space-y-6">
@@ -56,10 +49,10 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
             return (
               <div
                 key={r.id}
-                className={`p-2.5 rounded-2xl flex items-center justify-between gap-2.5 border transition-all ${
+                className={`tactile-hover p-2.5 rounded-2xl flex items-center justify-between gap-2.5 border ${
                   isMe
                     ? 'bg-[#F7F8FB] border-[#E2E5EC]'
-                    : 'bg-white border-[#F1F3F9] hover:border-[#E2E5EC]'
+                    : 'bg-white border-[#F1F3F9]'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -111,42 +104,32 @@ export const HomeSidebar: React.FC<HomeSidebarProps> = ({
                 onNavigateTab('expenses');
               }
             }}
-            className="p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-start hover:bg-[#FFEAE4] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
+            className="tactile-hover tactile-press p-3 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-start hover:bg-[#FFEAE4] cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
             <div className="w-8 h-8 rounded-xl bg-[#FF6B4A] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
               <Receipt weight="fill" className="w-4 h-4" />
             </div>
             <p className="text-[14px] font-bold text-[#1F2430]">{t('home.addExpense')}</p>
-            <p className="text-[14px] text-[#475569]">{t('home.expensesTile')}</p>
+            <p className="text-[13px] text-[#475569]">{t('home.expensesTile')}</p>
           </button>
 
           <button
             type="button"
             onClick={() => {
               sound.playTap();
-              if (choreDraftState.state === 'reveal_ready') {
-                onOpenChoreReveal();
-              } else if (choreDraftState.state === 'reveal_done') {
-                onNavigateTab('chores');
+              if (onOpenShoppingList) {
+                onOpenShoppingList();
               } else {
-                onOpenDraftPicks();
+                onNavigateTab('feed');
               }
             }}
-            className="p-3 rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE] text-start hover:bg-[#EDE9FE] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 ease-out motion-reduce:transition-none motion-reduce:transform-none cursor-pointer group"
+            className="tactile-hover tactile-press p-3 rounded-2xl bg-[#FFF9EE] border border-[#FDE047] text-start hover:bg-[#FEF3C7] cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
           >
-            <div className="w-8 h-8 rounded-xl bg-[#5B5BD6] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
-              <ArrowsClockwise weight="bold" className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-[#EAB308] text-white flex items-center justify-center mb-2 shadow-xs group-hover:scale-105 transition-transform duration-150">
+              <ShoppingCart weight="fill" className="w-4 h-4" />
             </div>
-            <p className="text-[14px] font-bold text-[#1F2430]">
-              {choreDraftState.state === 'reveal_done'
-                ? t('chores.scheduleTitle')
-                : localizedDraft.actionLabel}
-            </p>
-            <p className="text-[14px] text-[#475569]">
-              {choreDraftState.state === 'reveal_done'
-                ? t('home.myTasks')
-                : localizedDraft.badgeLabel}
-            </p>
+            <p className="text-[14px] font-bold text-[#1F2430]">{t('home.shoppingListAction')}</p>
+            <p className="text-[13px] text-[#475569]">{t('home.shoppingTile')}</p>
           </button>
         </div>
       </InfoCard>

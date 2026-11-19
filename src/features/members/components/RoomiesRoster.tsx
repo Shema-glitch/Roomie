@@ -22,7 +22,7 @@ const RoomieRosterCard: React.FC<RoomieRosterCardProps> = React.memo(
   ({ user, membership, isMe, isAdmin, canRemoveMembers, onSelectRemoveUser }) => (
     <ActionCard
       tint={isMe ? 'teal' : 'neutral'}
-      className="h-full flex flex-col justify-between"
+      className="tactile-hover h-full flex flex-col justify-between"
       iconTile={
         <Avatar
           src={user.avatar}

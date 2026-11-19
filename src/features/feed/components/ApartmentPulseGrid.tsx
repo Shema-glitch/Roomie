@@ -78,7 +78,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onNavigateMoney();
           }}
-          className={`btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none ${
+          className={`btn-tactile tactile-hover ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
             isOwed
               ? 'bg-[#F0FDF4] border-[#86EFAC] border-b-[#4ADE80]'
               : owes
@@ -147,7 +147,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenShoppingList();
           }}
-          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF9EE] border-[#FDE047] border-b-[#EAB308] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile tactile-hover ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF9EE] border-[#FDE047] border-b-[#EAB308] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="flex items-center justify-between gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#FDE047] flex items-center justify-center shrink-0">
@@ -198,7 +198,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenVibeCheck();
           }}
-          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FAF5FF] border-[#E9D5FF] border-b-[#C084FC] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile tactile-hover ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FAF5FF] border-[#E9D5FF] border-b-[#C084FC] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="flex items-center justify-between gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#E9D5FF] flex items-center justify-center shrink-0">
@@ -211,11 +211,16 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#6B21A8]">{t('home.weeklyMoodTile')}</div>
+            <div className="text-[11px] font-bold text-[#6B21A8]">{t('home.houseMoodTile')}</div>
             <div className="text-base font-heading font-black text-[#1F2430] truncate">
               {vibeRevealed && vibeSummary
                 ? `${vibeSummary.averageScore} / 5 · ${vibeMood?.label || 'Vibing'}`
-                : t('home.moodLocked', { count: vibeSummary?.submissionCount ?? 0 })}
+                : (vibeSummary?.submissionCount ?? 0) > 0
+                ? t('home.moodLocked', {
+                    count: vibeSummary?.submissionCount ?? 0,
+                    total: Math.max(1, Math.min(3, totalRoommates || 3)),
+                  })
+                : t('home.flatCheckIn')}
             </div>
           </div>
 
@@ -236,7 +241,7 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') onOpenCulturalDinner();
           }}
-          className="btn-tactile ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF5F5] border-[#FECDD3] border-b-[#FB7185] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none"
+          className="btn-tactile tactile-hover ease-spring h-full p-3.5 rounded-[22px] border-2 border-b-4 bg-[#FFF5F5] border-[#FECDD3] border-b-[#FB7185] flex flex-col justify-between text-start cursor-pointer transition-all shadow-2xs select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="flex items-center justify-between gap-2">
             <div className="w-9 h-9 rounded-xl bg-[#FECDD3] flex items-center justify-center shrink-0">
@@ -248,9 +253,9 @@ export const ApartmentPulseGrid: React.FC<ApartmentPulseGridProps> = ({
           </div>
 
           <div className="mt-2.5">
-            <div className="text-[11px] font-bold text-[#9F1239]">{t('home.dinnersTile')}</div>
+            <div className="text-[11px] font-bold text-[#9F1239]">{t('home.sharedMeal')}</div>
             <div className="text-base font-heading font-black text-[#1F2430] truncate">
-              {culturalDinner ? culturalDinner.dishTitle : t('home.dinnersTile')}
+              {culturalDinner ? culturalDinner.dishTitle : t('home.dinnerNight')}
             </div>
           </div>
 

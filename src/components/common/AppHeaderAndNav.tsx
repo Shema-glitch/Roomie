@@ -169,7 +169,8 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                 sound.playTap();
                 onOpenHouseholdSwitcher();
               }}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-white border border-[#E6E8EE] shadow-2xs hover:border-[#CBD5E1] active:scale-[0.98] transition-[transform,border-color,background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none cursor-pointer min-w-0 shrink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+              aria-label={t('nav.switchHousehold')}
             >
               <span className="type-section-heading max-w-[215px] sm:max-w-[260px] md:max-w-none truncate text-[14px] sm:text-[18px]">
                 {activeHousehold.name}
@@ -210,7 +211,7 @@ export const AppHeader: React.FC<AppHeaderProps> = React.memo(
                     });
                   }}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 ${
+                  className={`relative flex items-center gap-1.5 px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-[14px] font-heading font-black transition-[transform,background-color,color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98] motion-reduce:transition-none cursor-pointer whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                     isActive
                       ? 'bg-white text-[#1F2430] shadow-xs border border-[#E2E5EC]'
                       : 'text-[#475569] hover:text-[#1F2430] hover:bg-white/60 border border-transparent'

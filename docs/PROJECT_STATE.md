@@ -778,6 +778,25 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 31. Desktop PWA Layout, Copy Parity, Hover Micro-Interactions & WCAG Accessibility (`feature/desktop-pwa-and-a11y-polish`)
+
+- **Desktop Layout Balance & Copy Parity (`ApartmentPulseGrid.tsx`, `WeeklyAwardsSection.tsx`, `ActivityTimelineSection.tsx`, `HomeSidebar.tsx`, `HomeScreen.tsx`, `ChoresScreen.tsx`, `ApartmentScreen.tsx`, `ChatScreen.tsx`, `src/i18n/locales/*.ts`)**:
+  - Synced `Flat Overview` bento tiles (`House Mood` / `Flat Check-in` with dynamic `Math.min(3, totalRoommates)` count, and `Shared Meal` / `Dinner Night` without duplicate titles) and restored distinct subtitles under `Weekly Shoutouts` (`"Little wins around the flat"`) and `Recent Activity` (`"Latest flat events & updates"`) across all 4 locales (`en`, `tr`, `fr`, `ar`).
+  - Replaced duplicate `Choose My Chores` tile in `HomeSidebar.tsx` Quick Actions with `Shopping List` (`Shared Shopping`) opening `ShoppingListModal`.
+  - Anchored desktop secondary sidebars with `lg:sticky lg:top-24 self-start` (`HomeScreen.tsx`, `ApartmentScreen.tsx`, `ChoresScreen.tsx`) and nested the compact `Going away?` card directly beneath `Roomie streaks and kudos` in `ChoresScreen.tsx`'s right column.
+  - Locked desktop `ChatScreen.tsx` to `lg:h-[calc(100dvh-108px)] flex flex-col` and upgraded the composer to a `textarea` supporting `Enter` to send and `Shift + Enter` for newlines.
+- **Desktop Hover States, Centered Dialogs & WCAG A11y (`src/index.css`, `Modal.tsx`, `CenterDialog.tsx`, `Button.tsx`, `AppHeaderAndNav.tsx`, `RoomiesRoster.tsx`, `ShoppingListModal.tsx`, Accordion Cards)**:
+  - Added `.tactile-hover` across Bento tiles, Quick Actions, roomie cards, and accordion headers, and scoped `.tactile-card`, `.tactile-press`, `.tactile-hover`, `.spring-pop`, and `.progress-fill-spring` inside `@media (prefers-reduced-motion: no-preference)`.
+  - Centered `Modal.tsx` dialogs cleanly on `sm:`/`md:` desktop (`sm:inset-auto sm:mx-auto sm:my-auto sm:max-w-lg sm:w-full sm:rounded-[28px]`).
+  - Standardized `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2` across buttons, nav pills, tabs, and accordion toggles, and verified `aria-expanded` on accordions, `role="status"` + `aria-live="polite"` on `Toast.tsx`, and `aria-label` on icon-only buttons.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **122 / 122 passing** across 19 suites.
+  - `npm run build`: succeeded in **3.38s**, initial JS entry bundle **165.45 kB gzipped** (< 200 KB threshold).
+
+---
+
+
 
 
 

@@ -297,12 +297,13 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 
                   <button
                     type="button"
+                    aria-label={`Remove ${item.title}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       sound.softReject();
                       onDeleteItem(item.id);
                     }}
-                    className="p-1 rounded-lg text-[#94A3B8] hover:text-[#EF4444] hover:bg-[#FEE2E2] transition-colors"
+                    className="p-1.5 rounded-lg text-[#94A3B8] hover:text-[#EF4444] hover:bg-[#FEE2E2] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
                   >
                     <Trash weight="bold" className="w-3.5 h-3.5" />
                   </button>

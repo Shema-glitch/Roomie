@@ -745,7 +745,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
 
         {/* Desktop Sidebar (hidden on mobile to eliminate redundant Presence card) */}
-        <div className="hidden lg:block w-full lg:col-span-4 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-0">
+        <div className="hidden lg:block w-full lg:col-span-4 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-24">
           <HomeSidebar
             roommates={roommates}
             currentUser={currentUser}
@@ -753,6 +753,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onToggleHomeStatus={onToggleHomeStatus}
             onNavigateTab={onNavigateTab}
             onOpenExpensesAction={onOpenExpensesAction}
+            onOpenShoppingList={() => setIsShoppingModalOpen(true)}
             onOpenChoreReveal={onOpenChoreReveal}
             onOpenDraftPicks={onOpenDraftPicks}
           />

@@ -231,7 +231,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   startTransition(() => setScheduleFilter('my'));
                 }}
-                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                   scheduleFilter === 'my'
                     ? 'text-[#1F2430]'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -245,7 +245,7 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
                   sound.playTap();
                   startTransition(() => setScheduleFilter('all'));
                 }}
-                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                className={`relative z-10 py-2 px-3 rounded-xl text-[13px] sm:text-[14px] font-heading font-black whitespace-nowrap transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
                   scheduleFilter === 'all'
                     ? 'text-[#1F2430]'
                     : 'text-[#475569] hover:text-[#1F2430]'
@@ -286,35 +286,35 @@ export const ChoresScreen: React.FC<ChoresScreenProps> = ({
           />
         </div>
 
-        <div className="w-full lg:col-span-5 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-0">
+        <div className="w-full lg:col-span-5 self-start h-fit mt-6 lg:mt-0 lg:sticky lg:top-24 space-y-4">
           <ChoresSidebar
             roommates={roommates}
             currentUser={currentUser}
             chores={chores}
             onSelectKudos={setKudosModalData}
           />
-        </div>
-      </div>
 
-      <div className="mt-6 rounded-2xl border-2 border-[#E5E9F0] bg-[#F7F8FB] px-4 py-2.5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <AirplaneTilt weight="duotone" className="w-4 h-4 text-[#64748B] shrink-0" />
-          <span className="text-xs font-bold text-[#475569] truncate">
-            {currentUser.awayUntil
-              ? `Away mode active until ${currentUser.awayUntil}`
-              : 'Going away? Pause chores & keep your streak'}
-          </span>
+          <div className="rounded-2xl border-2 border-[#E5E9F0] bg-[#F7F8FB] px-4 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <AirplaneTilt weight="duotone" className="w-4 h-4 text-[#64748B] shrink-0" />
+              <span className="text-xs font-bold text-[#475569] truncate">
+                {currentUser.awayUntil
+                  ? `Away mode active until ${currentUser.awayUntil}`
+                  : 'Going away? Pause chores & keep your streak'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                sound.playTap();
+                setAwayModalOpen(true);
+              }}
+              className="tactile-press shrink-0 whitespace-nowrap px-3 py-1 rounded-full bg-white border border-[#E5E9F0] text-xs font-black text-[#1F2430] hover:bg-[#EEF1F6] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+            >
+              {currentUser.awayUntil ? 'Manage' : 'Set away'}
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            sound.playTap();
-            setAwayModalOpen(true);
-          }}
-          className="shrink-0 px-3 py-1 rounded-full bg-white border border-[#E5E9F0] text-xs font-black text-[#1F2430] hover:bg-[#EEF1F6] active:scale-95 transition-all cursor-pointer"
-        >
-          {currentUser.awayUntil ? 'Manage' : 'Set away'}
-        </button>
       </div>
 
       <React.Suspense fallback={null}>

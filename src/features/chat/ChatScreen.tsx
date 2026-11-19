@@ -124,7 +124,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 
   return (
     <div
-      className="flex flex-col h-full w-full max-w-5xl mx-auto pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
+      className="flex flex-col h-full lg:h-[calc(100dvh-108px)] w-full max-w-5xl mx-auto pb-1 select-none md:bg-white md:p-6 md:rounded-3xl md:border-2 md:border-[#E6E8EE] md:shadow-sm"
       onClick={() => setActiveReactionMsgId(null)}
     >
       {/* Header Info */}
@@ -260,7 +260,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
                         : 'bg-white text-[#1F2430] border border-[#E6E8EE] rounded-es-sm'
                     }`}
                   >
-                    <p className="font-medium break-words">{displayBody}</p>
+                    <p className="font-medium break-words whitespace-pre-wrap">{displayBody}</p>
                     <span
                       className={`text-[10px] block text-end mt-1 leading-none font-medium ${
                         isMe ? 'text-white/80' : 'text-[#64748B]'
@@ -336,19 +336,28 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
       </div>
 
       {/* Composer Bar */}
-      <form onSubmit={handleSend} className="pt-2.5 flex items-center gap-2 shrink-0">
-        <input
-          type="text"
+      <form onSubmit={handleSend} className="pt-2.5 flex items-end gap-2 shrink-0">
+        <textarea
+          rows={1}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (hasDraftText && !sending) {
+                void handleSend(e as unknown as React.FormEvent);
+              }
+            }
+          }}
           placeholder={t('chat.placeholder')}
-          className="flex-1 min-w-0 h-11 px-4 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] text-[#1F2430] placeholder:text-[#64748B] focus:outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/30 shadow-xs"
+          aria-label={t('chat.placeholder')}
+          className="flex-1 min-w-0 min-h-[44px] max-h-28 px-4 py-2.5 rounded-2xl border-2 border-[#E6E8EE] bg-white text-[15px] leading-snug text-[#1F2430] placeholder:text-[#64748B] resize-none focus:outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-[#FF6B4A]/30 shadow-xs"
         />
         <button
           type="submit"
           disabled={!hasDraftText || sending}
           aria-label={t('chat.sendAria')}
-          className={`w-11 h-11 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center transition-all active:scale-95 shadow-xs ${
+          className={`w-11 h-11 shrink-0 aspect-square rounded-full p-0 flex items-center justify-center transition-all active:scale-95 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
             hasDraftText && !sending
               ? 'bg-[#FF6B4A] hover:bg-[#E55A3A] text-white cursor-pointer'
               : 'bg-[#E6E8EE] text-[#94A3B8] cursor-not-allowed'

@@ -83,7 +83,7 @@ export const WeeklyAwardsSection: React.FC<WeeklyAwardsSectionProps> = ({
               {t('home.weeklyShoutouts')}
             </h3>
             <p className="text-xs font-semibold text-[#64748B] truncate">
-              {t('home.flatAtAGlance')}
+              {t('home.weeklyShoutoutsSub')}
             </p>
           </div>
         </div>

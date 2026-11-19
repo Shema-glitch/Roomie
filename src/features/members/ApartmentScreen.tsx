@@ -348,7 +348,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               sound.playTap();
               setMobileTab('roomies');
             }}
-            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer ${
+            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
               mobileTab === 'roomies'
                 ? 'text-[#1F2430]'
                 : 'text-[#475569] hover:text-[#1F2430]'
@@ -363,7 +363,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
               sound.playTap();
               setMobileTab('meetings');
             }}
-            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer ${
+            className={`relative z-10 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-heading font-black transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2 ${
               mobileTab === 'meetings'
                 ? 'text-[#1F2430]'
                 : 'text-[#475569] hover:text-[#1F2430]'
@@ -391,7 +391,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         </div>
 
         <div
-          className={`w-full lg:col-span-5 self-start h-fit space-y-4 lg:sticky lg:top-0 mt-6 lg:mt-0 ${
+          className={`w-full lg:col-span-5 self-start h-fit space-y-4 lg:sticky lg:top-24 mt-6 lg:mt-0 ${
             mobileTab === 'meetings' ? 'block' : 'hidden lg:block'
           }`}
         >

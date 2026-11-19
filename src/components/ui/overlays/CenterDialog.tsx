@@ -76,7 +76,7 @@ export const CenterDialog: React.FC<CenterDialogProps> = ({
                   sound.playTap();
                   onClose();
                 }}
-                className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 border-2 border-b-3 border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white flex items-center justify-center text-[#64748B] hover:text-[#1F2430] active:translate-y-[1px] cursor-pointer"
+                className="w-10 h-10 shrink-0 aspect-square rounded-full p-0 border-2 border-b-3 border-[#E6E8EE] bg-[#F7F8FB] hover:bg-white flex items-center justify-center text-[#64748B] hover:text-[#1F2430] active:translate-y-[1px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
                 aria-label="Close dialog"
               >
                 <X weight="bold" className="w-4 h-4" />
