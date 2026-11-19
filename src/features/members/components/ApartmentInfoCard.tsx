@@ -115,7 +115,11 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
   };
 
   return (
-    <div className="rounded-[24px] border-2 border-[#E5E9F0] bg-white p-4 sm:p-5 shadow-xs space-y-3.5">
+    <div
+      className={`rounded-[24px] border-2 border-[#E5E9F0] bg-white p-4 sm:p-5 shadow-xs ${
+        !isExpanded ? 'tactile-hover' : ''
+      }`}
+    >
       {/* Header with Accordion Toggle & Edit button */}
       <div className="flex items-center justify-between gap-2.5">
         <button
@@ -125,7 +129,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
             setIsExpanded((prev) => !prev);
           }}
           aria-expanded={isExpanded}
-          className="tactile-hover rounded-2xl p-1 -m-1 flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+          className="rounded-xl flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="w-9 h-9 rounded-2xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6] shrink-0">
             <WifiHigh weight="duotone" className="w-5 h-5" />
@@ -179,7 +183,7 @@ export const ApartmentInfoCard: React.FC<ApartmentInfoCardProps> = ({
       </div>
 
       {isExpanded && (
-      <div className="space-y-2.5">
+      <div className="mt-3.5 space-y-2.5">
         {/* Wi-Fi Details Row */}
         <div className="rounded-2xl bg-[#F0F7FF] border border-[#DBEAFE] p-3.5 space-y-2">
           <div className="flex items-center justify-between gap-2">

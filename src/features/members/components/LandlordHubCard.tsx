@@ -143,7 +143,11 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
   const displayLandlordName = landlordProfile?.landlordName || name;
 
   return (
-    <div className="bg-white rounded-[24px] p-4 sm:p-5 border-2 border-[#E5E9F0] shadow-xs space-y-3.5">
+    <div
+      className={`bg-white rounded-[24px] p-4 sm:p-5 border-2 border-[#E5E9F0] shadow-xs space-y-3.5 ${
+        !isExpanded ? 'tactile-hover' : ''
+      }`}
+    >
       {/* Header Summary Bar */}
       <div className="flex items-center justify-between gap-2.5">
         <button
@@ -153,7 +157,7 @@ export const LandlordHubCard: React.FC<LandlordHubCardProps> = ({
             setIsExpanded((prev) => !prev);
           }}
           aria-expanded={isExpanded}
-          className="tactile-hover rounded-2xl p-1 -m-1 flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+          className="rounded-xl flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
             <Wrench weight="duotone" className="w-5 h-5" />

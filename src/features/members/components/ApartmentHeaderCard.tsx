@@ -35,6 +35,9 @@ interface ApartmentHeaderCardProps {
   onRefreshRequests?: () => Promise<void>;
 }
 
+const HEADER_CTA_BASE_CLASSES =
+  'h-12 w-full rounded-2xl border-2 border-b-4 px-4 flex items-center justify-center gap-2 font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wide transition-all duration-150 ease-out hover:-translate-y-0.5 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2';
+
 export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
   household,
   isAdmin,
@@ -133,27 +136,26 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
 
           {/* 2 Primary CTA buttons */}
           <div className="grid grid-cols-2 gap-2.5 pt-0.5">
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
+            <button
+              type="button"
               onClick={() => {
                 sound.playTap();
                 haptics.light();
                 onShowQR();
               }}
-              icon={<QrCode weight="duotone" className="w-4 h-4" />}
+              className={`${HEADER_CTA_BASE_CLASSES} bg-[#FF6B4A] border-[#E05334] border-b-[#D94E30] text-white hover:bg-[#FA5D3B] hover:border-[#D94E30]`}
             >
-              {t('apartment.inviteRoomie')}
-            </Button>
+              <QrCode weight="bold" className="w-4 h-4 shrink-0" />
+              <span className="truncate">{t('apartment.inviteRoomie')}</span>
+            </button>
 
             <button
               type="button"
               onClick={handleOpenRequests}
-              className={`h-11 px-3.5 rounded-2xl font-heading font-black text-xs sm:text-sm tracking-wide uppercase flex items-center justify-center gap-2 border-2 border-b-4 transition-all active:translate-y-0.5 active:border-b-2 cursor-pointer ${
+              className={`${HEADER_CTA_BASE_CLASSES} ${
                 pendingCount > 0
-                  ? 'bg-[#FFFBEB] border-[#F59E0B] text-[#92400E] hover:bg-[#FEF3C7]'
-                  : 'bg-[#F7F8FB] border-[#E5E9F0] text-[#1F2430] hover:bg-[#EEF1F6]'
+                  ? 'bg-[#FFFBEB] border-[#F59E0B] border-b-[#D97706] text-[#92400E] hover:bg-[#FEF3C7]'
+                  : 'bg-white border-[#E2E8F0] text-[#1E293B] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
               }`}
             >
               <UserPlus
@@ -162,9 +164,9 @@ export const ApartmentHeaderCard: React.FC<ApartmentHeaderCardProps> = ({
                   pendingCount > 0 ? 'text-[#D97706]' : 'text-[#5B5BD6]'
                 }`}
               />
-              <span>{t('apartment.requests')}</span>
+              <span className="truncate">{t('apartment.requests')}</span>
               {pendingCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#F59E0B] text-white text-[11px] font-black leading-none">
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#F59E0B] text-white text-[11px] font-black leading-none shrink-0">
                   {pendingCount}
                 </span>
               )}

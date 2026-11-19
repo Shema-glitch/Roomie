@@ -80,7 +80,12 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
   };
 
   return (
-    <InfoCard padding="md" className="bg-white border-2 border-[#E6E8EE] shadow-xs space-y-3.5 rounded-[24px]">
+    <InfoCard
+      padding="md"
+      className={`bg-white border-2 border-[#E6E8EE] shadow-xs space-y-3.5 rounded-[24px] ${
+        !isExpanded ? 'tactile-hover' : ''
+      }`}
+    >
       <div className="flex items-center justify-between gap-2.5">
         <button
           type="button"
@@ -89,7 +94,7 @@ export const HouseDiscussionsAndRules: React.FC<HouseDiscussionsAndRulesProps> =
             setIsExpanded((prev) => !prev);
           }}
           aria-expanded={isExpanded}
-          className="tactile-hover rounded-2xl p-1 -m-1 flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
+          className="rounded-xl flex items-center gap-2.5 min-w-0 flex-1 text-start cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B4A] focus-visible:ring-offset-2"
         >
           <div className="w-9 h-9 rounded-2xl bg-[#EEF0FD] flex items-center justify-center text-[#5B5BD6] shrink-0">
             <ChatCircleDots weight="duotone" className="w-5 h-5" />

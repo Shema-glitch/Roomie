@@ -796,6 +796,19 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 32. Apartment Header CTA Parity & Clean Collapsed Accordion Headers (`feature/apartment-header-button-parity`)
+
+- **Exact Button Height, Border & Hover Parity (`ApartmentHeaderCard.tsx`)**:
+  - Unified `INVITE ROOMIE` and `REQUESTS` onto a shared `HEADER_CTA_BASE_CLASSES` definition (`h-12 w-full rounded-2xl border-2 border-b-4 px-4 flex items-center justify-center gap-2 font-heading font-extrabold text-xs sm:text-sm uppercase tracking-wide transition-all duration-150 ease-out hover:-translate-y-0.5 active:translate-y-[2px] active:border-b-2`) with matching `motion-reduce` and `focus-visible` rings, giving `REQUESTS` the crisp white Storybook secondary surface (`bg-white border-[#E2E8F0] text-[#1E293B] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]`) and eliminating the previous height/shadow mismatch between `<Button>` and raw `<button>`.
+- **Clean Collapsed Accordion Headers (`ApartmentInfoCard.tsx`, `HouseDiscussionsAndRules.tsx`, `LandlordHubCard.tsx`)**:
+  - Removed `.tactile-hover` and negative-margin padding (`p-1 -m-1`) from the inner accordion header buttons—which previously created an extra floating nested box/shadow inside the card on hover—and applied `.tactile-hover` to the outer collapsed card wrapper (`!isExpanded ? 'tactile-hover' : ''`) so `Apartment Info`, `House discussions and rules`, and `Landlord & Maintenance` render identically with zero nested inner boxes.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **122 / 122 passing** across 19 suites.
+  - `npm run build`: succeeded in **9.03s**, initial JS entry bundle **165.45 kB gzipped** (< 200 KB threshold).
+
+---
+
 
 
 
