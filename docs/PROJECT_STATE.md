@@ -759,6 +759,26 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 30. Duolingo Micro-Interactions, Weekly Picks Redesign & Home Bento Modals Polish (`feature/duolingo-polish-and-home-modals`)
+
+- **GPU Micro-Interaction Utilities (`src/index.css`, `src/components/common/ProgressBar.tsx`)**:
+  - Added `.tactile-card`, `.tactile-press`, `@keyframes spring-pop` / `.spring-pop`, and `.progress-fill-spring` (`cubic-bezier(0.34, 1.56, 0.64, 1)`), and wired `.progress-fill-spring` into `ProgressBar.tsx`.
+- **Reimagined `Choose My Chores` / `Weekly Picks` Flow (`src/features/chores/SecretDraftScreen.tsx`)**:
+  - Added a live Mascot coach header directly beneath the spring progress bar with `.spring-pop` reactive speech bubbles per selection (`want`, `avoid`, `suggest_for`).
+  - Centered the chore stage with a `64px` (`w-16 h-16`) icon badge, crisp `Daily`/`Weekly` and effort badges, and chunky color-coded `.tactile-press` choice cards (emerald, amber, indigo) with filled check badges.
+  - Added a celebratory `.spring-pop` `"Picks Locked In!"` summary screen with Mascot celebration and preferred/skipped/passed counts before finalizing picks.
+- **Home Bento Modals Polish (`ShoppingListModal.tsx`, `VibeCheckModal.tsx`, `CulturalDinnerModal.tsx`, `HomeScreen.tsx`)**:
+  - `ShoppingListModal`: Updated subtitle to `"Groceries and household items to pick up"`, replaced checkbox with a tactile `Running Low` switch pill beside a balanced coral `Add Item` button (`flex items-center justify-between gap-3`), and upgraded empty state copy.
+  - `VibeCheckModal`: Aligned title to `Flat Check-in` and CTA to `Submit Check-in`, replaced radio circles with chunky `.tactile-press` selectable cards + filled checkmarks, and adapted the anonymous unlock count dynamically to `Math.min(3, memberCount)` using `roommates.length`.
+  - `CulturalDinnerModal`: Aligned title to `Dinner Night` (`"Plan a shared meal & check dietary needs"`), kept zero raw Unicode emojis, and updated the primary CTA to Roomie coral (`#FF6B4A`) `Schedule Dinner`.
+- **Verification**:
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **122 / 122 passing** across 19 suites.
+  - `npm run build`: succeeded in **8.01s**, initial JS entry bundle **165.29 kB gzipped** (< 200 KB threshold).
+
+---
+
+
 
 
 

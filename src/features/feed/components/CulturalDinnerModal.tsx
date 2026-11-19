@@ -125,8 +125,8 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Cultural Dinners & Dietary Hub"
-      subtitle="Host a shared meal, accommodate roommate diets & celebrate food"
+      title="Dinner Night"
+      subtitle="Plan a shared meal & check dietary needs"
     >
       <div className="space-y-4 py-1">
         {/* Tab Switcher */}
@@ -226,7 +226,7 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
                         key={b.id}
                         type="button"
                         onClick={() => handleToggleTag(b.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${
+                        className={`tactile-press px-3 py-1.5 rounded-xl text-xs font-bold transition-colors border-2 flex items-center gap-1.5 cursor-pointer ${
                           isSelected
                             ? 'bg-[#10B981]/15 border-[#10B981] text-[#047857]'
                             : 'bg-white border-[#E6E8EE] text-[#475569] hover:bg-[#F8FAFC]'
@@ -257,13 +257,14 @@ export const CulturalDinnerModal: React.FC<CulturalDinnerModalProps> = ({
 
             <Button
               type="submit"
-              variant="reward"
+              variant="primary"
               size="lg"
               fullWidth
               loading={isSubmitting}
+              className="bg-[#FF6B4A] text-white"
               icon={<Icon icon="fluent-emoji-flat:pot-of-food" className="w-5 h-5" />}
             >
-              Schedule & Announce Dinner
+              Schedule Dinner
             </Button>
           </form>
         )}

@@ -47,7 +47,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         style={{ height }}
       >
         <div
-          className="h-full rounded-full transition-all duration-500 ease-out"
+          className="h-full rounded-full progress-fill-spring"
           style={{
             width: `${clamped}%`,
             backgroundColor: getColor(),

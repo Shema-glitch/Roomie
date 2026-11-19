@@ -782,6 +782,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             isOpen={isVibeModalOpen}
             onClose={() => setIsVibeModalOpen(false)}
             onSubmit={handleVibeSubmit}
+            memberCount={roommates.length}
           />
         )}
 

@@ -102,7 +102,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Shared Shopping List"
-      subtitle="Collaborative apartment essentials, low-stock tags & expense conversion"
+      subtitle="Groceries and household items to pick up"
       footer={
         cartItems.length > 0 && onConvertCartToExpense ? (
           <Button
@@ -140,14 +140,17 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
             />
           </div>
 
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="space-y-2.5">
             <div className="flex items-center gap-1.5 flex-wrap">
               {CATEGORIES.map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  onClick={() => setNewCategory(c.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                  onClick={() => {
+                    sound.playTap();
+                    setNewCategory(c.id);
+                  }}
+                  className={`tactile-press px-2.5 py-1 rounded-xl text-[11px] font-bold transition-colors cursor-pointer ${
                     newCategory === c.id
                       ? 'bg-[#14B8A6] text-white shadow-xs'
                       : 'bg-white text-[#64748B] border border-[#CBD5E1] hover:bg-[#F1F5F9]'
@@ -158,25 +161,38 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               ))}
             </div>
 
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-1.5 text-xs font-bold text-[#DC2626] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newIsLow}
-                  onChange={(e) => setNewIsLow(e.target.checked)}
-                  className="rounded text-[#DC2626] focus:ring-[#DC2626]"
+            <div className="flex items-center justify-between gap-3 pt-0.5">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newIsLow}
+                onClick={() => {
+                  sound.playTap();
+                  haptics.tokenClink();
+                  setNewIsLow((prev) => !prev);
+                }}
+                className={`tactile-press inline-flex items-center gap-1.5 px-3 py-2 rounded-full border-2 border-b-3 text-xs font-bold transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                  newIsLow
+                    ? 'bg-[#FFF1F2] border-[#FB7185] text-[#BE123C]'
+                    : 'bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                }`}
+              >
+                <WarningCircle
+                  weight={newIsLow ? 'fill' : 'duotone'}
+                  className={`w-4 h-4 ${newIsLow ? 'text-[#E11D48]' : 'text-[#94A3B8]'}`}
                 />
                 <span>Running Low</span>
-              </label>
+              </button>
 
               <Button
                 type="submit"
-                variant="teal"
+                variant="primary"
                 size="sm"
                 loading={isSubmitting}
+                className="flex-1 sm:flex-initial sm:min-w-[140px] whitespace-nowrap"
                 icon={<Plus weight="bold" className="w-3.5 h-3.5" />}
               >
-                Add
+                Add Item
               </Button>
             </div>
           </div>
@@ -294,8 +310,13 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               );
             })
           ) : (
-            <div className="p-6 text-center text-xs text-[#64748B] italic">
-              No items in this view.
+            <div className="rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-[#F8FAFC] p-6 text-center space-y-2">
+              <div className="w-10 h-10 rounded-2xl bg-[#FFF5F2] border border-[#FFD3C9] text-[#FF6B4A] flex items-center justify-center mx-auto">
+                <ShoppingCart weight="duotone" className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-semibold text-[#64748B] max-w-[240px] mx-auto leading-relaxed">
+                Nothing on the list yet — add groceries or essentials above.
+              </p>
             </div>
           )}
         </div>
