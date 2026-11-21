@@ -135,17 +135,14 @@ export interface CheckAppUpdateOptions {
 }
 
 /**
- * Checks Supabase `app_releases` for a newer hosted APK/release.
- * Returns null silently when offline, unconfigured, up-to-date, or dismissed.
+ * Fetches the latest active Android release row from Supabase `app_releases`.
+ * Shared by both the in-app updater and the public landing page download badge.
  */
-export async function checkForAppUpdate(
-  options: CheckAppUpdateOptions = {}
-): Promise<AppReleaseInfo | null> {
+export async function fetchLatestActiveAndroidRelease(): Promise<AppReleaseInfo | null> {
   if (!supabase) return null;
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
 
   try {
-    const installed = await resolveInstalledVersion();
     const { data, error } = await supabase
       .from('app_releases')
       .select('id, platform, version_name, version_code, download_url, release_notes, is_mandatory, created_at')
@@ -162,7 +159,7 @@ export async function checkForAppUpdate(
       return null;
     }
 
-    const candidate: AppReleaseInfo = {
+    return {
       id: data.id,
       platform: data.platform === 'web' ? 'web' : 'android',
       versionName: data.version_name,
@@ -172,16 +169,6 @@ export async function checkForAppUpdate(
       isMandatory: data.is_mandatory,
       createdAt: data.created_at,
     };
-
-    if (!isNewerRelease(candidate, installed.versionName, installed.buildCode)) {
-      return null;
-    }
-
-    if (!options.ignoreDismissed && !candidate.isMandatory && isUpdateDismissed(candidate.versionCode)) {
-      return null;
-    }
-
-    return candidate;
   } catch (err) {
     debugLog.warn(
       'storage',
@@ -190,4 +177,26 @@ export async function checkForAppUpdate(
     );
     return null;
   }
+}
+
+/**
+ * Checks Supabase `app_releases` for a newer hosted APK/release.
+ * Returns null silently when offline, unconfigured, up-to-date, or dismissed.
+ */
+export async function checkForAppUpdate(
+  options: CheckAppUpdateOptions = {}
+): Promise<AppReleaseInfo | null> {
+  const candidate = await fetchLatestActiveAndroidRelease();
+  if (!candidate) return null;
+
+  const installed = await resolveInstalledVersion();
+  if (!isNewerRelease(candidate, installed.versionName, installed.buildCode)) {
+    return null;
+  }
+
+  if (!options.ignoreDismissed && !candidate.isMandatory && isUpdateDismissed(candidate.versionCode)) {
+    return null;
+  }
+
+  return candidate;
 }

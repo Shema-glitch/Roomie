@@ -299,6 +299,118 @@ const ar: TranslationDictionary = {
   'update.mandatoryNote': 'يتضمن هذا التحديث إصلاحات مهمة قبل المتابعة.',
   'update.whatsNew': 'ما الجديد',
   'update.download': 'تنزيل التحديث',
+
+  // Public Landing Page & Waitlist
+  'landing.navHow': 'كيف يعمل',
+  'landing.navFeatures': 'الميزات',
+  'landing.navFaq': 'الأسئلة',
+  'landing.navWaitlist': 'قائمة الانتظار',
+  'landing.navOpenApp': 'افتح التطبيق',
+  'landing.badge': 'مصمم لسكن الطلاب والشقق المشتركة',
+  'landing.heroTitle': 'مهام عادلة، فواتير هادئة، وسكن مشترك سعيد.',
+  'landing.heroSubtitle':
+    'اختيارات أسبوعية سرية للمهام، وتقسيم مصاريف بموافقة الجميع بعملات TRY أو USD أو EUR، وتنبيهات تسوق بلمسة واحدة، وتوثيق صور التأمين في تطبيق واحد.',
+  'landing.heroMascotBubble': 'وداعًا للجدال على التنظيف!',
+  'landing.ctaDownloadApk': 'تنزيل Android APK',
+  'landing.ctaDownloadVersion': 'أندرويد v{version}',
+  'landing.ctaWaitlistApk': 'احصل على APK عبر القائمة',
+  'landing.ctaOpenApp': 'تشغيل تطبيق الويب',
+  'landing.ctaTryDemo': 'جرّب الشقة التجريبية',
+  'landing.releaseTag': 'أحدث إصدار',
+  'landing.releasePendingNotes':
+    'يتم طرح ملفات Android APK عبر قائمة الانتظار المبكرة. جرّب الشقة التجريبية الآن أو سجّل بالأسفل للحصول على إشعار فوري.',
+  'landing.releaseActiveNotes':
+    'أحدث إصدار Android جاهز للتثبيت مباشرة على هاتفك مع فحص تلقائي للتحديثات داخل التطبيق.',
+  'landing.featuresTitle': 'جرّب تجربة Roomie بنفسك',
+  'landing.featuresSubtitle':
+    'اضغط على أي تبويب بالأسفل لتجربة خطوات الشقة الحقيقية قبل التسجيل.',
+  'landing.tabDraft': 'اختيار المهام السري',
+  'landing.tabLedger': 'حسابات بالموافقة',
+  'landing.tabHub': 'السوق ومعلومات الشقة',
+  'landing.tabPassport': 'التأمين وجواز السمعة',
+  'landing.draftPreviewTitle': 'اختيارات الأحد الأسبوعية للمهام',
+  'landing.draftPreviewDesc':
+    'اختر رأيك في كل مهمة. يوازن Roomie نقاط الجهد بعدالة حتى لا يتحمل شخص واحد العبء وحده.',
+  'landing.draftChoreOne': 'مسح رخام المطبخ',
+  'landing.draftChoreTwo': 'إخراج النفايات وإعادة التدوير',
+  'landing.draftPrefer': 'أفضّل',
+  'landing.draftOkay': 'مقبول',
+  'landing.draftAvoid': 'أتجنب',
+  'landing.draftBalancedNote': 'تم توزيع الجهد بعدالة بين 3 زملاء سكن',
+  'landing.ledgerPreviewTitle': 'دفتر مصاريف بموافقة مسبقة',
+  'landing.ledgerPreviewDesc':
+    'يضغط الزملاء على موافق قبل تغيير أي رصيد. بدّل العملات بوضوح مع تنسيق دقيق للأرقام.',
+  'landing.ledgerItemTitle': 'مقاضي الأسبوع ومواد التنظيف',
+  'landing.ledgerStatusPending': 'بانتظار موافقتك',
+  'landing.ledgerStatusAgreed': 'تمت الموافقة من الجميع',
+  'landing.ledgerAgreeBtn': 'اضغط للموافقة',
+  'landing.ledgerResetBtn': 'إعادة التجربة',
+  'landing.hubPreviewTitle': 'مركز الشقة اليومي',
+  'landing.hubPreviewDesc':
+    'انسخ كلمة سر الواي فاي بلمسة واحدة وأرسل تنبيهًا قبل الشراء حتى لا يشتري الجميع نفس الأغراض.',
+  'landing.hubWifiLabel': 'كلمة مرور واي فاي الشقة',
+  'landing.hubCopyBtn': 'نسخ',
+  'landing.hubCopiedBtn': 'تم النسخ',
+  'landing.hubPingBtn': 'إرسال تنبيه السوبرماركت',
+  'landing.hubPingSent': 'تم تنبيه 3 زملاء: أنا في السوبرماركت الآن!',
+  'landing.passportPreviewTitle': 'حماية التأمين وجواز السمعة',
+  'landing.passportPreviewDesc':
+    'قارن صور الاستلام والتسليم جنبًا إلى جنب واحتفظ بتقييمك الموثق للالتزام والانسجام.',
+  'landing.passportScore': '98% مؤشر الانسجام',
+  'landing.passportBadge': 'زميل سكن موثق · صفر نزاعات مالية',
+  'landing.passportChecklistOne': 'صور استلام وتسليم مؤرخة مع شهادة PDF',
+  'landing.passportChecklistTwo': 'حاسبة تلقائية لاسترداد مبلغ التأمين',
+  'landing.howTitle': 'ثلاث خطوات لشقة أكثر هدوءًا',
+  'landing.howSubtitle': 'جهّز شقتك في أقل من دقيقتين دون جداول معقدة.',
+  'landing.step1Title': 'أنشئ شقة أو امسح QR',
+  'landing.step1Desc':
+    'ابدأ شقة بعملة TRY أو USD أو EUR وادعُ زملاءك عبر رابط نظيف أو رمز QR.',
+  'landing.step2Title': 'قيّم المهام بسرية',
+  'landing.step2Desc':
+    'يصوّت الجميع بصمت كل أسبوع ويتناوبون على مهام اليوم العادلة دون إحراج.',
+  'landing.step3Title': 'قسّم المصاريف بالاتفاق',
+  'landing.step3Desc':
+    'سجّل المقاضي والإيجار والإنترنت. يوافق الزملاء بلمسة واحدة وتتم التسوية بوضوح.',
+  'landing.privacyTitle': 'الخصوصية أولًا في التصميم',
+  'landing.privacyBody':
+    'يتم حظر أرقام الهوية أو جوازات السفر محليًا على جهازك قبل أي إرسال، وتبقى نتائج مزاج الشقة مجهولة حتى يشارك 3 زملاء على الأقل.',
+  'landing.waitlistEyebrow': 'الوصول المبكر والإصدارات',
+  'landing.waitlistTitle': 'انضم إلى قائمة انتظار Roomie',
+  'landing.waitlistSubtitle':
+    'احصل على إشعارات iOS TestFlight وإصدارات Android APK الجديدة وإطلاقات الجامعات.',
+  'landing.waitlistEmailLabel': 'البريد الإلكتروني',
+  'landing.waitlistEmailPlaceholder': 'you@university.edu',
+  'landing.waitlistPlatformLabel': 'جهازك',
+  'landing.waitlistPlatformAndroid': 'Android APK',
+  'landing.waitlistPlatformIos': 'iOS TestFlight',
+  'landing.waitlistPlatformWeb': 'تطبيق الويب PWA',
+  'landing.waitlistCityLabel': 'المدينة أو الجامعة (اختياري)',
+  'landing.waitlistCityPlaceholder': 'كيرينيا، إسطنبول، باريس...',
+  'landing.waitlistFlatmatesLabel': 'عدد المقيمين في الشقة',
+  'landing.waitlistSubmit': 'احجز مكاني',
+  'landing.waitlistSubmitting': 'جارٍ التسجيل...',
+  'landing.waitlistSuccessTitle': 'أنت الآن في قائمة الوصول المبكر!',
+  'landing.waitlistAlreadyTitle': 'أنت مسجّل بالفعل في القائمة!',
+  'landing.waitlistSuccessBody':
+    'سنراسلك فور توفر تحديثات APK جديدة أو دعوات iOS TestFlight.',
+  'landing.waitlistTryNow': 'جرّب النسخة التفاعلية الآن',
+  'landing.faqTitle': 'الأسئلة الشائعة',
+  'landing.faq1Q': 'هل تطبيق Roomie مجاني للطلاب والشقق المشتركة؟',
+  'landing.faq1A':
+    'نعم. توزيع المهام، جدول المناوبة اليومي، تقسيم المصاريف، دردشة الشقة، وتوثيق الاستلام والتسليم مجانية.',
+  'landing.faq2Q': 'هل يعمل دون إنترنت وبين أندرويد والويب؟',
+  'landing.faq2A':
+    'نعم. يحفظ Roomie بيانات الشقة محليًا مع قائمة انتظار تزمن تعديلاتك تلقائيًا عند عودة الاتصال.',
+  'landing.faq3Q': 'ماذا يحدث عند مغادرة أحد الزملاء للشقة؟',
+  'landing.faq3A':
+    'تُصفّى الأرصدة وتُحسب مستحقات التأمين عبر فحص التسليم، وتحتفظ بجواز سمعتك المحمول.',
+  'landing.faq4Q': 'كيف تعمل تحديثات Android APK خارج متجر Play؟',
+  'landing.faq4A':
+    'يفحص Roomie جدول الإصدارات تلقائيًا ويعرض لك تنبيهًا داخل التطبيق فور نشر نسخة APK أحدث.',
+  'landing.footerTagline': 'مهام عادلة، فواتير هادئة، وسكن مشترك سعيد.',
+  'landing.footerOpenApp': 'افتح تطبيق الويب',
+  'landing.footerPrivacyNote':
+    'قائمة انتظار للإضافة فقط · دون تخزين الهويات · متوفر بالعربية والإنجليزية والتركية والفرنسية',
 };
 
 export default ar;

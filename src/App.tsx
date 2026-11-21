@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, startTransition } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { IconContext } from '@phosphor-icons/react';
 import './utils/registerIcons';
 import { ToastProvider, useToast } from './components/common/Toast';
@@ -27,7 +28,12 @@ import {
 import { useRoomieAppState } from './hooks/useRoomieAppState';
 import { WelcomeScreen } from './features/auth/WelcomeScreen';
 import { I18nProvider } from './i18n/I18nProvider';
+import { isAppEntryLocation, detectStandalonePwa } from './utils/appRoute';
 import { DraftPick, JoinRequest } from './types';
+
+const PublicLandingPage = React.lazy(() =>
+  import('./features/landing/PublicLandingPage').then((m) => ({ default: m.PublicLandingPage }))
+);
 
 const AppUpdateModal = React.lazy(() =>
   import('./components/common/AppUpdateModal').then((m) => ({ default: m.AppUpdateModal }))
@@ -141,6 +147,59 @@ function MainApp() {
     }
     return false;
   });
+  const [isAppRoute, setIsAppRoute] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return isAppEntryLocation({
+      pathname: window.location.pathname,
+      search: window.location.search,
+      isNative: Capacitor.isNativePlatform(),
+      isAuthenticated: api.hasLocalSession(),
+      isStandalonePwa: detectStandalonePwa(),
+    });
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopState = () => {
+      setIsAppRoute(
+        isAppEntryLocation({
+          pathname: window.location.pathname,
+          search: window.location.search,
+          isNative: Capacitor.isNativePlatform(),
+          isAuthenticated,
+          isStandalonePwa: detectStandalonePwa(),
+        })
+      );
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated || pendingInviteCode) {
+      setIsAppRoute(true);
+    }
+  }, [isAuthenticated, pendingInviteCode]);
+
+  const handleEnterApp = useCallback(
+    (startDemo = false) => {
+      if (typeof window !== 'undefined') {
+        const targetUrl = startDemo ? '/app?demo=1' : '/app';
+        if (window.location.pathname !== '/app' || startDemo) {
+          window.history.pushState({}, '', targetUrl);
+        }
+      }
+      setIsAppRoute(true);
+      if (startDemo) {
+        api.markDemoMode(true);
+        setIsDemoMode(true);
+        setNeedsHouseholdSetup(false);
+        setIsAuthenticated(true);
+        void loadData();
+      }
+    },
+    [loadData, setIsAuthenticated, setIsDemoMode, setNeedsHouseholdSetup]
+  );
 
   const [householdSwitcherOpen, setHouseholdSwitcherOpen] = useState(false);
   const [createHouseholdOpen, setCreateHouseholdOpen] = useState(false);
@@ -289,6 +348,17 @@ function MainApp() {
     }
 
     if (!isAuthenticated) {
+      if (!isAppRoute) {
+        return (
+          <React.Suspense fallback={<ScreenSkeleton />}>
+            <PublicLandingPage
+              onOpenApp={() => handleEnterApp(false)}
+              onOpenDemo={() => handleEnterApp(true)}
+            />
+          </React.Suspense>
+        );
+      }
+
       return (
         <WelcomeScreen
           isRevealed={!showSplash}
@@ -608,8 +678,8 @@ function MainApp() {
   };
 
   return (
-    <I18nProvider language={settings.language}>
-      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+    <I18nProvider language={isAuthenticated ? settings.language : undefined}>
+      {showSplash && isAppRoute && <SplashScreen onFinish={handleSplashFinish} />}
       {renderScreen()}
       {availableUpdate && (
         <React.Suspense fallback={null}>

@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          city_or_university: string
+          created_at: string
+          email: string
+          flatmate_count: number
+          id: string
+          locale: string
+          platform: string
+        }
+        Insert: {
+          city_or_university?: string
+          created_at?: string
+          email: string
+          flatmate_count?: number
+          id?: string
+          locale?: string
+          platform?: string
+        }
+        Update: {
+          city_or_university?: string
+          created_at?: string
+          email?: string
+          flatmate_count?: number
+          id?: string
+          locale?: string
+          platform?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           body: string

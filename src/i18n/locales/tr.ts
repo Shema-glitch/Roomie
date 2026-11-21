@@ -299,6 +299,118 @@ const tr: TranslationDictionary = {
   'update.mandatoryNote': 'Devam etmeden önce bu önemli güncellemeyi yüklemelisin.',
   'update.whatsNew': 'Yenilikler',
   'update.download': 'Güncellemeyi İndir',
+
+  // Public Landing Page & Waitlist
+  'landing.navHow': 'Nasıl çalışır',
+  'landing.navFeatures': 'Özellikler',
+  'landing.navFaq': 'SSS',
+  'landing.navWaitlist': 'Bekleme Listesi',
+  'landing.navOpenApp': 'Uygulamayı Aç',
+  'landing.badge': 'Ortak öğrenci ve şehir evleri için tasarlandı',
+  'landing.heroTitle': 'Adil ev işleri, sakin faturalar, mutlu ev arkadaşları.',
+  'landing.heroSubtitle':
+    'Gizli haftalık iş seçimleri, TRY, USD veya EUR cinsinden onaylı ortak harcamalar, tek dokunuşla market bildirimi ve depozito fotoğraf kanıtı tek uygulamada.',
+  'landing.heroMascotBubble': 'Artık iş tartışması yok!',
+  'landing.ctaDownloadApk': 'Android APK İndir',
+  'landing.ctaDownloadVersion': 'Android v{version}',
+  'landing.ctaWaitlistApk': 'APK için Listeye Katıl',
+  'landing.ctaOpenApp': 'Web Uygulamasını Aç',
+  'landing.ctaTryDemo': 'Canlı Demo Evi Dene',
+  'landing.releaseTag': 'Son sürüm',
+  'landing.releasePendingNotes':
+    'Android APK sürümleri erken erişim bekleme listesiyle açılıyor. Etkileşimli demoyu deneyin veya anlık APK duyuruları için aşağıdan katılın.',
+  'landing.releaseActiveNotes':
+    'En güncel Android sürümü, uygulama içi otomatik güncelleme kontrolüyle doğrudan telefonunuza kuruluma hazır.',
+  'landing.featuresTitle': 'Roomie deneyimini test edin',
+  'landing.featuresSubtitle':
+    'Kayıt olmadan önce gerçek ev akışlarını denemek için aşağıdaki sekmelere dokunun.',
+  'landing.tabDraft': 'Gizli İş Seçimi',
+  'landing.tabLedger': 'Onaylı Ortak Kasa',
+  'landing.tabHub': 'Market ve Ev Merkezi',
+  'landing.tabPassport': 'Depozito ve Pasaport',
+  'landing.draftPreviewTitle': 'Pazar Haftalık İş Seçimleri',
+  'landing.draftPreviewDesc':
+    'Her iş için tercihinizi seçin. Roomie efor puanlarını adil dengeler, kimse tek başına yük taşımaz.',
+  'landing.draftChoreOne': 'Mutfak Tezgahını Sil',
+  'landing.draftChoreTwo': 'Geri Dönüşümü Çıkar',
+  'landing.draftPrefer': 'İsterim',
+  'landing.draftOkay': 'Olur',
+  'landing.draftAvoid': 'Kaçın',
+  'landing.draftBalancedNote': 'Efor 3 ev arkadaşı arasında adil dengelendi',
+  'landing.ledgerPreviewTitle': 'Onay Öncelikli Ortak Kasa',
+  'landing.ledgerPreviewDesc':
+    'Bakiyeler güncellenmeden önce ev arkadaşları Onayla der. Para birimini net biçimlendirmeyle değiştirin.',
+  'landing.ledgerItemTitle': 'Haftalık Market ve Temizlik Alışverişi',
+  'landing.ledgerStatusPending': 'Onayın bekleniyor',
+  'landing.ledgerStatusAgreed': 'Tüm ev arkadaşları onayladı',
+  'landing.ledgerAgreeBtn': 'Onaylamak için Dokun',
+  'landing.ledgerResetBtn': 'Demoyu sıfırla',
+  'landing.hubPreviewTitle': 'Gerçek Hayat Ev Merkezi',
+  'landing.hubPreviewDesc':
+    'Wi-Fi şifresini tek dokunuşla kopyalayın ve markete gittiğinizi bildirerek çift süt alınmasını önleyin.',
+  'landing.hubWifiLabel': 'Ev Wi-Fi Şifresi',
+  'landing.hubCopyBtn': 'Kopyala',
+  'landing.hubCopiedBtn': 'Kopyalandı',
+  'landing.hubPingBtn': 'Market Bildirimi Gönder',
+  'landing.hubPingSent': '3 ev arkadaşına bildirildi: Şu an marketteyim!',
+  'landing.passportPreviewTitle': 'Depozito Koruması ve İtibar Pasaportu',
+  'landing.passportPreviewDesc':
+    'Giriş ve çıkış oda fotoğraflarını yan yana karşılaştırın ve doğrulanmış uyum puanınızı taşıyın.',
+  'landing.passportScore': '%98 Uyum Puanı',
+  'landing.passportBadge': 'Doğrulanmış Ev Arkadaşı · Sıfır İtirazlı Hesap',
+  'landing.passportChecklistOne': 'Tarihli Giriş / Çıkış fotoğrafları ve PDF sertifika',
+  'landing.passportChecklistTwo': 'Otomatik depozito iade hesaplayıcı',
+  'landing.howTitle': 'Daha sakin bir ev için üç adım',
+  'landing.howSubtitle': 'E-tablo karmaşası olmadan evinizi iki dakikanın altında kurun.',
+  'landing.step1Title': 'Ev kur veya QR okut',
+  'landing.step1Desc':
+    'TRY, USD veya EUR ile bir ev açın ve temiz bir bağlantı veya QR kodla ev arkadaşlarınızı davet edin.',
+  'landing.step2Title': 'İşleri gizlice puanla',
+  'landing.step2Desc':
+    'Herkes her hafta sessizce oy verir ve günlük Nöbet Kaptanı sırası adil şekilde döner.',
+  'landing.step3Title': 'Onaylaşarak bölüş',
+  'landing.step3Desc':
+    'Market, kira ve Wi-Fi giderlerini girin. Ev arkadaşları tek dokunuşla onaylar ve kolayca hesaplaşır.',
+  'landing.privacyTitle': 'Tasarım gereği gizlilik öncelikli',
+  'landing.privacyBody':
+    'Kimlik veya pasaport numaraları cihazınızdan çıkmadan istemci tarafında engellenir; Ev Ruh Hali sonuçları ise en az 3 kişi yanıtlayana kadar anonim kalır.',
+  'landing.waitlistEyebrow': 'Erken Erişim ve Sürümler',
+  'landing.waitlistTitle': 'Roomie Bekleme Listesine Katıl',
+  'landing.waitlistSubtitle':
+    'iOS TestFlight, yeni Android APK sürümleri ve kampüs lansmanları için haberdar olun.',
+  'landing.waitlistEmailLabel': 'E-posta adresi',
+  'landing.waitlistEmailPlaceholder': 'adiniz@universite.edu',
+  'landing.waitlistPlatformLabel': 'Cihazınız',
+  'landing.waitlistPlatformAndroid': 'Android APK',
+  'landing.waitlistPlatformIos': 'iOS TestFlight',
+  'landing.waitlistPlatformWeb': 'Web PWA',
+  'landing.waitlistCityLabel': 'Şehir veya üniversite (isteğe bağlı)',
+  'landing.waitlistCityPlaceholder': 'Girne, İstanbul, Paris...',
+  'landing.waitlistFlatmatesLabel': 'Evdeki kişi sayısı',
+  'landing.waitlistSubmit': 'Yerimi ayırt',
+  'landing.waitlistSubmitting': 'Kaydediliyor...',
+  'landing.waitlistSuccessTitle': 'Erken erişim listesine eklendiniz!',
+  'landing.waitlistAlreadyTitle': 'Zaten listedesiniz!',
+  'landing.waitlistSuccessBody':
+    'Yeni APK sürümleri veya iOS TestFlight kontenjanları açıldığında size e-posta göndereceğiz.',
+  'landing.waitlistTryNow': 'Canlı Demoyu Şimdi Dene',
+  'landing.faqTitle': 'Sıkça sorulan sorular',
+  'landing.faq1Q': 'Roomie öğrenci ve ortak evler için ücretsiz mi?',
+  'landing.faq1A':
+    'Evet. Haftalık iş seçimi, Nöbet Kaptanı takvimi, ortak harcama bölüşümü, ev sohbeti ve giriş/çıkış durum kayıtları ücretsizdir.',
+  'landing.faq2Q': 'Çevrimdışı veya Android ile Web arasında çalışıyor mu?',
+  'landing.faq2A':
+    'Evet. Roomie ev verilerinizi yerel olarak önbelleğe alır ve bağlantınız geri geldiğinde işlemleri otomatik eşitler.',
+  'landing.faq3Q': 'Biri evden ayrıldığında ne olur?',
+  'landing.faq3A':
+    'Bakiyeler kapatılır veya incelenir, Çıkış fotoğrafları adil depozito iadesini hesaplar ve taşınabilir İtibar Pasaportunuz sizde kalır.',
+  'landing.faq4Q': 'Play Store dışında Android APK güncellemeleri nasıl çalışır?',
+  'landing.faq4A':
+    'Roomie barındırılan sürüm akışımızı otomatik kontrol eder ve yeni bir imzalı APK yayınlandığında uygulama içinde sizi uyarır.',
+  'landing.footerTagline': 'Adil ev işleri, sakin faturalar, mutlu ortak evler.',
+  'landing.footerOpenApp': 'Web Uygulamasını Aç',
+  'landing.footerPrivacyNote':
+    'Yalnızca eklemeli bekleme listesi · Sıfır kimlik/pasaport kaydı · İngilizce, Türkçe, Fransızca ve Arapça',
 };
 
 export default tr;

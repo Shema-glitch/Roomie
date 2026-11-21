@@ -297,6 +297,118 @@ export const en = {
   'update.mandatoryNote': 'This update includes important fixes before continuing.',
   'update.whatsNew': "What's new",
   'update.download': 'Download Update',
+
+  // Public Landing Page & Waitlist
+  'landing.navHow': 'How it works',
+  'landing.navFeatures': 'Features',
+  'landing.navFaq': 'FAQ',
+  'landing.navWaitlist': 'Waitlist',
+  'landing.navOpenApp': 'Open App',
+  'landing.badge': 'Built for shared student & city flats',
+  'landing.heroTitle': 'Fair chores, calm bills, happy shared flats.',
+  'landing.heroSubtitle':
+    'Secret weekly chore picks, consent-first expense splits in TRY, USD or EUR, 1-tap supermarket pings, and deposit photo proof in one playful companion.',
+  'landing.heroMascotBubble': 'No more chore nagging!',
+  'landing.ctaDownloadApk': 'Download Android APK',
+  'landing.ctaDownloadVersion': 'Android v{version}',
+  'landing.ctaWaitlistApk': 'Get APK on Waitlist',
+  'landing.ctaOpenApp': 'Launch Web App',
+  'landing.ctaTryDemo': 'Try Live Demo Flat',
+  'landing.releaseTag': 'Latest release',
+  'landing.releasePendingNotes':
+    'Android APK builds are rolling out via the early-access waitlist. Try the interactive demo or join below for instant APK alerts.',
+  'landing.releaseActiveNotes':
+    'Latest Android build ready to install directly on your phone with automatic in-app update checks.',
+  'landing.featuresTitle': 'Try how Roomie feels',
+  'landing.featuresSubtitle':
+    'Click any tab below to test the real flat workflows before you sign up.',
+  'landing.tabDraft': 'Secret Chore Draft',
+  'landing.tabLedger': 'Consent Split Ledger',
+  'landing.tabHub': 'Supermarket & Flat Hub',
+  'landing.tabPassport': 'Deposit & Passport',
+  'landing.draftPreviewTitle': 'Sunday Weekly Chore Picks',
+  'landing.draftPreviewDesc':
+    'Tap how you feel about each chore. Roomie balances effort points so nobody carries the flat alone.',
+  'landing.draftChoreOne': 'Wipe Kitchen Counters',
+  'landing.draftChoreTwo': 'Take Out Recycling',
+  'landing.draftPrefer': 'Prefer',
+  'landing.draftOkay': 'Okay',
+  'landing.draftAvoid': 'Avoid',
+  'landing.draftBalancedNote': 'Effort balanced fairly across 3 flatmates',
+  'landing.ledgerPreviewTitle': 'Consent-First Split Ledger',
+  'landing.ledgerPreviewDesc':
+    'Roommates tap Agree before shared math moves. Switch currencies cleanly with exact formatting.',
+  'landing.ledgerItemTitle': 'Weekly Market & Cleaning Supplies',
+  'landing.ledgerStatusPending': 'Awaiting your approval',
+  'landing.ledgerStatusAgreed': 'Agreed by all roomies',
+  'landing.ledgerAgreeBtn': 'Tap to Agree',
+  'landing.ledgerResetBtn': 'Reset demo',
+  'landing.hubPreviewTitle': 'Real-Life Flat Hub',
+  'landing.hubPreviewDesc':
+    'Copy Wi-Fi in one tap and ping your flat before buying groceries so nobody buys double milk.',
+  'landing.hubWifiLabel': 'Flat Wi-Fi Password',
+  'landing.hubCopyBtn': 'Copy',
+  'landing.hubCopiedBtn': 'Copied',
+  'landing.hubPingBtn': 'Send Supermarket Ping',
+  'landing.hubPingSent': 'Pinged 3 roomies: At the supermarket now!',
+  'landing.passportPreviewTitle': 'Deposit Shield & Reputation Passport',
+  'landing.passportPreviewDesc':
+    'Compare Move-In and Move-Out condition snapshots side by side and carry your verified harmony score.',
+  'landing.passportScore': '98% Harmony Score',
+  'landing.passportBadge': 'Verified Flatmate · Zero Disputed Splits',
+  'landing.passportChecklistOne': 'Dated Move-In vs. Move-Out photos & PDF certificate',
+  'landing.passportChecklistTwo': 'Automatic deposit refund calculator',
+  'landing.howTitle': 'Three steps to a calmer flat',
+  'landing.howSubtitle': 'Set up your apartment in under two minutes with zero spreadsheet drama.',
+  'landing.step1Title': 'Create or scan QR',
+  'landing.step1Desc':
+    'Start a flat in TRY, USD, or EUR and invite roommates via a clean link or QR code.',
+  'landing.step2Title': 'Rank chores privately',
+  'landing.step2Desc':
+    'Everyone votes silently each week and rotates daily Duty Captain turns fairly.',
+  'landing.step3Title': 'Split by agreement',
+  'landing.step3Desc':
+    'Log groceries, rent, and Wi-Fi. Roomies agree with one tap and settle cleanly.',
+  'landing.privacyTitle': 'Privacy-first by design',
+  'landing.privacyBody':
+    'Sensitive identity or passport numbers are blocked client-side before leaving your device, and House Mood checks stay anonymous until at least 3 roommates respond.',
+  'landing.waitlistEyebrow': 'Early Access & Releases',
+  'landing.waitlistTitle': 'Join the Roomie Waitlist',
+  'landing.waitlistSubtitle':
+    'Get notified for iOS TestFlight, new Android APK drops, and university flat launches.',
+  'landing.waitlistEmailLabel': 'Email address',
+  'landing.waitlistEmailPlaceholder': 'you@university.edu',
+  'landing.waitlistPlatformLabel': 'Your device',
+  'landing.waitlistPlatformAndroid': 'Android APK',
+  'landing.waitlistPlatformIos': 'iOS TestFlight',
+  'landing.waitlistPlatformWeb': 'Web PWA',
+  'landing.waitlistCityLabel': 'City or university (optional)',
+  'landing.waitlistCityPlaceholder': 'Kyrenia, Istanbul, Paris...',
+  'landing.waitlistFlatmatesLabel': 'Flatmates in your apartment',
+  'landing.waitlistSubmit': 'Reserve my spot',
+  'landing.waitlistSubmitting': 'Joining...',
+  'landing.waitlistSuccessTitle': 'You are on the early-access list!',
+  'landing.waitlistAlreadyTitle': "You're already on the list!",
+  'landing.waitlistSuccessBody':
+    'We will email you when new APK releases or iOS TestFlight slots open up.',
+  'landing.waitlistTryNow': 'Try Live Demo Now',
+  'landing.faqTitle': 'Frequently asked questions',
+  'landing.faq1Q': 'Is Roomie free for student and shared apartments?',
+  'landing.faq1A':
+    'Yes. Core chore drafting, Duty Captain schedules, expense splitting, flat chat, and Move-In/Out condition snapshots are free to use.',
+  'landing.faq2Q': 'Does it work offline or across Android and Web?',
+  'landing.faq2A':
+    'Yes. Roomie caches your flat locally with an offline outbox queue so actions sync automatically when your connection returns.',
+  'landing.faq3Q': 'What happens when someone leaves the apartment?',
+  'landing.faq3A':
+    'Balances must be settled or reviewed, Move-Out snapshots calculate fair deposit returns, and you keep your portable Reputation Passport.',
+  'landing.faq4Q': 'How do Android APK updates work outside the Play Store?',
+  'landing.faq4A':
+    'Roomie checks our hosted release feed automatically and prompts you inside the app whenever a newer signed APK version is published.',
+  'landing.footerTagline': 'Fair chores, calm bills, happy shared flats.',
+  'landing.footerOpenApp': 'Open Web App',
+  'landing.footerPrivacyNote':
+    'Insert-only waitlist · Zero passport/ID storage · Built in English, Turkish, French & Arabic',
 } as const;
 
 export type TranslationKey = keyof typeof en;

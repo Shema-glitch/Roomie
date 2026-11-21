@@ -299,6 +299,118 @@ const fr: TranslationDictionary = {
   'update.mandatoryNote': 'Cette mise à jour contient des correctifs importants.',
   'update.whatsNew': 'Nouveautés',
   'update.download': 'Télécharger la mise à jour',
+
+  // Public Landing Page & Waitlist
+  'landing.navHow': 'Fonctionnement',
+  'landing.navFeatures': 'Fonctions',
+  'landing.navFaq': 'FAQ',
+  'landing.navWaitlist': 'Liste d’attente',
+  'landing.navOpenApp': 'Ouvrir l’app',
+  'landing.badge': 'Conçu pour les colocs étudiantes et citadines',
+  'landing.heroTitle': 'Corvées équitables, comptes sereins, colocs heureuses.',
+  'landing.heroSubtitle':
+    'Choix secrets des tâches chaque semaine, dépenses validées par accord en TRY, USD ou EUR, alerte courses en 1 geste et preuves photo de caution.',
+  'landing.heroMascotBubble': 'Fini les relances !',
+  'landing.ctaDownloadApk': 'Télécharger l’APK Android',
+  'landing.ctaDownloadVersion': 'Android v{version}',
+  'landing.ctaWaitlistApk': 'Recevoir l’APK par liste',
+  'landing.ctaOpenApp': 'Lancer l’app Web',
+  'landing.ctaTryDemo': 'Tester la coloc démo',
+  'landing.releaseTag': 'Dernière version',
+  'landing.releasePendingNotes':
+    'Les builds APK Android arrivent via la liste d’attente. Testez la démo interactive ou inscrivez-vous ci-dessous pour recevoir le lien dès la sortie.',
+  'landing.releaseActiveNotes':
+    'Dernière version Android prête à installer sur votre téléphone avec vérification automatique des mises à jour.',
+  'landing.featuresTitle': 'Testez l’expérience Roomie',
+  'landing.featuresSubtitle':
+    'Cliquez sur chaque onglet pour essayer les vrais parcours de colocation avant de créer un compte.',
+  'landing.tabDraft': 'Choix secrets',
+  'landing.tabLedger': 'Comptes par accord',
+  'landing.tabHub': 'Courses et Hub',
+  'landing.tabPassport': 'Caution & Passeport',
+  'landing.draftPreviewTitle': 'Choix hebdomadaires du dimanche',
+  'landing.draftPreviewDesc':
+    'Indiquez vos préférences sur chaque tâche. Roomie équilibre les points d’effort pour que personne ne porte tout seul.',
+  'landing.draftChoreOne': 'Nettoyer le plan de travail',
+  'landing.draftChoreTwo': 'Sortir le tri sélectif',
+  'landing.draftPrefer': 'Préfère',
+  'landing.draftOkay': 'Ça va',
+  'landing.draftAvoid': 'Éviter',
+  'landing.draftBalancedNote': 'Effort réparti équitablement entre 3 colocs',
+  'landing.ledgerPreviewTitle': 'Comptes basés sur le consentement',
+  'landing.ledgerPreviewDesc':
+    'Chaque coloc appuie sur Approuver avant qu’un solde ne bouge. Changez de devise avec un formatage exact.',
+  'landing.ledgerItemTitle': 'Courses hebdomadaires & produits ménagers',
+  'landing.ledgerStatusPending': 'En attente de votre accord',
+  'landing.ledgerStatusAgreed': 'Approuvé par toute la coloc',
+  'landing.ledgerAgreeBtn': 'Appuyer pour approuver',
+  'landing.ledgerResetBtn': 'Réinitialiser',
+  'landing.hubPreviewTitle': 'Hub du quotidien',
+  'landing.hubPreviewDesc':
+    'Copiez le Wi-Fi en un geste et prévenez la coloc quand vous êtes au supermarché pour éviter les doublons.',
+  'landing.hubWifiLabel': 'Mot de passe Wi-Fi',
+  'landing.hubCopyBtn': 'Copier',
+  'landing.hubCopiedBtn': 'Copié',
+  'landing.hubPingBtn': 'Envoyer alerte courses',
+  'landing.hubPingSent': '3 colocs prévenus : Je suis au supermarché !',
+  'landing.passportPreviewTitle': 'Bouclier de caution & Passeport',
+  'landing.passportPreviewDesc':
+    'Comparez les photos d’entrée et de sortie côte à côte et emportez votre score de fiabilité vérifié.',
+  'landing.passportScore': '98 % d’harmonie',
+  'landing.passportBadge': 'Coloc vérifié · Zéro litige non résolu',
+  'landing.passportChecklistOne': 'Photos entrée/sortie datées & certificat PDF',
+  'landing.passportChecklistTwo': 'Calculateur automatique de restitution de caution',
+  'landing.howTitle': 'Trois étapes vers une coloc apaisée',
+  'landing.howSubtitle': 'Configurez votre appartement en moins de deux minutes sans tableur.',
+  'landing.step1Title': 'Créez ou scannez le QR',
+  'landing.step1Desc':
+    'Ouvrez une coloc en TRY, USD ou EUR et invitez vos colocs via un lien clair ou un QR code.',
+  'landing.step2Title': 'Classez les corvées en privé',
+  'landing.step2Desc':
+    'Chacun vote discrètement chaque semaine et assure à tour de rôle la permanence quotidienne.',
+  'landing.step3Title': 'Partagez d’un commun accord',
+  'landing.step3Desc':
+    'Ajoutez courses, loyer et Wi-Fi. Les colocs approuvent en un geste et règlent simplement.',
+  'landing.privacyTitle': 'Respectueux de la vie privée dès l’origine',
+  'landing.privacyBody':
+    'Les numéros de passeport ou pièces d’identité sont bloqués localement avant tout envoi, et l’humeur de la coloc reste anonyme tant que moins de 3 colocs ont répondu.',
+  'landing.waitlistEyebrow': 'Accès anticipé & versions',
+  'landing.waitlistTitle': 'Rejoindre la liste d’attente',
+  'landing.waitlistSubtitle':
+    'Recevez les accès iOS TestFlight, les nouvelles versions APK Android et les lancements campus.',
+  'landing.waitlistEmailLabel': 'Adresse e-mail',
+  'landing.waitlistEmailPlaceholder': 'vous@universite.edu',
+  'landing.waitlistPlatformLabel': 'Votre appareil',
+  'landing.waitlistPlatformAndroid': 'APK Android',
+  'landing.waitlistPlatformIos': 'iOS TestFlight',
+  'landing.waitlistPlatformWeb': 'App Web PWA',
+  'landing.waitlistCityLabel': 'Ville ou université (optionnel)',
+  'landing.waitlistCityPlaceholder': 'Kyrenia, Istanbul, Paris...',
+  'landing.waitlistFlatmatesLabel': 'Nombre de colocs',
+  'landing.waitlistSubmit': 'Réserver ma place',
+  'landing.waitlistSubmitting': 'Inscription...',
+  'landing.waitlistSuccessTitle': 'Vous êtes sur la liste d’accès anticipé !',
+  'landing.waitlistAlreadyTitle': 'Vous êtes déjà sur la liste !',
+  'landing.waitlistSuccessBody':
+    'Nous vous écrirons dès l’ouverture des prochaines versions APK ou places TestFlight.',
+  'landing.waitlistTryNow': 'Essayer la démo maintenant',
+  'landing.faqTitle': 'Questions fréquentes',
+  'landing.faq1Q': 'Roomie est-il gratuit pour les colocations étudiantes ?',
+  'landing.faq1A':
+    'Oui. Le tirage des tâches, le planning quotidien, le partage des frais, le chat et les états des lieux sont gratuits.',
+  'landing.faq2Q': 'Fonctionne-t-il hors ligne sur Android et Web ?',
+  'landing.faq2A':
+    'Oui. Roomie met en cache votre coloc localement avec une file d’envoi qui se synchronise dès le retour du réseau.',
+  'landing.faq3Q': 'Que se passe-t-il lorsqu’un colocataire quitte le logement ?',
+  'landing.faq3A':
+    'Les soldes sont vérifiés, l’état des lieux de sortie calcule le remboursement de caution, et vous gardez votre Passeport de réputation.',
+  'landing.faq4Q': 'Comment fonctionnent les mises à jour APK hors Play Store ?',
+  'landing.faq4A':
+    'Roomie interroge automatiquement notre flux de versions et vous invite à mettre à jour dès qu’un nouvel APK signé est publié.',
+  'landing.footerTagline': 'Corvées équitables, comptes sereins, colocs heureuses.',
+  'landing.footerOpenApp': 'Ouvrir l’app Web',
+  'landing.footerPrivacyNote':
+    'Liste d’attente en insertion seule · Aucun document d’identité stocké · Français, Anglais, Turc & Arabe',
 };
 
 export default fr;
