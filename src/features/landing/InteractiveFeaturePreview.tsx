@@ -27,9 +27,15 @@ const CURRENCY_META: Record<DemoCurrency, { symbol: string; total: number; share
   EUR: { symbol: '€', total: 42, share: 14 },
 };
 
+const PREVIEW_ROOMIES = [
+  { name: 'Amina', initials: 'AM', bg: 'bg-[#FFF0ED] text-[#B42318] border-[#FFD3C9]' },
+  { name: 'Lucas', initials: 'LU', bg: 'bg-[#ECFDF5] text-[#0F7A3D] border-[#86EFAC]' },
+  { name: 'Tariq', initials: 'TQ', bg: 'bg-[#F5F3FF] text-[#3B4BC4] border-[#C7D2FE]' },
+];
+
 /**
- * Interactive 4-tab Storybook preview widget allowing visitors to experience
- * Roomie's core workflows directly on the public landing page.
+ * Interactive 4-tab phone-frame Storybook preview allowing visitors to test
+ * Roomie's flat workflows with live avatars, streaks, and crisp TRY currency math.
  */
 export const InteractiveFeaturePreview: React.FC = () => {
   const { t } = useI18n();
@@ -72,17 +78,17 @@ export const InteractiveFeaturePreview: React.FC = () => {
 
   const feelingButtonClass = (selected: boolean, kind: ChoreFeeling): string => {
     const base =
-      'min-h-[44px] min-w-[44px] px-3 rounded-xl border-2 border-b-4 text-xs font-extrabold transition-[transform,background-color,border-color] duration-150 ease-out active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none motion-reduce:active:translate-y-0 cursor-pointer';
+      'min-h-[44px] min-w-[44px] px-3 rounded-xl border-2 border-b-4 text-xs font-extrabold transition-[transform,background-color,border-color] duration-150 ease-out active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none motion-reduce:active:translate-y-0 cursor-pointer whitespace-nowrap';
     if (!selected) {
-      return `${base} bg-white border-[#CBD5E1] text-[#4B5063] hover:text-[#1F2033] hover:bg-[#F8FAFC]`;
+      return `${base} bg-white border-[#E2E8F0] text-[#4B5063] hover:text-[#1F2033] hover:bg-[#F8FAFC]`;
     }
     if (kind === 'prefer') {
-      return `${base} bg-[#EBF9F0] border-[#0F7A3D] text-[#0F7A3D]`;
+      return `${base} bg-[#ECFDF5] border-[#0F7A3D] text-[#0F7A3D]`;
     }
     if (kind === 'avoid') {
       return `${base} bg-[#FEF2F2] border-[#B42318] text-[#B42318]`;
     }
-    return `${base} bg-[#EEF0FD] border-[#3B4BC4] text-[#3B4BC4]`;
+    return `${base} bg-[#F5F3FF] border-[#3B4BC4] text-[#3B4BC4]`;
   };
 
   const currencyInfo = CURRENCY_META[currency];
@@ -99,11 +105,11 @@ export const InteractiveFeaturePreview: React.FC = () => {
           </p>
         </div>
 
-        {/* Tactile 4-tab Switcher */}
+        {/* Concise Full-Word 4-Tab Switcher (never clips with ... on 360px phones) */}
         <div
           role="tablist"
           aria-label={t('landing.featuresTitle')}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 p-2 rounded-[22px] bg-[#EEF0F6] border-2 border-[#CBD5E1]"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 p-2 rounded-[24px] bg-[#EEF0F6] border-2 border-b-4 border-[#CBD5E1]"
         >
           {tabs.map((tab) => {
             const isSelected = activeTab === tab.id;
@@ -117,324 +123,355 @@ export const InteractiveFeaturePreview: React.FC = () => {
                   sound.playTap();
                   setActiveTab(tab.id);
                 }}
-                className={`min-h-[44px] min-w-[44px] px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-heading font-extrabold flex items-center justify-center gap-2 transition-[transform,background-color,color,border-color] duration-150 ease-out active:translate-y-[1px] motion-reduce:transition-none cursor-pointer ${
+                className={`min-h-[44px] min-w-[44px] px-2.5 py-2 rounded-2xl text-xs sm:text-sm font-heading font-extrabold flex items-center justify-center gap-1.5 transition-[transform,background-color,color,border-color] duration-150 ease-out active:translate-y-[1px] motion-reduce:transition-none cursor-pointer whitespace-nowrap ${
                   isSelected
                     ? 'bg-[#FF6B4A] text-[#1F2033] border-2 border-b-4 border-[#D94E30] shadow-xs'
-                    : 'bg-white/80 text-[#4B5063] hover:text-[#1F2033] hover:bg-white border-2 border-transparent'
+                    : 'bg-white text-[#4B5063] hover:text-[#1F2033] border-2 border-b-4 border-[#E2E8F0]'
                 }`}
               >
                 {tab.icon}
-                <span className="truncate">{tab.label}</span>
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Active Interactive Tab Panel */}
-        <div
-          key={activeTab}
-          role="tabpanel"
-          className="animate-fade-up motion-reduce:animate-none rounded-[28px] bg-white border-2 border-b-4 border-[#CBD5E1] p-5 sm:p-8 shadow-sm"
-        >
-          {activeTab === 'draft' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-5 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border border-[#FFD3C9] text-xs font-extrabold text-[#B42318]">
-                  <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#D94E30]" />
-                  <span>{t('landing.tabDraft')}</span>
-                </span>
-                <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
-                  {t('landing.draftPreviewTitle')}
-                </h3>
-                <p className="text-sm text-[#4B5063] leading-relaxed">
-                  {t('landing.draftPreviewDesc')}
-                </p>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#EBF9F0] border border-[#86EFAC] text-xs font-bold text-[#0F7A3D]">
-                  <CheckCircle weight="fill" className="w-4 h-4 shrink-0" />
-                  <span>{t('landing.draftBalancedNote')}</span>
-                </div>
-              </div>
-
-              <div className="lg:col-span-7 space-y-3">
-                {[
-                  {
-                    label: t('landing.draftChoreOne'),
-                    pts: '20 pts',
-                    pick: choreOnePick,
-                    setPick: setChoreOnePick,
-                    icon: 'fluent-emoji-flat:sponge',
-                  },
-                  {
-                    label: t('landing.draftChoreTwo'),
-                    pts: '15 pts',
-                    pick: choreTwoPick,
-                    setPick: setChoreTwoPick,
-                    icon: 'fluent-emoji-flat:wastebasket',
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="p-4 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        {/* Phone-Frame Storybook App Stage */}
+        <div className="rounded-[32px] bg-white border-2 border-[#CBD5E1] border-b-[6px] shadow-md overflow-hidden">
+          {/* App-Mirroring Flat Status Bar */}
+          <div className="px-4 sm:px-6 py-3.5 bg-[#FFF9F5] border-b-2 border-[#FFE4D6] flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="px-3 py-1 rounded-xl bg-white border-2 border-[#E2E8F0] font-heading font-extrabold text-xs sm:text-sm text-[#1F2033] whitespace-nowrap">
+                {t('landing.previewFlatName')}
+              </span>
+              <div className="flex items-center gap-1.5" aria-label="Flatmates">
+                {PREVIEW_ROOMIES.map((rm) => (
+                  <span
+                    key={rm.name}
+                    title={rm.name}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-extrabold ${rm.bg}`}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-[#E6E8EE] flex items-center justify-center shrink-0">
-                        <Icon icon={item.icon} className="w-5 h-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-heading font-bold text-sm sm:text-base text-[#1F2033] truncate">
-                          {item.label}
-                        </p>
-                        <p className="text-xs font-bold text-[#4B5063]">{item.pts}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                      {(['prefer', 'okay', 'avoid'] as ChoreFeeling[]).map((choice) => (
-                        <button
-                          key={choice}
-                          type="button"
-                          onClick={() => {
-                            sound.playPop();
-                            item.setPick(choice);
-                          }}
-                          className={feelingButtonClass(item.pick === choice, choice)}
-                        >
-                          {choice === 'prefer'
-                            ? t('landing.draftPrefer')
-                            : choice === 'okay'
-                            ? t('landing.draftOkay')
-                            : t('landing.draftAvoid')}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#0F7A3D]" aria-hidden="true" />
+                    <span>{rm.initials}</span>
+                  </span>
                 ))}
               </div>
             </div>
-          )}
 
-          {activeTab === 'ledger' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-5 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF9F0] border border-[#86EFAC] text-xs font-extrabold text-[#0F7A3D]">
-                  <Wallet weight="fill" className="w-3.5 h-3.5" />
-                  <span>{t('landing.tabLedger')}</span>
-                </span>
-                <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
-                  {t('landing.ledgerPreviewTitle')}
-                </h3>
-                <p className="text-sm text-[#4B5063] leading-relaxed">
-                  {t('landing.ledgerPreviewDesc')}
-                </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFFBEB] border-2 border-[#FDE68A] text-xs font-extrabold text-[#9A6700] whitespace-nowrap">
+              <Icon icon="fluent-emoji-flat:fire" className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('landing.previewFlatStats')}</span>
+            </div>
+          </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  {(['TRY', 'USD', 'EUR'] as DemoCurrency[]).map((code) => (
-                    <button
-                      key={code}
-                      type="button"
-                      onClick={() => {
-                        sound.playTap();
-                        setCurrency(code);
-                      }}
-                      className={`min-h-[44px] min-w-[44px] px-3.5 rounded-xl border-2 border-b-4 text-xs font-extrabold cursor-pointer transition-all active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none ${
-                        currency === code
-                          ? 'bg-[#1F2033] text-white border-[#1F2033]'
-                          : 'bg-white text-[#1F2033] border-[#CBD5E1] hover:bg-[#F7F8FB]'
-                      }`}
+          {/* Active Interactive Tab Panel */}
+          <div
+            key={activeTab}
+            role="tabpanel"
+            className="animate-fade-up motion-reduce:animate-none p-5 sm:p-8"
+          >
+            {activeTab === 'draft' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-5 space-y-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF5F2] border-2 border-[#FFD3C9] text-xs font-extrabold text-[#B42318]">
+                    <Sparkle weight="fill" className="w-3.5 h-3.5 text-[#D94E30]" />
+                    <span>{t('landing.tabDraft')}</span>
+                  </span>
+                  <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
+                    {t('landing.draftPreviewTitle')}
+                  </h3>
+                  <p className="text-sm text-[#4B5063] leading-relaxed">
+                    {t('landing.draftPreviewDesc')}
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#ECFDF5] border-2 border-b-4 border-[#86EFAC] text-xs font-extrabold text-[#0F7A3D]">
+                    <CheckCircle weight="fill" className="w-4 h-4 shrink-0" />
+                    <span>{t('landing.draftBalancedNote')}</span>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-7 space-y-3">
+                  {[
+                    {
+                      label: t('landing.draftChoreOne'),
+                      pts: '20 pts',
+                      pick: choreOnePick,
+                      setPick: setChoreOnePick,
+                      icon: 'fluent-emoji-flat:sponge',
+                      cardTint: 'bg-[#FFF5F2] border-[#FFD3C9]',
+                    },
+                    {
+                      label: t('landing.draftChoreTwo'),
+                      pts: '15 pts',
+                      pick: choreTwoPick,
+                      setPick: setChoreTwoPick,
+                      icon: 'fluent-emoji-flat:wastebasket',
+                      cardTint: 'bg-[#F5F3FF] border-[#C7D2FE]',
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className={`p-4 rounded-[24px] border-2 border-b-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${item.cardTint}`}
                     >
-                      {code} ({CURRENCY_META[code].symbol})
-                    </button>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded-2xl bg-white border-2 border-[#E2E8F0] flex items-center justify-center shrink-0">
+                          <Icon icon={item.icon} className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-heading font-bold text-sm sm:text-base text-[#1F2033] break-words">
+                            {item.label}
+                          </p>
+                          <p className="text-xs font-extrabold text-[#4B5063]">{item.pts}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                        {(['prefer', 'okay', 'avoid'] as ChoreFeeling[]).map((choice) => (
+                          <button
+                            key={choice}
+                            type="button"
+                            onClick={() => {
+                              sound.playPop();
+                              item.setPick(choice);
+                            }}
+                            className={feelingButtonClass(item.pick === choice, choice)}
+                          >
+                            {choice === 'prefer'
+                              ? t('landing.draftPrefer')
+                              : choice === 'okay'
+                              ? t('landing.draftOkay')
+                              : t('landing.draftAvoid')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
+            )}
 
-              <div className="lg:col-span-7">
-                <div
-                  className={`p-5 rounded-2xl border-2 border-b-4 space-y-4 transition-colors duration-150 ${
-                    ledgerAgreed
-                      ? 'bg-[#F0FDF4] border-[#86EFAC]'
-                      : 'bg-[#FFFBEB] border-[#FDE68A]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-heading font-bold text-base text-[#1F2033] truncate">
-                        {t('landing.ledgerItemTitle')}
-                      </p>
-                      <p className="text-xs font-semibold text-[#4B5063] mt-0.5 tabular-nums">
+            {activeTab === 'ledger' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-5 space-y-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ECFDF5] border-2 border-[#86EFAC] text-xs font-extrabold text-[#0F7A3D]">
+                    <Wallet weight="fill" className="w-3.5 h-3.5" />
+                    <span>{t('landing.tabLedger')}</span>
+                  </span>
+                  <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
+                    {t('landing.ledgerPreviewTitle')}
+                  </h3>
+                  <p className="text-sm text-[#4B5063] leading-relaxed">
+                    {t('landing.ledgerPreviewDesc')}
+                  </p>
+
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
+                    {(['TRY', 'USD', 'EUR'] as DemoCurrency[]).map((code) => (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => {
+                          sound.playTap();
+                          setCurrency(code);
+                        }}
+                        className={`min-h-[44px] min-w-[44px] px-3.5 rounded-xl border-2 border-b-4 text-xs font-extrabold cursor-pointer transition-all active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none ${
+                          currency === code
+                            ? 'bg-[#1F2033] text-white border-[#1F2033]'
+                            : 'bg-white text-[#1F2033] border-[#E2E8F0] hover:bg-[#F7F8FB]'
+                        }`}
+                      >
+                        {code} ({CURRENCY_META[code].symbol})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="lg:col-span-7">
+                  <div
+                    className={`p-5 rounded-[24px] border-2 border-b-4 space-y-4 transition-colors duration-150 ${
+                      ledgerAgreed
+                        ? 'bg-[#ECFDF5] border-[#86EFAC]'
+                        : 'bg-[#FFFBEB] border-[#FDE68A]'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="font-heading font-bold text-base text-[#1F2033] break-words">
+                          {t('landing.ledgerItemTitle')}
+                        </p>
+                        <p className="text-xs font-semibold text-[#4B5063] mt-0.5 tabular-nums">
+                          {currencyInfo.symbol}
+                          {formatDecimalCurrency(currencyInfo.total)} · 3 roomies ({currencyInfo.symbol}
+                          {formatDecimalCurrency(currencyInfo.share)} each)
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-extrabold whitespace-nowrap shrink-0 border ${
+                          ledgerAgreed
+                            ? 'bg-white text-[#0F7A3D] border-[#86EFAC]'
+                            : 'bg-white text-[#9A6700] border-[#FDE68A]'
+                        }`}
+                      >
+                        {ledgerAgreed ? t('landing.ledgerStatusAgreed') : t('landing.ledgerStatusPending')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 pt-2 border-t border-black/10 flex-wrap">
+                      <span className="font-heading font-black text-2xl text-[#1F2033] tabular-nums">
                         {currencyInfo.symbol}
-                        {formatDecimalCurrency(currencyInfo.total)} · 3 roomies ({currencyInfo.symbol}
-                        {formatDecimalCurrency(currencyInfo.share)} each)
-                      </p>
+                        {formatDecimalCurrency(currencyInfo.share)}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        {!ledgerAgreed ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playSuccess();
+                              setLedgerAgreed(true);
+                            }}
+                            className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] border-2 border-b-4 border-[#D94E30] font-extrabold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
+                          >
+                            <CheckCircle weight="fill" className="w-4 h-4" />
+                            <span>{t('landing.ledgerAgreeBtn')}</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sound.playTap();
+                              setLedgerAgreed(false);
+                            }}
+                            className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-white hover:bg-[#F7F8FB] text-[#1F2033] border-2 border-b-4 border-[#CBD5E1] font-extrabold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
+                          >
+                            <ArrowsClockwise weight="bold" className="w-4 h-4" />
+                            <span>{t('landing.ledgerResetBtn')}</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold whitespace-nowrap shrink-0 ${
-                        ledgerAgreed
-                          ? 'bg-[#EBF9F0] text-[#0F7A3D] border border-[#86EFAC]'
-                          : 'bg-[#FFF8E6] text-[#9A6700] border border-[#FDE68A]'
-                      }`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'hub' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-5 space-y-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFFBEB] border-2 border-[#FDE68A] text-xs font-extrabold text-[#9A6700]">
+                    <ShoppingCartSimple weight="fill" className="w-3.5 h-3.5" />
+                    <span>{t('landing.tabHub')}</span>
+                  </span>
+                  <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
+                    {t('landing.hubPreviewTitle')}
+                  </h3>
+                  <p className="text-sm text-[#4B5063] leading-relaxed">
+                    {t('landing.hubPreviewDesc')}
+                  </p>
+                </div>
+
+                <div className="lg:col-span-7 space-y-3">
+                  <div className="p-4 rounded-[24px] bg-[#F5F3FF] border-2 border-b-4 border-[#C7D2FE] flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-2xl bg-white border-2 border-[#C7D2FE] flex items-center justify-center text-[#3B4BC4] shrink-0">
+                        <WifiHigh weight="duotone" className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-[#4B5063]">{t('landing.hubWifiLabel')}</p>
+                        <p className="font-mono font-bold text-sm text-[#1F2033] truncate">
+                          SunnyFlat_5G_2026
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        sound.playTap();
+                        await copyTextToClipboard('SunnyFlat_5G_2026');
+                        setWifiCopied(true);
+                        window.setTimeout(() => setWifiCopied(false), 1800);
+                      }}
+                      className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-white border-2 border-b-4 border-[#C7D2FE] text-xs font-extrabold text-[#3B4BC4] inline-flex items-center gap-1.5 cursor-pointer shrink-0 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
                     >
-                      {ledgerAgreed ? t('landing.ledgerStatusAgreed') : t('landing.ledgerStatusPending')}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-black/10 flex-wrap">
-                    <span className="font-heading font-black text-2xl text-[#1F2033] tabular-nums">
-                      {currencyInfo.symbol}
-                      {formatDecimalCurrency(currencyInfo.share)}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      {!ledgerAgreed ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            sound.playSuccess();
-                            setLedgerAgreed(true);
-                          }}
-                          className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] border-2 border-b-4 border-[#D94E30] font-extrabold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
-                        >
-                          <CheckCircle weight="fill" className="w-4 h-4" />
-                          <span>{t('landing.ledgerAgreeBtn')}</span>
-                        </button>
+                      {wifiCopied ? (
+                        <>
+                          <Check weight="bold" className="w-4 h-4 text-[#0F7A3D]" />
+                          <span>{t('landing.hubCopiedBtn')}</span>
+                        </>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            sound.playTap();
-                            setLedgerAgreed(false);
-                          }}
-                          className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-white hover:bg-[#F7F8FB] text-[#1F2033] border-2 border-b-4 border-[#CBD5E1] font-extrabold text-xs sm:text-sm inline-flex items-center gap-1.5 cursor-pointer transition-transform active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
-                        >
-                          <ArrowsClockwise weight="bold" className="w-4 h-4" />
-                          <span>{t('landing.ledgerResetBtn')}</span>
-                        </button>
+                        <>
+                          <Copy weight="bold" className="w-4 h-4" />
+                          <span>{t('landing.hubCopyBtn')}</span>
+                        </>
                       )}
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-[24px] bg-[#FFFBEB] border-2 border-b-4 border-[#FDE68A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Megaphone weight="duotone" className="w-5 h-5 text-[#9A6700] shrink-0" />
+                      <span className="text-xs sm:text-sm font-bold text-[#1F2033]">
+                        {pingSent ? t('landing.hubPingSent') : 'Milk, Dish Soap, Olive Oil'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playPop();
+                        setPingSent(true);
+                      }}
+                      className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] border-2 border-b-4 border-[#D94E30] font-extrabold text-xs cursor-pointer shrink-0 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
+                    >
+                      {t('landing.hubPingBtn')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'passport' && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-5 space-y-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5F3FF] border-2 border-[#C7D2FE] text-xs font-extrabold text-[#3B4BC4]">
+                    <ShieldCheck weight="fill" className="w-3.5 h-3.5" />
+                    <span>{t('landing.tabPassport')}</span>
+                  </span>
+                  <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
+                    {t('landing.passportPreviewTitle')}
+                  </h3>
+                  <p className="text-sm text-[#4B5063] leading-relaxed">
+                    {t('landing.passportPreviewDesc')}
+                  </p>
+                </div>
+
+                <div className="lg:col-span-7 p-5 rounded-[24px] bg-[#ECFDF5] border-2 border-b-4 border-[#86EFAC] space-y-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-11 h-11 rounded-2xl bg-white border-2 border-[#86EFAC] flex items-center justify-center text-[#0F7A3D]">
+                        <ShieldCheck weight="fill" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="font-heading font-extrabold text-base text-[#1F2033]">
+                          {t('landing.passportScore')}
+                        </p>
+                        <p className="text-xs font-bold text-[#0F7A3D]">
+                          {t('landing.passportBadge')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pt-2 border-t border-[#86EFAC]/60">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#1F2033]">
+                      <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
+                      <span>{t('landing.passportChecklistOne')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#1F2033]">
+                      <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
+                      <span>{t('landing.passportChecklistTwo')}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'hub' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-5 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8E6] border border-[#FDE68A] text-xs font-extrabold text-[#9A6700]">
-                  <ShoppingCartSimple weight="fill" className="w-3.5 h-3.5" />
-                  <span>{t('landing.tabHub')}</span>
-                </span>
-                <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
-                  {t('landing.hubPreviewTitle')}
-                </h3>
-                <p className="text-sm text-[#4B5063] leading-relaxed">
-                  {t('landing.hubPreviewDesc')}
-                </p>
-              </div>
-
-              <div className="lg:col-span-7 space-y-3">
-                <div className="p-4 rounded-2xl bg-[#F0F7FF] border-2 border-[#DBEAFE] flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-[#DBEAFE] flex items-center justify-center text-[#3B4BC4] shrink-0">
-                      <WifiHigh weight="duotone" className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#4B5063]">{t('landing.hubWifiLabel')}</p>
-                      <p className="font-mono font-bold text-sm text-[#1F2033] truncate">
-                        SunnyFlat_5G_2026
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      sound.playTap();
-                      await copyTextToClipboard('SunnyFlat_5G_2026');
-                      setWifiCopied(true);
-                      window.setTimeout(() => setWifiCopied(false), 1800);
-                    }}
-                    className="min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-white border-2 border-b-4 border-[#BFDBFE] text-xs font-extrabold text-[#1E40AF] inline-flex items-center gap-1.5 cursor-pointer shrink-0 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
-                  >
-                    {wifiCopied ? (
-                      <>
-                        <Check weight="bold" className="w-4 h-4 text-[#0F7A3D]" />
-                        <span>{t('landing.hubCopiedBtn')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy weight="bold" className="w-4 h-4" />
-                        <span>{t('landing.hubCopyBtn')}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#FFF8E6] border-2 border-[#FDE68A] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Megaphone weight="duotone" className="w-5 h-5 text-[#9A6700] shrink-0" />
-                    <span className="text-xs sm:text-sm font-bold text-[#1F2033]">
-                      {pingSent ? t('landing.hubPingSent') : 'Milk, Dish Soap, Olive Oil'}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playPop();
-                      setPingSent(true);
-                    }}
-                    className="min-h-[44px] min-w-[44px] px-4 rounded-xl bg-[#FF6B4A] hover:bg-[#FF7D61] text-[#1F2033] border-2 border-b-4 border-[#D94E30] font-extrabold text-xs cursor-pointer shrink-0 active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none"
-                  >
-                    {t('landing.hubPingBtn')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'passport' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-5 space-y-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF0FD] border border-[#C7D2FE] text-xs font-extrabold text-[#3B4BC4]">
-                  <ShieldCheck weight="fill" className="w-3.5 h-3.5" />
-                  <span>{t('landing.tabPassport')}</span>
-                </span>
-                <h3 className="font-heading font-extrabold text-xl sm:text-2xl text-[#1F2033]">
-                  {t('landing.passportPreviewTitle')}
-                </h3>
-                <p className="text-sm text-[#4B5063] leading-relaxed">
-                  {t('landing.passportPreviewDesc')}
-                </p>
-              </div>
-
-              <div className="lg:col-span-7 p-5 rounded-2xl bg-[#F7F8FB] border-2 border-[#E6E8EE] space-y-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-[#EBF9F0] border border-[#86EFAC] flex items-center justify-center text-[#0F7A3D]">
-                      <ShieldCheck weight="fill" className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-heading font-extrabold text-base text-[#1F2033]">
-                        {t('landing.passportScore')}
-                      </p>
-                      <p className="text-xs font-bold text-[#0F7A3D]">
-                        {t('landing.passportBadge')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2 pt-2 border-t border-[#E6E8EE]">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#1F2033]">
-                    <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
-                    <span>{t('landing.passportChecklistOne')}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#1F2033]">
-                    <CheckCircle weight="fill" className="w-4 h-4 text-[#0F7A3D] shrink-0" />
-                    <span>{t('landing.passportChecklistTwo')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </section>

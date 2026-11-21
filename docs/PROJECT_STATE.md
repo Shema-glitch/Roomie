@@ -891,17 +891,17 @@ Baseline Tag: `v1.0.0-phase1`
   - Served the public Landing Page & Waitlist (`PublicLandingPage`) on `/` for unauthenticated web visitors while routing `Capacitor.isNativePlatform()`, standalone PWAs (`manifest.json` `start_url: "/app"`), active sessions, `/app` paths, and `?invite=CODE` / `?code=` / `?join=` / `?demo=1` / `?autostart=1` query links directly into `/app`.
   - Loaded `PublicLandingPage` via `React.lazy` (isolated `6.59 kB` gzipped chunk) and passed `language={isAuthenticated ? settings.language : undefined}` to `I18nProvider` so unauthenticated visitors' language selection persists across `/` and `/app`.
 - **Interactive Storybook Landing Page (`src/features/landing/PublicLandingPage.tsx`, `InteractiveFeaturePreview.tsx`, `WaitlistAndFaqSections.tsx`)**:
-  - Added sticky Storybook top navigation with `EN / TR / FR / AR` language pills (`min-h-[44px] min-w-[44px]`), tactile `border-2 border-b-4` hero CTAs (`#FF6B4A` with `#1F2033` ink), reactive Mascot card, and live Android release notes/download CTA wired to `fetchLatestActiveAndroidRelease()` (`src/services/appUpdate.ts`).
-  - Built 4 interactive feature preview tabs (*Secret Chore Draft*, *Consent Split Ledger* with `TRY ₺ / USD $ / EUR €` currency toggle, *Supermarket & Flat Hub* Wi-Fi copy + ping preview, *Deposit Shield & Reputation Passport*), a 3-step *How Roomie works* + *Privacy-first* section, and accessible collapsible FAQ accordions (`aria-expanded`).
-  - Localized all 46+ new `landing.*` keys across `en.ts`, `tr.ts`, `fr.ts`, and `ar.ts` with zero raw Unicode emojis and full RTL layout parity.
+  - Added custom `RoomieBrandEmblem` roof gable + mascot SVG emblem (`Baloo 2` wordmark), single-row mobile sticky top bar (compact `44x44px` language menu on `< sm`, 4-pill switcher on `sm+`, coral `Open App`), and warm cream-to-peach hero stage (`from-[#FFF3EC] via-[#FFF9F5] to-white`) with above-the-fold Mascot, 4 interactive micro-pills (`Duty Captain · Done`, `₺0.00 Settled`, `5-day streak`, `EN · TR · FR · AR`), equal-width (`w-full max-w-xs`) mobile CTAs, and live Android release notes wired to `fetchLatestActiveAndroidRelease()`.
+  - Built a phone-frame Storybook preview (`Sunny Flat 4B` header, flatmate avatar chips, streak/points badge) with concise non-truncating tab labels (`Chore Draft`, `Split Bills`, `Flat Hub`, `Deposit Shield`), `border-2 border-b-4` semantic tinted cards, `TRY ₺ / USD $ / EUR €` currency toggle, 3-step *How Roomie works* + *Privacy-first* section, clean waitlist device pills (`Android`, `iOS`, `Web PWA`), and collapsible FAQ accordions (`aria-expanded`).
+  - Localized all `landing.*` keys across `en.ts`, `tr.ts`, `fr.ts`, and `ar.ts` with zero raw Unicode emojis and full RTL layout parity.
 - **Insert-Only Waitlist Backend (`supabase/migrations/20261121033000_public_waitlist.sql`, `supabase/schema.sql`, `src/types/database.types.ts`, `src/services/waitlist.ts`)**:
-  - Created `public.waitlist` (`email`, `platform`, `city_or_university`, `flatmate_count`, `locale`, `created_at`) with case-insensitive unique index on `lower(trim(email))` and strict RLS allowing anonymous `INSERT` only (`REVOKE ALL`, `GRANT INSERT`).
+  - Created `public.waitlist` (`email`, `platform`, `city_or_university`, `flatmate_count`, `locale`, `created_at`) with case-insensitive unique index on `lower(trim(email))` and strict RLS allowing anonymous `INSERT` only (`REVOKE ALL`, `GRANT INSERT`); migration applied to remote Supabase DB and verified (HTTP 401 on anon `SELECT`, zero waitlist security advisor warnings).
   - Added `submitWaitlistSignup` handling email validation and Postgres unique violation (`23505`) cleanly as `"You're already on the list!"`.
 - **Verification**:
   - Added unit tests in `src/utils/appRoute.test.ts` and `src/services/waitlist.test.ts`.
   - `npm run lint` (`tsc --noEmit`): 0 errors.
   - `npm test`: **131 / 131 passing** across 21 suites (0 failures, 0 skipped).
-  - `npm run build`: succeeded in **3.39s**, initial JS entry bundle **170.85 kB gzipped** (< 200 KB threshold); `PublicLandingPage` split into its own **6.59 kB gzipped** lazy chunk.
+  - `npm run build`: succeeded in **4.00s**, initial JS entry bundle **170.94 kB gzipped** (< 200 KB threshold); `PublicLandingPage` split into its own **7.73 kB gzipped** lazy chunk.
 
 ---
 

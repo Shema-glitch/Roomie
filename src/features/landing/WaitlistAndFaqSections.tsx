@@ -20,8 +20,8 @@ interface WaitlistAndFaqSectionsProps {
 }
 
 /**
- * 3-step explanation, privacy commitment card, Supabase-backed waitlist form,
- * and accessible collapsible FAQ accordions for the public landing page.
+ * Storybook-styled 3-step guide, privacy callout, Supabase-backed waitlist form
+ * with clean non-truncating device pills, and collapsible FAQ accordions.
  */
 export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ onOpenDemo }) => {
   const { t, lang } = useI18n();
@@ -69,21 +69,24 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
       title: t('landing.step1Title'),
       desc: t('landing.step1Desc'),
       icon: <QrCode weight="duotone" className="w-6 h-6 text-[#D94E30]" />,
-      tint: 'bg-[#FFF5F2] border-[#FFD3C9]',
+      cardBg: 'bg-[#FFF5F2] border-[#FFD3C9]',
+      iconBg: 'bg-white border-[#FFD3C9]',
     },
     {
       num: '02',
       title: t('landing.step2Title'),
       desc: t('landing.step2Desc'),
       icon: <SlidersHorizontal weight="duotone" className="w-6 h-6 text-[#3B4BC4]" />,
-      tint: 'bg-[#EEF0FD] border-[#C7D2FE]',
+      cardBg: 'bg-[#F5F3FF] border-[#C7D2FE]',
+      iconBg: 'bg-white border-[#C7D2FE]',
     },
     {
       num: '03',
       title: t('landing.step3Title'),
       desc: t('landing.step3Desc'),
       icon: <Handshake weight="duotone" className="w-6 h-6 text-[#0F7A3D]" />,
-      tint: 'bg-[#EBF9F0] border-[#86EFAC]',
+      cardBg: 'bg-[#ECFDF5] border-[#86EFAC]',
+      iconBg: 'bg-white border-[#86EFAC]',
     },
   ];
 
@@ -97,7 +100,7 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
   return (
     <>
       {/* How Roomie Works + Privacy Callout */}
-      <section id="how-it-works" className="py-12 sm:py-16 bg-white/70 border-y border-[#E6E8EE]">
+      <section id="how-it-works" className="py-12 sm:py-16 bg-white border-y-2 border-[#E2E8F0]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
           <div className="text-center max-w-2xl mx-auto space-y-2">
             <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1F2033]">
@@ -110,11 +113,11 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
             {steps.map((step) => (
               <div
                 key={step.num}
-                className="p-5 rounded-[24px] bg-white border-2 border-b-4 border-[#CBD5E1] space-y-3 hover:-translate-y-0.5 transition-transform duration-150 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                className={`p-5 rounded-[28px] border-2 border-b-4 space-y-3 hover:-translate-y-0.5 transition-transform duration-150 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${step.cardBg}`}
               >
                 <div className="flex items-center justify-between">
                   <div
-                    className={`w-11 h-11 rounded-2xl border flex items-center justify-center ${step.tint}`}
+                    className={`w-11 h-11 rounded-2xl border-2 flex items-center justify-center ${step.iconBg}`}
                   >
                     {step.icon}
                   </div>
@@ -131,8 +134,8 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
           </div>
 
           {/* Privacy Commitment Banner */}
-          <div className="p-5 sm:p-6 rounded-[24px] bg-[#EBF9F0] border-2 border-b-4 border-[#86EFAC] flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white border border-[#86EFAC] flex items-center justify-center text-[#0F7A3D] shrink-0">
+          <div className="p-5 sm:p-6 rounded-[28px] bg-[#ECFDF5] border-2 border-b-4 border-[#86EFAC] flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white border-2 border-[#86EFAC] flex items-center justify-center text-[#0F7A3D] shrink-0">
               <ShieldCheck weight="fill" className="w-6 h-6" />
             </div>
             <div className="space-y-1">
@@ -150,7 +153,7 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
       {/* Early Access Waitlist */}
       <section id="waitlist" className="py-12 sm:py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="rounded-[28px] bg-white border-2 border-b-4 border-[#CBD5E1] p-6 sm:p-8 shadow-sm">
+          <div className="rounded-[28px] bg-white border-2 border-b-4 border-[#E2E8F0] p-6 sm:p-8 shadow-sm">
             {submittedState !== 'none' ? (
               <div className="text-center space-y-4 py-2">
                 <div className="flex justify-center">
@@ -189,8 +192,8 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                 <div className="space-y-1.5 text-center sm:text-start">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0ED] border border-[#FFD3C9] text-xs font-extrabold text-[#B42318]">
-                    <CheckCircle weight="fill" className="w-3.5 h-3.5 text-[#D94E30]" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFFBEB] border-2 border-[#FDE68A] text-xs font-extrabold text-[#9A6700]">
+                    <CheckCircle weight="fill" className="w-3.5 h-3.5 text-[#D97706]" />
                     <span>{t('landing.waitlistEyebrow')}</span>
                   </span>
                   <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1F2033]">
@@ -261,14 +264,14 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
                             sound.playTap();
                             setPlatform(opt.id);
                           }}
-                          className={`min-h-[44px] px-2 rounded-xl border-2 border-b-4 text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none ${
+                          className={`min-h-[44px] px-2 rounded-xl border-2 border-b-4 text-xs font-extrabold flex items-center justify-center gap-1 cursor-pointer transition-all active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none whitespace-nowrap ${
                             platform === opt.id
-                              ? 'bg-[#EEF0FD] border-[#3B4BC4] text-[#3B4BC4]'
-                              : 'bg-white border-[#CBD5E1] text-[#4B5063] hover:text-[#1F2033]'
+                              ? 'bg-[#F5F3FF] border-[#3B4BC4] text-[#3B4BC4]'
+                              : 'bg-white border-[#E2E8F0] text-[#4B5063] hover:text-[#1F2033]'
                           }`}
                         >
                           <DeviceMobile weight="duotone" className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{opt.label}</span>
+                          <span>{opt.label}</span>
                         </button>
                       ))}
                     </div>
@@ -290,8 +293,8 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
                           }}
                           className={`min-h-[44px] rounded-xl border-2 border-b-4 text-xs font-extrabold cursor-pointer transition-all active:translate-y-[2px] active:border-b-2 motion-reduce:transition-none ${
                             flatmateCount === count
-                              ? 'bg-[#FFF0ED] border-[#D94E30] text-[#1F2033]'
-                              : 'bg-white border-[#CBD5E1] text-[#4B5063] hover:text-[#1F2033]'
+                              ? 'bg-[#FFF5F2] border-[#D94E30] text-[#1F2033]'
+                              : 'bg-white border-[#E2E8F0] text-[#4B5063] hover:text-[#1F2033]'
                           }`}
                         >
                           {count === 5 ? '5+' : count}
@@ -324,19 +327,19 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
       </section>
 
       {/* Collapsible FAQ Accordions */}
-      <section id="faq" className="py-10 sm:py-14 bg-white/70 border-t border-[#E6E8EE]">
+      <section id="faq" className="py-10 sm:py-14 bg-white border-t-2 border-[#E2E8F0]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-5">
           <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-[#1F2033] text-center">
             {t('landing.faqTitle')}
           </h2>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {faqs.map((faq, idx) => {
               const expanded = openFaqIdx === idx;
               return (
                 <div
                   key={faq.q}
-                  className="rounded-2xl bg-white border-2 border-b-4 border-[#CBD5E1] overflow-hidden"
+                  className="rounded-[24px] bg-white border-2 border-b-4 border-[#E2E8F0] overflow-hidden"
                 >
                   <button
                     type="button"
@@ -345,7 +348,7 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
                       sound.playTap();
                       setOpenFaqIdx((prev) => (prev === idx ? null : idx));
                     }}
-                    className="w-full min-h-[48px] px-4 py-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-[#F7F8FB] transition-colors"
+                    className="w-full min-h-[48px] px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-[#FFF9F5] transition-colors"
                   >
                     <span className="font-heading font-bold text-sm sm:text-base text-[#1F2033]">
                       {faq.q}
@@ -358,7 +361,7 @@ export const WaitlistAndFaqSections: React.FC<WaitlistAndFaqSectionsProps> = ({ 
                     />
                   </button>
                   {expanded && (
-                    <div className="px-4 pb-4 pt-1 border-t border-[#E6E8EE] text-xs sm:text-sm text-[#4B5063] leading-relaxed">
+                    <div className="px-4 sm:px-5 pb-4 pt-2 border-t border-[#E2E8F0] text-xs sm:text-sm text-[#4B5063] leading-relaxed bg-[#F7F8FB]/60">
                       {faq.a}
                     </div>
                   )}
