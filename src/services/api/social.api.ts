@@ -267,8 +267,35 @@ export class SocialApi {
 
   public async getFavorTokenBalance(userId?: string): Promise<number> {
     const store = this.getStore();
+    const hId = store.activeHouseholdId;
     const uId = userId || store.currentUser.id;
     if (!store.favorTokens) store.favorTokens = {};
+
+    if (!this.isDemoMode() && supabase && isUuid(hId) && isUuid(uId)) {
+      try {
+        const { data, error } = await supabase
+          .from('favor_tokens')
+          .select('balance')
+          .eq('household_id', hId)
+          .eq('user_id', uId)
+          .maybeSingle();
+
+        if (!error && data && typeof data.balance === 'number') {
+          const clamped = Math.min(MAX_FAVOR_TOKENS, Math.max(0, data.balance));
+          store.favorTokens[uId] = clamped;
+          if (store.currentUser.id === uId) {
+            store.currentUser.favorTokens = clamped;
+          }
+          this.save(store);
+          return clamped;
+        }
+      } catch (err: unknown) {
+        logger.warn('get_favor_tokens', 'Exception fetching token balance', {
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
     if (store.favorTokens[uId] === undefined) {
       store.favorTokens[uId] = INITIAL_FAVOR_TOKENS;
       this.save(store);
@@ -325,6 +352,26 @@ export class SocialApi {
         overflowConvertedToKudos: outcome.overflowConvertedToKudos,
       }
     );
+
+    if (isUuid(hId) && isUuid(userId)) {
+      this.dispatchSocialOutbox(
+        hId,
+        'award_favor_tokens',
+        { householdId: hId, targetUserId: userId, amount, reason, note },
+        `Awarded +${amount} favor token(s)`,
+        async () => {
+          if (!supabase) return;
+          const { error } = await supabase.rpc('award_favor_tokens', {
+            p_household_id: hId,
+            p_target_user_id: userId,
+            p_amount: amount,
+            p_reason: reason,
+            p_note: note ?? null,
+          });
+          return { error: error ? { message: error.message, code: error.code } : null };
+        }
+      );
+    }
 
     return {
       newBalance: outcome.newBalance,
@@ -751,17 +798,20 @@ export class SocialApi {
       `Scheduled Cultural Dinner: ${dinner.dishTitle}`,
       async () => {
         if (!supabase) return;
-        const { error } = await supabase.from('cultural_dinners').insert({
-          id: dinner.id,
-          household_id: dinner.householdId,
-          host_user_id: dinner.hostUserId,
-          dish_title: dinner.dishTitle,
-          cuisine_tag: dinner.cuisineTag,
-          scheduled_date: dinner.scheduledDate,
-          dietary_tags: dinner.dietaryTags,
-          rsvp_user_ids: dinner.rsvpUserIds,
-          status: dinner.status,
-        });
+        const { error } = await supabase.from('cultural_dinners').upsert(
+          {
+            id: dinner.id,
+            household_id: dinner.householdId,
+            host_user_id: dinner.hostUserId,
+            dish_title: dinner.dishTitle,
+            cuisine_tag: dinner.cuisineTag,
+            scheduled_date: dinner.scheduledDate,
+            dietary_tags: dinner.dietaryTags,
+            rsvp_user_ids: dinner.rsvpUserIds,
+            status: dinner.status,
+          },
+          { onConflict: 'id' }
+        );
         return { error: error ? { message: error.message, code: error.code } : null };
       }
     );

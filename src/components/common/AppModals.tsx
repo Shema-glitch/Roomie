@@ -374,10 +374,21 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(({
             a.click();
             showToast('Household data exported!', 'success');
           }}
-          onDeleteAccount={() => {
-            api.resetData();
-            loadData();
-            showToast('Account data reset to fresh demo state.', 'info');
+          onDeleteAccount={async () => {
+            const res = await api.deleteAccount();
+            if (!res.success) {
+              showToast(res.message, 'error');
+              return;
+            }
+            refreshSavedAccounts();
+            if (res.mode === 'demo') {
+              await loadData();
+              showToast(res.message, 'info');
+            } else {
+              setNeedsHouseholdSetup(false);
+              setIsAuthenticated(false);
+              showToast(res.message, 'info');
+            }
           }}
           isLoginSaved={api.isCurrentUserLoginSaved()}
           onToggleSaveLogin={

@@ -21,8 +21,15 @@ import {
 import { OutboxActionType, outbox } from '../outbox';
 import { DebugModule } from '../../utils/debugLog';
 import { supabase } from '../supabase';
+import { Json } from '../../types/database.types';
 
 const logger = createDomainLogger('ShoppingAPI', 'social');
+
+function toDbShoppingStatus(status: string): 'needed' | 'in_cart' | 'purchased' {
+  if (status === 'in_cart') return 'in_cart';
+  if (status === 'purchased' || status === 'bought') return 'purchased';
+  return 'needed';
+}
 
 export interface ShoppingContext {
   store: AppStore;
@@ -223,16 +230,19 @@ export class ShoppingApi {
       `Added shopping item: ${item.title}`,
       async () => {
         if (!supabase) return;
-        const { error } = await supabase.from('shopping_items').insert({
-          id: item.id,
-          household_id: item.householdId,
-          title: item.title,
-          category: item.category,
-          quantity_label: item.quantityLabel,
-          is_low: item.isLow,
-          status: item.status,
-          added_by: item.addedBy,
-        });
+        const { error } = await supabase.from('shopping_items').upsert(
+          {
+            id: item.id,
+            household_id: item.householdId,
+            title: item.title,
+            category: item.category,
+            quantity_label: item.quantityLabel,
+            is_low: item.isLow,
+            status: toDbShoppingStatus(item.status),
+            added_by: item.addedBy,
+          },
+          { onConflict: 'id' }
+        );
         return { error: error ? { message: error.message, code: error.code } : null };
       }
     );
@@ -268,17 +278,18 @@ export class ShoppingApi {
       claimedBy: item.claimedBy,
     });
 
+    const dbStatus = toDbShoppingStatus(newStatus);
     this.dispatchShoppingOutbox(
       hId,
       'toggle_shopping_item',
-      { itemId, newStatus, claimedBy: item.claimedBy },
-      `Toggled item ${item.title} to ${newStatus}`,
+      { itemId, newStatus: dbStatus, claimedBy: item.claimedBy },
+      `Toggled item ${item.title} to ${dbStatus}`,
       async () => {
         if (!supabase) return;
         const { error } = await supabase
           .from('shopping_items')
           .update({
-            status: newStatus,
+            status: dbStatus,
             claimed_by: item.claimedBy ?? null,
             updated_at: new Date().toISOString(),
           })
@@ -373,8 +384,12 @@ export class ShoppingApi {
     const user = store.currentUser;
     const userName = user.name.split(' ')[0] || 'Roommate';
 
-    const messageId = `msg_ping_${Date.now()}`;
+    const useUuid = !this.isDemoMode() && isUuid(hId);
+    const messageId = makeEntityId('msg', useUuid);
     const activityBody = `${userName} is heading to the supermarket. Tap to add any last-minute items to the flat shopping list.`;
+    const notificationTitle = 'Supermarket Run';
+    const notificationBody = `${userName} is heading out to shop. Check the shared list!`;
+    const linkTarget = { screen: 'feed' };
 
     // Post to chat activity messages
     if (!store.messages) store.messages = {};
@@ -385,6 +400,7 @@ export class ShoppingApi {
       senderId: null,
       type: 'activity',
       body: activityBody,
+      linkTarget,
       createdAt: new Date().toISOString(),
     });
 
@@ -397,11 +413,11 @@ export class ShoppingApi {
             id: `notif_shop_${Date.now()}_${u.id}`,
             userId: u.id,
             type: 'household',
-            title: 'Supermarket Run',
-            body: `${userName} is heading out to shop. Check the shared list!`,
+            title: notificationTitle,
+            body: notificationBody,
             read: false,
             createdAt: new Date().toISOString(),
-            linkTarget: { screen: 'feed' },
+            linkTarget,
           });
         });
     }
@@ -415,17 +431,40 @@ export class ShoppingApi {
     this.dispatchShoppingOutbox(
       hId,
       'trigger_supermarket_ping',
-      { userId: user.id, messageId },
+      {
+        userId: user.id,
+        householdId: hId,
+        messageId,
+        body: activityBody,
+        notificationTitle,
+        notificationBody,
+        linkTarget,
+      },
       `${userName} Supermarket departure ping`,
       async () => {
         if (!supabase) return;
-        const { error } = await supabase.from('chat_messages').insert({
-          id: !this.isDemoMode() && isUuid(hId) ? makeEntityId('msg', true) : undefined,
-          household_id: hId,
-          type: 'activity',
-          body: activityBody,
+        const { error: msgErr } = await supabase.from('chat_messages').upsert(
+          {
+            ...(isUuid(messageId) ? { id: messageId } : {}),
+            household_id: hId,
+            sender_id: null,
+            type: 'activity',
+            body: activityBody,
+            link_target: linkTarget as unknown as Json,
+            reactions: [],
+          },
+          { onConflict: 'id' }
+        );
+        if (msgErr) {
+          return { error: { message: msgErr.message, code: msgErr.code } };
+        }
+        const { error: notifErr } = await supabase.rpc('notify_household_reminder', {
+          p_household_id: hId,
+          p_title: notificationTitle,
+          p_body: notificationBody,
+          p_link_target: linkTarget as unknown as Json,
         });
-        return { error: error ? { message: error.message, code: error.code } : null };
+        return { error: notifErr ? { message: notifErr.message, code: notifErr.code } : null };
       }
     );
 
@@ -545,16 +584,19 @@ export class ShoppingApi {
       'Updated apartment info card',
       async () => {
         if (!supabase) return;
-        const { error } = await supabase.from('household_info_cards').upsert({
-          household_id: updatedCard.householdId,
-          wifi_ssid: updatedCard.wifiSsid,
-          wifi_password: updatedCard.wifiPassword,
-          trash_schedule: updatedCard.trashSchedule,
-          delivery_address: updatedCard.deliveryAddress,
-          emergency_note: updatedCard.emergencyNote,
-          updated_by: updatedCard.updatedBy,
-          updated_at: updatedCard.updatedAt,
-        });
+        const { error } = await supabase.from('household_info_cards').upsert(
+          {
+            household_id: updatedCard.householdId,
+            wifi_ssid: updatedCard.wifiSsid,
+            wifi_password: updatedCard.wifiPassword,
+            trash_schedule: updatedCard.trashSchedule,
+            delivery_address: updatedCard.deliveryAddress,
+            emergency_note: updatedCard.emergencyNote,
+            updated_by: updatedCard.updatedBy,
+            updated_at: updatedCard.updatedAt,
+          },
+          { onConflict: 'household_id' }
+        );
         return { error: error ? { message: error.message, code: error.code } : null };
       }
     );

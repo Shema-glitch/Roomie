@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/common/Modal';
 import {
   X,
@@ -79,6 +79,24 @@ export const MoveOutSnapshotModal: React.FC<MoveOutSnapshotModalProps> = ({
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [settlingId, setSettlingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('view');
+      setSelectedSnapshotId('');
+      setRoomName('Living Room');
+      setCustomRoom('');
+      setConditionNote('');
+      setPhotos([]);
+      setProcessingPhoto(false);
+      setIsDamageReported(false);
+      setDamageAmount(0);
+      setDepositAmount(300);
+      setSubmitting(false);
+      setConfirmingId(null);
+      setSettlingId(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currencySymbol =
@@ -128,6 +146,7 @@ export const MoveOutSnapshotModal: React.FC<MoveOutSnapshotModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     const cleanRoom = finalRoomName.trim();
     const cleanNote = conditionNote.trim();
 

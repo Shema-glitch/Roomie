@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -7,6 +7,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { IconTile } from '../../components/common/IconTile';
 import { User, Chore, KudosType } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import { Heart, WarningCircle, PaperPlaneRight } from '@phosphor-icons/react';
 import { Icon } from '@iconify/react';
 import { useToast } from '../../components/common/Toast';
@@ -36,17 +37,28 @@ export const KudosModal: React.FC<KudosModalProps> = ({
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedType('thanks');
+      setNote('');
+      setLoading(false);
+    }
+  }, [isOpen]);
+
   if (!chore || !targetUser) return null;
 
   const handleSubmit = async () => {
+    if (loading) return;
     setLoading(true);
     try {
+      await onGiveKudos(chore.id, targetUser.id, selectedType, note.trim() || undefined);
       if (selectedType === 'needs_look') {
         sound.playCalmNotice();
+        haptics.medium();
       } else {
         sound.playCelebration();
+        haptics.awardCelebrate();
       }
-      await onGiveKudos(chore.id, targetUser.id, selectedType, note.trim() || undefined);
       showToast(
         selectedType === 'needs_look'
           ? `Private note sent to ${targetUser.name.split(' ')[0]}.`
@@ -56,6 +68,7 @@ export const KudosModal: React.FC<KudosModalProps> = ({
       setNote('');
       onClose();
     } catch {
+      haptics.warning();
       showToast('Could not send feedback', 'error');
     } finally {
       setLoading(false);

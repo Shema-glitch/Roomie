@@ -284,6 +284,25 @@ class LocalSnapshotCacheService {
     }
   }
 
+  public clearAllSnapshots(): void {
+    this.memoryCache.clear();
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem(ACTIVE_SNAPSHOT_HOUSEHOLD_KEY);
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(SNAPSHOT_KEY_PREFIX)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }
+
   private writeToIndexedDB(householdId: string, snapshot: HouseholdSnapshot): void {
     if (typeof window === 'undefined' || !('indexedDB' in window)) return;
     try {

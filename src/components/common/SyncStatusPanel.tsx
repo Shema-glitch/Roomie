@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { IconTile } from './IconTile';
 import { CloudCheck, CloudSlash, ArrowsClockwise, WarningCircle } from '@phosphor-icons/react';
+import { outbox } from '../../services/outbox';
 import { useI18n } from '../../i18n/I18nProvider';
 
 export type SyncStatusType = 'synced' | 'syncing' | 'offline' | 'needs_attention';
@@ -65,6 +66,14 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
   };
 
   const config = getStatusConfig();
+  const pendingCount = outbox.getPendingCount();
+  const quarantinedCount = outbox.getQuarantinedCount();
+  const queueLabel =
+    quarantinedCount > 0
+      ? `${quarantinedCount} needs retry`
+      : pendingCount > 0
+      ? `${pendingCount} queued`
+      : 'All caught up';
 
   return (
     <Modal
@@ -99,7 +108,7 @@ export const SyncStatusPanel: React.FC<SyncStatusPanelProps> = ({
 
           <div className="pt-2 border-t border-[#E6E8EE] flex items-center justify-between type-secondary text-[14px]">
             <span>Last sync: <strong>{lastSyncedTime}</strong></span>
-            <span>Database: <strong>Live</strong></span>
+            <span>Queue: <strong>{queueLabel}</strong></span>
           </div>
         </Card>
 

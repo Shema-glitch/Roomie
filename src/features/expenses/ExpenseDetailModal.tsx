@@ -11,6 +11,7 @@ import { Check, WarningCircle, Receipt, ChatCircleDots, GitFork, ShieldWarning, 
 import { useToast } from '../../components/common/Toast';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import { copyTextToClipboard } from '../../utils/clipboard';
+import { getPublicInviteOrigin } from '../../utils/inviteLink';
 
 interface ExpenseDetailModalProps {
   isOpen: boolean;
@@ -100,7 +101,7 @@ export const ExpenseDetailModal: React.FC<ExpenseDetailModalProps> = ({
 
   const handleShareSummary = async () => {
     sound.playTap();
-    const summary = `Shared Expense: "${expense.title}" (${sym}${expense.amount.toFixed(2)})\nPaid by: ${payer?.name || 'Roomie'}\nCategory: ${expense.category}\nView details on Roomie: ${window.location.origin}`;
+    const summary = `Shared Expense: "${expense.title}" (${sym}${expense.amount.toFixed(2)})\nPaid by: ${payer?.name || 'Roomie'}\nCategory: ${expense.category}\nView details on Roomie: ${getPublicInviteOrigin()}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(summary)}`;
     await copyTextToClipboard(summary);
     const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

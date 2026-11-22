@@ -21,6 +21,9 @@ import {
   UserSettings,
   DutySchedule,
   DayOfWeek,
+  CulturalDinner,
+  ShoppingItem,
+  HouseholdInfoCard,
 } from '../../types';
 import { UnifiedDraftState } from '../../utils/stateTable';
 import { SavedLoginAccount } from '../../utils/savedAccounts';
@@ -114,12 +117,20 @@ export class ApiService {
     };
 
     this.auth = new AuthApi({
-      ...baseContext,
+      get store() {
+        return self._store;
+      },
+      save: baseContext.save,
       getHouseholds: () => self.households.getHouseholds(),
     });
 
     this.households = new HouseholdsApi({
-      ...baseContext,
+      get store() {
+        return self._store;
+      },
+      save: baseContext.save,
+      isDemoMode: baseContext.isDemoMode,
+      addMessage: baseContext.addMessage,
       getScopedLocalHouseholds: () => self.auth.getScopedLocalHouseholds(),
       syncAccountSetupMode: (mode) => self.auth.syncAccountSetupMode(mode),
     });
@@ -134,12 +145,16 @@ export class ApiService {
     this.flatUtilities = new FlatUtilitiesApi(baseContext);
     this.tenantTransition = new TenantTransitionApi(baseContext);
     this.system = new SystemApi({
-      store: this._store,
-      setStore: (s: AppStore) => {
-        this._store = s;
+      get store() {
+        return self._store;
       },
-      save: () => saveStore(this._store),
+      setStore: (s: AppStore) => {
+        self._store = s;
+      },
+      save: () => saveStore(self._store),
       isDemoMode: () => self.auth.isDemoMode(),
+      leaveHousehold: (householdId: string) => self.households.leaveHousehold(householdId),
+      dispatchRemoteMutation: baseContext.dispatchRemoteMutation,
     });
 
     outbox.setSyncHandler(this.processOutboxItem.bind(this));
@@ -734,6 +749,228 @@ export class ApiService {
           error = res.error;
           break;
         }
+        case 'schedule_cultural_dinner': {
+          const d = p as unknown as CulturalDinner;
+          const res = await sb.from('cultural_dinners').upsert(
+            {
+              ...(isUuid(d.id) ? { id: d.id } : {}),
+              household_id: d.householdId,
+              host_user_id: d.hostUserId,
+              dish_title: d.dishTitle,
+              cuisine_tag: d.cuisineTag,
+              scheduled_date: d.scheduledDate,
+              dietary_tags: Array.isArray(d.dietaryTags) ? d.dietaryTags : [],
+              rsvp_user_ids: Array.isArray(d.rsvpUserIds) ? d.rsvpUserIds : [],
+              status: d.status || 'scheduled',
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'toggle_dinner_rsvp': {
+          const dinnerId = String(p.dinnerId || '');
+          const householdId = String(p.householdId || item.householdId || '');
+          if (isUuid(dinnerId) && isUuid(householdId)) {
+            const res = await sb.rpc('toggle_cultural_dinner_rsvp', {
+              p_dinner_id: dinnerId,
+              p_household_id: householdId,
+            });
+            error = res.error;
+          }
+          break;
+        }
+        case 'update_dietary_preferences': {
+          const userId = String(p.userId || '');
+          const dietaryTags = Array.isArray(p.dietaryTags) ? (p.dietaryTags as string[]) : [];
+          if (isUuid(userId)) {
+            const res = await sb
+              .from('profiles')
+              .update({ dietary_tags: dietaryTags })
+              .eq('id', userId);
+            error = res.error;
+          }
+          break;
+        }
+        case 'add_shopping_item': {
+          const sItem = p as unknown as ShoppingItem;
+          const rawStatus = String(sItem.status || 'needed');
+          const status =
+            rawStatus === 'in_cart' ? 'in_cart' : rawStatus === 'purchased' || rawStatus === 'bought' ? 'purchased' : 'needed';
+          const res = await sb.from('shopping_items').upsert(
+            {
+              ...(isUuid(sItem.id) ? { id: sItem.id } : {}),
+              household_id: sItem.householdId || item.householdId,
+              title: sItem.title,
+              category: sItem.category || 'groceries',
+              quantity_label: sItem.quantityLabel || '',
+              is_low: Boolean(sItem.isLow),
+              status,
+              added_by: sItem.addedBy,
+            },
+            { onConflict: 'id' }
+          );
+          error = res.error;
+          break;
+        }
+        case 'toggle_shopping_item': {
+          const rawStatus = String(p.newStatus || p.status || 'needed');
+          const status =
+            rawStatus === 'in_cart' ? 'in_cart' : rawStatus === 'purchased' || rawStatus === 'bought' ? 'purchased' : 'needed';
+          if (Array.isArray(p.itemIds) && p.itemIds.length > 0) {
+            const res = await sb
+              .from('shopping_items')
+              .update({ status, updated_at: new Date().toISOString() })
+              .in('id', p.itemIds as string[]);
+            error = res.error;
+          } else if (p.itemId) {
+            const claimedBy = p.claimedBy ? String(p.claimedBy) : null;
+            const res = await sb
+              .from('shopping_items')
+              .update({
+                status,
+                claimed_by: isUuid(claimedBy || '') ? claimedBy : null,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', String(p.itemId));
+            error = res.error;
+          }
+          break;
+        }
+        case 'delete_shopping_item': {
+          const itemId = String(p.itemId || '');
+          if (itemId) {
+            const res = await sb
+              .from('shopping_items')
+              .update({ deleted_at: new Date().toISOString() })
+              .eq('id', itemId);
+            error = res.error;
+          }
+          break;
+        }
+        case 'trigger_supermarket_ping': {
+          const hid = String(p.householdId || item.householdId || '');
+          const messageId = p.messageId ? String(p.messageId) : '';
+          const body = String(
+            p.body ||
+              'A flatmate is heading to the supermarket. Tap to add any last-minute items to the flat shopping list.'
+          );
+          const linkTarget = (p.linkTarget || { screen: 'feed' }) as unknown as Json;
+          if (isUuid(hid)) {
+            const msgRes = await sb.from('chat_messages').upsert(
+              {
+                ...(isUuid(messageId) ? { id: messageId } : {}),
+                household_id: hid,
+                sender_id: null,
+                type: 'activity',
+                body,
+                link_target: linkTarget,
+                reactions: [],
+              },
+              { onConflict: 'id' }
+            );
+            error = msgRes.error;
+            if (!error) {
+              const notifRes = await sb.rpc('notify_household_reminder', {
+                p_household_id: hid,
+                p_title: String(p.notificationTitle || 'Supermarket Run'),
+                p_body: String(p.notificationBody || body),
+                p_link_target: linkTarget,
+              });
+              error = notifRes.error;
+            }
+          }
+          break;
+        }
+        case 'update_apartment_info': {
+          const card = p as unknown as HouseholdInfoCard;
+          const hid = card.householdId || item.householdId;
+          if (isUuid(hid)) {
+            const res = await sb.from('household_info_cards').upsert(
+              {
+                household_id: hid,
+                wifi_ssid: card.wifiSsid || '',
+                wifi_password: card.wifiPassword || '',
+                trash_schedule: card.trashSchedule || '',
+                delivery_address: card.deliveryAddress || '',
+                emergency_note: card.emergencyNote || '',
+                updated_by: isUuid(card.updatedBy || '') ? card.updatedBy : null,
+                updated_at: card.updatedAt || new Date().toISOString(),
+              },
+              { onConflict: 'household_id' }
+            );
+            error = res.error;
+          }
+          break;
+        }
+        case 'save_duty_schedule': {
+          const schedule = p as unknown as DutySchedule;
+          const hid = schedule.householdId || item.householdId;
+          if (isUuid(hid) && schedule.weekStartDate) {
+            const res = await sb.from('duty_schedules').upsert(
+              {
+                household_id: hid,
+                week_start_date: schedule.weekStartDate,
+                entries: (schedule.entries || []) as unknown as Json,
+              },
+              { onConflict: 'household_id,week_start_date' }
+            );
+            error = res.error;
+          }
+          break;
+        }
+        case 'award_favor_tokens': {
+          const hid = String(p.householdId || item.householdId || '');
+          const targetUserId = String(p.targetUserId || '');
+          const amount = Number(p.amount || 0);
+          if (isUuid(hid) && isUuid(targetUserId) && amount > 0) {
+            const res = await sb.rpc('award_favor_tokens', {
+              p_household_id: hid,
+              p_target_user_id: targetUserId,
+              p_amount: amount,
+              p_reason: String(p.reason || 'streak_milestone'),
+              p_note: p.note ? String(p.note) : null,
+            });
+            error = res.error;
+          }
+          break;
+        }
+        case 'send_expense_reminder': {
+          const hid = String(p.householdId || item.householdId || '');
+          const title = String(p.title || 'Expense Reminder');
+          const body = String(p.body || 'Please review pending apartment shares.');
+          const linkTarget = (p.linkTarget || { screen: 'expenses' }) as unknown as Json;
+          if (isUuid(hid) && body.trim()) {
+            const res = await sb.rpc('notify_household_reminder', {
+              p_household_id: hid,
+              p_title: title,
+              p_body: body,
+              p_link_target: linkTarget,
+            });
+            error = res.error;
+          }
+          break;
+        }
+        case 'submit_feedback': {
+          const userId = String(p.userId || '');
+          const householdId = p.householdId ? String(p.householdId) : null;
+          const category = String(p.category || 'rate');
+          const rating = typeof p.rating === 'number' ? p.rating : null;
+          const message = String(p.message || '').trim();
+          if (isUuid(userId) && message) {
+            const res = await sb.from('app_feedback').insert({
+              user_id: userId,
+              household_id: isUuid(householdId || '') ? householdId : null,
+              category,
+              rating,
+              message,
+              app_version: String(p.appVersion || ''),
+              platform: String(p.platform || 'web'),
+            });
+            error = res.error;
+          }
+          break;
+        }
         default:
           return true;
       }
@@ -755,6 +992,9 @@ export class ApiService {
 
   // --- Auth & Session Facade ---
   public resetData = () => this.system.resetData();
+  public deleteAccount = () => this.system.deleteAccount();
+  public submitFeedback = (params: Parameters<SystemApi['submitFeedback']>[0]) =>
+    this.system.submitFeedback(params);
   public hasLocalSession = () => this.auth.hasLocalSession();
   public isDemoMode = () => this.auth.isDemoMode();
   public needsHouseholdSetup = () => this.auth.needsHouseholdSetup();

@@ -25,6 +25,7 @@ import { getChoreStateEvent, UnifiedDraftState } from '../../utils/stateTable';
 import { supabase } from '../supabase';
 import { OutboxActionType } from '../outbox';
 import { DebugModule } from '../../utils/debugLog';
+import { Json } from '../../types/database.types';
 import {
   AppStore,
   createDomainLogger,
@@ -568,6 +569,27 @@ export class ChoresApi {
     }
   }
 
+  private persistDutySchedule(schedule: DutySchedule, summary: string): void {
+    const hid = schedule.householdId;
+    if (!isUuid(hid)) return;
+    this.ctx.dispatchRemoteMutation(
+      hid,
+      'chores_draft',
+      'save_duty_schedule',
+      schedule,
+      summary,
+      async () =>
+        supabase!.from('duty_schedules').upsert(
+          {
+            household_id: hid,
+            week_start_date: schedule.weekStartDate,
+            entries: schedule.entries as unknown as Json,
+          },
+          { onConflict: 'household_id,week_start_date' }
+        )
+    );
+  }
+
   public async getDutySchedule(householdId?: string): Promise<DutySchedule> {
     const hid = householdId || this.store.activeHouseholdId;
     if (!this.store.dutySchedules) {
@@ -577,6 +599,35 @@ export class ChoresApi {
     const currentMonday = getMondayOfWeek();
     let schedule = this.store.dutySchedules[hid];
 
+    if (supabase && !this.isDemoMode() && isUuid(hid)) {
+      const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      try {
+        const { data, error } = await supabase
+          .from('duty_schedules')
+          .select('household_id, week_start_date, entries')
+          .eq('household_id', hid)
+          .eq('week_start_date', currentMonday)
+          .maybeSingle();
+
+        const durationMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt;
+        if (error) {
+          logger.warn('fetch_duty_schedule', error.message, { householdId: hid, code: error.code }, durationMs);
+        } else if (data && Array.isArray(data.entries)) {
+          schedule = {
+            householdId: data.household_id,
+            weekStartDate: data.week_start_date,
+            entries: data.entries as unknown as DutySchedule['entries'],
+          };
+          this.store.dutySchedules[hid] = schedule;
+          this.ctx.save();
+          logger.info('fetch_duty_schedule', `Loaded duty schedule (${currentMonday})`, { householdId: hid }, durationMs);
+          return schedule;
+        }
+      } catch (err: unknown) {
+        logger.warn('fetch_duty_schedule', err instanceof Error ? err.message : 'Supabase duty schedule fallback', { householdId: hid });
+      }
+    }
+
     if (!schedule || schedule.weekStartDate !== currentMonday) {
       const activeMembers = await this.ctx.getHouseholdMembers(hid);
       const roommates = activeMembers.map((m) => m.user);
@@ -584,6 +635,7 @@ export class ChoresApi {
       schedule = generateDutySchedule(hid, roommates, chores, currentMonday);
       this.store.dutySchedules[hid] = schedule;
       this.ctx.save();
+      this.persistDutySchedule(schedule, `Initialized weekly duty schedule (${currentMonday})`);
     }
 
     return schedule;
@@ -596,6 +648,7 @@ export class ChoresApi {
     this.store.dutySchedules![hid] = updated;
 
     const assignedUser = this.store.users.find((u) => u.id === userId);
+    this.persistDutySchedule(updated, `Reassigned ${day} duty to ${assignedUser?.name || 'roommate'}`);
     this.ctx.addMessage(
       hid,
       null,
@@ -614,6 +667,7 @@ export class ChoresApi {
     const updated = swapDutyDaysUtil(schedule, day1, day2);
     this.store.dutySchedules![hid] = updated;
 
+    this.persistDutySchedule(updated, `Swapped ${day1} and ${day2} duty days`);
     this.ctx.addMessage(
       hid,
       null,
@@ -635,6 +689,7 @@ export class ChoresApi {
     entry.completed = true;
     entry.completedAt = new Date().toISOString();
     entry.completedByUserId = this.store.currentUser.id;
+    this.persistDutySchedule(schedule, `Completed ${day} apartment duty`);
     this.ctx.addMessage(
       hid,
       null,
@@ -655,6 +710,7 @@ export class ChoresApi {
     entry.completed = false;
     entry.completedAt = undefined;
     entry.completedByUserId = undefined;
+    this.persistDutySchedule(schedule, `Undid ${day} apartment duty completion`);
 
     if (wasCompletedByMe) {
       await this.adjustCompletionProgress(-1, -20);

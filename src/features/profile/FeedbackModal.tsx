@@ -5,6 +5,7 @@ import { Card } from '../../components/common/Card';
 import { MascotView } from '../../components/common/MascotView';
 import { sound } from '../../services/sound';
 import { Star, Bug, Lightbulb, Heart } from '@phosphor-icons/react';
+import { api } from '../../services/api';
 import { useToast } from '../../components/common/Toast';
 
 interface FeedbackModalProps {
@@ -12,24 +13,55 @@ interface FeedbackModalProps {
   onClose: () => void;
 }
 
+const FEEDBACK_CATEGORIES = [
+  { id: 'rate' as const, label: 'Rate App', icon: 'star' as const },
+  { id: 'problem' as const, label: 'Report Bug', icon: 'bug' as const },
+  { id: 'feature' as const, label: 'Idea', icon: 'idea' as const },
+];
+
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
   const { showToast } = useToast();
   const [rating, setRating] = useState<number>(5);
   const [category, setCategory] = useState<'rate' | 'problem' | 'feature'>('rate');
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    sound.playCelebration();
-    setIsSubmitted(true);
-    showToast('Feedback submitted! Thank you.', 'success');
+    if (!message.trim() || submitting) return;
+
+    setSubmitting(true);
+    try {
+      const res = await api.submitFeedback({
+        category,
+        rating: category === 'rate' ? rating : null,
+        message: message.trim(),
+      });
+      if (!res.success) {
+        showToast(res.error || 'Could not submit feedback. Please try again.', 'error');
+        return;
+      }
+      sound.playCelebration();
+      setIsSubmitted(true);
+      showToast('Feedback submitted! Thank you.', 'success');
+    } catch {
+      showToast('Could not submit feedback. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setIsSubmitted(false);
     setMessage('');
     onClose();
+  };
+
+  const renderCategoryIcon = (icon: (typeof FEEDBACK_CATEGORIES)[number]['icon']) => {
+    if (icon === 'star') return <Star className="w-4 h-4" />;
+    if (icon === 'bug') return <Bug className="w-4 h-4" />;
+    return <Lightbulb className="w-4 h-4" />;
   };
 
   return (
@@ -68,17 +100,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               Feedback Category
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'rate', label: 'Rate App', icon: <Star className="w-4 h-4" /> },
-                { id: 'problem', label: 'Report Bug', icon: <Bug className="w-4 h-4" /> },
-                { id: 'feature', label: 'Idea', icon: <Lightbulb className="w-4 h-4" /> },
-              ].map((c) => (
+              {FEEDBACK_CATEGORIES.map((c) => (
                 <button
                   type="button"
                   key={c.id}
                   onClick={() => {
                     sound.playTap();
-                    setCategory(c.id as any);
+                    setCategory(c.id);
                   }}
                   className={`py-2 px-1 rounded-2xl border-2 border-b-4 text-[14px] font-bold flex flex-col items-center gap-1 cursor-pointer transition-[transform,background-color,border-color] duration-150 active:translate-y-[2px] min-h-[44px] ${
                     category === c.id
@@ -86,7 +114,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                       : 'border-[#E6E8EE] bg-white text-[#64748B] hover:border-[#CBD5E1]'
                   }`}
                 >
-                  {c.icon}
+                  {renderCategoryIcon(c.icon)}
                   <span>{c.label}</span>
                 </button>
               ))}
@@ -160,7 +188,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               variant="primary"
               size="md"
               fullWidth
-              disabled={!message.trim()}
+              loading={submitting}
+              disabled={!message.trim() || submitting}
               icon={<Heart className="w-4 h-4" />}
             >
               Submit feedback

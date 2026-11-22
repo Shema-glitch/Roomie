@@ -32,6 +32,7 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   useBackHandler(isOpen, 100, onClose);
   const dragStartYRef = useRef<number | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -41,7 +42,10 @@ export const Modal: React.FC<ModalProps> = ({
     };
     if (isOpen) {
       if (document.activeElement instanceof HTMLElement) {
+        previousFocusRef.current = document.activeElement;
         document.activeElement.blur();
+      } else {
+        previousFocusRef.current = null;
       }
       setDragOffsetY(0);
       setIsDragging(false);
@@ -51,6 +55,13 @@ export const Modal: React.FC<ModalProps> = ({
       return () => {
         document.body.style.overflow = prevOverflow;
         window.removeEventListener('keydown', handleKeyDown);
+        const target = previousFocusRef.current;
+        previousFocusRef.current = null;
+        if (target && target.isConnected) {
+          requestAnimationFrame(() => {
+            target.focus({ preventScroll: true });
+          });
+        }
       };
     }
   }, [isOpen, onClose]);

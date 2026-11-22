@@ -31,6 +31,7 @@ interface ExpensesScreenProps {
   onClearInitialExpense?: () => void;
   initialAction?: 'add' | 'settle' | 'confirm' | null;
   onClearInitialAction?: () => void;
+  refreshVersion?: number;
   balances: {
     userSummaries: Record<string, number>;
     simplifiedDebts: NetBalance[];
@@ -68,6 +69,9 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
   currency = 'TRY',
   initialExpenseId,
   onClearInitialExpense,
+  initialAction,
+  onClearInitialAction,
+  refreshVersion,
   balances,
   onAddExpense,
   onRespondExpense,
@@ -102,7 +106,7 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
         })
         .catch(() => {});
     }
-  }, [effectiveHouseholdId]);
+  }, [effectiveHouseholdId, refreshVersion]);
 
   const handleAddRecurringBill = async (params: {
     householdId: string;
@@ -149,6 +153,16 @@ export const ExpensesScreen: React.FC<ExpensesScreenProps> = ({
       onClearInitialExpense?.();
     }
   }, [initialExpenseId, expenses, onClearInitialExpense]);
+
+  useEffect(() => {
+    if (!initialAction) return;
+    if (initialAction === 'add') {
+      setAddModalOpen(true);
+    } else if (initialAction === 'settle' || initialAction === 'confirm') {
+      setSettleModalOpen(true);
+    }
+    onClearInitialAction?.();
+  }, [initialAction, onClearInitialAction]);
 
   const myNet = balances.userSummaries[currentUser.id] || 0;
 

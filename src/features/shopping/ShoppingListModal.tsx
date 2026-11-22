@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BottomSheet } from '../../components/ui/overlays';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -30,7 +30,7 @@ export interface ShoppingListModalProps {
   }) => Promise<void>;
   onToggleItemStatus: (itemId: string, newStatus: ShoppingItemStatus) => Promise<void>;
   onDeleteItem: (itemId: string) => Promise<void>;
-  onConvertCartToExpense?: (cartItems: ShoppingItem[]) => void;
+  onConvertCartToExpense?: (cartItems: ShoppingItem[]) => void | Promise<void>;
 }
 
 const CATEGORIES: { id: ShoppingItemCategory; label: string }[] = [
@@ -56,6 +56,19 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
   const [newQuantity, setNewQuantity] = useState('');
   const [newIsLow, setNewIsLow] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFilterTab('all');
+      setNewTitle('');
+      setNewCategory('groceries');
+      setNewQuantity('');
+      setNewIsLow(false);
+      setIsSubmitting(false);
+      setIsConverting(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -69,7 +82,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || isSubmitting) return;
     setIsSubmitting(true);
     try {
       await onAddItem({
@@ -88,12 +101,18 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
     }
   };
 
-  const handleConvertExpense = () => {
-    sound.playSuccess();
-    haptics.swapAccept();
-    onClose();
-    if (onConvertCartToExpense) {
-      onConvertCartToExpense(cartItems);
+  const handleConvertExpense = async () => {
+    if (isConverting || isSubmitting || cartItems.length === 0) return;
+    setIsConverting(true);
+    try {
+      if (onConvertCartToExpense) {
+        await onConvertCartToExpense(cartItems);
+      }
+      sound.playSuccess();
+      haptics.swapAccept();
+      onClose();
+    } finally {
+      setIsConverting(false);
     }
   };
 
@@ -109,6 +128,8 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
             variant="reward"
             size="md"
             fullWidth
+            loading={isConverting}
+            disabled={isConverting || isSubmitting}
             onClick={handleConvertExpense}
             icon={<Receipt weight="bold" className="w-4 h-4" />}
           >

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { WarningCircle } from '@phosphor-icons/react';
 import { useToast } from '../../components/common/Toast';
+import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 
 interface DisputeReasonModalProps {
   isOpen: boolean;
@@ -11,6 +13,8 @@ interface DisputeReasonModalProps {
   onSubmitDispute: (reason: string) => Promise<void>;
 }
 
+const DEFAULT_DISPUTE_REASON = "I didn't use or consume this item";
+
 export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
   isOpen,
   onClose,
@@ -18,12 +22,20 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
   onSubmitDispute,
 }) => {
   const { showToast } = useToast();
-  const [selectedReason, setSelectedReason] = useState<string>("I didn't use or consume this item");
+  const [selectedReason, setSelectedReason] = useState<string>(DEFAULT_DISPUTE_REASON);
   const [customNote, setCustomNote] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedReason(DEFAULT_DISPUTE_REASON);
+      setCustomNote('');
+      setLoading(false);
+    }
+  }, [isOpen]);
+
   const predefinedReasons = [
-    "I didn't use or consume this item",
+    DEFAULT_DISPUTE_REASON,
     "Price looks incorrect or different from receipt",
     "I wasn't home / in town during this period",
     "Already paid my share in cash",
@@ -31,6 +43,7 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
   ];
 
   const handleSubmit = async () => {
+    if (loading) return;
     const finalReason =
       selectedReason === 'Other reason'
         ? customNote.trim() || 'Disputed by roomie'
@@ -39,9 +52,12 @@ export const DisputeReasonModal: React.FC<DisputeReasonModalProps> = ({
     setLoading(true);
     try {
       await onSubmitDispute(finalReason);
+      sound.playCalmNotice();
+      haptics.medium();
       showToast('Dispute recorded calmly. The buyer can review and adjust.', 'info');
       onClose();
     } catch {
+      haptics.warning();
       showToast('Could not record dispute', 'error');
     } finally {
       setLoading(false);

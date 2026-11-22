@@ -7,6 +7,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { Settlement, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import { getCurrencySymbol } from '../../utils/stateTable';
 import {
   HandCoins,
@@ -89,17 +90,20 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
   };
 
   const handleConfirmPaid = async () => {
+    if (loading) return;
     if (!selectedRecipientId || amountNum <= 0) {
       showToast('Please specify valid recipient and amount', 'error');
       return;
     }
 
     setLoading(true);
-    sound.playSuccess();
     try {
       await onMarkPaid(selectedRecipientId, amountNum);
+      sound.playSuccess();
+      haptics.swapAccept();
       setStep(4);
     } catch {
+      haptics.warning();
       showToast('Could not register settlement', 'error');
     } finally {
       setLoading(false);
@@ -107,12 +111,15 @@ export const SettleUpFlowModal: React.FC<SettleUpFlowModalProps> = ({
   };
 
   const handleConfirmReceived = async (settlementId: string) => {
+    if (loading) return;
     setLoading(true);
-    sound.playSuccess();
     try {
       await onConfirmSettlement(settlementId);
+      sound.playSuccess();
+      haptics.awardCelebrate();
       showToast('Payment confirmed and balanced!', 'success');
     } catch {
+      haptics.warning();
       showToast('Could not confirm settlement', 'error');
     } finally {
       setLoading(false);

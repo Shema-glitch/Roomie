@@ -95,6 +95,7 @@ interface AppTabRouterProps {
   setHouseholdSwitcherOpen: (open: boolean) => void;
   setShowOnboarding: (open: boolean) => void;
   loadData: () => Promise<void>;
+  refreshVersion?: number;
 }
 
 export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
@@ -126,6 +127,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
     setHouseholdSwitcherOpen,
     setShowOnboarding,
     loadData,
+    refreshVersion,
   }) => {
     const { showToast } = useToast();
     const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
@@ -297,6 +299,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             pendingJoinRequests={pendingJoinRequests}
             netBalance={myNetBalance}
             dutySchedule={dutySchedule}
+            refreshVersion={refreshVersion}
             onNavigateTab={setActiveTab}
             onOpenChoreReveal={handleOpenChoreReveal}
             onOpenDraftPicks={handleOpenDraftPicks}
@@ -362,6 +365,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
             onClearInitialExpense={handleClearInitialExpense}
             initialAction={selectedExpenseAction}
             onClearInitialAction={handleClearInitialAction}
+            refreshVersion={refreshVersion}
             balances={balances}
             onAddExpense={handleAddExpense}
             onRespondExpense={handleRespondExpense}
@@ -419,6 +423,7 @@ export const AppTabRouter: React.FC<AppTabRouterProps> = React.memo(
           agreements={agreements}
           roommates={roommatesList}
           joinRequests={joinRequests}
+          refreshVersion={refreshVersion}
           onReviewJoinRequest={setReviewJoinRequest}
           onRefreshRequests={async () => {
             const fresh = await api.getJoinRequests(activeHousehold.id);

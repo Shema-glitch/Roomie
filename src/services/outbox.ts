@@ -53,7 +53,11 @@ export type OutboxActionType =
   | 'update_maintenance_issue_status'
   | 'add_move_out_inspection'
   | 'confirm_move_out_inspection'
-  | 'settle_deposit_refund';
+  | 'settle_deposit_refund'
+  | 'save_duty_schedule'
+  | 'award_favor_tokens'
+  | 'submit_feedback'
+  | 'send_expense_reminder';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'quarantined' | 'synced';
 

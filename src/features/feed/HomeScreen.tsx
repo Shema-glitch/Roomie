@@ -82,6 +82,7 @@ interface HomeScreenProps {
   pendingJoinRequests: JoinRequest[];
   netBalance: number;
   dutySchedule?: DutySchedule | null;
+  refreshVersion?: number;
   onNavigateTab: (tab: 'feed' | 'chores' | 'expenses' | 'chat' | 'apartment') => void;
   onOpenChoreReveal: () => void;
   onOpenDraftPicks: () => void;
@@ -109,6 +110,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   pendingJoinRequests,
   netBalance,
   dutySchedule,
+  refreshVersion,
   onNavigateTab,
   onOpenChoreReveal,
   onOpenDraftPicks,
@@ -206,7 +208,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         setPendingSwaps(incoming);
       }).catch(() => {});
     }
-  }, [household?.id, currentUser.id]);
+  }, [household?.id, currentUser.id, refreshVersion]);
 
   const handleVibeSubmit = async (rating: VibeRating) => {
     if (rating === 'stressed' || rating === 'down') {

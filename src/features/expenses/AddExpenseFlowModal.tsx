@@ -9,6 +9,7 @@ import { IconTile } from '../../components/common/IconTile';
 import { Expense, ExpenseCategory, User } from '../../types';
 import { THEME } from '../../theme/tokens';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import { processPhoto } from '../../utils/photoPipeline';
 import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
 import { api } from '../../services/api';
@@ -144,13 +145,13 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     if (!isTitleValid || amountNum <= 0 || participants.length === 0) {
       showToast('Please enter at least 2 characters for the title, a valid amount, and participants', 'error');
       return;
     }
 
     setLoading(true);
-    sound.playSuccess();
     try {
       await onAddExpense(
         cleanTitle,
@@ -160,8 +161,11 @@ export const AddExpenseFlowModal: React.FC<AddExpenseFlowModalProps> = ({
         receiptUrl,
         payerId
       );
+      sound.playSuccess();
+      haptics.success();
       setStep(6);
     } catch {
+      haptics.warning();
       showToast('Could not log expense', 'error');
     } finally {
       setLoading(false);

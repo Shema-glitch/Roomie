@@ -885,6 +885,28 @@ Baseline Tag: `v1.0.0-phase1`
 
 ---
 
+## 37. Core Reliability, Outbox Replay, Sync Telemetry & Accessibility Polish (`feature/core-reliability-and-ux-polish`)
+
+- **Outbox Replay & Supabase Persistence (`supabase/migrations/20261122143351_core_reliability_persistence.sql`, `supabase/schema.sql`, `src/types/database.types.ts`, `src/services/outbox.ts`, `src/services/api/index.ts`, `src/services/api/shared.ts`, `src/services/api/shopping.api.ts`, `src/services/api/social.api.ts`, `src/services/api/chores.api.ts`, `src/services/api/expenses.api.ts`, `src/services/api/system.api.ts`, `src/services/localCache.ts`, `src/features/profile/FeedbackModal.tsx`, `src/components/common/AppModals.tsx`)**:
+  - Wired all 8 previously unhandled `OutboxActionType` handlers (`schedule_cultural_dinner`, `toggle_dinner_rsvp`, `update_dietary_preferences`, `add_shopping_item`, `toggle_shopping_item`, `delete_shopping_item`, `trigger_supermarket_ping`, `update_apartment_info`) plus 4 new action types (`save_duty_schedule`, `award_favor_tokens`, `submit_feedback`, `send_expense_reminder`) inside `processOutboxItem()`.
+  - Fixed constructor context spread in `ApiService` (`src/services/api/index.ts`) so `auth` and `households` preserve live `store` getters across `resetData()` and `deleteAccount()`.
+  - Applied migration adding `public.duty_schedules` (member-scoped RLS + Realtime publication), `public.app_feedback` (owner-scoped RLS), and `SECURITY DEFINER` RPCs (`award_favor_tokens`, `notify_household_reminder`, `delete_my_account`), and wired `ChoresApi` duty schedule persistence, `ExpensesApi.remindRoomies`, `SocialApi.awardFavorTokens`, `FeedbackModal`, and `SystemApi.deleteAccount()` (clean demo reset vs real account leave/scrub + `savedAccounts` & cache cleanup).
+- **Real Sync Telemetry, Deep Links & Realtime Slice Refresh (`src/hooks/useRoomieAppState.ts`, `src/components/common/SyncStatusPanel.tsx`, `src/features/expenses/ExpensesScreen.tsx`, `src/features/expenses/ExpenseDetailModal.tsx`, `src/App.tsx`, `src/components/common/AppTabRouter.tsx`, `src/features/feed/HomeScreen.tsx`, `src/features/members/ApartmentScreen.tsx`)**:
+  - Replaced simulated sync timers with real `window` `'online'` / `'offline'` listeners, `loadData()` error tracking, and `outbox.getPendingCount()` / `outbox.getQuarantinedCount()` inspection; replaced `"Database: Live"` copy in `SyncStatusPanel.tsx` with live queue status.
+  - Handled `initialAction` (`'add' | 'settle' | 'confirm'`) and `onClearInitialAction` in `ExpensesScreen.tsx`, replaced `window.location.origin` with `getPublicInviteOrigin()` in `ExpenseDetailModal.tsx`, and propagated a lightweight `refreshVersion` counter from `loadData()` into `HomeScreen`, `ExpensesScreen`, and `ApartmentScreen`.
+- **Async Double-Submit Locks, Form Resets & Focus Restoration (`AddExpenseFlowModal.tsx`, `SettleUpFlowModal.tsx`, `EditSplitModal.tsx`, `DisputeReasonModal.tsx`, `AddRecurringBillModal.tsx`, `ShoppingListModal.tsx`, `JoinRequestReviewModal.tsx`, `DoneFlowModal.tsx`, `KudosModal.tsx`, `NewChoreModal.tsx`, `MoveOutSnapshotModal.tsx`, `ChoreSwapModal.tsx`, `Modal.tsx`, `CenterDialog.tsx`, `Toast.tsx`, `TenantPassportModal.tsx`)**:
+  - Added double-submit guards across async modal handlers, awaited Shopping cart-to-expense conversion before closing, and moved `sound` + Capacitor `haptics` cues cleanly post-`await`.
+  - Added `isOpen` reset effects across modal forms to clear stale inputs on cancel/reopen.
+  - Captured and restored `previousFocusRef` on close in `Modal.tsx` and `CenterDialog.tsx`, and removed remaining `backdrop-blur-*` classes from `Toast.tsx`, `TenantPassportModal.tsx`, and `CenterDialog.tsx`.
+- **Verification**:
+  - Added 5 unit tests in `src/services/api/coreReliability.test.ts`.
+  - `npm run lint` (`tsc --noEmit`): 0 errors.
+  - `npm test`: **131 / 131 passing** across 20 suites (0 failures, 0 skipped).
+  - `npm run build`: succeeded in **3.78s**, initial JS entry bundle **171.31 kB gzipped** (< 200 KB threshold).
+
+---
+
+
 
 
 

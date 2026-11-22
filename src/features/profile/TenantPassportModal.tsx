@@ -152,7 +152,7 @@ export const TenantPassportModal: React.FC<TenantPassportModalProps> = ({
           </div>
 
           {/* Harmony Score Banner */}
-          <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/10 flex items-center justify-between">
+          <div className="p-3 rounded-2xl bg-white/15 border border-white/15 flex items-center justify-between">
             <div>
               <span className="text-xs uppercase font-bold text-[#FF9278] block">
                 Harmony score

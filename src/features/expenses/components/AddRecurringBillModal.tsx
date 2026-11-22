@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/common/Modal';
 import {
   Buildings,
@@ -55,10 +55,22 @@ export const AddRecurringBillModal: React.FC<AddRecurringBillModalProps> = ({
   const [paidByUserId, setPaidByUserId] = useState(currentUser.id);
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setTitle('');
+      setCategory('rent');
+      setAmountStr('');
+      setDueDay(1);
+      setPaidByUserId(currentUser.id);
+      setSubmitting(false);
+    }
+  }, [isOpen, currentUser.id]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     const cleanTitle = title.trim();
     if (cleanTitle.length < 2) {
       showToast('Please enter at least 2 characters for the bill title', 'error');

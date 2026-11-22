@@ -45,6 +45,7 @@ interface ApartmentScreenProps {
   agreements: HouseAgreement[];
   roommates: User[];
   joinRequests?: JoinRequest[];
+  refreshVersion?: number;
   onReviewJoinRequest?: (req: JoinRequest) => void;
   onRefreshRequests?: () => Promise<void>;
   onShowQR: () => void;
@@ -76,6 +77,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
   agreements,
   roommates,
   joinRequests,
+  refreshVersion,
   onReviewJoinRequest,
   onRefreshRequests,
   onShowQR,
@@ -187,7 +189,7 @@ export const ApartmentScreen: React.FC<ApartmentScreenProps> = ({
         })
         .catch(() => {});
     }
-  }, [household?.id, infoCard]);
+  }, [household?.id, infoCard, refreshVersion]);
 
   const handleUpdateLandlordProfile = async (params: {
     householdId: string;

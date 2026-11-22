@@ -7,6 +7,7 @@ import { calculateBalances } from '../../utils/balances';
 import { supabase } from '../supabase';
 import { OutboxActionType } from '../outbox';
 import { DebugModule } from '../../utils/debugLog';
+import { Json } from '../../types/database.types';
 import {
   AppStore,
   createDomainLogger,
@@ -289,13 +290,57 @@ export class ExpensesApi {
 
   public async remindRoomies(messageText?: string): Promise<void> {
     const hid = this.store.activeHouseholdId;
-    this.ctx.addMessage(
-      hid,
-      null,
-      'activity',
-      messageText || `${this.store.currentUser.name} sent a friendly reminder to settle pending apartment shares.`,
-      { screen: 'expenses' }
-    );
+    const senderName = this.store.currentUser?.name || 'A flatmate';
+    const body =
+      messageText ||
+      `${senderName} sent a friendly reminder to settle pending apartment shares.`;
+    const title = 'Expense Reminder';
+    const linkTarget = { screen: 'expenses' };
+
+    this.ctx.addMessage(hid, null, 'activity', body, linkTarget);
+
+    if (this.store.notifications) {
+      const otherMemberIds = new Set(
+        this.store.memberships
+          .filter(
+            (m) =>
+              m.householdId === hid &&
+              m.status === 'active' &&
+              m.userId !== this.store.currentUser.id
+          )
+          .map((m) => m.userId)
+      );
+      otherMemberIds.forEach((uid) => {
+        this.store.notifications.unshift({
+          id: `notif_exp_rem_${Date.now()}_${uid}`,
+          userId: uid,
+          type: 'expense',
+          title,
+          body,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTarget,
+        });
+      });
+    }
+
+    if (isUuid(hid)) {
+      this.ctx.dispatchRemoteMutation(
+        hid,
+        'expenses',
+        'send_expense_reminder',
+        { householdId: hid, title, body, linkTarget },
+        'Sent shared expense reminder to roommates',
+        async () =>
+          supabase!.rpc('notify_household_reminder', {
+            p_household_id: hid,
+            p_title: title,
+            p_body: body,
+            p_link_target: linkTarget as unknown as Json,
+          })
+      );
+    }
+
     this.ctx.save();
   }
 

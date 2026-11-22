@@ -35,23 +35,29 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      api.getFavorTokenBalance().then(setUserTokens).catch(() => {});
-      api.auth.getCurrentUser().then((currentUser) => {
-        api.getSwapRequests().then((reqs) => {
-          const incoming = reqs.filter(
-            (r) => r.targetUserId === currentUser.id && r.status === 'pending'
-          );
-          setPendingSwaps(incoming);
-        }).catch(() => {});
-      }).catch(() => {});
+    if (!isOpen) {
+      setSelectedRoommateId('');
+      setTokenCost(1);
+      setNote('');
+      setLoading(false);
+      return;
     }
+
+    api.getFavorTokenBalance().then(setUserTokens).catch(() => {});
+    api.auth.getCurrentUser().then((currentUser) => {
+      api.getSwapRequests().then((reqs) => {
+        const incoming = reqs.filter(
+          (r) => r.targetUserId === currentUser.id && r.status === 'pending'
+        );
+        setPendingSwaps(incoming);
+      }).catch(() => {});
+    }).catch(() => {});
   }, [isOpen]);
 
   if (!chore) return null;
 
   const handleConfirm = async () => {
-    if (!selectedRoommateId) return;
+    if (loading || !selectedRoommateId) return;
     if (userTokens < tokenCost) {
       showToast('Not enough favor tokens for this swap offer', 'error');
       return;
@@ -59,9 +65,9 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
 
     setLoading(true);
     try {
+      await onSwap(chore.id, selectedRoommateId, tokenCost, note);
       haptics.tokenClink();
       sound.tokenClink();
-      await onSwap(chore.id, selectedRoommateId, tokenCost, note);
       const target = roommates.find((r) => r.id === selectedRoommateId);
       showToast(
         `Chore swap offered to ${target?.name.split(' ')[0]} with ${tokenCost} Favor Token!`,
@@ -69,6 +75,7 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
       );
       onClose();
     } catch {
+      haptics.warning();
       showToast('Swap request failed', 'error');
     } finally {
       setLoading(false);
@@ -76,6 +83,8 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
   };
 
   const handleResolveIncoming = async (requestId: string, action: 'accept' | 'decline') => {
+    if (loading) return;
+    setLoading(true);
     try {
       const res = await api.resolveSwapRequest(requestId, action);
       if (!res.success) {
@@ -105,7 +114,10 @@ export const ChoreSwapModal: React.FC<ChoreSwapModalProps> = ({
       setUserTokens(updatedTokens);
       setPendingSwaps((prev) => prev.filter((r) => r.id !== requestId));
     } catch {
+      haptics.warning();
       showToast('Action failed', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 

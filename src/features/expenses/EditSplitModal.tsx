@@ -4,6 +4,7 @@ import { Button } from '../../components/common/Button';
 import { Avatar } from '../../components/common/Avatar';
 import { Expense, User } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import { useToast } from '../../components/common/Toast';
 import { CheckCircle, GitFork, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { getCurrencySymbol } from '../../utils/stateTable';
@@ -90,21 +91,24 @@ export const EditSplitModal: React.FC<EditSplitModalProps> = ({
   };
 
   const handleSave = async () => {
+    if (saving) return;
     if (!isBalanced) {
       showToast(`Total shares must equal ${sym}${expense.amount.toFixed(2)} (Diff: ${sym}${diff.toFixed(2)})`, 'error');
       return;
     }
     setSaving(true);
-    sound.playSuccess();
     try {
       const adjusted = Object.entries(shares).map(([userId, shareAmount]) => ({
         userId,
         shareAmount,
       }));
       await onSaveSplit(expense.id, adjusted);
-      showToast('Split updated and dispute resolved! 🤝', 'success');
+      sound.playSuccess();
+      haptics.success();
+      showToast('Split updated and dispute resolved!', 'success');
       onClose();
     } catch {
+      haptics.warning();
       showToast('Could not save adjusted split', 'error');
     } finally {
       setSaving(false);

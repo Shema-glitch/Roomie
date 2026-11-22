@@ -92,6 +92,7 @@ function MainApp() {
     unreadNotifsCount,
     loadData,
     handleManualSync,
+    refreshVersion,
   } = useRoomieAppState(handleOpenJoinHousehold);
 
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
@@ -530,6 +531,7 @@ function MainApp() {
               setHouseholdSwitcherOpen={setHouseholdSwitcherOpen}
               setShowOnboarding={setShowOnboarding}
               loadData={loadData}
+              refreshVersion={refreshVersion}
             />
           </div>
         </main>

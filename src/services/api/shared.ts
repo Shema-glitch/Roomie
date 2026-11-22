@@ -1320,6 +1320,7 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
     type === 'submit_vibe_pulse' ||
     type === 'propose_chore_swap' ||
     type === 'resolve_chore_swap' ||
+    type === 'award_favor_tokens' ||
     type === 'schedule_cultural_dinner' ||
     type === 'toggle_dinner_rsvp' ||
     type === 'update_dietary_preferences' ||
@@ -1332,6 +1333,9 @@ export function getDebugModuleForOutboxType(type: OutboxActionType): DebugModule
     return 'social';
   }
   if (type === 'update_apartment_info') return 'auth';
+  if (type === 'submit_feedback') return 'outbox';
+  if (type === 'send_expense_reminder') return 'expenses';
+  if (type === 'save_duty_schedule') return 'chores_draft';
   if (
     type === 'add_recurring_bill' ||
     type === 'update_recurring_bill' ||

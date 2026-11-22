@@ -1030,5 +1030,61 @@ CREATE POLICY "Roomie releases public read" ON storage.objects
   FOR SELECT TO anon, authenticated
   USING (bucket_id = 'releases');
 
+-- ------------------------------------------------------------------------------
+-- 23. WEEKLY DUTY SCHEDULES & IN-APP FEEDBACK & RELIABILITY RPCS
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.duty_schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id UUID NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  week_start_date DATE NOT NULL,
+  entries JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  version INTEGER NOT NULL DEFAULT 1,
+  UNIQUE (household_id, week_start_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_duty_schedules_household_week
+  ON public.duty_schedules (household_id, week_start_date DESC);
+
+CREATE TRIGGER trg_duty_schedules_version BEFORE UPDATE ON public.duty_schedules
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_and_version();
+
+ALTER TABLE public.duty_schedules ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT, UPDATE ON public.duty_schedules TO authenticated;
+
+CREATE POLICY "Duty schedules viewable by members" ON public.duty_schedules
+  FOR SELECT TO authenticated USING (public.is_household_member(household_id));
+CREATE POLICY "Duty schedules insertable by members" ON public.duty_schedules
+  FOR INSERT TO authenticated WITH CHECK (public.is_household_member(household_id));
+CREATE POLICY "Duty schedules updatable by members" ON public.duty_schedules
+  FOR UPDATE TO authenticated
+  USING (public.is_household_member(household_id))
+  WITH CHECK (public.is_household_member(household_id));
+
+CREATE TABLE IF NOT EXISTS public.app_feedback (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  household_id UUID NULL REFERENCES public.households(id) ON DELETE SET NULL,
+  category TEXT NOT NULL CHECK (category IN ('rate', 'problem', 'feature')),
+  rating INTEGER NULL CHECK (rating IS NULL OR (rating BETWEEN 1 AND 5)),
+  message TEXT NOT NULL CHECK (char_length(trim(message)) BETWEEN 1 AND 2000),
+  app_version TEXT NOT NULL DEFAULT '',
+  platform TEXT NOT NULL DEFAULT 'web',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_feedback_user_created
+  ON public.app_feedback (user_id, created_at DESC);
+
+ALTER TABLE public.app_feedback ENABLE ROW LEVEL SECURITY;
+GRANT SELECT, INSERT ON public.app_feedback TO authenticated;
+
+CREATE POLICY "Users can view own feedback" ON public.app_feedback
+  FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
+CREATE POLICY "Users can submit own feedback" ON public.app_feedback
+  FOR INSERT TO authenticated WITH CHECK (user_id = (SELECT auth.uid()));
+
+
 
 

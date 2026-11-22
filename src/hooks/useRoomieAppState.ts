@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { api, isUuid } from '../services/api';
+import { outbox } from '../services/outbox';
 import { supabase } from '../services/supabase';
 import { localCache } from '../services/localCache';
 import { sound } from '../services/sound';
@@ -61,10 +62,21 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     setPendingInviteCodeState(code);
   }, []);
 
-  const [isOffline, setIsOffline] = useState<boolean>(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatusType>('synced');
+  const [isOffline, setIsOffline] = useState<boolean>(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine === false : false
+  );
+  const [syncStatus, setSyncStatus] = useState<SyncStatusType>(() => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return 'offline';
+    }
+    if (outbox.getQuarantinedCount() > 0 || outbox.getPendingCount() > 0) {
+      return 'needs_attention';
+    }
+    return 'synced';
+  });
   const [lastSyncedTime, setLastSyncedTime] = useState<string>('Just now');
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshVersion, setRefreshVersion] = useState<number>(0);
 
   // Synchronous 0ms hydration from cached household snapshot
   const initialSnapshot = useMemo(() => localCache.hydrateOnBoot(api.store), []);
@@ -212,24 +224,67 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
 
       localCache.syncSnapshotFromStore(api.store, activeH.id);
       await api.checkDutyDayReminder();
+
+      setRefreshVersion((prev) => prev + 1);
+      const offlineNow = typeof navigator !== 'undefined' && navigator.onLine === false;
+      setIsOffline(offlineNow);
+      if (offlineNow) {
+        setSyncStatus('offline');
+      } else if (outbox.getQuarantinedCount() > 0 || outbox.getPendingCount() > 0) {
+        setSyncStatus('needs_attention');
+      } else {
+        setSyncStatus('synced');
+        setLastSyncedTime(
+          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        );
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Could not load apartment data.';
       setLoadError(msg);
+      const offlineNow = typeof navigator !== 'undefined' && navigator.onLine === false;
+      setIsOffline(offlineNow);
+      setSyncStatus(offlineNow ? 'offline' : 'needs_attention');
     }
   }, []);
 
-  const handleManualSync = useCallback(() => {
+  const handleManualSync = useCallback(async () => {
     sound.playTap();
+    const offlineNow = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (offlineNow) {
+      setIsOffline(true);
+      setSyncStatus('offline');
+      showToast('You are offline. Changes stay safely queued until reconnected.', 'info');
+      return;
+    }
+
+    setIsOffline(false);
     setSyncStatus('syncing');
-    setTimeout(() => {
-      setSyncStatus('synced');
-      setIsOffline(false);
-      setLastSyncedTime(
-        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      );
-      showToast('Synced with apartment database', 'info');
-      loadData();
-    }, 1000);
+    try {
+      await outbox.flush();
+      await loadData();
+      const remainingPending = outbox.getPendingCount();
+      const quarantined = outbox.getQuarantinedCount();
+      if (quarantined > 0 || remainingPending > 0) {
+        setSyncStatus('needs_attention');
+        showToast(
+          quarantined > 0
+            ? `${quarantined} queued change(s) need attention`
+            : `${remainingPending} change(s) still waiting to sync`,
+          'warning'
+        );
+      } else {
+        setSyncStatus('synced');
+        setLastSyncedTime(
+          new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        );
+        showToast('Synced with apartment database', 'info');
+      }
+    } catch {
+      const stillOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      setIsOffline(stillOffline);
+      setSyncStatus(stillOffline ? 'offline' : 'needs_attention');
+      showToast('Could not complete sync right now', 'error');
+    }
   }, [loadData, showToast]);
 
   const roommatesList = useMemo(() => members.map((m) => m.user), [members]);
@@ -322,6 +377,28 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
       unsubAuth();
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOffline = () => {
+      setIsOffline(true);
+      setSyncStatus('offline');
+    };
+    const handleOnline = () => {
+      setIsOffline(false);
+      setSyncStatus('syncing');
+      void outbox.flush().finally(() => {
+        void loadData();
+      });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loadData]);
 
   useEffect(() => {
     if (!activeHousehold?.id) return;
@@ -456,5 +533,6 @@ export function useRoomieAppState(onOpenJoinHousehold: () => void) {
     unreadNotifsCount,
     loadData,
     handleManualSync,
+    refreshVersion,
   };
 }

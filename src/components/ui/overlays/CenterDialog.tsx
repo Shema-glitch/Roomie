@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from '@phosphor-icons/react';
 import { sound } from '../../../services/sound';
@@ -30,11 +30,15 @@ export const CenterDialog: React.FC<CenterDialogProps> = ({
   showClose = true,
 }) => {
   useBackHandler(isOpen, 120, onClose);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     if (document.activeElement instanceof HTMLElement) {
+      previousFocusRef.current = document.activeElement;
       document.activeElement.blur();
+    } else {
+      previousFocusRef.current = null;
     }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -45,6 +49,13 @@ export const CenterDialog: React.FC<CenterDialogProps> = ({
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', handleKeyDown);
+      const target = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (target && target.isConnected) {
+        requestAnimationFrame(() => {
+          target.focus({ preventScroll: true });
+        });
+      }
     };
   }, [isOpen, onClose]);
 
@@ -56,7 +67,7 @@ export const CenterDialog: React.FC<CenterDialogProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-[2px] animate-fade-in motion-reduce:animate-none"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 animate-fade-in motion-reduce:animate-none"
       onClick={onClose}
     >
       <div

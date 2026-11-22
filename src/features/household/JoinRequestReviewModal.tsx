@@ -33,6 +33,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
 }) => {
   const { showToast } = useToast();
   const [confirmOverride, setConfirmOverride] = useState<boolean>(false);
+  const [voting, setVoting] = useState<boolean>(false);
   const [deciding, setDeciding] = useState<boolean>(false);
   if (!joinRequest) return null;
 
@@ -45,13 +46,18 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
   const myVote = joinRequest.votes?.find((v) => v.userId === currentUser.id)?.vote;
 
   const handleVote = async (vote: 'ok' | 'unsure') => {
+    if (voting || deciding) return;
+    setVoting(true);
     try {
+      await onVote(joinRequest.id, vote);
       sound.playTap();
       haptics.light();
-      await onVote(joinRequest.id, vote);
       showToast(`You voted "${vote === 'ok' ? 'OK' : 'Not sure'}"`, 'info');
     } catch {
+      haptics.warning();
       showToast('Could not register vote', 'error');
+    } finally {
+      setVoting(false);
     }
   };
 
@@ -123,6 +129,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
             <Button
               variant={myVote === 'ok' ? 'primary' : 'secondary'}
               size="md"
+              disabled={voting || deciding}
               onClick={() => handleVote('ok')}
               icon={<Check className="w-4 h-4" />}
             >
@@ -131,6 +138,7 @@ export const JoinRequestReviewModal: React.FC<JoinRequestReviewModalProps> = ({
             <Button
               variant={myVote === 'unsure' ? 'danger-outline' : 'secondary'}
               size="md"
+              disabled={voting || deciding}
               onClick={() => handleVote('unsure')}
               icon={<Question className="w-4 h-4" />}
             >

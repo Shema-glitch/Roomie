@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../../components/common/Modal';
 import { Button } from '../../../components/common/Button';
 import { Chore } from '../../../types';
@@ -26,6 +26,16 @@ export const NewChoreModal: React.FC<NewChoreModalProps> = ({
   const [effort, setEffort] = useState<'light' | 'medium' | 'heavy'>('medium');
   const [desc, setDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setName('');
+      setFrequency('daily');
+      setEffort('medium');
+      setDesc('');
+      setSubmitting(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

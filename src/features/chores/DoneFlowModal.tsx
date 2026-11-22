@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Card } from '../../components/common/Card';
@@ -7,6 +7,7 @@ import { MascotView } from '../../components/common/MascotView';
 import { AnimatedNumber } from '../../components/common/AnimatedNumber';
 import { Chore, User } from '../../types';
 import { sound } from '../../services/sound';
+import { haptics } from '../../utils/haptics';
 import { IconTile } from '../../components/common/IconTile';
 import { processPhoto } from '../../utils/photoPipeline';
 import { buildScopedStoragePath, uploadPhotoToStorage } from '../../services/supabase';
@@ -37,6 +38,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
   const [photoDetails, setPhotoDetails] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep(1);
+      setPhotoUrl('');
+      setPhotoDetails('');
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!chore) return null;
 
@@ -73,12 +83,15 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
   };
 
   const handleFinish = async () => {
+    if (loading) return;
     setLoading(true);
     try {
-      sound.playCelebration();
       await onComplete(chore.id, photoUrl || undefined);
+      sound.playCelebration();
+      haptics.awardCelebrate();
       setStep(3); // Celebration screen
     } catch {
+      haptics.warning();
       showToast('Could not record chore completion', 'error');
     } finally {
       setLoading(false);
@@ -88,6 +101,7 @@ export const DoneFlowModal: React.FC<DoneFlowModalProps> = ({
   const handleClose = () => {
     setStep(1);
     setPhotoUrl('');
+    setPhotoDetails('');
     onClose();
   };
 

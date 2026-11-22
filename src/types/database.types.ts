@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_feedback: {
+        Row: {
+          app_version: string
+          category: string
+          created_at: string
+          household_id: string | null
+          id: string
+          message: string
+          platform: string
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string
+          category: string
+          created_at?: string
+          household_id?: string | null
+          id?: string
+          message: string
+          platform?: string
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          app_version?: string
+          category?: string
+          created_at?: string
+          household_id?: string | null
+          id?: string
+          message?: string
+          platform?: string
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_feedback_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_releases: {
         Row: {
           created_at: string
@@ -535,6 +586,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "draft_rounds_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      duty_schedules: {
+        Row: {
+          created_at: string
+          entries: Json
+          household_id: string
+          id: string
+          updated_at: string
+          version: number
+          week_start_date: string
+        }
+        Insert: {
+          created_at?: string
+          entries?: Json
+          household_id: string
+          id?: string
+          updated_at?: string
+          version?: number
+          week_start_date: string
+        }
+        Update: {
+          created_at?: string
+          entries?: Json
+          household_id?: string
+          id?: string
+          updated_at?: string
+          version?: number
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duty_schedules_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
@@ -1688,10 +1777,21 @@ export type Database = {
     }
     Functions: {
       approve_join_request: { Args: { p_request_id: string }; Returns: Json }
+      award_favor_tokens: {
+        Args: {
+          p_amount: number
+          p_household_id: string
+          p_note?: string | null
+          p_reason?: string
+          p_target_user_id: string
+        }
+        Returns: Json
+      }
       confirm_move_out_inspection: {
         Args: { p_inspection_id: string }
         Returns: boolean
       }
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: Json }
       is_household_member: { Args: { h_id: string }; Returns: boolean }
       join_household_by_code: { Args: { p_code: string }; Returns: Json }
       leave_household_self: { Args: { p_household_id: string }; Returns: Json }
@@ -1706,6 +1806,15 @@ export type Database = {
           invites_enabled: boolean
           name: string
         }[]
+      }
+      notify_household_reminder: {
+        Args: {
+          p_body: string
+          p_household_id: string
+          p_link_target?: Json
+          p_title: string
+        }
+        Returns: Json
       }
       remove_household_member: {
         Args: { p_household_id: string; p_target_user_id: string }

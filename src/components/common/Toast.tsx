@@ -151,7 +151,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               key={toast.id}
               role="status"
               aria-live="polite"
-              className={`pointer-events-auto relative overflow-hidden w-full mx-auto max-w-[360px] rounded-2xl border-2 border-b-4 px-3.5 py-2.5 shadow-lg backdrop-blur-sm flex items-center gap-3 transition-all duration-150 ease-out animate-fade-up motion-reduce:animate-none ${style.surfaceClass}`}
+              className={`pointer-events-auto relative overflow-hidden w-full mx-auto max-w-[360px] rounded-2xl border-2 border-b-4 px-3.5 py-2.5 shadow-lg flex items-center gap-3 transition-all duration-150 ease-out animate-fade-up motion-reduce:animate-none ${style.surfaceClass}`}
             >
               <span
                 aria-hidden="true"
